@@ -1,0 +1,78 @@
+/* app/components/HeroSection.css */
+
+.hero {
+    position: relative;
+    height: 100vh;
+    width: 100%;
+    overflow: hidden;
+}
+
+/* VIDEO 100% PURE, SANS OVERLAY */
+.video-background {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    width: 100%;
+    height: 100%;
+
+    /* Remplit tout l'écran sans bandes noires, en gardant le bas visible */
+    object-fit: cover;
+    object-position: center bottom;
+
+    z-index: 1;
+}
+
+/* CONTENU AU-DESSUS DE LA VIDEO */
+.hero-content {
+    position: relative;
+    z-index: 10;
+    height: 100%;
+    padding: 0 24px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+/* GRAND TITRE */
+.hero-title {
+    font-size: clamp(60px, 8vw, 120px);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 0;
+    color: #ffffff;
+
+    text-shadow:
+            0 6px 28px rgba(0, 0, 0, 0.55),
+            0 0 16px rgba(0, 0, 0, 0.35);
+}
+
+/* SOUS-TITRE */
+.hero-subtitle {
+    font-size: clamp(36px, 5vw, 64px);
+    font-weight: 600;
+    margin-top: 15px;
+    color: #ffffff;
+
+    text-shadow:
+            0 4px 20px rgba(0, 0, 0, 0.45),
+            0 0 12px rgba(0, 0, 0, 0.35);
+}
+
+/* VERSET */
+.hero-verse {
+    margin-top: 35px;
+    font-size: clamp(20px, 2.2vw, 28px);
+    max-width: 900px;
+    line-height: 1.7;
+    color: #ffffff;
+
+    text-shadow:
+            0 3px 14px rgba(0, 0, 0, 0.75),
+            0 0 8px rgba(0, 0, 0, 0.5);
+}
