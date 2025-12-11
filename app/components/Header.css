@@ -1,0 +1,118 @@
+/* app/components/Header.css */
+
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 90px;
+    padding: 0 60px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    z-index: 30;
+
+    transition:
+            background-color 0.25s ease,
+            border-bottom-color 0.25s ease,
+            box-shadow 0.25s ease,
+            padding 0.25s ease;
+}
+
+/* Transparent sur la vidéo */
+.header-top {
+    background: rgba(255, 255, 255, 0.28);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(6px);
+}
+
+/* Fond blanc quand on scroll */
+.header-scrolled {
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(10, 42, 67, 0.1);
+    box-shadow: 0 4px 18px rgba(0,0,0,0.06);
+}
+
+/* Logo */
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo-img {
+    height: 58px;
+}
+
+.logo-text {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: #0a2a43;
+}
+
+/* NAVIGATION */
+.nav {
+    display: flex;
+    gap: 36px;
+}
+
+.nav button {
+    background: none;
+    border: none;
+    cursor: pointer;
+
+    font-size: 22px;
+    font-weight: 600;
+    color: #134b7b;
+
+    padding-bottom: 3px;
+    position: relative;
+}
+
+/* Underline effect */
+.nav button::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+
+    width: 0;
+    height: 3px;
+    background-color: #134b7b;
+
+    transition: width .18s ease-out;
+}
+
+.nav button:hover::after {
+    width: 100%;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .header {
+        padding: 0 20px;
+        height: 64px;
+    }
+
+    .logo-img {
+        height: 32px;
+    }
+
+    .logo-text {
+        font-size: 16px;
+        letter-spacing: .12em;
+    }
+
+    .nav {
+        gap: 18px;
+    }
+
+    .nav button {
+        font-size: 15px;
+    }
+}
