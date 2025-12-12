@@ -1,4 +1,3 @@
-// app/components/Header.jsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -15,23 +14,36 @@ export default function Header() {
     }, []);
 
     const scrollToSection = (id) => {
+        // Cas "Acasă" : on force vraiment en haut
+        if (id === "acasa") {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+            return;
+        }
+
         const element = document.getElementById(id);
         if (!element) return;
-        element.scrollIntoView({ behavior: "smooth" });
+
+        // Offset = hauteur du header
+        const header = document.querySelector(".header");
+        const headerHeight = header?.offsetHeight ?? 90;
+
+        const y = element.getBoundingClientRect().top + window.scrollY - headerHeight - 12;
+
+        window.scrollTo({ top: y, behavior: "smooth" });
     };
 
     return (
         <header className={`header ${scrolled ? "header-scrolled" : "header-top"}`}>
-            <div className="brand">
+            <div className="brand" onClick={() => scrollToSection("acasa")} role="button" tabIndex={0}>
                 <img src="/logo.png" alt="Bethel Dworp logo" className="logo-img" />
                 <div className="logo-text">Bethel Dworp</div>
             </div>
 
             <nav className="nav">
-                <button onClick={() => scrollToSection("acasa")}>Acasă</button>
-                <button onClick={() => scrollToSection("despre-noi")}>Cine suntem</button>
-                <button onClick={() => scrollToSection("program")}>Program</button>
-                <button onClick={() => scrollToSection("contact")}>Contact</button>
+                <button type="button" onClick={() => scrollToSection("acasa")}>Acasă</button>
+                <button type="button" onClick={() => scrollToSection("despre-noi")}>Cine suntem</button>
+                <button type="button" onClick={() => scrollToSection("program")}>Program</button>
+                <button type="button" onClick={() => scrollToSection("contact")}>Contact</button>
             </nav>
         </header>
     );
