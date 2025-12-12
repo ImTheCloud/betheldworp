@@ -1,0 +1,129 @@
+.contact-section {
+    background: #ffffff;
+    padding: 160px 24px 180px;
+    display: flex;
+    justify-content: center;
+}
+
+.contact-content {
+    width: 100%;
+    max-width: 1100px;
+}
+
+.contact-title {
+    font-size: clamp(50px, 7vw, 90px);
+    font-weight: 800;
+    color: #0a2a43;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin: 0 0 40px 0;
+    text-align: left;
+}
+
+/* Form card clean */
+.contact-form {
+    border-radius: 26px;
+    padding: 26px;
+    background: rgba(10, 42, 67, 0.03);
+    border: 1px solid rgba(10, 42, 67, 0.10);
+}
+
+.contact-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.contact-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.contact-field--full {
+    grid-column: 1 / -1;
+}
+
+.contact-field span {
+    font-size: 13px;
+    font-weight: 900;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(10, 42, 67, 0.72);
+}
+
+.contact-field input,
+.contact-field textarea {
+    border-radius: 16px;
+    border: 1px solid rgba(10, 42, 67, 0.14);
+    background: rgba(255, 255, 255, 0.96);
+    padding: 14px 14px;
+    font-size: 16px;
+    color: rgba(10, 42, 67, 0.92);
+    outline: none;
+}
+
+.contact-field textarea {
+    resize: vertical;
+    min-height: 160px;
+}
+
+.contact-field input:focus,
+.contact-field textarea:focus {
+    border-color: rgba(19, 75, 123, 0.45);
+    box-shadow: 0 0 0 4px rgba(19, 75, 123, 0.12);
+}
+
+/* Button */
+.contact-btn {
+    margin-top: 16px;
+    width: fit-content;
+
+    cursor: pointer;
+    border: 0;
+    border-radius: 999px;
+    padding: 14px 18px;
+    font-size: 16px;
+    font-weight: 900;
+    letter-spacing: 0.02em;
+
+    background: rgba(10, 42, 67, 0.96);
+    color: #ffffff;
+
+    box-shadow: 0 18px 50px rgba(6, 24, 50, 0.22);
+    transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+
+.contact-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 22px 60px rgba(6, 24, 50, 0.28);
+}
+
+@media (max-width: 900px) {
+    .contact-section {
+        padding: 120px 18px 140px;
+    }
+
+    .contact-title {
+        text-align: center;
+    }
+
+    .contact-fields {
+        grid-template-columns: 1fr;
+    }
+
+    .contact-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 600px) {
+    .contact-section {
+        padding: 90px 16px 110px;
+    }
+
+    .contact-form {
+        padding: 18px;
+    }
+}
