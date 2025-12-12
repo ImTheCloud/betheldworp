@@ -1,7 +1,7 @@
-// app/page.js
 import Header from "./components/Header";
 import HeroSection from "./components/HeroSection";
 import AboutSection from "./components/AboutSection";
+import ProgramSection from "./components/ProgramSection";
 
 import "./globals.css";
 
@@ -10,7 +10,7 @@ export default function Home() {
         <>
             <Header />
             <main>
-                <section className="hero-stack">
+                <section id="acasa" className="hero-stack">
                     <div className="hero-stack-hero">
                         <HeroSection />
                     </div>
@@ -20,7 +20,8 @@ export default function Home() {
                     </div>
                 </section>
 
-                {/* plus tard : Program, Contact etc. */}
+                <ProgramSection />
+
             </main>
         </>
     );
