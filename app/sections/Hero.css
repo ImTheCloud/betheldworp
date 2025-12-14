@@ -17,7 +17,6 @@
     width: 100%;
     height: 100%;
 
-    /* Remplit tout l'écran sans bandes noires, en gardant le bas visible */
     object-fit: cover;
     object-position: center bottom;
 
@@ -47,9 +46,7 @@
     margin: 0;
     color: #ffffff;
 
-    text-shadow:
-            0 6px 28px rgba(0, 0, 0, 0.55),
-            0 0 16px rgba(0, 0, 0, 0.35);
+    text-shadow: 0 6px 28px rgba(0, 0, 0, 0.55), 0 0 16px rgba(0, 0, 0, 0.35);
 }
 
 /* SOUS-TITRE */
@@ -59,20 +56,72 @@
     margin-top: 15px;
     color: #ffffff;
 
-    text-shadow:
-            0 4px 20px rgba(0, 0, 0, 0.45),
-            0 0 12px rgba(0, 0, 0, 0.35);
+    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.45), 0 0 12px rgba(0, 0, 0, 0.35);
 }
 
-/* VERSET */
-.hero-verse {
-    margin-top: 35px;
-    font-size: clamp(20px, 2.2vw, 28px);
-    max-width: 900px;
-    line-height: 1.7;
+/* ✅ VERSE CARD (propre, dans le thème) */
+.hero-verseCard {
+    margin-top: 34px;
+    width: min(960px, 100%);
+    padding: 18px 18px 16px;
+    border-radius: 22px;
+
+    background: rgba(255, 255, 255, 0.10);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    backdrop-filter: blur(10px);
+
+    box-shadow: 0 18px 55px rgba(0, 0, 0, 0.28);
+}
+
+.hero-verseBadge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 10px 16px;
+    border-radius: 999px;
+
+    background: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+
+    color: rgba(255, 255, 255, 0.95);
+    font-weight: 900;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-size: 13px;
+
+    text-shadow: 0 3px 14px rgba(0, 0, 0, 0.45);
+}
+
+.hero-verseText {
+    margin: 14px 0 10px 0;
+    font-size: clamp(26px, 2.8vw, 38px);
+    line-height: 1.55;
     color: #ffffff;
 
     text-shadow:
             0 3px 14px rgba(0, 0, 0, 0.75),
             0 0 8px rgba(0, 0, 0, 0.5);
+}
+
+.hero-verseHint {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    color: rgba(255, 255, 255, 0.86);
+
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .hero-verseCard {
+        padding: 16px 14px 14px;
+        border-radius: 18px;
+    }
+
+    .hero-verseHint {
+        font-size: 14px;
+    }
 }
