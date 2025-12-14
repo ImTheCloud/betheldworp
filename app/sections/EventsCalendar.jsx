@@ -2,6 +2,8 @@
 
 // app/sections/EventsCalendar.jsx
 import { useMemo, useState } from "react";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { db } from "../lib/Firebase";
 import "./EventsCalendar.css";
 
 const CHURCH_NAME = "Biserica Penticostala BETHEL Dworp";
@@ -134,9 +136,11 @@ export default function EventsCalendar() {
         try {
             setSending(true);
 
-            // Demo front-only for now
-            // Later: replace with POST /api/newsletter
-            await new Promise((r) => setTimeout(r, 650));
+            // Save to Firestore: collection name must be exactly "newsleter"
+            await addDoc(collection(db, "newsleter"), {
+                email: cleanEmail,
+                createdAt: serverTimestamp(),
+            });
 
             setSuccess(true);
             setEmail("");
