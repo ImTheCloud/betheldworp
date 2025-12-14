@@ -1,0 +1,431 @@
+/* app/sections/EventsCalendar.css */
+
+/* ===== SECTION ===== */
+.ec-section {
+    position: relative;
+    padding: 160px 24px 180px;
+    display: flex;
+    justify-content: center;
+    background: #ffffff;
+}
+
+.ec-content {
+    width: 100%;
+    max-width: 1100px;
+}
+
+.ec-title {
+    font-size: clamp(50px, 7vw, 90px);
+    font-weight: 800;
+    color: #0a2a43;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin: 0 0 40px 0;
+    text-align: left;
+}
+
+/* ===== CALENDAR CARD ===== */
+.ec-card {
+    border-radius: 24px;
+    background: rgba(10, 42, 67, 0.03);
+    border: 1px solid rgba(10, 42, 67, 0.08);
+    padding: 18px;
+}
+
+.ec-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.ec-month {
+    font-size: clamp(22px, 2.2vw, 30px);
+    font-weight: 900;
+    color: #0a2a43;
+    letter-spacing: 0.04em;
+    text-transform: capitalize;
+}
+
+.ec-navBtn {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    border: 1px solid rgba(19, 75, 123, 0.18);
+    background: rgba(19, 75, 123, 0.10);
+    color: rgba(19, 75, 123, 0.98);
+    font-weight: 900;
+    font-size: 22px;
+    cursor: pointer;
+    transition: transform 150ms ease, box-shadow 150ms ease;
+}
+
+.ec-navBtn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 16px 36px rgba(6, 24, 50, 0.12);
+}
+
+/* ===== WEEKDAYS ===== */
+.ec-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.ec-weekday {
+    text-align: center;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(10, 42, 67, 0.75);
+    font-size: 12px;
+}
+
+/* ===== GRID ===== */
+.ec-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+}
+
+/* ===== CELL ===== */
+.ec-cell {
+    position: relative;
+    border-radius: 16px;
+    height: 160px;
+    border: 1px solid rgba(10, 42, 67, 0.10);
+    background: #ffffff;
+    overflow: hidden;
+    transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
+}
+
+.ec-blank {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    height: 160px;
+}
+
+.ec-cell:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 18px 45px rgba(6, 24, 50, 0.10);
+}
+
+.ec-cell.is-today {
+    border-color: rgba(19, 75, 123, 0.22);
+}
+
+.ec-cell.has-events {
+    border-color: rgba(19, 75, 123, 0.20);
+}
+
+/* ===== DAY BADGE ===== */
+.ec-dayBadge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 5;
+
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    font-weight: 900;
+    color: #0a2a43;
+
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(10, 42, 67, 0.12);
+    backdrop-filter: blur(6px);
+}
+
+/* ===== EMPTY BODY ===== */
+.ec-emptyBody {
+    width: 100%;
+    height: 100%;
+}
+
+/* ===== EVENT FULL CELL BUTTON ===== */
+.ec-eventCellBtn {
+    position: absolute;
+    inset: 0;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    background: transparent;
+}
+
+.ec-eventBg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transform: scale(1.02);
+    transition: transform 220ms ease;
+}
+
+.ec-eventCellBtn:hover .ec-eventBg {
+    transform: scale(1.06);
+}
+
+/* overlay gradient + initials */
+.ec-eventOverlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-start;
+    padding: 12px;
+
+    background: linear-gradient(
+            to top,
+            rgba(10, 42, 67, 0.68),
+            rgba(10, 42, 67, 0.12),
+            rgba(10, 42, 67, 0.00)
+    );
+}
+
+.ec-eventInitials {
+    color: #ffffff;
+    font-weight: 900;
+    font-size: 14px;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+
+    padding: 10px 12px;
+    border-radius: 999px;
+
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    backdrop-filter: blur(8px);
+}
+
+/* ===== MODAL OVERLAY ===== */
+.ev-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 120;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: rgba(10, 42, 67, 0.35);
+    backdrop-filter: blur(8px);
+    animation: ev-overlayFade 0.35s ease;
+}
+
+@keyframes ev-overlayFade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* ===== MODAL ===== */
+.ev-modal {
+    width: min(920px, 92vw);
+    background: #ffffff;
+    border-radius: 28px;
+    border: 1px solid rgba(10, 42, 67, 0.12);
+
+    box-shadow: 0 40px 140px rgba(6, 24, 50, 0.45);
+    animation: ev-modalEnter 0.45s cubic-bezier(.2,.8,.2,1);
+
+    max-height: 86vh;
+    display: flex;
+    flex-direction: column;
+}
+
+@keyframes ev-modalEnter {
+    from { opacity: 0; transform: scale(0.96) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ===== MODAL HEADER ===== */
+.ev-header {
+    padding: 26px 34px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex: 0 0 auto;
+}
+
+.ev-couple {
+    margin: 0;
+    font-size: clamp(22px, 2.4vw, 34px);
+    font-weight: 900;
+    letter-spacing: 0.02em;
+    color: #0a2a43;
+}
+
+.ev-close {
+    width: 46px;
+    height: 46px;
+    border-radius: 999px;
+    border: 1px solid rgba(10, 42, 67, 0.15);
+    background: rgba(255, 255, 255, 0.95);
+    color: rgba(10, 42, 67, 0.9);
+    font-size: 28px;
+    cursor: pointer;
+    flex: 0 0 auto;
+}
+
+/* ===== MODAL BODY ===== */
+.ev-body {
+    flex: 1 1 auto;
+    overflow: auto;
+    padding: 0 34px 34px;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* image */
+.ev-heroImgWrap {
+    margin-top: 6px;
+    overflow: hidden;
+    border-radius: 22px;
+    border: 1px solid rgba(10, 42, 67, 0.10);
+    box-shadow: 0 22px 65px rgba(6, 24, 50, 0.14);
+    background: #fff;
+}
+
+.ev-heroImg {
+    width: 100%;
+    height: clamp(240px, 30vw, 360px);
+    object-fit: cover;
+    display: block;
+}
+
+/* info cards */
+.ev-infoGrid {
+    margin-top: 18px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.ev-infoCard {
+    border-radius: 18px;
+    padding: 14px 14px 12px;
+    background: rgba(10, 42, 67, 0.03);
+    border: 1px solid rgba(10, 42, 67, 0.10);
+}
+
+.ev-infoCard--wide {
+    grid-column: 1 / -1;
+}
+
+.ev-infoLabel {
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(10, 42, 67, 0.65);
+    margin-bottom: 8px;
+}
+
+.ev-infoValue {
+    font-size: 16px;
+    font-weight: 900;
+    color: rgba(10, 42, 67, 0.92);
+    line-height: 1.35;
+}
+
+.ev-infoSub {
+    display: block;
+    margin-top: 6px;
+    font-size: 14px;
+    font-weight: 800;
+    color: rgba(10, 42, 67, 0.70);
+}
+
+/* map */
+.ev-mapCard {
+    margin-top: 16px;
+    overflow: hidden;
+    border-radius: 22px;
+    background: #ffffff;
+    border: 1px solid rgba(10, 42, 67, 0.10);
+    box-shadow: 0 22px 65px rgba(6, 24, 50, 0.14);
+}
+
+.ev-map {
+    width: 100%;
+    height: clamp(220px, 24vw, 320px);
+    border: 0;
+    display: block;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 900px) {
+    .ec-section {
+        padding: 120px 18px 140px;
+    }
+
+    .ec-title {
+        text-align: center;
+        margin-bottom: 32px;
+    }
+
+    .ec-cell,
+    .ec-blank {
+        height: 145px;
+    }
+}
+
+@media (max-width: 700px) {
+    .ev-overlay {
+        align-items: flex-end;
+    }
+
+    .ev-modal {
+        width: 100%;
+        border-radius: 26px 26px 0 0;
+        max-height: 82vh;
+    }
+
+    .ev-header {
+        padding: 18px 16px 10px;
+    }
+
+    .ev-body {
+        padding: 0 16px 20px;
+    }
+
+    .ev-heroImg {
+        height: 220px;
+    }
+
+    .ev-map {
+        height: 220px;
+    }
+}
+
+@media (max-width: 600px) {
+    .ec-section {
+        padding: 90px 16px 110px;
+    }
+
+    .ec-card {
+        padding: 14px;
+    }
+
+    .ec-grid,
+    .ec-weekdays {
+        gap: 8px;
+    }
+
+    .ec-cell,
+    .ec-blank {
+        height: 132px;
+    }
+
+    .ec-eventInitials {
+        font-size: 13px;
+        padding: 9px 11px;
+    }
+}
