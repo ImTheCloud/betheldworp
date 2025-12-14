@@ -9,6 +9,7 @@ import Events from "./sections/EventsCalendar";
 
 import "./globals.css";
 import Gallery from "./sections/Gallery";
+import Donations from "./sections/Donations";
 
 export default function Home() {
     return (
@@ -32,6 +33,7 @@ export default function Home() {
 
 
                 <Location />
+                <Donations />
 
                 <Footer />
 

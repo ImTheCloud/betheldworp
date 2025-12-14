@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import emailjs from "@emailjs/browser";
 import "./ContactWidget.css";
 
@@ -18,12 +18,32 @@ export default function ContactWidget() {
     const intervalRef = useRef(null);
     const timeoutRef = useRef(null);
 
-    const stopTimers = () => {
+    const stopTimers = useCallback(() => {
         if (intervalRef.current) clearInterval(intervalRef.current);
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
         intervalRef.current = null;
         timeoutRef.current = null;
+    }, []);
+
+    // Expose "open" globally for Header
+    const openWidget = useCallback(() => {
+        localStorage.setItem("bethel_contact_clicked", "1");
+        stopTimers();
+        setPulse(false);
+        setOpen(true);
+    }, [stopTimers]);
+
+    const close = () => {
+        if (sending) return;
+        setOpen(false);
     };
+
+    // Listen to open event from Header
+    useEffect(() => {
+        const handler = () => openWidget();
+        window.addEventListener("bethel:open-contact", handler);
+        return () => window.removeEventListener("bethel:open-contact", handler);
+    }, [openWidget]);
 
     // Pulse: 2 pulses toutes les 10s, MAIS s'arrête définitivement après 1er clic
     useEffect(() => {
@@ -33,15 +53,12 @@ export default function ContactWidget() {
         intervalRef.current = setInterval(() => {
             if (open) return;
 
-            // Pulse 1
             setPulse(true);
 
             timeoutRef.current = setTimeout(() => {
                 setPulse(false);
 
-                // Pause
                 timeoutRef.current = setTimeout(() => {
-                    // Pulse 2
                     setPulse(true);
 
                     timeoutRef.current = setTimeout(() => {
@@ -52,25 +69,12 @@ export default function ContactWidget() {
         }, 10000);
 
         return () => stopTimers();
-    }, [open]);
+    }, [open, stopTimers]);
 
     // stop pulse dès qu'on ouvre
     useEffect(() => {
         if (open) setPulse(false);
     }, [open]);
-
-    const openWidget = () => {
-        // stop pulse définitivement après le 1er clic
-        localStorage.setItem("bethel_contact_clicked", "1");
-        stopTimers();
-        setPulse(false);
-        setOpen(true);
-    };
-
-    const close = () => {
-        if (sending) return;
-        setOpen(false);
-    };
 
     const onSend = async (e) => {
         e.preventDefault();
@@ -138,9 +142,7 @@ export default function ContactWidget() {
                             {success ? (
                                 <div className="cw-success">
                                     <div className="cw-success-title">Mesaj trimis ✅</div>
-                                    <div className="cw-success-sub">
-                                        Vă vom răspunde cât mai curând.
-                                    </div>
+                                    <div className="cw-success-sub">Vă vom răspunde cât mai curând.</div>
                                 </div>
                             ) : (
                                 <form className="cw-form" onSubmit={onSend}>
