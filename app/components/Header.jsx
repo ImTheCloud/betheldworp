@@ -14,7 +14,6 @@ export default function Header() {
     }, []);
 
     const scrollToSection = (id) => {
-        // Cas "Acasă" : on force vraiment en haut
         if (id === "acasa") {
             window.scrollTo({ top: 0, behavior: "smooth" });
             return;
@@ -23,18 +22,25 @@ export default function Header() {
         const element = document.getElementById(id);
         if (!element) return;
 
-        // Offset = hauteur du header
         const header = document.querySelector(".header");
         const headerHeight = header?.offsetHeight ?? 90;
 
         const y = element.getBoundingClientRect().top + window.scrollY - headerHeight - 12;
-
         window.scrollTo({ top: y, behavior: "smooth" });
+    };
+
+    const openContact = () => {
+        window.dispatchEvent(new Event("bethel:open-contact"));
     };
 
     return (
         <header className={`header ${scrolled ? "header-scrolled" : "header-top"}`}>
-            <div className="brand" onClick={() => scrollToSection("acasa")} role="button" tabIndex={0}>
+            <div
+                className="brand"
+                onClick={() => scrollToSection("acasa")}
+                role="button"
+                tabIndex={0}
+            >
                 <img src="/logo.png" alt="Bethel Dworp logo" className="logo-img" />
                 <div className="logo-text">Bethel Dworp</div>
             </div>
@@ -43,7 +49,10 @@ export default function Header() {
                 <button type="button" onClick={() => scrollToSection("acasa")}>Acasă</button>
                 <button type="button" onClick={() => scrollToSection("despre-noi")}>Cine suntem</button>
                 <button type="button" onClick={() => scrollToSection("program")}>Program</button>
-                <button type="button" onClick={() => scrollToSection("contact")}>Contact</button>
+                <button type="button" onClick={() => scrollToSection("evenimente")}>Evenimente</button>
+                <button type="button" onClick={() => scrollToSection("galerie")}>Galerie</button>
+                <button type="button" onClick={() => scrollToSection("locatie")}>Locație</button>
+                <button type="button" onClick={openContact}>Contact</button>
             </nav>
         </header>
     );

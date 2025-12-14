@@ -1,0 +1,285 @@
+/* app/sections/Donations.css */
+
+.don-section {
+    position: relative;
+    padding: 160px 24px 180px;
+    display: flex;
+    justify-content: center;
+    background: #ffffff;
+}
+
+.don-content {
+    width: 100%;
+    max-width: 1100px;
+}
+
+.don-title {
+    font-size: clamp(50px, 7vw, 90px);
+    font-weight: 800;
+    color: #0a2a43;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin: 0 0 40px 0;
+    text-align: left;
+}
+
+/* Equal columns + equal height */
+.don-card {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+    align-items: stretch;
+
+    padding: 18px;
+    border-radius: 22px;
+
+    background: rgba(10, 42, 67, 0.03);
+    border: 1px solid rgba(10, 42, 67, 0.10);
+    box-shadow: 0 18px 55px rgba(6, 24, 50, 0.08);
+}
+
+.don-left,
+.don-right {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Column title */
+.don-gridTitle {
+    font-size: 16px;
+    font-weight: 900;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(10, 42, 67, 0.72);
+    margin-bottom: 12px;
+}
+
+.don-leftTitle {
+    /* just a tiny tighten */
+    margin-bottom: 12px;
+}
+
+/* Payment box */
+.don-payBox {
+    padding: 16px 16px 14px;
+    border-radius: 18px;
+
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(10, 42, 67, 0.12);
+}
+
+.don-stack {
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(10, 42, 67, 0.08);
+}
+
+.don-k {
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(10, 42, 67, 0.55);
+}
+
+.don-v {
+    margin-top: 8px;
+    font-size: 18px;
+    font-weight: 900;
+    color: #0a2a43;
+    line-height: 1.25;
+    word-break: break-word;
+}
+
+.don-v--mono {
+    letter-spacing: 0.06em;
+}
+
+/* IBAN row + button */
+.don-rowIban {
+    padding-top: 12px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 12px;
+}
+
+.don-rowLeft {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.don-copyBtn {
+    flex: 0 0 auto;
+    padding: 12px 16px;
+    border-radius: 999px;
+    border: 0;
+    cursor: pointer;
+
+    background: rgba(10, 42, 67, 0.96);
+    color: #ffffff;
+
+    font-size: 14px;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+
+    box-shadow: 0 18px 55px rgba(6, 24, 50, 0.16);
+    transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+
+.don-copyBtn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 24px 70px rgba(6, 24, 50, 0.20);
+}
+
+/* Descriere (discrete) */
+.don-desc {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed rgba(10, 42, 67, 0.14);
+}
+
+.don-descTitle {
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(10, 42, 67, 0.55);
+}
+
+.don-descText {
+    margin-top: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    color: rgba(10, 42, 67, 0.66);
+    line-height: 1.55;
+}
+
+/* Verse card pinned to bottom of left column */
+.don-verse {
+    margin-top: auto;
+    padding: 18px 18px 16px;
+    border-radius: 18px;
+
+    background: linear-gradient(to right, rgba(10, 42, 67, 0.96), rgba(22, 70, 120, 0.96));
+    color: #ffffff;
+
+    box-shadow: 0 22px 65px rgba(6, 24, 50, 0.22);
+}
+
+.don-verseTitle {
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    opacity: 0.95;
+    margin-bottom: 10px;
+}
+
+.don-verseText {
+    font-size: 18px;
+    line-height: 1.65;
+    font-weight: 800;
+    margin: 0;
+}
+
+/* Right cards */
+.don-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+.don-option {
+    padding: 16px 16px 14px;
+    border-radius: 18px;
+
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(10, 42, 67, 0.12);
+
+    transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+
+.don-option:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 18px 55px rgba(6, 24, 50, 0.10);
+}
+
+.don-optionTop {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.don-optionTitle {
+    font-size: 18px;
+    font-weight: 900;
+    color: #0a2a43;
+}
+
+.don-tag {
+    padding: 8px 12px;
+    border-radius: 999px;
+
+    background: rgba(19, 75, 123, 0.10);
+    border: 1px solid rgba(19, 75, 123, 0.18);
+
+    color: rgba(19, 75, 123, 0.98);
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.don-optionDesc {
+    margin-top: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    color: rgba(10, 42, 67, 0.72);
+    line-height: 1.55;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .don-section {
+        padding: 120px 18px 140px;
+    }
+
+    .don-title {
+        text-align: center;
+        margin-bottom: 32px;
+    }
+
+    .don-card {
+        grid-template-columns: 1fr;
+        align-items: start;
+    }
+
+    .don-rowIban {
+        grid-template-columns: 1fr;
+        align-items: stretch;
+    }
+
+    .don-copyBtn {
+        width: 100%;
+    }
+
+    .don-verse {
+        margin-top: 16px; /* reset for mobile */
+    }
+}
+
+@media (max-width: 600px) {
+    .don-section {
+        padding: 90px 16px 110px;
+    }
+
+    .don-card {
+        padding: 16px 14px;
+        border-radius: 18px;
+    }
+}
