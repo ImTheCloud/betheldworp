@@ -1,11 +1,11 @@
 "use client";
 
+// app/sections/EventsCalendar.jsx
 import { useMemo, useState } from "react";
 import "./EventsCalendar.css";
 
 const CHURCH_NAME = "Biserica Penticostala BETHEL Dworp";
 const CHURCH_ADDRESS = "Alsembergsesteenweg 572, 1653 Beersel";
-
 const WEDDING_IMAGE = "/image/wedding/Nunta.png";
 
 const EVENTS = [
@@ -20,7 +20,7 @@ const EVENTS = [
     },
     {
         id: "w1",
-        couple: "Emanuel & Emima",
+        couple: "Plăcintă Emanuel & Emima",
         date: "2026-04-12",
         time: "10:00 - 12:00",
         place: CHURCH_NAME,
@@ -29,7 +29,7 @@ const EVENTS = [
     },
     {
         id: "w2",
-        couple: "Bogdan & Rebeka",
+        couple: "Tudose Bogdan & Croitor Rebeka",
         date: "2026-04-26",
         time: "10:00 - 12:00",
         place: CHURCH_NAME,
@@ -41,7 +41,6 @@ const EVENTS = [
 const WEEKDAY_LABELS = ["Lu", "Ma", "Mi", "Jo", "Vi", "Sâ", "Du"];
 
 function getMondayIndex(jsDay) {
-    // JS: 0=Sun..6=Sat => Monday-first: 0=Mon..6=Sun
     return (jsDay + 6) % 7;
 }
 
@@ -64,20 +63,12 @@ function formatMonthRo(firstOfMonth) {
 }
 
 function getInitialsFromCouple(couple) {
-    // Expected: "Name1 & Name2"
-    // Fallback: take first letter of first two words
     if (!couple) return "";
     const parts = couple.split("&").map((p) => p.trim()).filter(Boolean);
-
     const first = parts[0]?.split(" ").filter(Boolean)[0]?.[0] ?? "";
     const second = parts[1]?.split(" ").filter(Boolean)[0]?.[0] ?? "";
-
     if (first && second) return `${first} & ${second}`;
-
-    const words = couple.split(" ").filter(Boolean);
-    const a = words[0]?.[0] ?? "";
-    const b = words[1]?.[0] ?? "";
-    return a && b ? `${a}${b}` : a || b || "";
+    return first || second || "";
 }
 
 export default function EventsCalendar() {
@@ -85,27 +76,78 @@ export default function EventsCalendar() {
     const todayKey = `${today.getFullYear()}-${pad2(today.getMonth() + 1)}-${pad2(today.getDate())}`;
 
     const eventsByDate = useMemo(() => {
-        // One event max per day
         const map = new Map();
-        for (const ev of EVENTS) map.set(ev.date, ev);
+        for (const ev of EVENTS) map.set(ev.date, ev); // max 1 event per day
         return map;
     }, []);
 
     const initialMonth = useMemo(() => {
-        // If there's an event today, start on today's month; otherwise on first event month.
         if (eventsByDate.has(todayKey)) return new Date(today.getFullYear(), today.getMonth(), 1);
         const firstEvent = EVENTS[0] ? new Date(`${EVENTS[0].date}T00:00:00`) : today;
         return new Date(firstEvent.getFullYear(), firstEvent.getMonth(), 1);
     }, [eventsByDate, todayKey, today]);
 
     const [month, setMonth] = useState(initialMonth);
-    const [isOpen, setIsOpen] = useState(false);
+
+    // Event modal
+    const [eventOpen, setEventOpen] = useState(false);
     const [selectedId, setSelectedId] = useState(EVENTS[0]?.id ?? null);
 
     const selectedEvent = useMemo(
         () => EVENTS.find((e) => e.id === selectedId) ?? null,
         [selectedId]
     );
+
+    // Newsletter form state (under calendar)
+    const [email, setEmail] = useState("");
+    const [gdpr, setGdpr] = useState(false);
+    const [sending, setSending] = useState(false);
+    const [success, setSuccess] = useState(false);
+    const [error, setError] = useState("");
+
+    const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+
+    const openEvent = (ev) => {
+        setSelectedId(ev.id);
+        setEventOpen(true);
+    };
+
+    const closeEvent = () => setEventOpen(false);
+
+    const onSubscribe = async (e) => {
+        e.preventDefault();
+        setError("");
+        setSuccess(false);
+
+        const cleanEmail = email.trim();
+
+        if (!isValidEmail(cleanEmail)) {
+            setError("Te rugăm să introduci un email valid.");
+            return;
+        }
+
+        if (!gdpr) {
+            setError("Trebuie să accepți acordul GDPR pentru a te înscrie.");
+            return;
+        }
+
+        try {
+            setSending(true);
+
+            // Demo front-only for now
+            // Later: replace with POST /api/newsletter
+            await new Promise((r) => setTimeout(r, 650));
+
+            setSuccess(true);
+            setEmail("");
+            setGdpr(false);
+        } catch (err) {
+            console.error(err);
+            setError("A apărut o eroare. Încearcă din nou.");
+        } finally {
+            setSending(false);
+        }
+    };
 
     const calendarCells = useMemo(() => {
         const year = month.getFullYear();
@@ -116,7 +158,6 @@ export default function EventsCalendar() {
         const startOffset = getMondayIndex(firstDay.getDay());
 
         const cells = [];
-
         for (let i = 0; i < startOffset; i++) cells.push({ type: "blank", key: `blank-${i}` });
 
         for (let day = 1; day <= daysInMonth; day++) {
@@ -132,19 +173,11 @@ export default function EventsCalendar() {
         }
 
         while (cells.length % 7 !== 0) cells.push({ type: "blank", key: `blank-end-${cells.length}` });
-
         return cells;
     }, [month, eventsByDate, today]);
 
     const goPrevMonth = () => setMonth((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1));
     const goNextMonth = () => setMonth((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1));
-
-    const openEvent = (ev) => {
-        setSelectedId(ev.id);
-        setIsOpen(true);
-    };
-
-    const closeModal = () => setIsOpen(false);
 
     const mapQuery = selectedEvent
         ? encodeURIComponent(`${selectedEvent.place}, ${selectedEvent.address}`)
@@ -200,7 +233,6 @@ export default function EventsCalendar() {
                                                 aria-label={cell.event.couple}
                                             >
                                                 <img className="ec-eventBg" src={cell.event.image} alt="Event" />
-
                                                 <div className="ec-eventOverlay" aria-hidden="true">
                                                     <div className="ec-eventInitials">{initials}</div>
                                                 </div>
@@ -213,22 +245,70 @@ export default function EventsCalendar() {
                             })}
                         </div>
                     </div>
+
+                    {/* ===== Newsletter directly under calendar ===== */}
+                    <div className="nl-inlineWrap">
+                        <div className="nl-inlineCard">
+                            <div className="nl-inlineLeft">
+                                <div className="nl-inlineTitle">Primește evenimente pe email</div>
+                                <div className="nl-inlineSub">
+                                    Abonează-te și vei primi anunțuri când apar evenimente noi.
+                                </div>
+                            </div>
+
+                            <div className="nl-inlineRight">
+                                {success ? (
+                                    <div className="nl-inlineSuccess">
+                                        Înscriere reușită ✅
+                                        <div className="nl-inlineSuccessSub">Mulțumim! Vei primi următoarele evenimente pe email.</div>
+                                    </div>
+                                ) : (
+                                    <form className="nl-inlineForm" onSubmit={onSubscribe}>
+                                        <label className="nl-inlineField">
+                                            <span>Email</span>
+                                            <input
+                                                value={email}
+                                                onChange={(e) => setEmail(e.target.value)}
+                                                placeholder="ex: nume@email.com"
+                                                autoComplete="email"
+                                                inputMode="email"
+                                                disabled={sending}
+                                            />
+                                        </label>
+
+                                        <label className="nl-inlineGdpr">
+                                            <input
+                                                type="checkbox"
+                                                checked={gdpr}
+                                                onChange={(e) => setGdpr(e.target.checked)}
+                                                disabled={sending}
+                                            />
+                                            <span>
+                        Sunt de acord să primesc emailuri și accept prelucrarea datelor conform GDPR.
+                      </span>
+                                        </label>
+
+                                        {error && <div className="nl-inlineError">{error}</div>}
+
+                                        <button className="nl-inlineBtn" type="submit" disabled={sending}>
+                                            {sending ? "Se trimite..." : "Înscrie-mă"}
+                                        </button>
+                                    </form>
+                                )}
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
-            {isOpen && selectedEvent && (
-                <div className="ev-overlay" onClick={closeModal}>
+            {/* ===== EVENT MODAL ===== */}
+            {eventOpen && selectedEvent && (
+                <div className="ev-overlay" onClick={closeEvent}>
                     <div className="ev-modal" onClick={(e) => e.stopPropagation()}>
                         <header className="ev-header">
                             <h2 className="ev-couple">{selectedEvent.couple}</h2>
 
-                            <button
-                                type="button"
-                                className="ev-close"
-                                onClick={closeModal}
-                                aria-label="Close"
-                                title="Close"
-                            >
+                            <button type="button" className="ev-close" onClick={closeEvent} aria-label="Close" title="Close">
                                 ×
                             </button>
                         </header>
