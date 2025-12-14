@@ -8,6 +8,7 @@ import ContactWidget from "./components/ContactWidget";
 import Events from "./sections/EventsCalendar";
 
 import "./globals.css";
+import Gallery from "./sections/Gallery";
 
 export default function Home() {
     return (
@@ -27,6 +28,8 @@ export default function Home() {
 
                 <Program />
                 <Events />
+                <Gallery />
+
 
                 <Location />
 
