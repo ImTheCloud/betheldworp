@@ -3,6 +3,7 @@ import Header from "./components/Header";
 import Hero from "./sections/Hero";
 import About from "./sections/About";
 import Program from "./sections/Program";
+import Location from "./sections/Location"; // ✅ NEW
 import Footer from "./components/Footer";
 import ContactWidget from "./components/ContactWidget";
 
@@ -14,7 +15,6 @@ export default function Home() {
             <Header />
 
             <main>
-                {/* HERO + ABOUT en stack */}
                 <section className="hero-stack">
                     <div className="hero-stack-hero">
                         <Hero />
@@ -25,13 +25,13 @@ export default function Home() {
                     </div>
                 </section>
 
-                {/* PROGRAM */}
                 <Program />
 
-                {/* FOOTER */}
+                {/* ✅ ADRESĂ + MAPS (en dernier après Program) */}
+                <Location />
+
                 <Footer />
 
-                {/* CONTACT FLOATING */}
                 <ContactWidget />
             </main>
         </>
