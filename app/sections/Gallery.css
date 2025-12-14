@@ -1,0 +1,454 @@
+/* app/sections/Gallery.css */
+
+.gal-section {
+    position: relative;
+    padding: 160px 24px 180px;
+    display: flex;
+    justify-content: center;
+    background: #ffffff;
+}
+
+.gal-content {
+    width: 100%;
+    max-width: 1100px;
+}
+
+.gal-title {
+    font-size: clamp(50px, 7vw, 90px);
+    font-weight: 800;
+    color: #0a2a43;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin: 0 0 40px 0;
+    text-align: left;
+}
+
+/* ===== Images grid ===== */
+.gal-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 14px;
+}
+
+.gal-card {
+    position: relative;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+
+    border-radius: 22px;
+    overflow: hidden;
+
+    background: rgba(10, 42, 67, 0.03);
+    border: 1px solid rgba(10, 42, 67, 0.10);
+
+    box-shadow: 0 18px 55px rgba(6, 24, 50, 0.08);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.gal-card {
+    grid-column: span 6;
+    aspect-ratio: 16 / 10;
+}
+
+.gal-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transform: scale(1.02);
+    transition: transform 0.25s ease;
+}
+
+.gal-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 28px 80px rgba(6, 24, 50, 0.14);
+}
+
+.gal-card:hover .gal-img {
+    transform: scale(1.06);
+}
+
+/* ===== Videos ===== */
+.gal-videos {
+    margin-top: 46px;
+}
+
+.gal-subtitle {
+    font-size: clamp(28px, 3.2vw, 44px);
+    font-weight: 900;
+    color: #0a2a43;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin: 0 0 16px 0;
+}
+
+/* Featured */
+.gal-featured {
+    position: relative;
+    width: 100%;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+
+    border-radius: 24px;
+    overflow: hidden;
+
+    background: rgba(10, 42, 67, 0.03);
+    border: 1px solid rgba(10, 42, 67, 0.10);
+    box-shadow: 0 18px 55px rgba(6, 24, 50, 0.08);
+
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.gal-featuredThumb {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    display: block;
+    transform: scale(1.02);
+    transition: transform 0.25s ease;
+}
+
+.gal-featured:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 28px 80px rgba(6, 24, 50, 0.14);
+}
+
+.gal-featured:hover .gal-featuredThumb {
+    transform: scale(1.06);
+}
+
+.gal-featuredOverlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-start;
+    padding: 16px;
+
+    background: linear-gradient(
+            to top,
+            rgba(10, 42, 67, 0.62),
+            rgba(10, 42, 67, 0.18),
+            rgba(10, 42, 67, 0)
+    );
+}
+
+.gal-featuredPlay {
+    width: 58px;
+    height: 58px;
+    border-radius: 999px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 28px;
+    font-weight: 900;
+    color: #ffffff;
+
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    backdrop-filter: blur(10px);
+}
+
+/* ===== Row scroller (no arrows) ===== */
+.gal-rowScroller {
+    margin-top: 14px;
+}
+
+.gal-rowOutside {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 280px;
+    gap: 14px;
+
+    overflow-x: auto;
+    padding-bottom: 10px;
+
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+}
+
+.gal-rowOutside::-webkit-scrollbar {
+    height: 10px;
+}
+
+.gal-rowOutside::-webkit-scrollbar-thumb {
+    background: rgba(10, 42, 67, 0.18);
+    border-radius: 999px;
+}
+
+.gal-rowCard {
+    scroll-snap-align: start;
+
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+
+    border-radius: 22px;
+    overflow: hidden;
+
+    background: rgba(10, 42, 67, 0.03);
+    border: 1px solid rgba(10, 42, 67, 0.10);
+    box-shadow: 0 18px 55px rgba(6, 24, 50, 0.08);
+
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.gal-rowCard:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 28px 80px rgba(6, 24, 50, 0.14);
+}
+
+.gal-rowThumbWrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+}
+
+.gal-rowThumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transform: scale(1.02);
+    transition: transform 0.25s ease;
+}
+
+.gal-rowCard:hover .gal-rowThumb {
+    transform: scale(1.06);
+}
+
+.gal-rowPlay {
+    position: absolute;
+    left: 12px;
+    bottom: 12px;
+
+    width: 42px;
+    height: 42px;
+    border-radius: 999px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 18px;
+    font-weight: 900;
+    color: #ffffff;
+
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    backdrop-filter: blur(10px);
+}
+
+/* ===== YouTube channel CTA (real SVG icon, no background) ===== */
+.gal-ytCta {
+    margin-top: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+
+    padding: 16px 18px;
+    border-radius: 18px;
+
+    background: rgba(10, 42, 67, 0.03);
+    border: 1px solid rgba(10, 42, 67, 0.10);
+    box-shadow: 0 18px 55px rgba(6, 24, 50, 0.08);
+
+    text-decoration: none;
+    color: #0a2a43;
+
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.gal-ytCta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 28px 80px rgba(6, 24, 50, 0.14);
+}
+
+.gal-ytSvg {
+    width: 44px;
+    height: 44px;
+    flex: 0 0 auto;
+}
+
+.gal-ytText {
+    font-size: 16px;
+    font-weight: 900;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    line-height: 1.2;
+    flex: 1 1 auto;
+}
+
+.gal-ytArrow {
+    font-size: 22px;
+    font-weight: 900;
+    color: rgba(19, 75, 123, 0.96);
+    flex: 0 0 auto;
+}
+
+/* ===== Modal ===== */
+.gal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 120;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: rgba(10, 42, 67, 0.35);
+    backdrop-filter: blur(8px);
+    animation: galFade 0.35s ease;
+}
+
+@keyframes galFade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.gal-modal {
+    width: min(1100px, 92vw);
+    max-height: 86vh;
+
+    border-radius: 28px;
+    overflow: hidden;
+
+    background: #ffffff;
+    border: 1px solid rgba(10, 42, 67, 0.12);
+    box-shadow: 0 40px 140px rgba(6, 24, 50, 0.45);
+
+    position: relative;
+    animation: galEnter 0.45s cubic-bezier(.2,.8,.2,1);
+}
+
+@keyframes galEnter {
+    from { opacity: 0; transform: scale(0.96) translateY(18px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.gal-modal--video {
+    background: #0b1622;
+}
+
+.gal-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+
+    width: 46px;
+    height: 46px;
+    border-radius: 999px;
+
+    border: 1px solid rgba(10, 42, 67, 0.15);
+    background: rgba(255, 255, 255, 0.92);
+    color: rgba(10, 42, 67, 0.9);
+    font-size: 28px;
+    cursor: pointer;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+}
+
+.gal-modalImg {
+    width: 100%;
+    height: min(86vh, 720px);
+    object-fit: contain;
+    display: block;
+    background: #ffffff;
+}
+
+/* Video iframe */
+.gal-videoFrameWrap {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #0b1622;
+}
+
+.gal-videoFrame {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+    background: #0b1622;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 900px) {
+    .gal-section {
+        padding: 120px 18px 140px;
+    }
+
+    .gal-title {
+        text-align: center;
+        margin-bottom: 32px;
+    }
+
+    .gal-card {
+        grid-column: span 12;
+        aspect-ratio: 16 / 11;
+    }
+
+    .gal-rowOutside {
+        grid-auto-columns: 260px;
+    }
+}
+
+@media (max-width: 600px) {
+    .gal-section {
+        padding: 90px 16px 110px;
+    }
+
+    .gal-grid {
+        gap: 12px;
+    }
+
+    .gal-card,
+    .gal-featured,
+    .gal-rowCard {
+        border-radius: 18px;
+    }
+
+    .gal-rowOutside {
+        grid-auto-columns: 240px;
+    }
+
+    .gal-ytText {
+        font-size: 13px;
+        letter-spacing: 0.06em;
+    }
+
+    .gal-ytCta {
+        padding: 14px 14px;
+        border-radius: 16px;
+    }
+
+    .gal-ytSvg {
+        width: 40px;
+        height: 40px;
+    }
+}
+
+/* Mobile: modal bottom sheet */
+@media (max-width: 700px) {
+    .gal-overlay {
+        align-items: flex-end;
+    }
+
+    .gal-modal {
+        width: 100%;
+        border-radius: 26px 26px 0 0;
+        max-height: 82vh;
+    }
+
+    .gal-modalImg {
+        height: 82vh;
+    }
+}
