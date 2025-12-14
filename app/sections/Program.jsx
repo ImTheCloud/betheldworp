@@ -1,4 +1,4 @@
-import "./ProgramSection.css";
+import "./Program.css";
 
 const PROGRAM = [
     {
@@ -33,7 +33,7 @@ const PROGRAM = [
     },
 ];
 
-export default function ProgramSection() {
+export default function Program() {
     return (
         <section id="program" className="program-section">
             <div className="program-content">

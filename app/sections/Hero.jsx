@@ -1,7 +1,7 @@
-// app/components/HeroSection.jsx
-import "./HeroSection.css";
+// app/components/Hero.jsx
+import "./Hero.css";
 
-export default function HeroSection() {
+export default function Hero() {
     return (
         <section id="acasa" className="hero">
             <video
