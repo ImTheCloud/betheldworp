@@ -1,8 +1,8 @@
 // app/page.js
 import Header from "./components/Header";
-import HeroSection from "./components/HeroSection";
-import AboutSection from "./components/AboutSection";
-import ProgramSection from "./components/ProgramSection";
+import Hero from "./sections/Hero";
+import About from "./sections/About";
+import Program from "./sections/Program";
 import Footer from "./components/Footer";
 import ContactWidget from "./components/ContactWidget";
 
@@ -17,16 +17,16 @@ export default function Home() {
                 {/* HERO + ABOUT en stack */}
                 <section className="hero-stack">
                     <div className="hero-stack-hero">
-                        <HeroSection />
+                        <Hero />
                     </div>
 
                     <div className="hero-stack-about">
-                        <AboutSection />
+                        <About />
                     </div>
                 </section>
 
                 {/* PROGRAM */}
-                <ProgramSection />
+                <Program />
 
                 {/* FOOTER */}
                 <Footer />

@@ -1,7 +1,7 @@
-// app/components/AboutSection.jsx
-import "./AboutSection.css";
+// app/components/About.jsx
+import "./About.css";
 
-export default function AboutSection() {
+export default function About() {
     return (
         <section id="despre-noi" className="about-section">
             <div className="about-content">

@@ -18,45 +18,59 @@ export default function ContactWidget() {
     const intervalRef = useRef(null);
     const timeoutRef = useRef(null);
 
-    // Pulse: 2 pulses toutes les 10s (tant que la modale n'est pas ouverte)
+    const stopTimers = () => {
+        if (intervalRef.current) clearInterval(intervalRef.current);
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        intervalRef.current = null;
+        timeoutRef.current = null;
+    };
+
+    // Pulse: 2 pulses toutes les 10s, MAIS s'arrête définitivement après 1er clic
     useEffect(() => {
-        const startPulseLoop = () => {
-            // toutes les 10s on déclenche une séquence de 2 pulses
-            intervalRef.current = setInterval(() => {
-                if (open) return;
+        const alreadyClicked = localStorage.getItem("bethel_contact_clicked") === "1";
+        if (alreadyClicked) return;
 
-                // Pulse ON
-                setPulse(true);
+        intervalRef.current = setInterval(() => {
+            if (open) return;
 
-                // OFF après 1.6s (1 pulse)
+            // Pulse 1
+            setPulse(true);
+
+            timeoutRef.current = setTimeout(() => {
+                setPulse(false);
+
+                // Pause
                 timeoutRef.current = setTimeout(() => {
-                    setPulse(false);
+                    // Pulse 2
+                    setPulse(true);
 
-                    // 2e pulse après une petite pause
                     timeoutRef.current = setTimeout(() => {
-                        setPulse(true);
+                        setPulse(false);
+                    }, 1600);
+                }, 500);
+            }, 1600);
+        }, 10000);
 
-                        // OFF après 1.6s
-                        timeoutRef.current = setTimeout(() => {
-                            setPulse(false);
-                        }, 1600);
-                    }, 500);
-                }, 1600);
-            }, 10000);
-        };
-
-        startPulseLoop();
-
-        return () => {
-            if (intervalRef.current) clearInterval(intervalRef.current);
-            if (timeoutRef.current) clearTimeout(timeoutRef.current);
-        };
+        return () => stopTimers();
     }, [open]);
 
-    // Quand on ouvre, on stop le pulse tout de suite
+    // stop pulse dès qu'on ouvre
     useEffect(() => {
         if (open) setPulse(false);
     }, [open]);
+
+    const openWidget = () => {
+        // stop pulse définitivement après le 1er clic
+        localStorage.setItem("bethel_contact_clicked", "1");
+        stopTimers();
+        setPulse(false);
+        setOpen(true);
+    };
+
+    const close = () => {
+        if (sending) return;
+        setOpen(false);
+    };
 
     const onSend = async (e) => {
         e.preventDefault();
@@ -68,11 +82,7 @@ export default function ContactWidget() {
             await emailjs.send(
                 process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
                 process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID,
-                {
-                    name,
-                    from_email: fromEmail,
-                    message,
-                },
+                { name, from_email: fromEmail, message },
                 process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
             );
 
@@ -93,22 +103,17 @@ export default function ContactWidget() {
         }
     };
 
-    const close = () => {
-        if (sending) return;
-        setOpen(false);
-    };
-
     return (
         <>
             {/* Bouton flottant */}
             <button
                 type="button"
                 className={`cw-fab ${pulse ? "cw-fab--pulse" : ""}`}
-                onClick={() => setOpen(true)}
+                onClick={openWidget}
                 aria-label="Ai o întrebare?"
                 title="Ai o întrebare?"
             >
-                ✉️ <span className="cw-fab-text">Ai o întrebare?</span>
+                <span className="cw-fab-text">Ai o întrebare ?</span>
             </button>
 
             {open && (
@@ -129,7 +134,6 @@ export default function ContactWidget() {
                             </button>
                         </header>
 
-                        {/* zone scrollable (important mobile + clavier) */}
                         <div className="cw-body">
                             {success ? (
                                 <div className="cw-success">
