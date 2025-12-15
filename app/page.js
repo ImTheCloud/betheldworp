@@ -6,10 +6,11 @@ import Location from "./sections/Location";
 import Footer from "./components/Footer";
 import ContactWidget from "./components/ContactWidget";
 import Events from "./sections/EventsCalendar";
-
-import "./globals.css";
 import Gallery from "./sections/Gallery";
 import Donations from "./sections/Donations";
+
+import "./globals.css";
+
 
 export default function Home() {
     return (
