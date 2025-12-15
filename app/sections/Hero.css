@@ -3,14 +3,14 @@
     height: 100vh;
     width: 100%;
     overflow: hidden;
-    background: #0a2a43 url("/image/hero-bethel.jpg") center bottom / cover no-repeat;
+    background: #0a2a43 url("/image/drone.jpg") center bottom / cover no-repeat;
 }
 
 .hero-bg {
     position: absolute;
     inset: 0;
     z-index: 1;
-    background: url("/image/hero-bethel.jpg") center bottom / cover no-repeat;
+    background: url("/image/drone.jpg") center bottom / cover no-repeat;
     transform: scale(1);
     will-change: transform;
     animation: heroZoom 18s ease-in-out infinite alternate;

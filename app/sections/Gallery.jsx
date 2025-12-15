@@ -1,6 +1,5 @@
 "use client";
 
-// app/sections/Gallery.jsx
 import { useEffect, useMemo, useRef, useState } from "react";
 import "./Gallery.css";
 
@@ -24,12 +23,10 @@ function YouTubeIcon({ className = "", title = "YouTube" }) {
             aria-label={title}
             xmlns="http://www.w3.org/2000/svg"
         >
-            {/* rounded rectangle */}
             <path
                 fill="#FF0000"
                 d="M23.498 6.186a3.014 3.014 0 0 0-2.12-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.378.505A3.014 3.014 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.014 3.014 0 0 0 2.12 2.136c1.873.505 9.378.505 9.378.505s7.505 0 9.378-.505a3.014 3.014 0 0 0 2.12-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814Z"
             />
-            {/* play triangle */}
             <path fill="#FFFFFF" d="M9.75 15.5V8.5L16 12l-6.25 3.5Z" />
         </svg>
     );
@@ -45,6 +42,9 @@ export default function Gallery() {
         ],
         []
     );
+
+    const featuredImage = IMAGES[0];
+    const otherImages = IMAGES.slice(1);
 
     const YOUTUBE_URLS = useMemo(
         () => [
@@ -93,7 +93,90 @@ export default function Gallery() {
     };
     const closeVidModal = () => setVidOpen(false);
 
-    // Auto-scroll row (slow ping-pong)
+    // Auto-scroll images row
+    const imgRowRef = useRef(null);
+    const imgRafRef = useRef(null);
+    const imgLastTsRef = useRef(0);
+    const imgDirRef = useRef(1);
+    const imgPausedRef = useRef(false);
+
+    useEffect(() => {
+        const el = imgRowRef.current;
+        if (!el) return;
+
+        const mql = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+        if (mql?.matches) return;
+
+        const speedPxPerSec = 22;
+
+        const step = (ts) => {
+            if (!imgRowRef.current) return;
+
+            if (!imgLastTsRef.current) imgLastTsRef.current = ts;
+            const dt = Math.min(50, ts - imgLastTsRef.current);
+            imgLastTsRef.current = ts;
+
+            const e = imgRowRef.current;
+            const max = Math.max(0, e.scrollWidth - e.clientWidth);
+
+            if (!imgPausedRef.current && max > 0) {
+                const delta = (speedPxPerSec * dt) / 1000;
+                e.scrollLeft += imgDirRef.current * delta;
+
+                if (e.scrollLeft >= max - 1) {
+                    e.scrollLeft = max;
+                    imgDirRef.current = -1;
+                } else if (e.scrollLeft <= 1) {
+                    e.scrollLeft = 0;
+                    imgDirRef.current = 1;
+                }
+            }
+
+            imgRafRef.current = requestAnimationFrame(step);
+        };
+
+        imgRafRef.current = requestAnimationFrame(step);
+
+        const pause = () => {
+            imgPausedRef.current = true;
+        };
+        const resume = () => {
+            imgPausedRef.current = false;
+            imgLastTsRef.current = 0;
+        };
+
+        el.addEventListener("mouseenter", pause);
+        el.addEventListener("mouseleave", resume);
+        el.addEventListener("touchstart", pause, { passive: true });
+        el.addEventListener("touchend", resume, { passive: true });
+        el.addEventListener("focusin", pause);
+        el.addEventListener("focusout", resume);
+        el.addEventListener("wheel", pause, { passive: true });
+
+        const onVis = () => {
+            if (document.hidden) pause();
+            else resume();
+        };
+        document.addEventListener("visibilitychange", onVis);
+
+        return () => {
+            if (imgRafRef.current) cancelAnimationFrame(imgRafRef.current);
+            imgRafRef.current = null;
+            imgLastTsRef.current = 0;
+
+            el.removeEventListener("mouseenter", pause);
+            el.removeEventListener("mouseleave", resume);
+            el.removeEventListener("touchstart", pause);
+            el.removeEventListener("touchend", resume);
+            el.removeEventListener("focusin", pause);
+            el.removeEventListener("focusout", resume);
+            el.removeEventListener("wheel", pause);
+
+            document.removeEventListener("visibilitychange", onVis);
+        };
+    }, [otherImages.length]);
+
+    // Auto-scroll video row
     const rowRef = useRef(null);
     const rafRef = useRef(null);
     const lastTsRef = useRef(0);
@@ -180,36 +263,61 @@ export default function Gallery() {
         <>
             <section id="galerie" className="gal-section">
                 <div className="gal-content">
-                    <h2 className="gal-title">Galerie</h2>
-
-                    {/* ===== IMAGES ===== */}
-                    <div className="gal-grid">
-                        {IMAGES.map((img) => (
-                            <button
-                                key={img.src}
-                                type="button"
-                                className="gal-card"
-                                onClick={() => openImgModal(img)}
-                                aria-label={`Open image ${img.alt}`}
-                                title={img.alt}
-                            >
-                                <img className="gal-img" src={img.src} alt={img.alt} loading="lazy" />
-                            </button>
-                        ))}
+                    <div className="gal-header">
+                        <h2 className="gal-title">Galerie</h2>
                     </div>
 
-                    {/* ===== VIDEOS ===== */}
-                    <div className="gal-videos">
-                        <h3 className="gal-subtitle">Video</h3>
+                    {/* Images Section */}
+                    <div className="gal-images">
+                        <div className="gal-images-header">
+                            <h3 className="gal-subtitle">Imagini</h3>
+                        </div>
 
-                        {/* Featured */}
+                        {/* Featured Image */}
+                        {featuredImage && (
+                            <button
+                                type="button"
+                                className="gal-featured"
+                                onClick={() => openImgModal(featuredImage)}
+                                aria-label={`Open ${featuredImage.alt}`}
+                            >
+                                <img className="gal-featuredThumb" src={featuredImage.src} alt={featuredImage.alt} loading="lazy" />
+                            </button>
+                        )}
+
+                        {/* Images Scroll Row */}
+                        <div className="gal-rowScroller">
+                            <div className="gal-rowOutside" ref={imgRowRef}>
+                                {otherImages.map((img) => (
+                                    <button
+                                        key={img.src}
+                                        type="button"
+                                        className="gal-rowCard"
+                                        onClick={() => openImgModal(img)}
+                                        aria-label={`Open ${img.alt}`}
+                                    >
+                                        <div className="gal-rowThumbWrap">
+                                            <img className="gal-rowThumb" src={img.src} alt={img.alt} loading="lazy" />
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Videos Section */}
+                    <div className="gal-videos">
+                        <div className="gal-video-header">
+                            <h3 className="gal-subtitle">Video</h3>
+                        </div>
+
+                        {/* Featured Video */}
                         {featured && (
                             <button
                                 type="button"
                                 className="gal-featured"
                                 onClick={() => openVidModal(featured)}
                                 aria-label="Open featured video"
-                                title="Open video"
                             >
                                 <img className="gal-featuredThumb" src={featured.thumb} alt="Featured video" loading="lazy" />
                                 <div className="gal-featuredOverlay" aria-hidden="true">
@@ -218,7 +326,7 @@ export default function Gallery() {
                             </button>
                         )}
 
-                        {/* Scroll row */}
+                        {/* Video Scroll Row */}
                         <div className="gal-rowScroller">
                             <div className="gal-rowOutside" ref={rowRef}>
                                 {others.map((v) => (
@@ -228,58 +336,47 @@ export default function Gallery() {
                                         className="gal-rowCard"
                                         onClick={() => openVidModal(v)}
                                         aria-label="Open video"
-                                        title="Open video"
                                     >
                                         <div className="gal-rowThumbWrap">
                                             <img className="gal-rowThumb" src={v.thumb} alt="Video thumbnail" loading="lazy" />
-                                            <div className="gal-rowPlay" aria-hidden="true">
-                                                ▶
-                                            </div>
+                                            <div className="gal-rowPlay" aria-hidden="true">▶</div>
                                         </div>
                                     </button>
                                 ))}
                             </div>
                         </div>
 
-                        {/* YouTube channel CTA (real icon, no background) */}
+                        {/* YouTube CTA */}
                         <a
                             className="gal-ytCta"
                             href="https://www.youtube.com/@bisericapenticostalabethel7695"
                             target="_blank"
                             rel="noreferrer"
                             aria-label="Visit our YouTube channel"
-                            title="YouTube"
                         >
                             <YouTubeIcon className="gal-ytSvg" />
                             <span className="gal-ytText">Vezi mai multe pe canalul nostru YouTube</span>
-                            <span className="gal-ytArrow" aria-hidden="true">
-                →
-              </span>
+                            <span className="gal-ytArrow" aria-hidden="true">→</span>
                         </a>
                     </div>
                 </div>
             </section>
 
-            {/* ===== Image Modal ===== */}
+            {/* Image Modal */}
             {imgOpen && activeImg && (
                 <div className="gal-overlay" onClick={closeImgModal}>
                     <div className="gal-modal" onClick={(e) => e.stopPropagation()}>
-                        <button className="gal-close" onClick={closeImgModal} aria-label="Close" title="Close">
-                            ×
-                        </button>
+                        <button className="gal-close" onClick={closeImgModal} aria-label="Close">×</button>
                         <img className="gal-modalImg" src={activeImg.src} alt={activeImg.alt} />
                     </div>
                 </div>
             )}
 
-            {/* ===== Video Modal ===== */}
+            {/* Video Modal */}
             {vidOpen && activeVid && (
                 <div className="gal-overlay" onClick={closeVidModal}>
                     <div className="gal-modal gal-modal--video" onClick={(e) => e.stopPropagation()}>
-                        <button className="gal-close" onClick={closeVidModal} aria-label="Close" title="Close">
-                            ×
-                        </button>
-
+                        <button className="gal-close" onClick={closeVidModal} aria-label="Close">×</button>
                         <div className="gal-videoFrameWrap">
                             <iframe
                                 className="gal-videoFrame"
