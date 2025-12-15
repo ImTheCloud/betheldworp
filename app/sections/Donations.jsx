@@ -8,38 +8,31 @@ const IBAN_RAW = "BE89143108589985";
 const IBAN_DISPLAY = "BE89 1431 0858 9985";
 
 export default function Donations() {
-    const descriptions = useMemo(
-        () => [
-            "Cotizația lunară",
-            "Evanghelizare (Biblii, materiale)",
-            "Ajutor Oltenia (România) & Madagascar",
-            "Familie în nevoie",
-            "Alt don (scrie ce dorești)",
-        ],
-        []
-    );
-
-    const cards = useMemo(
+    const donationTypes = useMemo(
         () => [
             {
                 title: "Cotizația lunară",
                 desc: "Susținere constantă pentru lucrarea și nevoile bisericii.",
-                tag: "Regular",
+                badge: "Regular",
+                badgeType: "regular",
             },
             {
                 title: "Evanghelizare",
-                desc: "Cumpărare Biblii, materiale și sprijin pentru proiecte.",
-                tag: "Misiune",
+                desc: "Cumpărare Biblii, materiale și sprijin pentru proiecte misionare.",
+                badge: "Misiune",
+                badgeType: "mission",
             },
             {
-                title: "Ajutor Oltenia (România) & Madagascar",
+                title: "Ajutor Oltenia & Madagascar",
                 desc: "Sprijin pentru zone defavorizate și proiecte unde biserica este implicată.",
-                tag: "Ajutor",
+                badge: "Ajutor",
+                badgeType: "help",
             },
             {
                 title: "Familie în nevoie",
                 desc: "Sprijin direct pentru familii în situații dificile.",
-                tag: "Sprijin",
+                badge: "Sprijin",
+                badgeType: "support",
             },
         ],
         []
@@ -51,77 +44,79 @@ export default function Donations() {
         try {
             await navigator.clipboard.writeText(IBAN_RAW);
             setCopied(true);
-            setTimeout(() => setCopied(false), 1200);
+            setTimeout(() => setCopied(false), 1500);
         } catch {
-            const t = document.createElement("textarea");
-            t.value = IBAN_RAW;
-            document.body.appendChild(t);
-            t.select();
+            const textarea = document.createElement("textarea");
+            textarea.value = IBAN_RAW;
+            document.body.appendChild(textarea);
+            textarea.select();
             document.execCommand("copy");
-            document.body.removeChild(t);
+            document.body.removeChild(textarea);
 
             setCopied(true);
-            setTimeout(() => setCopied(false), 1200);
+            setTimeout(() => setCopied(false), 1500);
         }
     };
 
     return (
         <section id="donatii" className="don-section">
             <div className="don-content">
-                <h2 className="don-title">Donații</h2>
+                <div className="don-header">
+                    <h2 className="don-title">Donații</h2>
+                    <p className="don-intro">
+                        Susține lucrarea bisericii și proiectele noastre prin donații
+                    </p>
+                </div>
 
-                <div className="don-card">
-                    {/* LEFT */}
-                    <div className="don-left">
-                        {/* ✅ Title aligned with right column title */}
-                        <div className="don-gridTitle don-leftTitle">Detalii donație</div>
-
-                        <div className="don-payBox">
-                            <div className="don-stack">
-                                <div className="don-k">Beneficiar</div>
-                                <div className="don-v">{BENEFICIARY}</div>
-                            </div>
-
-                            <div className="don-rowIban">
-                                <div className="don-rowLeft">
-                                    <div className="don-k">IBAN</div>
-                                    <div className="don-v don-v--mono">{IBAN_DISPLAY}</div>
-                                </div>
-
-                                <button type="button" className="don-copyBtn" onClick={copyIban}>
-                                    {copied ? "Copiat ✅" : "Copiază IBAN"}
-                                </button>
-                            </div>
-
-                            <div className="don-desc">
-                                <div className="don-descTitle">Descriere</div>
-                                <div className="don-descText">Exemple: {descriptions.join(" · ")}</div>
-                            </div>
+                {/* Card with bank details */}
+                <div className="don-bank-card">
+                    <div className="don-bank-grid">
+                        <div className="don-field">
+                            <div className="don-field-label">Beneficiar</div>
+                            <div className="don-field-value">{BENEFICIARY}</div>
                         </div>
 
-                        <div className="don-verse">
-                            <div className="don-verseTitle">Eclesiastul 11:1</div>
-                            <div className="don-verseText">
-                                „Aruncă-ți pâinea pe ape, și după multă vreme o vei găsi iarăși!”
+                        <div className="don-field">
+                            <div className="don-field-label">IBAN</div>
+                            <div className="don-iban-row">
+                                <div className="don-iban-value">{IBAN_DISPLAY}</div>
+                                <button
+                                    type="button"
+                                    className="don-copy-btn"
+                                    onClick={copyIban}
+                                >
+                                    {copied ? "Copiat ✓" : "Copiază IBAN"}
+                                </button>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    {/* RIGHT */}
-                    <div className="don-right">
-                        <div className="don-gridTitle">Tipuri de donații</div>
-
-                        <div className="don-grid">
-                            {cards.map((c) => (
-                                <div key={c.title} className="don-option">
-                                    <div className="don-optionTop">
-                                        <div className="don-optionTitle">{c.title}</div>
-                                        <div className="don-tag">{c.tag}</div>
-                                    </div>
-                                    <div className="don-optionDesc">{c.desc}</div>
+                {/* Donation types */}
+                <div className="don-types-section">
+                    <h3 className="don-types-title">Tipuri de donații</h3>
+                    <div className="don-types-grid">
+                        {donationTypes.map((type) => (
+                            <div key={type.title} className="don-type-card">
+                                <div className="don-type-header">
+                                    <h4 className="don-type-title">{type.title}</h4>
+                                    <span className={`don-type-badge don-type-badge--${type.badgeType}`}>
+                                        {type.badge}
+                                    </span>
                                 </div>
-                            ))}
-                        </div>
+                                <p className="don-type-desc">{type.desc}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Bible verse */}
+                <div className="don-verse-highlight">
+                    <div className="don-verse-content">
+                        <p className="don-verse-text">
+                            „Aruncă-ți pâinea pe ape, și după multă vreme o vei găsi iarăși!"
+                        </p>
+                        <p className="don-verse-ref">Eclesiastul 11:1</p>
                     </div>
                 </div>
             </div>

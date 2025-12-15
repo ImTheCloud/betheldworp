@@ -32,9 +32,9 @@ export default function Home() {
                 <Events />
                 <Gallery />
 
-                <Location />
-                <Donations />
 
+                <Donations />
+                <Location />
                 <Footer />
                 <ContactWidget />
 

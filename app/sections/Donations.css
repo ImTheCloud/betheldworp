@@ -1,262 +1,398 @@
 .don-section {
     position: relative;
-    padding: 160px 24px 180px;
+    padding: 140px 24px 160px;
     display: flex;
     justify-content: center;
-    background: #ffffff;
+    background: linear-gradient(180deg, #fafbfc 0%, #ffffff 100%);
+    overflow: hidden;
+}
+
+.don-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(10, 42, 67, 0.03) 0%, transparent 70%);
+    pointer-events: none;
 }
 
 .don-content {
     width: 100%;
-    max-width: 1100px;
+    max-width: 1000px;
+    position: relative;
+}
+
+.don-header {
+    text-align: center;
+    margin-bottom: 60px;
 }
 
 .don-title {
-    font-size: clamp(28px, 4.8vw, 46px);
+    font-size: clamp(38px, 5.5vw, 64px);
     font-weight: 900;
     color: #0a2a43;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    margin: 0 0 28px 0;
-    text-align: left;
+    letter-spacing: -0.02em;
+    margin: 0;
+    line-height: 1.1;
 }
 
-.don-card {
+.don-intro {
+    margin-top: 20px;
+    font-size: clamp(16px, 2vw, 18px);
+    line-height: 1.6;
+    color: #1a2332;
+    opacity: 0.75;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Card principale avec infos bancaires */
+.don-bank-card {
+    position: relative;
+    padding: 48px 56px;
+    border-radius: 28px;
+    background: #ffffff;
+    box-shadow: 0 24px 80px rgba(10, 42, 67, 0.12);
+    margin-bottom: 32px;
+}
+
+.don-bank-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 22px;
-    align-items: stretch;
-    padding: 18px;
-    border-radius: 22px;
-    background: rgba(10, 42, 67, 0.03);
-    border: 1px solid rgba(10, 42, 67, 0.10);
-    box-shadow: 0 18px 55px rgba(6, 24, 50, 0.08);
+    grid-template-columns: 1fr;
+    gap: 24px;
 }
 
-.don-left,
-.don-right {
-    padding: 12px;
+.don-field {
     display: flex;
     flex-direction: column;
+    gap: 8px;
 }
 
-.don-gridTitle {
+.don-field-label {
     font-size: 13px;
-    font-weight: 900;
-    letter-spacing: 0.14em;
+    font-weight: 700;
     text-transform: uppercase;
-    color: rgba(10, 42, 67, 0.72);
-    margin-bottom: 12px;
+    letter-spacing: 0.08em;
+    color: rgba(10, 42, 67, 0.6);
 }
 
-.don-leftTitle {
-    margin-bottom: 12px;
-}
-
-.don-payBox {
-    padding: 16px 16px 14px;
-    border-radius: 18px;
-    background: rgba(255, 255, 255, 0.92);
-    border: 1px solid rgba(10, 42, 67, 0.12);
-}
-
-.don-stack {
-    padding-bottom: 12px;
-    border-bottom: 1px solid rgba(10, 42, 67, 0.08);
-}
-
-.don-k {
-    font-size: 11px;
-    font-weight: 900;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: rgba(10, 42, 67, 0.55);
-}
-
-.don-v {
-    margin-top: 8px;
-    font-size: 16px;
-    font-weight: 900;
+.don-field-value {
+    font-size: clamp(16px, 2vw, 20px);
+    font-weight: 800;
     color: #0a2a43;
-    line-height: 1.3;
+    line-height: 1.4;
     word-break: break-word;
 }
 
-.don-v--mono {
-    letter-spacing: 0.06em;
-}
-
-.don-rowIban {
-    padding-top: 12px;
+.don-iban-row {
     display: grid;
     grid-template-columns: 1fr auto;
     align-items: center;
-    gap: 12px;
+    gap: 16px;
 }
 
-.don-rowLeft {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
+.don-iban-value {
+    font-size: clamp(18px, 2.5vw, 24px);
+    font-weight: 900;
+    color: #0a2a43;
+    letter-spacing: 0.06em;
+    font-variant-numeric: tabular-nums;
 }
 
-.don-copyBtn {
-    flex: 0 0 auto;
-    padding: 12px 16px;
+.don-copy-btn {
+    padding: 14px 28px;
     border-radius: 999px;
     border: 0;
     cursor: pointer;
-    background: rgba(10, 42, 67, 0.96);
+    background: linear-gradient(135deg, #0a2a43 0%, #164678 100%);
     color: #ffffff;
-    font-size: 13px;
-    font-weight: 900;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    box-shadow: 0 18px 55px rgba(6, 24, 50, 0.16);
-    transition: transform 0.16s ease, box-shadow 0.16s ease;
-}
-
-.don-copyBtn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 24px 70px rgba(6, 24, 50, 0.20);
-}
-
-.don-desc {
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px dashed rgba(10, 42, 67, 0.14);
-}
-
-.don-descTitle {
-    font-size: 11px;
-    font-weight: 900;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: rgba(10, 42, 67, 0.55);
-}
-
-.don-descText {
-    margin-top: 8px;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 700;
-    color: rgba(10, 42, 67, 0.66);
-    line-height: 1.6;
-}
-
-.don-verse {
-    margin-top: auto;
-    padding: 18px 18px 16px;
-    border-radius: 18px;
-    background: linear-gradient(to right, rgba(10, 42, 67, 0.96), rgba(22, 70, 120, 0.96));
-    color: #ffffff;
-    box-shadow: 0 22px 65px rgba(6, 24, 50, 0.22);
-}
-
-.don-verseTitle {
-    font-size: 11px;
-    font-weight: 900;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    opacity: 0.95;
-    margin-bottom: 10px;
-}
-
-.don-verseText {
-    font-size: 16px;
-    line-height: 1.65;
-    font-weight: 800;
-    margin: 0;
-}
-
-.don-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 12px;
-}
-
-.don-option {
-    padding: 16px 16px 14px;
-    border-radius: 18px;
-    background: rgba(255, 255, 255, 0.92);
-    border: 1px solid rgba(10, 42, 67, 0.12);
-    transition: transform 0.16s ease, box-shadow 0.16s ease;
-}
-
-.don-option:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 18px 55px rgba(6, 24, 50, 0.10);
-}
-
-.don-optionTop {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-}
-
-.don-optionTitle {
-    font-size: 16px;
-    font-weight: 900;
-    color: #0a2a43;
-}
-
-.don-tag {
-    padding: 8px 12px;
-    border-radius: 999px;
-    background: rgba(19, 75, 123, 0.10);
-    border: 1px solid rgba(19, 75, 123, 0.18);
-    color: rgba(19, 75, 123, 0.98);
-    font-size: 11px;
-    font-weight: 900;
-    letter-spacing: 0.10em;
-    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    box-shadow: 0 8px 24px rgba(10, 42, 67, 0.25);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
     white-space: nowrap;
 }
 
-.don-optionDesc {
-    margin-top: 8px;
-    font-size: 13px;
-    font-weight: 700;
-    color: rgba(10, 42, 67, 0.72);
-    line-height: 1.6;
+.don-copy-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(10, 42, 67, 0.35);
 }
 
+.don-copy-btn:active {
+    transform: translateY(0);
+}
+
+.don-examples {
+    padding-top: 24px;
+    border-top: 1px solid rgba(10, 42, 67, 0.08);
+}
+
+.don-examples-label {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(10, 42, 67, 0.6);
+    margin-bottom: 12px;
+}
+
+.don-examples-text {
+    font-size: 15px;
+    font-weight: 500;
+    color: #1a2332;
+    line-height: 1.7;
+    opacity: 0.8;
+}
+
+/* Section types de donations */
+.don-types-section {
+    margin-bottom: 50px;
+}
+
+.don-types-title {
+    font-size: clamp(20px, 2.5vw, 24px);
+    font-weight: 800;
+    color: #0a2a43;
+    margin: 0 0 24px 0;
+    padding-left: 32px;
+    position: relative;
+}
+
+.don-types-title::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 32px;
+    background: linear-gradient(180deg, #0a2a43 0%, #164678 100%);
+    border-radius: 2px;
+}
+
+.don-types-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    grid-auto-rows: 1fr;
+}
+
+.don-type-card {
+    position: relative;
+    padding: 28px 32px;
+    border-radius: 20px;
+    background: #ffffff;
+    border: 1px solid rgba(10, 42, 67, 0.08);
+    box-shadow: 0 4px 16px rgba(10, 42, 67, 0.06);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.don-type-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(10, 42, 67, 0.12);
+    border-color: rgba(10, 42, 67, 0.15);
+}
+
+.don-type-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.don-type-title {
+    font-size: clamp(16px, 2vw, 18px);
+    font-weight: 800;
+    color: #0a2a43;
+    line-height: 1.3;
+}
+
+.don-type-badge {
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(10, 42, 67, 0.08);
+    color: #0a2a43;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.don-type-badge--regular {
+    background: rgba(34, 197, 94, 0.12);
+    color: #166534;
+}
+
+.don-type-badge--mission {
+    background: rgba(59, 130, 246, 0.12);
+    color: #1e40af;
+}
+
+.don-type-badge--help {
+    background: rgba(249, 115, 22, 0.12);
+    color: #9a3412;
+}
+
+.don-type-badge--support {
+    background: rgba(168, 85, 247, 0.12);
+    color: #6b21a8;
+}
+
+.don-type-desc {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #1a2332;
+    opacity: 0.7;
+    margin: 0;
+    flex-grow: 1;
+}
+
+/* Citation biblique */
+.don-verse-highlight {
+    position: relative;
+    padding: 48px 56px;
+    border-radius: 28px;
+    background: linear-gradient(135deg, #0a2a43 0%, #164678 100%);
+    color: #ffffff;
+    box-shadow: 0 24px 80px rgba(10, 42, 67, 0.25);
+    overflow: hidden;
+}
+
+.don-verse-highlight::before {
+    content: '"';
+    position: absolute;
+    top: 20px;
+    left: 24px;
+    font-size: 120px;
+    font-weight: 900;
+    color: rgba(255, 255, 255, 0.06);
+    line-height: 1;
+    font-family: Georgia, serif;
+}
+
+.don-verse-content {
+    position: relative;
+    z-index: 1;
+}
+
+.don-verse-text {
+    font-size: clamp(19px, 2.2vw, 24px);
+    line-height: 1.65;
+    font-weight: 500;
+    font-style: italic;
+    margin: 0 0 16px 0;
+    color: rgba(255, 255, 255, 0.98);
+}
+
+.don-verse-ref {
+    font-size: 15px;
+    margin: 0;
+    opacity: 0.85;
+    font-weight: 600;
+}
+
+/* Responsive */
 @media (max-width: 900px) {
     .don-section {
-        padding: 120px 18px 140px;
+        padding: 100px 20px 120px;
     }
 
-    .don-title {
-        text-align: center;
-        margin-bottom: 24px;
+    .don-header {
+        margin-bottom: 50px;
     }
 
-    .don-card {
+    .don-bank-card {
+        padding: 40px 32px;
+        border-radius: 24px;
+        margin-bottom: 28px;
+    }
+
+    .don-iban-row {
         grid-template-columns: 1fr;
-        align-items: start;
+        gap: 12px;
     }
 
-    .don-rowIban {
-        grid-template-columns: 1fr;
-        align-items: stretch;
-    }
-
-    .don-copyBtn {
+    .don-copy-btn {
         width: 100%;
     }
 
-    .don-verse {
-        margin-top: 16px;
+    .don-types-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .don-verse-highlight {
+        padding: 40px 32px;
+        border-radius: 24px;
+    }
+
+    .don-verse-highlight::before {
+        font-size: 100px;
+        top: 16px;
+        left: 16px;
     }
 }
 
 @media (max-width: 600px) {
     .don-section {
-        padding: 90px 16px 110px;
+        padding: 80px 18px 100px;
     }
 
-    .don-card {
-        padding: 16px 14px;
-        border-radius: 18px;
+    .don-header {
+        margin-bottom: 40px;
+    }
+
+    .don-bank-card {
+        padding: 32px 24px;
+        border-radius: 20px;
+    }
+
+    .don-types-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .don-types-title {
+        padding-left: 24px;
+    }
+
+    .don-types-title::before {
+        height: 24px;
+    }
+
+    .don-type-card {
+        padding: 20px 16px;
+    }
+
+    .don-type-title {
+        font-size: 15px;
+    }
+
+    .don-type-desc {
+        font-size: 13px;
+    }
+
+    .don-type-badge {
+        font-size: 10px;
+        padding: 5px 10px;
+    }
+
+    .don-verse-highlight {
+        padding: 32px 24px;
+        border-radius: 20px;
+    }
+
+    .don-verse-highlight::before {
+        font-size: 80px;
     }
 }
