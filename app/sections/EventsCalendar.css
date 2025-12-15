@@ -1,4 +1,3 @@
-/* ===== SECTION ===== */
 .ec-section {
     position: relative;
     padding: 160px 24px 180px;
@@ -13,28 +12,29 @@
 }
 
 .ec-title {
-    font-size: clamp(50px, 7vw, 90px);
-    font-weight: 800;
+    font-size: clamp(28px, 4.8vw, 46px);
+    font-weight: 900;
     color: #0a2a43;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    margin: 0 0 40px 0;
+    margin: 0 0 28px 0;
     text-align: left;
 }
 
 .ec-inlineInfo {
-    margin-bottom: 16px;
+    margin-bottom: 12px;
     font-weight: 800;
+    font-size: 14px;
     color: rgba(10, 42, 67, 0.7);
 }
 
 .ec-inlineError {
-    margin-bottom: 16px;
+    margin-bottom: 12px;
     font-weight: 800;
+    font-size: 14px;
     color: #b00020;
 }
 
-/* ===== CALENDAR CARD ===== */
 .ec-card {
     border-radius: 24px;
     background: rgba(10, 42, 67, 0.03);
@@ -51,7 +51,7 @@
 }
 
 .ec-month {
-    font-size: clamp(22px, 2.2vw, 30px);
+    font-size: clamp(18px, 2.6vw, 24px);
     font-weight: 900;
     color: #0a2a43;
     letter-spacing: 0.04em;
@@ -66,7 +66,7 @@
     background: rgba(19, 75, 123, 0.10);
     color: rgba(19, 75, 123, 0.98);
     font-weight: 900;
-    font-size: 22px;
+    font-size: 20px;
     cursor: pointer;
     transition: transform 150ms ease, box-shadow 150ms ease;
 }
@@ -76,7 +76,6 @@
     box-shadow: 0 16px 36px rgba(6, 24, 50, 0.12);
 }
 
-/* ===== WEEKDAYS ===== */
 .ec-weekdays {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
@@ -87,20 +86,18 @@
 .ec-weekday {
     text-align: center;
     font-weight: 900;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.10em;
     text-transform: uppercase;
     color: rgba(10, 42, 67, 0.75);
-    font-size: 12px;
+    font-size: 11px;
 }
 
-/* ===== GRID ===== */
 .ec-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 10px;
 }
 
-/* ===== CELL ===== */
 .ec-cell {
     position: relative;
     border-radius: 16px;
@@ -131,24 +128,20 @@
     border-color: rgba(19, 75, 123, 0.20);
 }
 
-/* ===== DAY BADGE ===== */
 .ec-dayBadge {
     position: absolute;
     top: 10px;
     left: 10px;
     z-index: 5;
-
     width: 36px;
     height: 36px;
     border-radius: 12px;
-
     display: inline-flex;
     align-items: center;
     justify-content: center;
-
     font-weight: 900;
+    font-size: 14px;
     color: #0a2a43;
-
     background: rgba(255, 255, 255, 0.92);
     border: 1px solid rgba(10, 42, 67, 0.12);
     backdrop-filter: blur(6px);
@@ -159,7 +152,6 @@
     height: 100%;
 }
 
-/* ===== EVENT FULL CELL BUTTON (IMAGE ONLY) ===== */
 .ec-eventCellBtn {
     position: absolute;
     inset: 0;
@@ -182,9 +174,6 @@
     transform: scale(1.06);
 }
 
-/* ==================================================
-   INLINE NEWSLETTER (under calendar)
-================================================== */
 .nl-inlineWrap {
     margin-top: 22px;
 }
@@ -194,7 +183,6 @@
     background: rgba(10, 42, 67, 0.03);
     border: 1px solid rgba(10, 42, 67, 0.08);
     padding: 18px;
-
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 18px;
@@ -206,7 +194,7 @@
 }
 
 .nl-inlineTitle {
-    font-size: clamp(22px, 2.4vw, 30px);
+    font-size: clamp(18px, 2.6vw, 24px);
     font-weight: 900;
     color: #0a2a43;
     letter-spacing: 0.04em;
@@ -215,9 +203,9 @@
 
 .nl-inlineSub {
     margin: 0;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 700;
-    line-height: 1.6;
+    line-height: 1.65;
     color: rgba(10, 42, 67, 0.72);
     max-width: 520px;
 }
@@ -243,7 +231,7 @@
 }
 
 .nl-inlineField span {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 900;
     letter-spacing: 0.16em;
     text-transform: uppercase;
@@ -255,12 +243,10 @@
     width: 100%;
     box-sizing: border-box;
     padding: 14px;
-    font-size: 16px;
-
+    font-size: 15px;
     border-radius: 16px;
     border: 1px solid rgba(10, 42, 67, 0.18);
     background: rgba(255, 255, 255, 0.96);
-
     outline: none;
     color: rgba(10, 42, 67, 0.92);
 }
@@ -275,10 +261,8 @@
     gap: 10px;
     align-items: flex-start;
     cursor: pointer;
-
     padding: 12px;
     border-radius: 16px;
-
     background: rgba(10, 42, 67, 0.03);
     border: 1px solid rgba(10, 42, 67, 0.10);
 }
@@ -291,18 +275,17 @@
 }
 
 .nl-inlineGdpr span {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 700;
-    line-height: 1.45;
+    line-height: 1.5;
     color: rgba(10, 42, 67, 0.78);
 }
 
 .nl-inlineError {
     padding: 10px 12px;
     border-radius: 14px;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 800;
-
     color: rgba(140, 20, 20, 0.95);
     background: rgba(180, 20, 20, 0.08);
     border: 1px solid rgba(180, 20, 20, 0.16);
@@ -314,15 +297,12 @@
     border-radius: 999px;
     border: 0;
     cursor: pointer;
-
     background: rgba(10, 42, 67, 0.96);
     color: #ffffff;
-
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 900;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.10em;
     text-transform: uppercase;
-
     box-shadow: 0 18px 55px rgba(6, 24, 50, 0.18);
     transition: transform 0.16s ease, box-shadow 0.16s ease;
 }
@@ -342,8 +322,8 @@
     padding: 16px;
     border-radius: 18px;
     font-weight: 900;
+    font-size: 14px;
     color: #0a2a43;
-
     background: rgba(19, 75, 123, 0.08);
     border: 1px solid rgba(19, 75, 123, 0.16);
 }
@@ -352,22 +332,17 @@
     margin-top: 6px;
     font-weight: 700;
     color: rgba(10, 42, 67, 0.70);
-    font-size: 14px;
-    line-height: 1.5;
+    font-size: 13px;
+    line-height: 1.55;
 }
 
-/* ===========================
-   EVENT MODAL (ALL WHITE)
-=========================== */
 .ev-overlay {
     position: fixed;
     inset: 0;
     z-index: 120;
-
     display: flex;
     align-items: center;
     justify-content: center;
-
     background: rgba(10, 42, 67, 0.42);
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
@@ -381,13 +356,11 @@
 
 .ev-modal {
     width: min(920px, 92vw);
-    background: #ffffff; /* ✅ */
+    background: #ffffff;
     border-radius: 28px;
     border: 1px solid rgba(10, 42, 67, 0.14);
-
     box-shadow: 0 30px 120px rgba(6, 24, 50, 0.40);
     animation: modalEnter 0.45s cubic-bezier(.2,.8,.2,1);
-
     max-height: 86vh;
     display: flex;
     flex-direction: column;
@@ -401,23 +374,21 @@
     to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-/* ✅ Header also pure white */
 .ev-header {
-    padding: 26px 34px 16px;
+    padding: 22px 28px 14px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 16px;
     flex: 0 0 auto;
-
-    background: #ffffff; /* ✅ */
+    background: #ffffff;
     border-top-left-radius: 28px;
     border-top-right-radius: 28px;
 }
 
 .ev-couple {
     margin: 0;
-    font-size: clamp(22px, 2.4vw, 34px);
+    font-size: clamp(18px, 2.6vw, 26px);
     font-weight: 900;
     letter-spacing: 0.02em;
     color: #0a2a43;
@@ -430,18 +401,17 @@
     border: 1px solid rgba(10, 42, 67, 0.15);
     background: rgba(255, 255, 255, 0.95);
     color: rgba(10, 42, 67, 0.9);
-    font-size: 28px;
+    font-size: 26px;
     cursor: pointer;
     flex: 0 0 auto;
 }
 
-/* ✅ Body also pure white */
 .ev-body {
     flex: 1 1 auto;
     overflow: auto;
-    padding: 0 34px 34px;
+    padding: 0 28px 28px;
     -webkit-overflow-scrolling: touch;
-    background: #ffffff; /* ✅ */
+    background: #ffffff;
     border-bottom-left-radius: 28px;
     border-bottom-right-radius: 28px;
 }
@@ -455,10 +425,9 @@
     background: #fff;
 }
 
-/* ✅ bigger height */
 .ev-heroImg {
     width: 100%;
-    height: clamp(340px, 42vw, 520px); /* ✅ + plus haut */
+    height: clamp(340px, 42vw, 520px);
     object-fit: cover;
     display: block;
 }
@@ -482,7 +451,7 @@
 }
 
 .ev-infoLabel {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 900;
     letter-spacing: 0.16em;
     text-transform: uppercase;
@@ -491,16 +460,16 @@
 }
 
 .ev-infoValue {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 900;
     color: rgba(10, 42, 67, 0.92);
-    line-height: 1.35;
+    line-height: 1.4;
 }
 
 .ev-infoSub {
     display: block;
     margin-top: 6px;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 800;
     color: rgba(10, 42, 67, 0.70);
 }
@@ -521,10 +490,9 @@
     display: block;
 }
 
-/* ===== RESPONSIVE ===== */
 @media (max-width: 900px) {
     .ec-section { padding: 120px 18px 140px; }
-    .ec-title { text-align: center; margin-bottom: 32px; }
+    .ec-title { text-align: center; margin-bottom: 24px; }
     .ec-cell, .ec-blank { height: 145px; }
     .nl-inlineCard { grid-template-columns: 1fr; }
     .nl-inlineLeft { text-align: center; }

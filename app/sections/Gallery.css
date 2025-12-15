@@ -1,5 +1,3 @@
-/* app/sections/Gallery.css */
-
 .gal-section {
     position: relative;
     padding: 160px 24px 180px;
@@ -14,16 +12,15 @@
 }
 
 .gal-title {
-    font-size: clamp(50px, 7vw, 90px);
-    font-weight: 800;
+    font-size: clamp(28px, 4.8vw, 46px);
+    font-weight: 900;
     color: #0a2a43;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    margin: 0 0 40px 0;
+    margin: 0 0 28px 0;
     text-align: left;
 }
 
-/* ===== Images grid ===== */
 .gal-grid {
     display: grid;
     grid-template-columns: repeat(12, 1fr);
@@ -35,18 +32,12 @@
     border: 0;
     padding: 0;
     cursor: pointer;
-
     border-radius: 22px;
     overflow: hidden;
-
     background: rgba(10, 42, 67, 0.03);
     border: 1px solid rgba(10, 42, 67, 0.10);
-
     box-shadow: 0 18px 55px rgba(6, 24, 50, 0.08);
     transition: transform 0.18s ease, box-shadow 0.18s ease;
-}
-
-.gal-card {
     grid-column: span 6;
     aspect-ratio: 16 / 10;
 }
@@ -69,35 +60,30 @@
     transform: scale(1.06);
 }
 
-/* ===== Videos ===== */
 .gal-videos {
-    margin-top: 46px;
+    margin-top: 40px;
 }
 
 .gal-subtitle {
-    font-size: clamp(28px, 3.2vw, 44px);
+    font-size: clamp(18px, 3.2vw, 26px);
     font-weight: 900;
     color: #0a2a43;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    margin: 0 0 16px 0;
+    margin: 0 0 14px 0;
 }
 
-/* Featured */
 .gal-featured {
     position: relative;
     width: 100%;
     border: 0;
     padding: 0;
     cursor: pointer;
-
     border-radius: 24px;
     overflow: hidden;
-
     background: rgba(10, 42, 67, 0.03);
     border: 1px solid rgba(10, 42, 67, 0.10);
     box-shadow: 0 18px 55px rgba(6, 24, 50, 0.08);
-
     transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
 
@@ -126,34 +112,24 @@
     align-items: flex-end;
     justify-content: flex-start;
     padding: 16px;
-
-    background: linear-gradient(
-            to top,
-            rgba(10, 42, 67, 0.62),
-            rgba(10, 42, 67, 0.18),
-            rgba(10, 42, 67, 0)
-    );
+    background: linear-gradient(to top, rgba(10, 42, 67, 0.62), rgba(10, 42, 67, 0.18), rgba(10, 42, 67, 0));
 }
 
 .gal-featuredPlay {
     width: 58px;
     height: 58px;
     border-radius: 999px;
-
     display: inline-flex;
     align-items: center;
     justify-content: center;
-
-    font-size: 28px;
+    font-size: 26px;
     font-weight: 900;
     color: #ffffff;
-
     background: rgba(255, 255, 255, 0.14);
     border: 1px solid rgba(255, 255, 255, 0.22);
     backdrop-filter: blur(10px);
 }
 
-/* ===== Row scroller (no arrows) ===== */
 .gal-rowScroller {
     margin-top: 14px;
 }
@@ -163,10 +139,8 @@
     grid-auto-flow: column;
     grid-auto-columns: 280px;
     gap: 14px;
-
     overflow-x: auto;
     padding-bottom: 10px;
-
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
 }
@@ -182,18 +156,14 @@
 
 .gal-rowCard {
     scroll-snap-align: start;
-
     border: 0;
     padding: 0;
     cursor: pointer;
-
     border-radius: 22px;
     overflow: hidden;
-
     background: rgba(10, 42, 67, 0.03);
     border: 1px solid rgba(10, 42, 67, 0.10);
     box-shadow: 0 18px 55px rgba(6, 24, 50, 0.08);
-
     transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
 
@@ -226,42 +196,33 @@
     position: absolute;
     left: 12px;
     bottom: 12px;
-
     width: 42px;
     height: 42px;
     border-radius: 999px;
-
     display: inline-flex;
     align-items: center;
     justify-content: center;
-
     font-size: 18px;
     font-weight: 900;
     color: #ffffff;
-
     background: rgba(255, 255, 255, 0.14);
     border: 1px solid rgba(255, 255, 255, 0.22);
     backdrop-filter: blur(10px);
 }
 
-/* ===== YouTube channel CTA (real SVG icon, no background) ===== */
 .gal-ytCta {
     margin-top: 18px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 14px;
-
     padding: 16px 18px;
     border-radius: 18px;
-
     background: rgba(10, 42, 67, 0.03);
     border: 1px solid rgba(10, 42, 67, 0.10);
     box-shadow: 0 18px 55px rgba(6, 24, 50, 0.08);
-
     text-decoration: none;
     color: #0a2a43;
-
     transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
 
@@ -277,31 +238,28 @@
 }
 
 .gal-ytText {
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 900;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
-    line-height: 1.2;
+    line-height: 1.25;
     flex: 1 1 auto;
 }
 
 .gal-ytArrow {
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 900;
     color: rgba(19, 75, 123, 0.96);
     flex: 0 0 auto;
 }
 
-/* ===== Modal ===== */
 .gal-overlay {
     position: fixed;
     inset: 0;
     z-index: 120;
-
     display: flex;
     align-items: center;
     justify-content: center;
-
     background: rgba(10, 42, 67, 0.35);
     backdrop-filter: blur(8px);
     animation: galFade 0.35s ease;
@@ -315,14 +273,11 @@
 .gal-modal {
     width: min(1100px, 92vw);
     max-height: 86vh;
-
     border-radius: 28px;
     overflow: hidden;
-
     background: #ffffff;
     border: 1px solid rgba(10, 42, 67, 0.12);
     box-shadow: 0 40px 140px rgba(6, 24, 50, 0.45);
-
     position: relative;
     animation: galEnter 0.45s cubic-bezier(.2,.8,.2,1);
 }
@@ -340,17 +295,14 @@
     position: absolute;
     top: 14px;
     right: 14px;
-
     width: 46px;
     height: 46px;
     border-radius: 999px;
-
     border: 1px solid rgba(10, 42, 67, 0.15);
     background: rgba(255, 255, 255, 0.92);
     color: rgba(10, 42, 67, 0.9);
-    font-size: 28px;
+    font-size: 26px;
     cursor: pointer;
-
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -365,7 +317,6 @@
     background: #ffffff;
 }
 
-/* Video iframe */
 .gal-videoFrameWrap {
     width: 100%;
     aspect-ratio: 16 / 9;
@@ -380,7 +331,6 @@
     background: #0b1622;
 }
 
-/* ===== Responsive ===== */
 @media (max-width: 900px) {
     .gal-section {
         padding: 120px 18px 140px;
@@ -388,7 +338,7 @@
 
     .gal-title {
         text-align: center;
-        margin-bottom: 32px;
+        margin-bottom: 24px;
     }
 
     .gal-card {
@@ -436,7 +386,6 @@
     }
 }
 
-/* Mobile: modal bottom sheet */
 @media (max-width: 700px) {
     .gal-overlay {
         align-items: flex-end;
