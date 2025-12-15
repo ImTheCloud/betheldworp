@@ -24,7 +24,7 @@ const WeeklyProgram = [
     {
         day: "Sâmbăta",
         title: "Program cu copiii",
-        times: ["11:00 - 14:00"],
+        times: ["11:00 - 13:30"],
     },
     {
         day: "Duminică",
@@ -37,35 +37,36 @@ export default function Program() {
     return (
         <section id="program" className="program-section">
             <div className="program-content">
-                <h2 className="program-title">Programul săptămânal</h2>
+                <div className="program-header">
+                    <h2 className="program-title">Programul săptămânal</h2>
+                </div>
 
-                <div className="program-lines">
+                <div className="program-grid">
                     {WeeklyProgram.map((item, idx) => (
-                        <article key={`${item.day}-${idx}`} className="program-row">
+                        <article key={`${item.day}-${idx}`} className="program-card">
                             <div className="program-day">{item.day}</div>
-
-                            <div className="program-main">
-                                <div className="program-activity">{item.title}</div>
-
-                                <div className="program-times">
-                                    {item.times.map((t) => (
-                                        <span key={t} className="program-time">
-                      {t}
-                    </span>
-                                    ))}
-                                </div>
+                            <div className="program-activity">{item.title}</div>
+                            <div className="program-times">
+                                {item.times.map((t) => (
+                                    <span key={t} className="program-time">
+                                        {t}
+                                    </span>
+                                ))}
                             </div>
                         </article>
                     ))}
                 </div>
 
-                <div className="program-highlight">
-                    <p className="program-highlight-text">
-                        „Mă bucur când mi se zice: «Haidem la Casa Domnului!»”
-                    </p>
-                    <p className="program-highlight-sub">
-                        (Psalmul 122:1)
-                    </p>
+                <div className="program-verse-highlight">
+                    <div className="program-verse-content">
+                        <div className="program-verse-label">Psalmul 122:1</div>
+                        <p className="program-verse-text">
+                            „Mă bucur când mi se zice: «Haidem la Casa Domnului!»"
+                        </p>
+                        <p className="program-verse-ref">
+                            Biblia, Vechiul Testament
+                        </p>
+                    </div>
                 </div>
             </div>
         </section>

@@ -14,7 +14,7 @@ export default function Header() {
         () => [
             { id: "acasa", label: "Acasă", type: "section" },
             { id: "despre-noi", label: "Cine suntem", type: "section" },
-            { id: "program", label: "Program săptămânal", type: "section" },
+            { id: "program", label: "Programul săptămânal", type: "section" },
             { id: "evenimente", label: "Evenimente", type: "section" },
             { id: "galerie", label: "Galerie", type: "section" },
             { id: "locatie", label: "Locație", type: "section" },
