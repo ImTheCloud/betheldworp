@@ -1,6 +1,6 @@
-import "./Program.css";
+import "./WeeklyProgram.css";
 
-const PROGRAM = [
+const WeeklyProgram = [
     {
         day: "Luni",
         title: "Seară de Adolescenți și de Tineret",
@@ -40,7 +40,7 @@ export default function Program() {
                 <h2 className="program-title">Programul săptămânal</h2>
 
                 <div className="program-lines">
-                    {PROGRAM.map((item, idx) => (
+                    {WeeklyProgram.map((item, idx) => (
                         <article key={`${item.day}-${idx}`} className="program-row">
                             <div className="program-day">{item.day}</div>
 
