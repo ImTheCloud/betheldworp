@@ -61,9 +61,14 @@
     cursor: pointer;
     font-size: 16px;
     font-weight: 800;
-    color: #134b7b;
+    color: rgba(10, 42, 67, 0.92);
     padding-bottom: 3px;
     position: relative;
+    transition: color 0.18s ease;
+}
+
+.nav button:hover {
+    color: rgba(19, 75, 123, 0.96);
 }
 
 .nav button:focus-visible {
@@ -79,12 +84,156 @@
     bottom: 0;
     width: 0;
     height: 3px;
-    background-color: #134b7b;
+    background-color: rgba(19, 75, 123, 0.96);
     transition: width 0.18s ease-out;
 }
 
 .nav button:hover::after {
     width: 100%;
+}
+
+.nav button.is-active {
+    color: rgba(19, 75, 123, 0.98);
+}
+
+.nav button.is-active::after {
+    width: 100%;
+}
+
+.burger {
+    display: none;
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex-direction: column;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(8px);
+    transition: background 0.25s ease, border-color 0.25s ease;
+}
+
+.burger span {
+    width: 22px;
+    height: 2px;
+    background: rgba(10, 42, 67, 0.92);
+    border-radius: 999px;
+    transition: transform 0.18s ease, opacity 0.18s ease;
+}
+
+.burger-top {
+    border-color: rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.18);
+}
+
+.burger-scrolled {
+    border-color: rgba(10, 42, 67, 0.12);
+    background: rgba(255, 255, 255, 0.92);
+}
+
+.burger.is-open span:nth-child(1) {
+    transform: translateY(8px) rotate(45deg);
+}
+
+.burger.is-open span:nth-child(2) {
+    opacity: 0;
+}
+
+.burger.is-open span:nth-child(3) {
+    transform: translateY(-8px) rotate(-45deg);
+}
+
+.mnav-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    background: rgba(10, 42, 67, 0.38);
+    backdrop-filter: blur(8px);
+    display: none;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 12px;
+    padding-top: 76px;
+}
+
+.mnav-overlay.is-open {
+    display: flex;
+}
+
+.mnav-panel {
+    width: min(520px, 100%);
+    background: #ffffff;
+    border-radius: 22px;
+    border: 1px solid rgba(10, 42, 67, 0.12);
+    box-shadow: 0 40px 140px rgba(6, 24, 50, 0.35);
+    overflow: hidden;
+    animation: mnavDown 0.22s ease;
+}
+
+@keyframes mnavDown {
+    from { transform: translateY(-18px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.mnav-top {
+    padding: 16px 16px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.mnav-title {
+    font-size: 14px;
+    font-weight: 900;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(10, 42, 67, 0.86);
+}
+
+.mnav-close {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    border: 1px solid rgba(10, 42, 67, 0.12);
+    background: rgba(10, 42, 67, 0.04);
+    color: rgba(10, 42, 67, 0.9);
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.mnav-links {
+    padding: 6px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.mnav-links button {
+    width: 100%;
+    text-align: left;
+    padding: 14px 14px;
+    border-radius: 16px;
+    border: 1px solid rgba(10, 42, 67, 0.10);
+    background: rgba(10, 42, 67, 0.03);
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 800;
+    color: rgba(10, 42, 67, 0.92);
+    transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+.mnav-links button:hover {
+    background: rgba(10, 42, 67, 0.06);
+}
+
+.mnav-links button.is-active {
+    color: rgba(19, 75, 123, 0.98);
+    background: rgba(19, 75, 123, 0.10);
+    border-color: rgba(19, 75, 123, 0.18);
 }
 
 @media (max-width: 1024px) {
@@ -109,6 +258,10 @@
     .nav button {
         font-size: 15px;
     }
+
+    .mnav-overlay {
+        padding-top: 70px;
+    }
 }
 
 @media (max-width: 768px) {
@@ -128,5 +281,13 @@
 
     .nav {
         display: none !important;
+    }
+
+    .burger {
+        display: inline-flex;
+    }
+
+    .mnav-overlay {
+        padding-top: 62px;
     }
 }
