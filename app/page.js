@@ -18,26 +18,38 @@ export default function Home() {
             <Header />
 
             <main>
-                <section className="hero-stack">
+                <section id="acasa" className="hero-stack">
                     <div className="hero-stack-hero">
                         <Hero />
                     </div>
 
-                    <div className="hero-stack-about">
+                    <div id="despre-noi" className="hero-stack-about">
                         <About />
                     </div>
                 </section>
 
-                <Program />
-                <Events />
-                <Gallery />
+                <section id="program">
+                    <Program />
+                </section>
 
+                <section id="evenimente">
+                    <Events />
+                </section>
 
-                <Donations />
-                <Location />
+                <section id="galerie">
+                    <Gallery />
+                </section>
+
+                <section id="donatii">
+                    <Donations />
+                </section>
+
+                <section id="locatie">
+                    <Location />
+                </section>
+
                 <Footer />
                 <ContactWidget />
-
                 <NextProgramToast />
             </main>
         </>
