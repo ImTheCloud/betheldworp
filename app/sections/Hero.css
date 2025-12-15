@@ -47,7 +47,16 @@
     font-weight: 900;
     line-height: 1.05;
     letter-spacing: -0.02em;
-    text-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+    text-shadow:
+        -2px  0   0 rgba(0, 0, 0, 0.75),
+         2px  0   0 rgba(0, 0, 0, 0.75),
+         0   -2px 0 rgba(0, 0, 0, 0.75),
+         0    2px 0 rgba(0, 0, 0, 0.75),
+        -2px -2px 0 rgba(0, 0, 0, 0.65),
+         2px  2px 0 rgba(0, 0, 0, 0.65),
+        -2px  2px 0 rgba(0, 0, 0, 0.65),
+         2px -2px 0 rgba(0, 0, 0, 0.65),
+         0   14px 32px rgba(0, 0, 0, 0.55);
     animation: fadeInUp 0.8s ease-out;
 }
 
@@ -57,7 +66,12 @@
     font-size: clamp(26px, 3.4vw, 44px);
     font-weight: 700;
     letter-spacing: 0.02em;
-    text-shadow: 0 2px 16px rgba(0, 0, 0, 0.4);
+    text-shadow:
+        -1.5px  0    0 rgba(0, 0, 0, 0.70),
+         1.5px  0    0 rgba(0, 0, 0, 0.70),
+         0     -1.5px 0 rgba(0, 0, 0, 0.70),
+         0      1.5px 0 rgba(0, 0, 0, 0.70),
+         0      10px  26px rgba(0, 0, 0, 0.50);
     opacity: 0.95;
     animation: fadeInUp 0.8s ease-out 0.15s backwards;
 }
@@ -74,7 +88,7 @@
     border: 1.5px solid rgba(255, 255, 255, 0.78);
     border-radius: 20px;
 
-    color: #0a2a43;
+    color: #550b0b;
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
 
     animation: fadeInUp 0.8s ease-out 0.3s backwards;
@@ -102,6 +116,7 @@
     line-height: 1.6;
     font-weight: 500;
     font-style: italic;
+    color: #550b0b;
 }
 
 @keyframes fadeInUp {
