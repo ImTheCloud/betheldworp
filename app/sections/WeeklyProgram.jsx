@@ -3,7 +3,7 @@ import "./WeeklyProgram.css";
 const WeeklyProgram = [
     {
         day: "Luni",
-        title: "Seară de Adolescenți și de Tineret",
+        title: "Seară de Tineret și Adolescenți",
         times: ["20:00 - 21:30"],
     },
     {
@@ -29,7 +29,7 @@ const WeeklyProgram = [
     {
         day: "Duminică",
         title: "Serviciu Divin",
-        times: ["10:00 - 12:00", "18:00 - 20:00"],
+        times: ["10:00-12:00", "18:00-20:00"],
     },
 ];
 
@@ -59,13 +59,10 @@ export default function Program() {
 
                 <div className="program-verse-highlight">
                     <div className="program-verse-content">
-                        <div className="program-verse-label">Psalmul 122:1</div>
                         <p className="program-verse-text">
                             „Mă bucur când mi se zice: «Haidem la Casa Domnului!»"
                         </p>
-                        <p className="program-verse-ref">
-                            Biblia, Vechiul Testament
-                        </p>
+                        <p className="program-verse-ref">Psalmul 122:1</p>
                     </div>
                 </div>
             </div>
