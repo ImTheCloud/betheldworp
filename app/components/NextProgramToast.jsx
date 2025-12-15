@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import "./NextProgramToast.css";
 
 const RO_DAYS = ["Duminică", "Luni", "Marți", "Miercuri", "Joi", "Vineri", "Sâmbătă"];
@@ -57,22 +57,85 @@ export default function NextProgramToast() {
 
     const [isVisible, setIsVisible] = useState(false);
 
-    useEffect(() => {
-        const showTimer = setTimeout(() => setIsVisible(true), 5000);
-        const hideTimer = setTimeout(() => setIsVisible(false), 15000);
+    const mountedAtMs = useRef(Date.now());
+    const menuOpenRef = useRef(false);
+    const pendingShowRef = useRef(false);
+    const showTimerRef = useRef(null);
+    const hideTimerRef = useRef(null);
 
-        return () => {
-            clearTimeout(showTimer);
-            clearTimeout(hideTimer);
-        };
+    const SHOW_AFTER_MS = 5000;
+    const VISIBLE_MS = 10000;
+
+    const clearTimers = () => {
+        if (showTimerRef.current) clearTimeout(showTimerRef.current);
+        if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+        showTimerRef.current = null;
+        hideTimerRef.current = null;
+    };
+
+    const hideNow = () => {
+        if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+        hideTimerRef.current = null;
+        setIsVisible(false);
+    };
+
+    const showNow = () => {
+        if (menuOpenRef.current) {
+            pendingShowRef.current = true;
+            return;
+        }
+
+        pendingShowRef.current = false;
+        setIsVisible(true);
+
+        if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+        hideTimerRef.current = setTimeout(() => setIsVisible(false), VISIBLE_MS);
+    };
+
+    useEffect(() => {
+        const remaining = Math.max(0, mountedAtMs.current + SHOW_AFTER_MS - Date.now());
+        showTimerRef.current = setTimeout(() => {
+            if (menuOpenRef.current) {
+                pendingShowRef.current = true;
+                return;
+            }
+            showNow();
+        }, remaining);
+
+        return () => clearTimers();
     }, []);
+
+    useEffect(() => {
+        const onMenu = (e) => {
+            const open = !!e?.detail?.open;
+            menuOpenRef.current = open;
+
+            if (open) {
+                pendingShowRef.current = pendingShowRef.current || false;
+                if (isVisible) hideNow();
+                return;
+            }
+
+            if (!open && pendingShowRef.current) {
+                showNow();
+            }
+        };
+
+        window.addEventListener("bethel:menu", onMenu);
+        return () => window.removeEventListener("bethel:menu", onMenu);
+    }, [isVisible]);
 
     return (
         <div className={`iosToast ${isVisible ? "iosToast--show" : ""}`} role="status" aria-live="polite">
             <div className="iosToast-head">
                 <div className="iosToast-title">Următorul program</div>
 
-                <button className="iosToast-close" onClick={() => setIsVisible(false)} aria-label="Închide">
+                <button
+                    className="iosToast-close"
+                    onClick={hideNow}
+                    aria-label="Închide"
+                    type="button"
+                >
                     ×
                 </button>
             </div>
