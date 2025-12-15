@@ -1,34 +1,23 @@
-/* app/components/Header.css */
-
 .header {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    height: 90px;
-    padding: 0 60px;
-
+    height: 82px;
+    padding: 0 44px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-
     z-index: 30;
-
-    transition:
-            background-color 0.25s ease,
-            border-bottom-color 0.25s ease,
-            box-shadow 0.25s ease,
-            padding 0.25s ease;
+    transition: background-color 0.25s ease, border-bottom-color 0.25s ease, box-shadow 0.25s ease, padding 0.25s ease;
 }
 
-/* Transparent sur la vidéo */
 .header-top {
     background: rgba(255, 255, 255, 0.28);
     border-bottom: 1px solid rgba(255, 255, 255, 0.3);
     backdrop-filter: blur(6px);
 }
 
-/* Fond blanc quand on scroll */
 .header-scrolled {
     background: rgba(255, 255, 255, 0.96);
     backdrop-filter: blur(10px);
@@ -36,7 +25,6 @@
     box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
 }
 
-/* Logo */
 .brand {
     display: flex;
     align-items: center;
@@ -51,32 +39,29 @@
 }
 
 .logo-img {
-    height: 58px;
+    height: 52px;
 }
 
 .logo-text {
-    font-size: 22px;
-    font-weight: 800;
-    letter-spacing: 0.20em;
+    font-size: 16px;
+    font-weight: 900;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
     color: #0a2a43;
 }
 
-/* NAVIGATION DESKTOP */
 .nav {
     display: flex;
-    gap: 36px;
+    gap: 30px;
 }
 
 .nav button {
     background: none;
     border: none;
     cursor: pointer;
-
-    font-size: 22px;
-    font-weight: 600;
+    font-size: 16px;
+    font-weight: 800;
     color: #134b7b;
-
     padding-bottom: 3px;
     position: relative;
 }
@@ -87,17 +72,14 @@
     border-radius: 10px;
 }
 
-/* Underline effect */
 .nav button::after {
     content: "";
     position: absolute;
     left: 0;
     bottom: 0;
-
     width: 0;
     height: 3px;
     background-color: #134b7b;
-
     transition: width 0.18s ease-out;
 }
 
@@ -105,7 +87,30 @@
     width: 100%;
 }
 
-/* ===== Mobile: hide nav completely ===== */
+@media (max-width: 1024px) {
+    .header {
+        padding: 0 22px;
+        height: 72px;
+    }
+
+    .logo-img {
+        height: 46px;
+    }
+
+    .logo-text {
+        font-size: 14px;
+        letter-spacing: 0.14em;
+    }
+
+    .nav {
+        gap: 20px;
+    }
+
+    .nav button {
+        font-size: 15px;
+    }
+}
+
 @media (max-width: 768px) {
     .header {
         padding: 0 16px;
@@ -117,11 +122,10 @@
     }
 
     .logo-text {
-        font-size: 14px;
+        font-size: 13px;
         letter-spacing: 0.12em;
     }
 
-    /* ✅ hide nav entirely */
     .nav {
         display: none !important;
     }

@@ -1,84 +1,65 @@
-/* app/components/About.css */
-
 .about-section {
     position: relative;
     padding: 160px 24px 180px;
     display: flex;
     justify-content: center;
-
-    /* 👉 Blanc 100% opaque, plus rien ne passe à travers */
     background: #ffffff;
 }
 
-/* Bloc principal centré */
 .about-content {
     width: 100%;
     max-width: 1100px;
 }
 
-/* Gros titre */
 .about-title {
-    font-size: clamp(50px, 7vw, 90px);
-    font-weight: 800;
+    font-size: clamp(28px, 4.8vw, 46px);
+    font-weight: 900;
     color: #0a2a43;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    margin: 0 0 40px 0;
+    margin: 0 0 28px 0;
     text-align: left;
 }
 
-/* Colonne avec une barre verticale à gauche */
 .about-lines {
     position: relative;
-    padding-left: 36px;
+    padding-left: 28px;
     border-left: 3px solid rgba(10, 42, 67, 0.5);
     display: flex;
     flex-direction: column;
-    gap: 22px;
+    gap: 18px;
 }
 
-/* Chaque phrase = statement */
 .about-line {
-    font-size: clamp(24px, 2.4vw, 32px);
-    line-height: 1.9;
+    font-size: clamp(16px, 2.2vw, 20px);
+    line-height: 1.85;
     color: #102132;
     margin: 0;
 }
 
-/* Bande verset en bas pleine largeur */
 .about-verse-strip {
-    margin-top: 48px;
-    padding: 26px 26px 22px;
+    margin-top: 40px;
+    padding: 22px 22px 18px;
     border-radius: 24px;
-
-    background: linear-gradient(
-            to right,
-            rgba(10, 42, 67, 0.96),
-            rgba(22, 70, 120, 0.96)
-    );
+    background: linear-gradient(to right, rgba(10, 42, 67, 0.96), rgba(22, 70, 120, 0.96));
     color: #ffffff;
-
-    box-shadow:
-            0 22px 65px rgba(6, 24, 50, 0.5);
+    box-shadow: 0 22px 65px rgba(6, 24, 50, 0.5);
 }
 
-/* Texte du verset */
 .about-verse-text {
-    font-size: clamp(22px, 2.1vw, 28px);
+    font-size: clamp(16px, 2vw, 19px);
     line-height: 1.8;
-    font-weight: 500;
+    font-weight: 600;
     font-style: italic;
     margin: 0 0 6px 0;
 }
 
-/* Référence */
 .about-verse-ref {
-    font-size: 18px;
+    font-size: 14px;
     margin: 0;
     opacity: 0.9;
 }
 
-/* Responsive */
 @media (max-width: 900px) {
     .about-section {
         padding: 120px 18px 140px;
@@ -86,26 +67,18 @@
 
     .about-title {
         text-align: center;
-        margin-bottom: 32px;
+        margin-bottom: 22px;
     }
 
     .about-lines {
-        padding-left: 22px;
+        padding-left: 20px;
         border-left-width: 2px;
     }
 
-    .about-line {
-        font-size: 20px;
-    }
-
     .about-verse-strip {
-        margin-top: 36px;
-        padding: 20px 18px 18px;
+        margin-top: 32px;
+        padding: 18px 16px 16px;
         border-radius: 20px;
-    }
-
-    .about-verse-text {
-        font-size: 20px;
     }
 }
 
