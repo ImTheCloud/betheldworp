@@ -28,7 +28,7 @@ const PROGRAM = [
     },
     {
         day: "Duminică",
-        title: "Slujbe",
+        title: "Serviciu Divin",
         times: ["10:00 - 12:00", "18:00 - 20:00"],
     },
 ];

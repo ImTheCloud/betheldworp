@@ -3,7 +3,6 @@
     height: 100vh;
     width: 100%;
     overflow: hidden;
-
     background: #0a2a43 url("/image/hero-bethel.jpg") center bottom / cover no-repeat;
 }
 
@@ -11,9 +10,7 @@
     position: absolute;
     inset: 0;
     z-index: 1;
-
     background: url("/image/hero-bethel.jpg") center bottom / cover no-repeat;
-
     transform: scale(1);
     will-change: transform;
     animation: heroZoom 18s ease-in-out infinite alternate;
@@ -21,104 +18,136 @@
 
 @keyframes heroZoom {
     from { transform: scale(1); }
-    to   { transform: scale(1.12); }
+    to   { transform: scale(1.20); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .hero-bg {
-        animation: none;
-        transform: scale(1);
-    }
+    .hero-bg { animation: none; transform: scale(1); }
 }
 
 .hero-content {
     position: relative;
-    z-index: 10;
+    z-index: 2;
     height: 100%;
-    padding: 0 24px;
-
+    padding: 0 5%;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     text-align: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    gap: 34px;
 }
 
 .hero-title {
-    font-size: clamp(60px, 8vw, 120px);
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
     margin: 0;
-    color: #ffffff;
-    text-shadow: 0 6px 28px rgba(0, 0, 0, 0.55), 0 0 16px rgba(0, 0, 0, 0.35);
+    color: #fff;
+    font-size: clamp(52px, 8vw, 96px);
+    font-weight: 900;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    text-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+    animation: fadeInUp 0.8s ease-out;
 }
 
 .hero-subtitle {
-    font-size: clamp(36px, 5vw, 64px);
-    font-weight: 600;
-    margin-top: 15px;
-    color: #ffffff;
-    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.45), 0 0 12px rgba(0, 0, 0, 0.35);
+    margin: -28px 0 0 0;
+    color: #fff;
+    font-size: clamp(22px, 3vw, 36px);
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    text-shadow: 0 2px 16px rgba(0, 0, 0, 0.4);
+    opacity: 0.95;
+    animation: fadeInUp 0.8s ease-out 0.15s backwards;
 }
 
-.hero-verseCard {
-    margin-top: 34px;
-    width: min(960px, 100%);
-    padding: 18px 18px 16px;
-    border-radius: 22px;
+.hero-verse {
+    width: 100%;
+    max-width: 900px;
+    padding: 32px 40px;
 
-    background: rgba(255, 255, 255, 0.10);
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.66);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
 
-    box-shadow: 0 18px 55px rgba(0, 0, 0, 0.28);
+    border: 1.5px solid rgba(255, 255, 255, 0.78);
+    border-radius: 20px;
+
+    color: #0a2a43;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+
+    animation: fadeInUp 0.8s ease-out 0.3s backwards;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.hero-verseBadge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+.hero-verse:hover {
+    background: rgba(255, 255, 255, 0.78);
+    border-color: rgba(255, 255, 255, 0.90);
+    transform: translateY(-4px);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
+}
 
-    padding: 10px 16px;
-    border-radius: 999px;
-
-    background: rgba(255, 255, 255, 0.16);
-    border: 1px solid rgba(255, 255, 255, 0.22);
-
-    color: rgba(255, 255, 255, 0.95);
-    font-weight: 900;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    font-size: 13px;
-
-    text-shadow: 0 3px 14px rgba(0, 0, 0, 0.45);
+.hero-verseLabel {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    opacity: 0.95;
+    margin-bottom: 12px;
 }
 
 .hero-verseText {
-    margin: 14px 0 10px 0;
-    font-size: clamp(26px, 2.8vw, 38px);
-    line-height: 1.55;
-    color: #ffffff;
-    text-shadow: 0 3px 14px rgba(0, 0, 0, 0.75), 0 0 8px rgba(0, 0, 0, 0.5);
-}
-
-.hero-verseHint {
     margin: 0;
-    font-size: 16px;
-    font-weight: 800;
-    letter-spacing: 0.03em;
-    color: rgba(255, 255, 255, 0.86);
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+    font-size: clamp(20px, 2.5vw, 26px);
+    line-height: 1.6;
+    font-weight: 500;
+    font-style: italic;
 }
 
-@media (max-width: 600px) {
-    .hero-verseCard {
-        padding: 16px 14px 14px;
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(40px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+    .hero-content {
+        padding: 24px;
+        gap: 28px;
+    }
+
+    .hero-subtitle {
+        margin-top: -22px;
+    }
+
+    .hero-verse {
+        padding: 28px 32px;
+    }
+
+    .hero-verseLabel {
+        font-size: 16px;
+    }
+
+    .hero-verseText {
+        font-size: 18px;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-content {
+        padding: 20px;
+        gap: 24px;
+    }
+
+    .hero-verse {
+        padding: 24px 26px;
         border-radius: 18px;
     }
-    .hero-verseHint {
-        font-size: 14px;
+
+    .hero-verseLabel {
+        font-size: 15px;
+    }
+
+    .hero-verseText {
+        font-size: 17px;
     }
 }
