@@ -1,14 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import "./Header.css";
 
-const SECTION_IDS = ["acasa", "despre-noi", "program", "evenimente", "galerie", "locatie", "donatii"];
+const SECTION_IDS = ["acasa", "despre-noi", "program", "evenimente", "galerie", "donatii", "locatie"];
 
 export default function Header() {
     const [scrolled, setScrolled] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
     const [activeId, setActiveId] = useState("acasa");
+
+    const activeIdRef = useRef("acasa");
 
     const NAV_ITEMS = useMemo(
         () => [
@@ -18,35 +20,25 @@ export default function Header() {
             { id: "evenimente", label: "Evenimente", type: "section" },
             { id: "galerie", label: "Galerie", type: "section" },
             { id: "donatii", label: "Donații", type: "section" },
-            { id: "locatie", label: "Locație", type: "section" },
+            { id: "locatie", label: "Unde ne găsim?", type: "section" },
             { id: "contact", label: "Contact", type: "contact" },
         ],
         []
     );
 
     useEffect(() => {
-        const handleScroll = () => {
+        activeIdRef.current = activeId;
+    }, [activeId]);
+
+    useEffect(() => {
+        const onScroll = () => {
             setScrolled(window.scrollY > 40);
-
-            const header = document.querySelector(".header");
-            const headerHeight = header?.offsetHeight ?? 90;
-            const y = window.scrollY + headerHeight + 40;
-
-            let current = "acasa";
-            for (const id of SECTION_IDS) {
-                if (id === "acasa") continue;
-                const el = document.getElementById(id);
-                if (!el) continue;
-                if (el.offsetTop <= y) current = id;
-            }
-
-            if (window.scrollY < 60) current = "acasa";
-            setActiveId(current);
+            if (window.scrollY < 60 && activeIdRef.current !== "acasa") setActiveId("acasa");
         };
 
-        handleScroll();
-        window.addEventListener("scroll", handleScroll, { passive: true });
-        return () => window.removeEventListener("scroll", handleScroll);
+        onScroll();
+        window.addEventListener("scroll", onScroll, { passive: true });
+        return () => window.removeEventListener("scroll", onScroll);
     }, []);
 
     useEffect(() => {
@@ -75,6 +67,39 @@ export default function Header() {
         };
     }, [menuOpen]);
 
+    // ✅ Active section detection (reliable)
+    useEffect(() => {
+        const header = document.querySelector(".header");
+        const headerHeight = header?.offsetHeight ?? 82;
+
+        const sections = SECTION_IDS.map((id) => document.getElementById(id)).filter(Boolean);
+        if (!sections.length) return;
+
+        const io = new IntersectionObserver(
+            (entries) => {
+                const visible = entries
+                    .filter((e) => e.isIntersecting)
+                    .sort((a, b) => (b.intersectionRatio || 0) - (a.intersectionRatio || 0));
+
+                if (!visible.length) return;
+
+                const id = visible[0].target.id;
+                if (id && id !== activeIdRef.current && window.scrollY >= 60) {
+                    setActiveId(id);
+                }
+            },
+            {
+                root: null,
+                // on “décale” la zone observée pour tenir compte du header fixe
+                rootMargin: `-${headerHeight + 24}px 0px -55% 0px`,
+                threshold: [0.08, 0.15, 0.25, 0.35, 0.5, 0.65],
+            }
+        );
+
+        sections.forEach((s) => io.observe(s));
+        return () => io.disconnect();
+    }, []);
+
     const scrollToSection = (id) => {
         setMenuOpen(false);
         setActiveId(id);
@@ -88,7 +113,7 @@ export default function Header() {
         if (!element) return;
 
         const header = document.querySelector(".header");
-        const headerHeight = header?.offsetHeight ?? 90;
+        const headerHeight = header?.offsetHeight ?? 82;
 
         const y = element.getBoundingClientRect().top + window.scrollY - headerHeight - 12;
         window.scrollTo({ top: y, behavior: "smooth" });
@@ -108,12 +133,12 @@ export default function Header() {
     const burgerClass = `burger ${menuOpen ? "is-open" : ""} ${scrolled ? "burger-scrolled" : "burger-top"}`;
     const isActive = (id) => (activeId === id ? "is-active" : "");
 
-    const renderNavButtons = (variant) =>
+    const renderNavButtons = () =>
         NAV_ITEMS.map((item) => (
             <button
                 key={item.id}
                 type="button"
-                className={item.type === "section" ? isActive(item.id) : variant === "mobile" ? "" : ""}
+                className={item.type === "section" ? isActive(item.id) : ""}
                 onClick={() => onNavClick(item)}
             >
                 {item.label}
@@ -128,7 +153,7 @@ export default function Header() {
                     <div className="logo-text">Bethel Dworp</div>
                 </div>
 
-                <nav className="nav">{renderNavButtons("desktop")}</nav>
+                <nav className="nav">{renderNavButtons()}</nav>
 
                 <button
                     type="button"
@@ -143,11 +168,7 @@ export default function Header() {
                 </button>
             </header>
 
-            <div
-                className={`mnav-overlay ${menuOpen ? "is-open" : ""}`}
-                onClick={() => setMenuOpen(false)}
-                aria-hidden={!menuOpen}
-            >
+            <div className={`mnav-overlay ${menuOpen ? "is-open" : ""}`} onClick={() => setMenuOpen(false)} aria-hidden={!menuOpen}>
                 <div className="mnav-panel" onClick={(e) => e.stopPropagation()}>
                     <div className="mnav-top">
                         <div className="mnav-title">Meniu</div>
@@ -156,7 +177,7 @@ export default function Header() {
                         </button>
                     </div>
 
-                    <div className="mnav-links">{renderNavButtons("mobile")}</div>
+                    <div className="mnav-links">{renderNavButtons()}</div>
                 </div>
             </div>
         </>

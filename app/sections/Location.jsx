@@ -6,7 +6,7 @@ export default function Location() {
     const full = `${place}, ${address}`;
 
     return (
-        <section id="locatie" className="location-section">
+        <section className="location-section">
             <div className="location-content">
                 <div className="location-header">
                     <h2 className="location-title">Unde ne găsim?</h2>
@@ -34,8 +34,7 @@ export default function Location() {
                 <div className="location-verse-highlight">
                     <div className="location-verse-content">
                         <p className="location-verse-text">
-                            „Căci unde sunt doi sau trei adunați în Numele Meu, acolo sunt și Eu
-                            în mijlocul lor."
+                            „Căci unde sunt doi sau trei adunați în Numele Meu, acolo sunt și Eu în mijlocul lor."
                         </p>
                         <p className="location-verse-ref">Matei 18:20</p>
                     </div>
