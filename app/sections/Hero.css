@@ -1,32 +1,36 @@
-/* app/components/Hero.css */
-
 .hero {
     position: relative;
     height: 100vh;
     width: 100%;
     overflow: hidden;
 
-    /* ✅ fallback instant (avant que la vidéo “peigne” sa 1ère frame) */
     background: #0a2a43 url("/image/hero-bethel.jpg") center bottom / cover no-repeat;
 }
 
-/* VIDEO */
-.video-background {
+.hero-bg {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-
-    width: 100%;
-    height: 100%;
-
-    object-fit: cover;
-    object-position: center bottom;
-
+    inset: 0;
     z-index: 1;
+
+    background: url("/image/hero-bethel.jpg") center bottom / cover no-repeat;
+
+    transform: scale(1);
+    will-change: transform;
+    animation: heroZoom 18s ease-in-out infinite alternate;
 }
 
-/* CONTENU */
+@keyframes heroZoom {
+    from { transform: scale(1); }
+    to   { transform: scale(1.12); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hero-bg {
+        animation: none;
+        transform: scale(1);
+    }
+}
+
 .hero-content {
     position: relative;
     z-index: 10;
@@ -40,7 +44,6 @@
     text-align: center;
 }
 
-/* TITRE */
 .hero-title {
     font-size: clamp(60px, 8vw, 120px);
     font-weight: 800;
@@ -51,7 +54,6 @@
     text-shadow: 0 6px 28px rgba(0, 0, 0, 0.55), 0 0 16px rgba(0, 0, 0, 0.35);
 }
 
-/* SOUS-TITRE */
 .hero-subtitle {
     font-size: clamp(36px, 5vw, 64px);
     font-weight: 600;
@@ -60,7 +62,6 @@
     text-shadow: 0 4px 20px rgba(0, 0, 0, 0.45), 0 0 12px rgba(0, 0, 0, 0.35);
 }
 
-/* VERSE CARD */
 .hero-verseCard {
     margin-top: 34px;
     width: min(960px, 100%);

@@ -3,16 +3,7 @@ import "./Hero.css";
 export default function Hero() {
     return (
         <section id="acasa" className="hero">
-            <video
-                className="video-background"
-                src="/videos/hero-bethel.mp4"
-                poster="/image/hero-bethel.jpg"
-                autoPlay
-                muted
-                loop
-                playsInline
-                preload="auto"
-            />
+            <div className="hero-bg" aria-hidden="true" />
 
             <div className="hero-content">
                 <h1 className="hero-title">Vă așteptăm la Bethel</h1>
