@@ -1,5 +1,3 @@
-/* app/sections/EventsCalendar.css */
-
 /* ===== SECTION ===== */
 .ec-section {
     position: relative;
@@ -22,6 +20,18 @@
     text-transform: uppercase;
     margin: 0 0 40px 0;
     text-align: left;
+}
+
+.ec-inlineInfo {
+    margin-bottom: 16px;
+    font-weight: 800;
+    color: rgba(10, 42, 67, 0.7);
+}
+
+.ec-inlineError {
+    margin-bottom: 16px;
+    font-weight: 800;
+    color: #b00020;
 }
 
 /* ===== CALENDAR CARD ===== */
@@ -149,7 +159,7 @@
     height: 100%;
 }
 
-/* ===== EVENT FULL CELL BUTTON ===== */
+/* ===== EVENT FULL CELL BUTTON (IMAGE ONLY) ===== */
 .ec-eventCellBtn {
     position: absolute;
     inset: 0;
@@ -172,37 +182,6 @@
     transform: scale(1.06);
 }
 
-.ec-eventOverlay {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: flex-end;
-    justify-content: flex-start;
-    padding: 12px;
-
-    background: linear-gradient(
-            to top,
-            rgba(10, 42, 67, 0.68),
-            rgba(10, 42, 67, 0.12),
-            rgba(10, 42, 67, 0.00)
-    );
-}
-
-.ec-eventInitials {
-    color: #ffffff;
-    font-weight: 900;
-    font-size: 14px;
-    letter-spacing: 0.10em;
-    text-transform: uppercase;
-
-    padding: 10px 12px;
-    border-radius: 999px;
-
-    background: rgba(255, 255, 255, 0.14);
-    border: 1px solid rgba(255, 255, 255, 0.22);
-    backdrop-filter: blur(8px);
-}
-
 /* ==================================================
    INLINE NEWSLETTER (under calendar)
 ================================================== */
@@ -223,7 +202,7 @@
 }
 
 .nl-inlineLeft {
-    padding: 12px 12px 12px 12px;
+    padding: 12px;
 }
 
 .nl-inlineTitle {
@@ -251,7 +230,6 @@
     padding: 16px;
 }
 
-/* form */
 .nl-inlineForm {
     display: flex;
     flex-direction: column;
@@ -276,8 +254,7 @@
 .nl-inlineField input {
     width: 100%;
     box-sizing: border-box;
-
-    padding: 14px 14px;
+    padding: 14px;
     font-size: 16px;
 
     border-radius: 16px;
@@ -293,14 +270,13 @@
     box-shadow: 0 0 0 4px rgba(19, 75, 123, 0.12);
 }
 
-/* GDPR */
 .nl-inlineGdpr {
     display: flex;
     gap: 10px;
     align-items: flex-start;
     cursor: pointer;
 
-    padding: 12px 12px;
+    padding: 12px;
     border-radius: 16px;
 
     background: rgba(10, 42, 67, 0.03);
@@ -321,7 +297,6 @@
     color: rgba(10, 42, 67, 0.78);
 }
 
-/* error + success */
 .nl-inlineError {
     padding: 10px 12px;
     border-radius: 14px;
@@ -364,7 +339,7 @@
 }
 
 .nl-inlineSuccess {
-    padding: 16px 16px;
+    padding: 16px;
     border-radius: 18px;
     font-weight: 900;
     color: #0a2a43;
@@ -382,7 +357,7 @@
 }
 
 /* ===========================
-   EVENT MODAL
+   EVENT MODAL (ALL WHITE)
 =========================== */
 .ev-overlay {
     position: fixed;
@@ -393,8 +368,9 @@
     align-items: center;
     justify-content: center;
 
-    background: rgba(10, 42, 67, 0.35);
-    backdrop-filter: blur(8px);
+    background: rgba(10, 42, 67, 0.42);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
     animation: overlayFade 0.35s ease;
 }
 
@@ -405,16 +381,19 @@
 
 .ev-modal {
     width: min(920px, 92vw);
-    background: #ffffff;
+    background: #ffffff; /* ✅ */
     border-radius: 28px;
-    border: 1px solid rgba(10, 42, 67, 0.12);
+    border: 1px solid rgba(10, 42, 67, 0.14);
 
-    box-shadow: 0 40px 140px rgba(6, 24, 50, 0.45);
+    box-shadow: 0 30px 120px rgba(6, 24, 50, 0.40);
     animation: modalEnter 0.45s cubic-bezier(.2,.8,.2,1);
 
     max-height: 86vh;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
+    isolation: isolate;
+    transform: translateZ(0);
 }
 
 @keyframes modalEnter {
@@ -422,6 +401,7 @@
     to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
+/* ✅ Header also pure white */
 .ev-header {
     padding: 26px 34px 16px;
     display: flex;
@@ -429,6 +409,10 @@
     align-items: center;
     gap: 16px;
     flex: 0 0 auto;
+
+    background: #ffffff; /* ✅ */
+    border-top-left-radius: 28px;
+    border-top-right-radius: 28px;
 }
 
 .ev-couple {
@@ -451,11 +435,15 @@
     flex: 0 0 auto;
 }
 
+/* ✅ Body also pure white */
 .ev-body {
     flex: 1 1 auto;
     overflow: auto;
     padding: 0 34px 34px;
     -webkit-overflow-scrolling: touch;
+    background: #ffffff; /* ✅ */
+    border-bottom-left-radius: 28px;
+    border-bottom-right-radius: 28px;
 }
 
 .ev-heroImgWrap {
@@ -467,9 +455,10 @@
     background: #fff;
 }
 
+/* ✅ bigger height */
 .ev-heroImg {
     width: 100%;
-    height: clamp(240px, 30vw, 360px);
+    height: clamp(340px, 42vw, 520px); /* ✅ + plus haut */
     object-fit: cover;
     display: block;
 }
@@ -534,33 +523,15 @@
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 900px) {
-    .ec-section {
-        padding: 120px 18px 140px;
-    }
-
-    .ec-title {
-        text-align: center;
-        margin-bottom: 32px;
-    }
-
-    .ec-cell,
-    .ec-blank {
-        height: 145px;
-    }
-
-    .nl-inlineCard {
-        grid-template-columns: 1fr;
-    }
-
-    .nl-inlineLeft {
-        text-align: center;
-    }
+    .ec-section { padding: 120px 18px 140px; }
+    .ec-title { text-align: center; margin-bottom: 32px; }
+    .ec-cell, .ec-blank { height: 145px; }
+    .nl-inlineCard { grid-template-columns: 1fr; }
+    .nl-inlineLeft { text-align: center; }
 }
 
 @media (max-width: 700px) {
-    .ev-overlay {
-        align-items: flex-end;
-    }
+    .ev-overlay { align-items: flex-end; }
 
     .ev-modal {
         width: 100%;
@@ -568,44 +539,16 @@
         max-height: 82vh;
     }
 
-    .ev-header {
-        padding: 18px 16px 10px;
-    }
+    .ev-header { padding: 18px 16px 10px; }
+    .ev-body { padding: 0 16px 20px; }
 
-    .ev-body {
-        padding: 0 16px 20px;
-    }
-
-    .ev-heroImg {
-        height: 220px;
-    }
-
-    .ev-map {
-        height: 220px;
-    }
+    .ev-heroImg { height: 340px; } 
+    .ev-map { height: 220px; }
 }
 
 @media (max-width: 600px) {
-    .ec-section {
-        padding: 90px 16px 110px;
-    }
-
-    .ec-card {
-        padding: 14px;
-    }
-
-    .ec-grid,
-    .ec-weekdays {
-        gap: 8px;
-    }
-
-    .ec-cell,
-    .ec-blank {
-        height: 132px;
-    }
-
-    .ec-eventInitials {
-        font-size: 13px;
-        padding: 9px 11px;
-    }
+    .ec-section { padding: 90px 16px 110px; }
+    .ec-card { padding: 14px; }
+    .ec-grid, .ec-weekdays { gap: 8px; }
+    .ec-cell, .ec-blank { height: 132px; }
 }

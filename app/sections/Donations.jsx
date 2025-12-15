@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import "./Donations.css";
 
-const BENEFICIARY = "Centru Creștin Român Bethel Dworp";
+const BENEFICIARY = "CENTRE CHRETIEN ROUMAIN BETHEL ASBL";
 const IBAN_RAW = "BE89143108589985";
 const IBAN_DISPLAY = "BE89 1431 0858 9985";
 

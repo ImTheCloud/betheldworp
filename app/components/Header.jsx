@@ -52,6 +52,8 @@ export default function Header() {
                 <button type="button" onClick={() => scrollToSection("evenimente")}>Evenimente</button>
                 <button type="button" onClick={() => scrollToSection("galerie")}>Galerie</button>
                 <button type="button" onClick={() => scrollToSection("locatie")}>Locație</button>
+                <button type="button" onClick={() => scrollToSection("donatii")}>Donații</button>
+
                 <button type="button" onClick={openContact}>Contact</button>
             </nav>
         </header>
