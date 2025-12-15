@@ -8,9 +8,9 @@ import ContactWidget from "./components/ContactWidget";
 import Events from "./sections/EventsCalendar";
 import Gallery from "./sections/Gallery";
 import Donations from "./sections/Donations";
+import NextProgramToast from "./components/NextProgramToast";
 
 import "./globals.css";
-
 
 export default function Home() {
     return (
@@ -32,13 +32,13 @@ export default function Home() {
                 <Events />
                 <Gallery />
 
-
                 <Location />
                 <Donations />
 
                 <Footer />
-
                 <ContactWidget />
+
+                <NextProgramToast />
             </main>
         </>
     );
