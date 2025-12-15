@@ -1,4 +1,3 @@
-// app/components/Hero.jsx
 import "./Hero.css";
 
 export default function Hero() {
@@ -7,6 +6,7 @@ export default function Hero() {
             <video
                 className="video-background"
                 src="/videos/hero-bethel.mp4"
+                poster="/image/hero-bethel.jpg"
                 autoPlay
                 muted
                 loop
@@ -16,10 +16,8 @@ export default function Hero() {
 
             <div className="hero-content">
                 <h1 className="hero-title">Vă așteptăm la Bethel</h1>
-
                 <h2 className="hero-subtitle">În casa lui Dumnezeu</h2>
 
-                {/* Badge + verset du mois */}
                 <div className="hero-verseCard">
                     <div className="hero-verseBadge">Versetul lunii</div>
 
