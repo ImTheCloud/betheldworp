@@ -27,14 +27,11 @@ export default function About() {
 
                 <div className="about-verse-highlight">
                     <div className="about-verse-content">
-                        <div className="about-verse-label">Ioan 3:16</div>
                         <p className="about-verse-text">
                             „Fiindcă atât de mult a iubit Dumnezeu lumea, că a dat pe singurul Lui Fiu,
                             pentru ca oricine crede în El să nu piară, ci să aibă viaţa veşnică."
                         </p>
-                        <p className="about-verse-ref">
-                            Biblia, Noul Testament
-                        </p>
+                        <p className="about-verse-ref">Ioan 3:16</p>
                     </div>
                 </div>
             </div>
