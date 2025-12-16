@@ -63,8 +63,8 @@ export default function NextProgramToast() {
     const showTimerRef = useRef(null);
     const hideTimerRef = useRef(null);
 
-    const SHOW_AFTER_MS = 5000;
-    const VISIBLE_MS = 10000;
+    const SHOW_AFTER_MS = 15000;
+    const VISIBLE_MS = 7000;
 
     const clearTimers = () => {
         if (showTimerRef.current) clearTimeout(showTimerRef.current);

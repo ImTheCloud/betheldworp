@@ -5,8 +5,6 @@ import "./Hero.css";
 export default function Hero() {
     return (
         <section id="acasa" className="hero">
-            <div className="hero-bg" aria-hidden="true" />
-
             <div className="hero-content">
                 <h1 className="hero-title">Vă așteptăm la Bethel</h1>
                 <h2 className="hero-subtitle">În casa lui Dumnezeu</h2>

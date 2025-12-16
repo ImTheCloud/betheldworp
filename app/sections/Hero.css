@@ -3,13 +3,15 @@
     height: 100vh;
     width: 100%;
     overflow: hidden;
-    background: #0a2a43 url("/image/drone.jpg") center bottom / cover no-repeat;
+    background: #000;
 }
 
-.hero-bg {
+.hero::before {
+    content: "";
     position: absolute;
     inset: 0;
     z-index: 1;
+
     background: url("/image/drone.jpg") center bottom / cover no-repeat;
     transform: scale(1);
     will-change: transform;
@@ -22,7 +24,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .hero-bg { animation: none; transform: scale(1); }
+    .hero::before { animation: none; transform: scale(1); }
 }
 
 .hero-content {
@@ -118,48 +120,20 @@
 
 @keyframes fadeInUp {
     from { opacity: 0; transform: translateY(40px); }
-    to { opacity: 1; transform: translateY(0); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
 @media (max-width: 768px) {
-    .hero-content {
-        padding: 24px;
-        gap: 28px;
-    }
-
-    .hero-subtitle {
-        margin-top: -22px;
-    }
-
-    .hero-verse {
-        padding: 28px 32px;
-    }
-
-    .hero-verseLabel {
-        font-size: 16px;
-    }
-
-    .hero-verseText {
-        font-size: 18px;
-    }
+    .hero-content { padding: 24px; gap: 28px; }
+    .hero-subtitle { margin-top: -22px; }
+    .hero-verse { padding: 28px 32px; }
+    .hero-verseLabel { font-size: 16px; }
+    .hero-verseText { font-size: 18px; }
 }
 
 @media (max-width: 480px) {
-    .hero-content {
-        padding: 20px;
-        gap: 24px;
-    }
-
-    .hero-verse {
-        padding: 24px 26px;
-        border-radius: 18px;
-    }
-
-    .hero-verseLabel {
-        font-size: 15px;
-    }
-
-    .hero-verseText {
-        font-size: 17px;
-    }
+    .hero-content { padding: 20px; gap: 24px; }
+    .hero-verse { padding: 24px 26px; border-radius: 18px; }
+    .hero-verseLabel { font-size: 15px; }
+    .hero-verseText { font-size: 17px; }
 }
