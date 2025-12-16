@@ -550,10 +550,20 @@
         align-items: flex-end;
     }
 
+    .gal-overlay.gal-overlay--center {
+        align-items: center;
+    }
+
     .gal-modal {
         width: 100%;
         border-radius: 24px 24px 0 0;
         max-height: 82vh;
+    }
+
+    .gal-overlay.gal-overlay--center .gal-modal {
+        width: min(1000px, 92vw);
+        border-radius: 24px;
+        max-height: 86vh;
     }
 
     .gal-modalImg {

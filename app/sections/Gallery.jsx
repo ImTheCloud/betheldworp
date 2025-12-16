@@ -73,7 +73,6 @@ export default function Gallery() {
     const featured = VIDEOS[0] || null;
     const others = VIDEOS.slice(1);
 
-    // Image modal
     const [imgOpen, setImgOpen] = useState(false);
     const [activeImg, setActiveImg] = useState(null);
 
@@ -83,7 +82,6 @@ export default function Gallery() {
     };
     const closeImgModal = () => setImgOpen(false);
 
-    // Video modal
     const [vidOpen, setVidOpen] = useState(false);
     const [activeVid, setActiveVid] = useState(null);
 
@@ -93,7 +91,6 @@ export default function Gallery() {
     };
     const closeVidModal = () => setVidOpen(false);
 
-    // Auto-scroll images row
     const imgRowRef = useRef(null);
     const imgRafRef = useRef(null);
     const imgLastTsRef = useRef(0);
@@ -176,7 +173,6 @@ export default function Gallery() {
         };
     }, [otherImages.length]);
 
-    // Auto-scroll video row
     const rowRef = useRef(null);
     const rafRef = useRef(null);
     const lastTsRef = useRef(0);
@@ -267,13 +263,11 @@ export default function Gallery() {
                         <h2 className="gal-title">Galerie</h2>
                     </div>
 
-                    {/* Images Section */}
                     <div className="gal-images">
                         <div className="gal-images-header">
                             <h3 className="gal-subtitle">Imagini</h3>
                         </div>
 
-                        {/* Featured Image */}
                         {featuredImage && (
                             <button
                                 type="button"
@@ -281,11 +275,15 @@ export default function Gallery() {
                                 onClick={() => openImgModal(featuredImage)}
                                 aria-label={`Open ${featuredImage.alt}`}
                             >
-                                <img className="gal-featuredThumb" src={featuredImage.src} alt={featuredImage.alt} loading="lazy" />
+                                <img
+                                    className="gal-featuredThumb"
+                                    src={featuredImage.src}
+                                    alt={featuredImage.alt}
+                                    loading="lazy"
+                                />
                             </button>
                         )}
 
-                        {/* Images Scroll Row */}
                         <div className="gal-rowScroller">
                             <div className="gal-rowOutside" ref={imgRowRef}>
                                 {otherImages.map((img) => (
@@ -305,13 +303,11 @@ export default function Gallery() {
                         </div>
                     </div>
 
-                    {/* Videos Section */}
                     <div className="gal-videos">
                         <div className="gal-video-header">
                             <h3 className="gal-subtitle">Video</h3>
                         </div>
 
-                        {/* Featured Video */}
                         {featured && (
                             <button
                                 type="button"
@@ -326,7 +322,6 @@ export default function Gallery() {
                             </button>
                         )}
 
-                        {/* Video Scroll Row */}
                         <div className="gal-rowScroller">
                             <div className="gal-rowOutside" ref={rowRef}>
                                 {others.map((v) => (
@@ -346,7 +341,6 @@ export default function Gallery() {
                             </div>
                         </div>
 
-                        {/* YouTube CTA */}
                         <a
                             className="gal-ytCta"
                             href="https://www.youtube.com/@bisericapenticostalabethel7695"
@@ -362,7 +356,6 @@ export default function Gallery() {
                 </div>
             </section>
 
-            {/* Image Modal */}
             {imgOpen && activeImg && (
                 <div className="gal-overlay" onClick={closeImgModal}>
                     <div className="gal-modal" onClick={(e) => e.stopPropagation()}>
@@ -372,9 +365,8 @@ export default function Gallery() {
                 </div>
             )}
 
-            {/* Video Modal */}
             {vidOpen && activeVid && (
-                <div className="gal-overlay" onClick={closeVidModal}>
+                <div className="gal-overlay gal-overlay--center" onClick={closeVidModal}>
                     <div className="gal-modal gal-modal--video" onClick={(e) => e.stopPropagation()}>
                         <button className="gal-close" onClick={closeVidModal} aria-label="Close">×</button>
                         <div className="gal-videoFrameWrap">
