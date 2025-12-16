@@ -388,11 +388,11 @@
 }
 
 .ev-header {
-    padding: 28px 32px 20px;
+    padding: 26px 28px 18px;
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    gap: 20px;
+    gap: 16px;
     flex: 0 0 auto;
     background: #ffffff;
     border-bottom: 1px solid rgba(10, 42, 67, 0.08);
@@ -401,7 +401,9 @@
 .ev-headText {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
+    min-width: 0;
+    flex: 1 1 auto;
 }
 
 .ev-title {
@@ -411,13 +413,15 @@
     letter-spacing: -0.01em;
     color: #0a2a43;
     line-height: 1.2;
+    min-width: 0;
 }
 
-.ev-subtitle {
+.ev-desc {
+    margin: 0;
     font-size: 14px;
-    font-weight: 700;
-    color: rgba(10, 42, 67, 0.65);
-    line-height: 1.4;
+    font-weight: 650;
+    color: rgba(10, 42, 67, 0.72);
+    line-height: 1.55;
 }
 
 .ev-close {
@@ -525,226 +529,61 @@
 }
 
 @media (max-width: 900px) {
-    .ec-section {
-        padding: 100px 20px 120px;
-    }
-
-    .ec-header {
-        margin-bottom: 50px;
-    }
-
-    .ec-card {
-        padding: 24px;
-        margin-bottom: 40px;
-    }
-
-    .ec-head {
-        margin-bottom: 24px;
-        padding-bottom: 20px;
-    }
-
-    .ec-cell,
-    .ec-blank {
-        height: 120px;
-    }
-
-    .nl-section {
-        margin-top: 50px;
-    }
-
-    .nl-header {
-        margin-bottom: 24px;
-    }
-
-    .nl-subtitle {
-        padding-left: 28px;
-    }
-
-    .nl-subtitle::before {
-        height: 28px;
-    }
-
-    .nl-card {
-        padding: 36px 28px;
-    }
-
-    .nl-input-group {
-        flex-direction: column;
-    }
-
-    .nl-button {
-        width: 100%;
-    }
+    .ec-section { padding: 100px 20px 120px; }
+    .ec-header { margin-bottom: 50px; }
+    .ec-card { padding: 24px; margin-bottom: 40px; }
+    .ec-head { margin-bottom: 24px; padding-bottom: 20px; }
+    .ec-cell, .ec-blank { height: 120px; }
+    .nl-section { margin-top: 50px; }
+    .nl-header { margin-bottom: 24px; }
+    .nl-subtitle { padding-left: 28px; }
+    .nl-subtitle::before { height: 28px; }
+    .nl-card { padding: 36px 28px; }
+    .nl-input-group { flex-direction: column; }
+    .nl-button { width: 100%; }
 }
 
 @media (max-width: 700px) {
-    .ev-overlay {
-        align-items: flex-end;
-    }
-
-    .ev-modal {
-        width: 100%;
-        border-radius: 24px 24px 0 0;
-        max-height: 82vh;
-    }
-
-    .ev-header {
-        padding: 20px 20px 16px;
-    }
-
-    .ev-body {
-        padding: 0 20px 24px;
-    }
-
-    .ev-heroImg {
-        height: 280px;
-    }
-
-    .ev-infoGrid {
-        grid-template-columns: 1fr;
-        gap: 12px;
-    }
-
-    .ev-map {
-        height: 240px;
-    }
+    .ev-overlay { align-items: flex-end; }
+    .ev-modal { width: 100%; border-radius: 24px 24px 0 0; max-height: 82vh; }
+    .ev-header { padding: 18px 18px 14px; }
+    .ev-body { padding: 0 20px 24px; }
+    .ev-heroImg { height: 280px; }
+    .ev-infoGrid { gap: 12px; } /* ✅ reste en 2 colonnes */
+    .ev-map { height: 240px; }
 }
 
 @media (max-width: 600px) {
-    .ec-section {
-        padding: 78px 16px 96px;
-    }
-
-    .ec-header {
-        margin-bottom: 34px;
-    }
-
-    .ec-title {
-        font-size: clamp(30px, 7vw, 44px);
-    }
-
-    .ec-card {
-        padding: 16px;
-        border-radius: 22px;
-    }
-
-    .ec-head {
-        margin-bottom: 14px;
-        padding-bottom: 12px;
-        gap: 10px;
-    }
-
-    .ec-month {
-        font-size: 20px;
-    }
-
-    .ec-navBtn {
-        width: 40px;
-        height: 40px;
-        font-size: 20px;
-    }
-
-    .ec-weekdays {
-        gap: 6px;
-        margin-bottom: 8px;
-    }
-
-    .ec-weekday {
-        font-size: 10px;
-        letter-spacing: 0.06em;
-        padding: 6px 0;
-    }
-
-    .ec-grid {
-        gap: 6px;
-    }
-
-    .ec-cell,
-    .ec-blank {
-        height: auto;
-        aspect-ratio: 1 / 1;
-        border-radius: 14px;
-    }
-
-    .ec-blank {
-        background: rgba(10, 42, 67, 0.015);
-        border-color: rgba(10, 42, 67, 0.03);
-    }
-
-    .ec-emptyBody {
-        background: rgba(10, 42, 67, 0.02);
-        width: 100%;
-        height: 100%;
-    }
-
+    .ec-section { padding: 78px 16px 96px; }
+    .ec-header { margin-bottom: 34px; }
+    .ec-title { font-size: clamp(30px, 7vw, 44px); }
+    .ec-card { padding: 16px; border-radius: 22px; }
+    .ec-head { margin-bottom: 14px; padding-bottom: 12px; gap: 10px; }
+    .ec-month { font-size: 20px; }
+    .ec-navBtn { width: 40px; height: 40px; font-size: 20px; }
+    .ec-weekdays { gap: 6px; margin-bottom: 8px; }
+    .ec-weekday { font-size: 10px; letter-spacing: 0.06em; padding: 6px 0; }
+    .ec-grid { gap: 6px; }
+    .ec-cell, .ec-blank { height: auto; aspect-ratio: 1 / 1; border-radius: 14px; }
+    .ec-blank { background: rgba(10, 42, 67, 0.015); border-color: rgba(10, 42, 67, 0.03); }
+    .ec-emptyBody { background: rgba(10, 42, 67, 0.02); width: 100%; height: 100%; }
     .ec-dayBadge {
-        top: 6px;
-        left: 6px;
-        width: 24px;
-        height: 24px;
-        min-width: 24px;
-        padding: 0;
-        border-radius: 50%;
-        font-size: 11px;
-        border: 1px solid rgba(10, 42, 67, 0.10);
+        top: 6px; left: 6px; width: 24px; height: 24px; min-width: 24px;
+        padding: 0; border-radius: 50%; font-size: 11px; border: 1px solid rgba(10, 42, 67, 0.10);
     }
-
-    .ec-eventCellBtn {
-        border-radius: inherit;
-        overflow: hidden;
-    }
-
-    .ec-eventBg {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-    .nl-section {
-        margin-top: 34px;
-    }
-
-    .nl-header {
-        margin-bottom: 18px;
-    }
-
-    .nl-subtitle {
-        padding-left: 20px;
-    }
-
-    .nl-subtitle::before {
-        height: 22px;
-    }
-
-    .nl-card {
-        padding: 28px 20px;
-        border-radius: 22px;
-    }
+    .ec-eventCellBtn { border-radius: inherit; overflow: hidden; }
+    .ec-eventBg { width: 100%; height: 100%; object-fit: cover; }
+    .nl-section { margin-top: 34px; }
+    .nl-header { margin-bottom: 18px; }
+    .nl-subtitle { padding-left: 20px; }
+    .nl-subtitle::before { height: 22px; }
+    .nl-card { padding: 28px 20px; border-radius: 22px; }
 }
 
 @media (hover: none) {
-    .ec-cell:hover {
-        transform: none;
-        box-shadow: none;
-        border-color: rgba(10, 42, 67, 0.08);
-    }
-
-    .ec-navBtn:hover {
-        transform: none;
-        box-shadow: none;
-        background: rgba(10, 42, 67, 0.04);
-    }
-
-    .ec-eventCellBtn:hover .ec-eventBg {
-        transform: none;
-    }
-
-    .nl-button:hover {
-        transform: none;
-        box-shadow: 0 8px 24px rgba(10, 42, 67, 0.25);
-    }
-
-    .ev-close:hover {
-        transform: none;
-    }
+    .ec-cell:hover { transform: none; box-shadow: none; border-color: rgba(10, 42, 67, 0.08); }
+    .ec-navBtn:hover { transform: none; box-shadow: none; background: rgba(10, 42, 67, 0.04); }
+    .ec-eventCellBtn:hover .ec-eventBg { transform: none; }
+    .nl-button:hover { transform: none; box-shadow: 0 8px 24px rgba(10, 42, 67, 0.25); }
+    .ev-close:hover { transform: none; }
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { addDoc, collection, onSnapshot, serverTimestamp } from "firebase/firestore";
+import { collection, onSnapshot, serverTimestamp, setDoc, doc } from "firebase/firestore";
 import { db } from "../lib/Firebase";
 import "./EventsCalendar.css";
 
@@ -51,8 +51,7 @@ function formatMonthRo(firstOfMonth) {
 function getEventAriaLabel(ev) {
     if (!ev) return "Eveniment";
     const parts = [ev.title || "Eveniment"];
-    if (ev.subtitle) parts.push(ev.subtitle);
-    if (ev.people) parts.push(ev.people);
+    if (ev.description) parts.push(ev.description);
     if (ev.speaker) parts.push(`Prezentator: ${ev.speaker}`);
     if (ev.dateEvent) parts.push(ev.dateEvent);
     return parts.join(" · ");
@@ -151,19 +150,33 @@ export default function EventsCalendar() {
 
     const closeEvent = () => setEventOpen(false);
 
+    // ✅ scroll only inside modal
+    useEffect(() => {
+        if (!eventOpen) return;
+        const prev = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        return () => {
+            document.body.style.overflow = prev;
+        };
+    }, [eventOpen]);
+
+    // Newsletter
     const [email, setEmail] = useState("");
     const [sending, setSending] = useState(false);
     const [success, setSuccess] = useState(false);
+    const [successText, setSuccessText] = useState("");
     const [error, setError] = useState("");
 
-    const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+    const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
 
     const onSubscribe = async (e) => {
         e.preventDefault();
         setError("");
         setSuccess(false);
+        setSuccessText("");
 
-        const cleanEmail = email.trim();
+        const cleanEmail = String(email || "").trim();
+        const normalized = cleanEmail.toLowerCase();
 
         if (!isValidEmail(cleanEmail)) {
             setError("Te rugăm să introduci un email valid.");
@@ -172,13 +185,24 @@ export default function EventsCalendar() {
 
         try {
             setSending(true);
-            await addDoc(collection(db, "newsleter"), {
-                email: cleanEmail,
+
+            // ✅ No read (rules block reads). Try create with fixed docId.
+            await setDoc(doc(db, "newsletter", normalized), {
+                email: normalized,
                 createdAt: serverTimestamp(),
             });
+
             setSuccess(true);
+            setSuccessText("Înscriere reușită ✓");
             setEmail("");
         } catch (err) {
+            if (err?.code === "permission-denied") {
+                setSuccess(true);
+                setSuccessText("Ești deja abonat(ă) ✓");
+                setEmail("");
+                return;
+            }
+
             console.error(err);
             setError("A apărut o eroare. Încearcă din nou.");
         } finally {
@@ -210,7 +234,9 @@ export default function EventsCalendar() {
     const goPrevMonth = () => setMonth((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1));
     const goNextMonth = () => setMonth((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1));
 
-    const mapQuery = selectedEvent ? encodeURIComponent(`${selectedEvent.place}, ${selectedEvent.address}`) : "";
+    const mapQuery = selectedEvent
+        ? encodeURIComponent([selectedEvent.place, selectedEvent.address].filter(Boolean).join(", "))
+        : "";
 
     return (
         <>
@@ -257,7 +283,13 @@ export default function EventsCalendar() {
                                                 title={getEventAriaLabel(cell.event)}
                                                 aria-label={getEventAriaLabel(cell.event)}
                                             >
-                                                <img className="ec-eventBg" src={cell.event.image} alt="Event" />
+                                                <img
+                                                    className="ec-eventBg"
+                                                    src={cell.event.image}
+                                                    alt="Event"
+                                                    loading="lazy"
+                                                    decoding="async"
+                                                />
                                             </button>
                                         ) : (
                                             <div className="ec-emptyBody" />
@@ -280,7 +312,7 @@ export default function EventsCalendar() {
 
                             {success ? (
                                 <div className="nl-success">
-                                    <div className="nl-success-title">Înscriere reușită ✓</div>
+                                    <div className="nl-success-title">{successText || "Înscriere reușită ✓"}</div>
                                     <div className="nl-success-text">Mulțumim! Vei primi următoarele evenimente pe email.</div>
                                 </div>
                             ) : (
@@ -314,9 +346,12 @@ export default function EventsCalendar() {
                         <header className="ev-header">
                             <div className="ev-headText">
                                 <h2 className="ev-title">{selectedEvent.title || "Eveniment"}</h2>
-                                {selectedEvent.subtitle ? <div className="ev-subtitle">{selectedEvent.subtitle}</div> : null}
+                                {selectedEvent.description ? <p className="ev-desc">{selectedEvent.description}</p> : null}
                             </div>
-                            <button type="button" className="ev-close" onClick={closeEvent} aria-label="Close">×</button>
+
+                            <button type="button" className="ev-close" onClick={closeEvent} aria-label="Close">
+                                ×
+                            </button>
                         </header>
 
                         <div className="ev-body">
@@ -325,14 +360,16 @@ export default function EventsCalendar() {
                             </div>
 
                             <div className="ev-infoGrid">
-                                <div className="ev-infoCard">
-                                    <div className="ev-infoLabel">Data</div>
-                                    <div className="ev-infoValue">{formatDateBe(selectedEvent.dateEvent)}</div>
-                                </div>
-
+                                {/* ✅ Ora à gauche */}
                                 <div className="ev-infoCard">
                                     <div className="ev-infoLabel">Ora</div>
                                     <div className="ev-infoValue">{selectedEvent.time}</div>
+                                </div>
+
+                                {/* ✅ Data à droite */}
+                                <div className="ev-infoCard">
+                                    <div className="ev-infoLabel">Data</div>
+                                    <div className="ev-infoValue">{formatDateBe(selectedEvent.dateEvent)}</div>
                                 </div>
 
                                 <div className="ev-infoCard ev-infoCard--wide">
