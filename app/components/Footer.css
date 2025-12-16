@@ -29,6 +29,13 @@
     transform: scale(1.05);
 }
 
+.footer-text {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: center;
+}
+
 .footer-copy {
     margin: 0;
     font-size: 14px;
@@ -36,4 +43,19 @@
     color: rgba(0, 0, 0, 0.65);
     font-weight: 600;
     letter-spacing: 0.02em;
+}
+
+.footer-phone {
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    color: rgba(0, 0, 0, 0.75);
+    text-decoration: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.footer-phone:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+    text-decoration: underline;
 }
