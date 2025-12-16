@@ -48,15 +48,11 @@
     line-height: 1.05;
     letter-spacing: -0.02em;
     text-shadow:
-        -2px  0   0 rgba(0, 0, 0, 0.75),
-         2px  0   0 rgba(0, 0, 0, 0.75),
-         0   -2px 0 rgba(0, 0, 0, 0.75),
-         0    2px 0 rgba(0, 0, 0, 0.75),
-        -2px -2px 0 rgba(0, 0, 0, 0.65),
-         2px  2px 0 rgba(0, 0, 0, 0.65),
-        -2px  2px 0 rgba(0, 0, 0, 0.65),
-         2px -2px 0 rgba(0, 0, 0, 0.65),
-         0   14px 32px rgba(0, 0, 0, 0.55);
+            -1px  0   0 rgba(0, 0, 0, 0.35),
+            1px  0   0 rgba(0, 0, 0, 0.35),
+            0   -1px 0 rgba(0, 0, 0, 0.35),
+            0    1px 0 rgba(0, 0, 0, 0.35),
+            0   12px 28px rgba(0, 0, 0, 0.35);
     animation: fadeInUp 0.8s ease-out;
 }
 
@@ -64,14 +60,14 @@
     margin: -28px 0 0 0;
     color: #fff;
     font-size: clamp(26px, 3.4vw, 44px);
-    font-weight: 700;
+    font-weight: 800;
     letter-spacing: 0.02em;
     text-shadow:
-        -1.5px  0    0 rgba(0, 0, 0, 0.70),
-         1.5px  0    0 rgba(0, 0, 0, 0.70),
-         0     -1.5px 0 rgba(0, 0, 0, 0.70),
-         0      1.5px 0 rgba(0, 0, 0, 0.70),
-         0      10px  26px rgba(0, 0, 0, 0.50);
+            -1px  0    0 rgba(0, 0, 0, 0.30),
+            1px  0    0 rgba(0, 0, 0, 0.30),
+            0   -1px  0 rgba(0, 0, 0, 0.30),
+            0    1px  0 rgba(0, 0, 0, 0.30),
+            0    10px 26px rgba(0, 0, 0, 0.32);
     opacity: 0.95;
     animation: fadeInUp 0.8s ease-out 0.15s backwards;
 }
@@ -88,7 +84,7 @@
     border: 1.5px solid rgba(255, 255, 255, 0.78);
     border-radius: 20px;
 
-    color: #550b0b;
+    color: #0a2a43;
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
 
     animation: fadeInUp 0.8s ease-out 0.3s backwards;
@@ -104,19 +100,20 @@
 
 .hero-verseLabel {
     font-size: 18px;
-    font-weight: 700;
+    font-weight: 900;
     letter-spacing: 0.06em;
     opacity: 0.95;
     margin-bottom: 12px;
+    color: #0a2a43;
 }
 
 .hero-verseText {
     margin: 0;
     font-size: clamp(20px, 2.5vw, 26px);
     line-height: 1.6;
-    font-weight: 500;
+    font-weight: 800;
     font-style: italic;
-    color: #550b0b;
+    color: #0a2a43;
 }
 
 @keyframes fadeInUp {
