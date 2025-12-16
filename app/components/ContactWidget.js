@@ -25,9 +25,7 @@ export default function ContactWidget() {
         timeoutRef.current = null;
     }, []);
 
-    // Expose "open" globally for Header
     const openWidget = useCallback(() => {
-        localStorage.setItem("bethel_contact_clicked", "1");
         stopTimers();
         setPulse(false);
         setOpen(true);
@@ -38,17 +36,14 @@ export default function ContactWidget() {
         setOpen(false);
     };
 
-    // Listen to open event from Header
     useEffect(() => {
         const handler = () => openWidget();
         window.addEventListener("bethel:open-contact", handler);
         return () => window.removeEventListener("bethel:open-contact", handler);
     }, [openWidget]);
 
-    // Pulse: 2 pulses toutes les 10s, MAIS s'arrête définitivement après 1er clic
     useEffect(() => {
-        const alreadyClicked = localStorage.getItem("bethel_contact_clicked") === "1";
-        if (alreadyClicked) return;
+        stopTimers();
 
         intervalRef.current = setInterval(() => {
             if (open) return;
@@ -71,7 +66,6 @@ export default function ContactWidget() {
         return () => stopTimers();
     }, [open, stopTimers]);
 
-    // stop pulse dès qu'on ouvre
     useEffect(() => {
         if (open) setPulse(false);
     }, [open]);
@@ -109,7 +103,6 @@ export default function ContactWidget() {
 
     return (
         <>
-            {/* Bouton flottant */}
             <button
                 type="button"
                 className={`cw-fab ${pulse ? "cw-fab--pulse" : ""}`}
