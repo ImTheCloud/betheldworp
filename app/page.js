@@ -18,14 +18,12 @@ export default function Home() {
             <Header />
 
             <main>
-                <section id="acasa" className="hero-stack">
-                    <div className="hero-stack-hero">
-                        <Hero />
-                    </div>
+                <section id="acasa">
+                    <Hero />
+                </section>
 
-                    <div id="despre-noi" className="hero-stack-about">
-                        <About />
-                    </div>
+                <section id="despre-noi">
+                    <About />
                 </section>
 
                 <section id="program">

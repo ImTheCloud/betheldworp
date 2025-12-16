@@ -1,19 +1,27 @@
+import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import "./globals.css";
 
-export const metadata = {
-    title: "Bethel Dworp",
+const SITE_TITLE = "Bethel Dworp";
+
+export const metadata: Metadata = {
+    title: SITE_TITLE,
     description: "Biserica Betel Dworp – Comunitate creștină penticostală",
     icons: { icon: "/logo.png" },
 };
 
-// @ts-ignore
-export default function RootLayout({ children }) {
+export default function RootLayout({
+    children,
+}: Readonly<{
+    children: ReactNode;
+}>) {
     return (
         <html lang="ro">
-        <head>
-            <link rel="preload" as="image" href="/image/drone.jpg" />
-        </head>
-        <body>{children}</body>
+            <head>
+                <title>{SITE_TITLE}</title>
+                <link rel="preload" as="image" href="/image/drone.jpg" fetchPriority="high" />
+            </head>
+            <body>{children}</body>
         </html>
     );
 }
