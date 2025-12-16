@@ -17,7 +17,6 @@ function pad2(n) {
 
 function normalizeDateToIso(input) {
     const v = String(input || "").trim();
-
     if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
 
     const m = v.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
@@ -32,14 +31,12 @@ function normalizeDateToIso(input) {
     if (!Number.isNaN(d.getTime())) {
         return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
     }
-
     return v;
 }
 
 function formatDateBe(inputDate) {
     const iso = normalizeDateToIso(inputDate);
     const d = new Date(`${iso}T00:00:00`);
-
     return new Intl.DateTimeFormat("fr-BE", {
         day: "2-digit",
         month: "2-digit",
@@ -51,30 +48,14 @@ function formatMonthRo(firstOfMonth) {
     return firstOfMonth.toLocaleDateString("ro-RO", { month: "long", year: "numeric" });
 }
 
-function getEventCellLabel(ev) {
-    return ev?.title || "Eveniment";
-}
-
 function getEventAriaLabel(ev) {
     if (!ev) return "Eveniment";
-    const parts = [getEventCellLabel(ev)];
+    const parts = [ev.title || "Eveniment"];
     if (ev.subtitle) parts.push(ev.subtitle);
     if (ev.people) parts.push(ev.people);
     if (ev.speaker) parts.push(`Prezentator: ${ev.speaker}`);
     if (ev.dateEvent) parts.push(ev.dateEvent);
     return parts.join(" · ");
-}
-
-function buildModalHeadline(ev) {
-    if (!ev) return "Eveniment";
-
-    const base = ev.subtitle
-        ? `${ev.title || "Eveniment"} — ${ev.subtitle}`
-        : ev.title || "Eveniment";
-
-    if (ev.people) return `${base}: ${ev.people}`;
-    if (ev.speaker) return `${base}: ${ev.speaker}`;
-    return base;
 }
 
 function isSameMonth(d1, d2) {
@@ -86,7 +67,6 @@ export default function EventsCalendar() {
     const todayIso = `${today.getFullYear()}-${pad2(today.getMonth() + 1)}-${pad2(today.getDate())}`;
     const startOfCurrentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
-    // ===== Events from Firestore =====
     const [events, setEvents] = useState([]);
     const [eventsLoading, setEventsLoading] = useState(true);
     const [eventsError, setEventsError] = useState("");
@@ -98,7 +78,6 @@ export default function EventsCalendar() {
                 const list = snap.docs
                     .map((d) => ({ ...d.data(), id: d.id }))
                     .filter((e) => e && e.dateEvent);
-
                 setEvents(list);
                 setEventsLoading(false);
                 setEventsError("");
@@ -109,7 +88,6 @@ export default function EventsCalendar() {
                 setEventsLoading(false);
             }
         );
-
         return () => unsub();
     }, []);
 
@@ -125,7 +103,6 @@ export default function EventsCalendar() {
         return map;
     }, [eventsSorted]);
 
-    // ===== Month logic =====
     const [month, setMonth] = useState(startOfCurrentMonth);
     const [didPickMonth, setDidPickMonth] = useState(false);
 
@@ -150,7 +127,6 @@ export default function EventsCalendar() {
         setDidPickMonth(true);
     }, [didPickMonth, eventsSorted, startOfCurrentMonth, todayIso]);
 
-    // ===== Selected event (modal) =====
     const [eventOpen, setEventOpen] = useState(false);
     const [selectedId, setSelectedId] = useState(null);
 
@@ -161,12 +137,10 @@ export default function EventsCalendar() {
 
     useEffect(() => {
         if (!eventsSorted.length) return;
-
         if (selectedId && eventsSorted.some((e) => e.id === selectedId)) return;
 
         const todayEvent = eventsByDate.get(todayIso);
         const nextEvent = eventsSorted.find((ev) => normalizeDateToIso(ev.dateEvent) >= todayIso);
-
         setSelectedId((todayEvent?.id) || (nextEvent?.id) || eventsSorted[0].id);
     }, [eventsSorted, eventsByDate, todayIso, selectedId]);
 
@@ -177,9 +151,7 @@ export default function EventsCalendar() {
 
     const closeEvent = () => setEventOpen(false);
 
-    // ===== Newsletter =====
     const [email, setEmail] = useState("");
-    const [gdpr, setGdpr] = useState(false);
     const [sending, setSending] = useState(false);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState("");
@@ -198,22 +170,14 @@ export default function EventsCalendar() {
             return;
         }
 
-        if (!gdpr) {
-            setError("Trebuie să accepți acordul GDPR pentru a te înscrie.");
-            return;
-        }
-
         try {
             setSending(true);
-
             await addDoc(collection(db, "newsleter"), {
                 email: cleanEmail,
                 createdAt: serverTimestamp(),
             });
-
             setSuccess(true);
             setEmail("");
-            setGdpr(false);
         } catch (err) {
             console.error(err);
             setError("A apărut o eroare. Încearcă din nou.");
@@ -222,11 +186,9 @@ export default function EventsCalendar() {
         }
     };
 
-    // ===== Calendar cells =====
     const calendarCells = useMemo(() => {
         const year = month.getFullYear();
         const m = month.getMonth();
-
         const firstDay = new Date(year, m, 1);
         const daysInMonth = new Date(year, m + 1, 0).getDate();
         const startOffset = getMondayIndex(firstDay.getDay());
@@ -237,10 +199,7 @@ export default function EventsCalendar() {
         for (let day = 1; day <= daysInMonth; day++) {
             const dateKey = `${year}-${pad2(m + 1)}-${pad2(day)}`;
             const event = eventsByDate.get(dateKey) ?? null;
-
-            const isToday =
-                year === today.getFullYear() && m === today.getMonth() && day === today.getDate();
-
+            const isToday = year === today.getFullYear() && m === today.getMonth() && day === today.getDate();
             cells.push({ type: "day", key: dateKey, day, isToday, event });
         }
 
@@ -257,29 +216,23 @@ export default function EventsCalendar() {
         <>
             <section id="evenimente" className="ec-section">
                 <div className="ec-content">
-                    <h2 className="ec-title">Evenimente</h2>
+                    <div className="ec-header">
+                        <h2 className="ec-title">Evenimente</h2>
+                    </div>
 
                     {eventsLoading && <div className="ec-inlineInfo">Se încarcă evenimentele...</div>}
                     {eventsError && <div className="ec-inlineError">{eventsError}</div>}
 
                     <div className="ec-card">
                         <div className="ec-head">
-                            <button className="ec-navBtn" onClick={goPrevMonth} aria-label="Previous month">
-                                ‹
-                            </button>
-
+                            <button className="ec-navBtn" onClick={goPrevMonth} aria-label="Previous month">‹</button>
                             <div className="ec-month">{formatMonthRo(month)}</div>
-
-                            <button className="ec-navBtn" onClick={goNextMonth} aria-label="Next month">
-                                ›
-                            </button>
+                            <button className="ec-navBtn" onClick={goNextMonth} aria-label="Next month">›</button>
                         </div>
 
                         <div className="ec-weekdays">
                             {WEEKDAY_LABELS.map((d) => (
-                                <div key={d} className="ec-weekday">
-                                    {d}
-                                </div>
+                                <div key={d} className="ec-weekday">{d}</div>
                             ))}
                         </div>
 
@@ -294,7 +247,7 @@ export default function EventsCalendar() {
                                         key={cell.key}
                                         className={`ec-cell ${cell.isToday ? "is-today" : ""} ${hasEvent ? "has-events" : ""}`}
                                     >
-                                        <div className="ec-dayBadge">{cell.day}</div>
+                                        {!hasEvent && <div className="ec-dayBadge">{cell.day}</div>}
 
                                         {hasEvent ? (
                                             <button
@@ -315,74 +268,55 @@ export default function EventsCalendar() {
                         </div>
                     </div>
 
-                    {/* ===== Newsletter under calendar ===== */}
-                    <div className="nl-inlineWrap">
-                        <div className="nl-inlineCard">
-                            <div className="nl-inlineLeft">
-                                <div className="nl-inlineTitle">Primește evenimente pe email</div>
-                                <div className="nl-inlineSub">Abonează-te și vei primi anunțuri când apar evenimente noi.</div>
-                            </div>
+                    <div className="nl-section">
+                        <div className="nl-header">
+                            <h3 className="nl-subtitle">Newsletter</h3>
+                        </div>
 
-                            <div className="nl-inlineRight">
-                                {success ? (
-                                    <div className="nl-inlineSuccess">
-                                        Înscriere reușită ✅
-                                        <div className="nl-inlineSuccessSub">Mulțumim! Vei primi următoarele evenimente pe email.</div>
-                                    </div>
-                                ) : (
-                                    <form className="nl-inlineForm" onSubmit={onSubscribe}>
-                                        <label className="nl-inlineField">
-                                            <span>Email</span>
-                                            <input
-                                                value={email}
-                                                onChange={(e) => setEmail(e.target.value)}
-                                                placeholder="ex: nume@email.com"
-                                                autoComplete="email"
-                                                inputMode="email"
-                                                disabled={sending}
-                                            />
-                                        </label>
+                        <div className="nl-card">
+                            <p className="nl-description">
+                                Abonează-te și vei primi anunțuri când apar evenimente noi
+                            </p>
 
-                                        <label className="nl-inlineGdpr">
-                                            <input
-                                                type="checkbox"
-                                                checked={gdpr}
-                                                onChange={(e) => setGdpr(e.target.checked)}
-                                                disabled={sending}
-                                            />
-                                            <span>Sunt de acord să primesc emailuri și accept prelucrarea datelor conform GDPR.</span>
-                                        </label>
+                            {success ? (
+                                <div className="nl-success">
+                                    <div className="nl-success-title">Înscriere reușită ✓</div>
+                                    <div className="nl-success-text">Mulțumim! Vei primi următoarele evenimente pe email.</div>
+                                </div>
+                            ) : (
+                                <form className="nl-form" onSubmit={onSubscribe}>
+                                    {error && <div className="nl-error">{error}</div>}
 
-                                        {error && <div className="nl-inlineError">{error}</div>}
-
-                                        <button className="nl-inlineBtn" type="submit" disabled={sending}>
-                                            {sending ? "Se trimite..." : "Înscrie-mă"}
+                                    <div className="nl-input-group">
+                                        <input
+                                            className="nl-input"
+                                            type="email"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            placeholder="nume@email.com"
+                                            autoComplete="email"
+                                            disabled={sending}
+                                        />
+                                        <button className="nl-button" type="submit" disabled={sending}>
+                                            {sending ? "Se trimite..." : "Abonează-te"}
                                         </button>
-                                    </form>
-                                )}
-                            </div>
+                                    </div>
+                                </form>
+                            )}
                         </div>
                     </div>
-
                 </div>
             </section>
 
-            {/* ===== EVENT MODAL ===== */}
             {eventOpen && selectedEvent && (
                 <div className="ev-overlay" onClick={closeEvent}>
                     <div className="ev-modal" onClick={(e) => e.stopPropagation()}>
                         <header className="ev-header">
-                            <h2 className="ev-couple">{buildModalHeadline(selectedEvent)}</h2>
-
-                            <button
-                                type="button"
-                                className="ev-close"
-                                onClick={closeEvent}
-                                aria-label="Close"
-                                title="Close"
-                            >
-                                ×
-                            </button>
+                            <div className="ev-headText">
+                                <h2 className="ev-title">{selectedEvent.title || "Eveniment"}</h2>
+                                {selectedEvent.subtitle ? <div className="ev-subtitle">{selectedEvent.subtitle}</div> : null}
+                            </div>
+                            <button type="button" className="ev-close" onClick={closeEvent} aria-label="Close">×</button>
                         </header>
 
                         <div className="ev-body">
@@ -392,17 +326,17 @@ export default function EventsCalendar() {
 
                             <div className="ev-infoGrid">
                                 <div className="ev-infoCard">
-                                    <div className="ev-infoLabel">DATA</div>
+                                    <div className="ev-infoLabel">Data</div>
                                     <div className="ev-infoValue">{formatDateBe(selectedEvent.dateEvent)}</div>
                                 </div>
 
                                 <div className="ev-infoCard">
-                                    <div className="ev-infoLabel">ORA</div>
+                                    <div className="ev-infoLabel">Ora</div>
                                     <div className="ev-infoValue">{selectedEvent.time}</div>
                                 </div>
 
                                 <div className="ev-infoCard ev-infoCard--wide">
-                                    <div className="ev-infoLabel">LOCAȚIE</div>
+                                    <div className="ev-infoLabel">Locație</div>
                                     <div className="ev-infoValue">
                                         {selectedEvent.place}
                                         <span className="ev-infoSub">{selectedEvent.address}</span>
