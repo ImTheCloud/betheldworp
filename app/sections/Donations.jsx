@@ -68,7 +68,6 @@ export default function Donations() {
                     </p>
                 </div>
 
-                {/* Card with bank details */}
                 <div className="don-bank-card">
                     <div className="don-bank-grid">
                         <div className="don-field">
@@ -92,25 +91,20 @@ export default function Donations() {
                     </div>
                 </div>
 
-                {/* Donation types */}
                 <div className="don-types-section">
-                    <h3 className="don-types-title">Tipuri de donații</h3>
                     <div className="don-types-grid">
                         {donationTypes.map((type) => (
-                            <div key={type.title} className="don-type-card">
-                                <div className="don-type-header">
-                                    <h4 className="don-type-title">{type.title}</h4>
-                                    <span className={`don-type-badge don-type-badge--${type.badgeType}`}>
-                                        {type.badge}
-                                    </span>
+                            <article key={type.title} className="don-type-card">
+                                <div className={`don-type-badge don-type-badge--${type.badgeType}`}>
+                                    {type.badge}
                                 </div>
-                                <p className="don-type-desc">{type.desc}</p>
-                            </div>
+                                <div className="don-type-title">{type.title}</div>
+                                <div className="don-type-desc">{type.desc}</div>
+                            </article>
                         ))}
                     </div>
                 </div>
 
-                {/* Bible verse */}
                 <div className="don-verse-highlight">
                     <div className="don-verse-content">
                         <p className="don-verse-text">
