@@ -47,7 +47,7 @@ function computeNextProgram(fromDate = new Date()) {
 
     return {
         title: next.title,
-        meta: `${rel} · ${dayName} · ${next.timeText}`,
+        meta: diffDays <= 1 ? `${rel} · ${dayName} · ${next.timeText}` : `${dayName} · ${next.timeText}`,
     };
 }
 
