@@ -4,7 +4,17 @@ import "./Hero.css";
 
 export default function Hero() {
     return (
-        <section id="acasa" className="hero">
+        <section className="hero">
+            <img
+                className="hero-bgImg"
+                src="/image/drone.jpg"
+                alt=""
+                aria-hidden="true"
+                loading="eager"
+                decoding="async"
+                fetchPriority="high"
+            />
+
             <div className="hero-content">
                 <h1 className="hero-title">Vă așteptăm la Bethel</h1>
                 <h2 className="hero-subtitle">În casa lui Dumnezeu</h2>

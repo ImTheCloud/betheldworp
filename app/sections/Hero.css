@@ -3,16 +3,22 @@
     height: 100vh;
     width: 100%;
     overflow: hidden;
-    background: #000;
+
+    /* ✅ pas de noir => fallback plus joli si l'image met 0.2s */
+    background: #0a2a43;
 }
 
-.hero::before {
-    content: "";
+/* ✅ image en HTML (plus fiable au first paint) */
+.hero-bgImg {
     position: absolute;
     inset: 0;
     z-index: 1;
 
-    background: url("/image/drone.jpg") center bottom / cover no-repeat;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center bottom;
+
     transform: scale(1);
     will-change: transform;
     animation: heroZoom 18s ease-in-out infinite alternate;
@@ -24,7 +30,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .hero::before { animation: none; transform: scale(1); }
+    .hero-bgImg { animation: none; transform: scale(1); }
 }
 
 .hero-content {
