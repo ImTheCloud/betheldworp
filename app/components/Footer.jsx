@@ -1,13 +1,23 @@
 import "./Footer.css";
 
 export default function Footer() {
+    const phoneDisplay = "+32 488 29 70 15";
+    const phoneHref = "+32412345678";
+
     return (
         <footer className="footer">
             <div className="footer-inner">
                 <img className="footer-logo" src="/logo.png" alt="Bethel" />
-                <p className="footer-copy">
-                    © {new Date().getFullYear()} Bethel Dworp. Toate drepturile rezervate.
-                </p>
+
+                <div className="footer-text">
+                    <p className="footer-copy">
+                        © {new Date().getFullYear()} Bethel Dworp. Toate drepturile rezervate.
+                    </p>
+
+                    <a className="footer-phone" href={`tel:${phoneHref}`} aria-label={`Sună la ${phoneDisplay}`}>
+                        {phoneDisplay}
+                    </a>
+                </div>
             </div>
         </footer>
     );
