@@ -150,7 +150,6 @@ export default function EventsCalendar() {
 
     const closeEvent = () => setEventOpen(false);
 
-    // ✅ scroll only inside modal
     useEffect(() => {
         if (!eventOpen) return;
         const prev = document.body.style.overflow;
@@ -160,7 +159,6 @@ export default function EventsCalendar() {
         };
     }, [eventOpen]);
 
-    // Newsletter
     const [email, setEmail] = useState("");
     const [sending, setSending] = useState(false);
     const [success, setSuccess] = useState(false);
@@ -186,7 +184,6 @@ export default function EventsCalendar() {
         try {
             setSending(true);
 
-            // ✅ No read (rules block reads). Try create with fixed docId.
             await setDoc(doc(db, "newsletter", normalized), {
                 email: normalized,
                 createdAt: serverTimestamp(),
@@ -360,13 +357,11 @@ export default function EventsCalendar() {
                             </div>
 
                             <div className="ev-infoGrid">
-                                {/* ✅ Ora à gauche */}
                                 <div className="ev-infoCard">
                                     <div className="ev-infoLabel">Ora</div>
                                     <div className="ev-infoValue">{selectedEvent.time}</div>
                                 </div>
 
-                                {/* ✅ Data à droite */}
                                 <div className="ev-infoCard">
                                     <div className="ev-infoLabel">Data</div>
                                     <div className="ev-infoValue">{formatDateBe(selectedEvent.dateEvent)}</div>
