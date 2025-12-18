@@ -8,7 +8,6 @@ import ContactWidget from "./components/ContactWidget";
 import Events from "./sections/EventsCalendar";
 import Gallery from "./sections/Gallery";
 import Donations from "./sections/Donations";
-import NextProgramToast from "./components/NextProgramToast";
 
 import "./globals.css";
 
@@ -48,7 +47,6 @@ export default function Home() {
 
                 <Footer />
                 <ContactWidget />
-                <NextProgramToast />
             </main>
         </>
     );
