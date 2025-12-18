@@ -149,7 +149,7 @@ export default function Header() {
         <>
             <header className={headerClass}>
                 <div className="brand" onClick={() => scrollToSection("acasa")} role="button" tabIndex={0}>
-                    <img src="/favicon.ico" alt="Bethel Dworp logo" className="logo-img" />
+                    <img src="/icon.png" alt="Bethel Dworp logo" className="logo-img" />
                     <div className="logo-text">Bethel Dworp</div>
                 </div>
 
