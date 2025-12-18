@@ -4,11 +4,13 @@ import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import emailjs from "@emailjs/browser";
 import "./ContactWidget.css";
 
-const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
+const isValidEmail = (value) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
 
 export default function ContactWidget() {
     const [open, setOpen] = useState(false);
     const [pulse, setPulse] = useState(false);
+    const [compact, setCompact] = useState(false); // ✅ NEW (mobile: only "?" when footer visible)
 
     const [name, setName] = useState("");
     const [fromEmail, setFromEmail] = useState("");
@@ -74,6 +76,75 @@ export default function ContactWidget() {
         if (open) setPulse(false);
     }, [open]);
 
+    // ✅ NEW: when footer is visible on mobile, shrink FAB to "?"
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+
+        const mq = window.matchMedia("(max-width: 700px)");
+        let observer = null;
+        let retryId = null;
+
+        const teardown = () => {
+            if (observer) observer.disconnect();
+            observer = null;
+            if (retryId) clearInterval(retryId);
+            retryId = null;
+        };
+
+        const attachObserver = () => {
+            const footer =
+                document.querySelector("#bethel-footer") ||
+                document.querySelector("footer.footer") ||
+                document.querySelector("footer");
+
+            if (!footer) return false;
+
+            observer = new IntersectionObserver(
+                ([entry]) => {
+                    setCompact(Boolean(entry?.isIntersecting) && mq.matches);
+                },
+                { threshold: 0.01 }
+            );
+
+            observer.observe(footer);
+            return true;
+        };
+
+        const setup = () => {
+            teardown();
+
+            if (!mq.matches) {
+                setCompact(false);
+                return;
+            }
+
+            if (attachObserver()) return;
+
+            // footer not found yet (rare): retry a bit
+            let tries = 0;
+            retryId = setInterval(() => {
+                tries += 1;
+                if (attachObserver() || tries > 20) {
+                    clearInterval(retryId);
+                    retryId = null;
+                }
+            }, 200);
+        };
+
+        setup();
+
+        const onChange = () => setup();
+
+        if (mq.addEventListener) mq.addEventListener("change", onChange);
+        else mq.addListener(onChange);
+
+        return () => {
+            teardown();
+            if (mq.removeEventListener) mq.removeEventListener("change", onChange);
+            else mq.removeListener(onChange);
+        };
+    }, []);
+
     const cleanName = name.trim();
     const cleanEmail = fromEmail.trim();
     const cleanMessage = message.trim();
@@ -115,7 +186,8 @@ export default function ContactWidget() {
         ];
         if (allowed.includes(e.key)) return;
 
-        if ((e.ctrlKey || e.metaKey) && ["a", "c", "v", "x"].includes(e.key.toLowerCase())) return;
+        if ((e.ctrlKey || e.metaKey) && ["a", "c", "v", "x"].includes(e.key.toLowerCase()))
+            return;
 
         if (!/^\d$/.test(e.key)) e.preventDefault();
     };
@@ -165,13 +237,15 @@ export default function ContactWidget() {
         <>
             <button
                 type="button"
-                className={`cw-fab ${pulse ? "cw-fab--pulse" : ""}`}
+                className={`cw-fab ${pulse ? "cw-fab--pulse" : ""} ${compact ? "cw-fab--compact" : ""}`}
                 onClick={openWidget}
                 aria-label="Ai o întrebare?"
                 title="Ai o întrebare?"
             >
                 <span className="cw-fab-text">Ai o întrebare</span>
-                <span className="cw-fabIcon" aria-hidden="true">?</span>
+                <span className="cw-fabIcon" aria-hidden="true">
+          ?
+        </span>
             </button>
 
             {open && (
@@ -264,7 +338,9 @@ export default function ContactWidget() {
                                             disabled={sending}
                                             aria-invalid={messageError ? "true" : "false"}
                                         />
-                                        {messageError ? <div className="cw-hint cw-hint--error">{messageError}</div> : null}
+                                        {messageError ? (
+                                            <div className="cw-hint cw-hint--error">{messageError}</div>
+                                        ) : null}
                                     </label>
 
                                     <div className="cw-actions">
