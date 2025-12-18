@@ -1,13 +1,9 @@
-import "./WeeklyProgram.css";
+"use client";
 
-const WeeklyProgram = [
-    { day: "Luni", title: "Seară de Tineret și Adolescenți", times: ["20:00-21:30"] },
-    { day: "Marți & Vineri", title: "Seară de rugăciune", times: ["20:00-21:30"] },
-    { day: "Miercuri", title: "Repetiție cor Mixt", times: ["20:00-21:30"], flagged: true },
-    { day: "Joi", title: "Repetiție cor Bărbătesc", times: ["20:00-21:30"], flagged: true },
-    { day: "Sâmbăta", title: "Program cu copiii", times: ["11:00-13:30"] },
-    { day: "Duminică", title: "Serviciu Divin", times: ["10:00-12:00", "18:00-20:00"], sunday: true },
-];
+import "./WeeklyProgram.css";
+import { useEffect, useMemo, useState } from "react";
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "../lib/Firebase";
 
 function formatTimeToken(token, { drop00 }) {
     const t = String(token || "").trim();
@@ -29,6 +25,61 @@ function formatRange(range, opts) {
 }
 
 export default function Program() {
+    const [programItems, setProgramItems] = useState([]);
+    const [programLoading, setProgramLoading] = useState(true);
+    const [programError, setProgramError] = useState("");
+
+    const [announcement, setAnnouncement] = useState(null);
+    const [announcementLoading, setAnnouncementLoading] = useState(true);
+    const [announcementError, setAnnouncementError] = useState("");
+
+    useEffect(() => {
+        const ref = doc(db, "weekly_program", "current");
+        const unsub = onSnapshot(
+            ref,
+            (snap) => {
+                const data = snap.data();
+                const items = Array.isArray(data?.items) ? data.items : [];
+                setProgramItems(items);
+                setProgramLoading(false);
+                setProgramError("");
+            },
+            (err) => {
+                console.error(err);
+                setProgramError("Nu am putut încărca programul săptămânal.");
+                setProgramLoading(false);
+            }
+        );
+        return () => unsub();
+    }, []);
+
+    useEffect(() => {
+        const ref = doc(db, "program_announcements", "current");
+        const unsub = onSnapshot(
+            ref,
+            (snap) => {
+                const data = snap.data() || null;
+                setAnnouncement(data);
+                setAnnouncementLoading(false);
+                setAnnouncementError("");
+            },
+            (err) => {
+                console.error(err);
+                setAnnouncementError("Nu am putut încărca anunțurile.");
+                setAnnouncementLoading(false);
+            }
+        );
+        return () => unsub();
+    }, []);
+
+    const hasAnnouncement = Boolean(announcement && announcement.active);
+
+    const affectedIds = useMemo(() => {
+        if (!hasAnnouncement) return new Set();
+        const ids = Array.isArray(announcement?.affectedProgramIds) ? announcement.affectedProgramIds : [];
+        return new Set(ids.map((x) => String(x)));
+    }, [hasAnnouncement, announcement]);
+
     return (
         <section id="program" className="program-section">
             <div className="program-content">
@@ -36,57 +87,82 @@ export default function Program() {
                     <h2 className="program-title">Programul săptămânal</h2>
                 </div>
 
-                <div className="program-announcement" role="status" aria-live="polite">
-                    <div className="program-attention" aria-hidden="true">
-                        !
+                {(programLoading || announcementLoading) && (
+                    <div className="ec-inlineInfo" style={{ textAlign: "center", marginBottom: 18 }}>
+                        Se încarcă...
                     </div>
+                )}
 
-                    <div className="program-announcement-body">
-                        <div className="program-announcement-title">Anunț (sărbători)</div>
+                {programError && (
+                    <div className="ec-inlineError" style={{ textAlign: "center", marginBottom: 18 }}>
+                        {programError}
+                    </div>
+                )}
 
-                        <div className="program-announcement-row">
-                            <div className="program-announcement-label">
-                                Repetițiile <strong>cor mixt</strong> sunt <strong>anulate</strong> în:
-                            </div>
-                            <div className="program-announcement-dates">
-                                <span className="program-pill">Miercuri 24/12/2025</span>
-                                <span className="program-pill">Miercuri 31/12/2025</span>
-                            </div>
+                {announcementError && (
+                    <div className="ec-inlineError" style={{ textAlign: "center", marginBottom: 18 }}>
+                        {announcementError}
+                    </div>
+                )}
+
+                {hasAnnouncement ? (
+                    <div className="program-announcement" role="status" aria-live="polite">
+                        <div className="program-attention" aria-hidden="true">
+                            !
                         </div>
 
-                        <div className="program-announcement-sep" />
+                        <div className="program-announcement-body">
+                            <div className="program-announcement-title">{announcement?.title || "Anunț"}</div>
 
-                        <div className="program-announcement-row">
-                            <div className="program-announcement-label">
-                                Repetițiile <strong>cor bărbătesc</strong> sunt <strong>anulate</strong> în:
-                            </div>
-                            <div className="program-announcement-dates">
-                                <span className="program-pill">Joi 25/12/2025</span>
-                                <span className="program-pill">Joi 01/01/2026</span>
-                            </div>
+                            {(announcement?.blocks || []).map((b, i) => (
+                                <div key={i}>
+                                    <div className="program-announcement-row">
+                                        <div
+                                            className="program-announcement-label"
+                                            dangerouslySetInnerHTML={{ __html: String(b?.labelHtml || "") }}
+                                        />
+                                        <div className="program-announcement-dates">
+                                            {(b?.pills || []).map((p) => (
+                                                <span key={p} className="program-pill">
+                          {p}
+                        </span>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {i !== (announcement?.blocks || []).length - 1 ? <div className="program-announcement-sep" /> : null}
+                                </div>
+                            ))}
                         </div>
                     </div>
-                </div>
+                ) : null}
 
                 <div className="program-grid">
-                    {WeeklyProgram.map((item, idx) => {
-                        const drop00 = Boolean(item.sunday);
+                    {programItems.map((item, idx) => {
+                        const id = String(item?.id ?? `${item?.day ?? "day"}-${idx}`);
+                        const isSunday = id === "sun" || Boolean(item?.sunday);
+                        const drop00 = isSunday;
+
+                        const flagged = hasAnnouncement && affectedIds.has(id);
+
+                        const times = Array.isArray(item?.times) ? item.times : [];
+
                         return (
-                            <article key={`${item.day}-${idx}`} className={`program-card${item.sunday ? " is-sunday" : ""}`}>
-                                {item.flagged ? (
+                            <article key={id} className={`program-card${isSunday ? " is-sunday" : ""}`}>
+                                {flagged ? (
                                     <div className="program-flag" aria-label="Atenție">
                                         <span aria-hidden="true">!</span>
                                     </div>
                                 ) : null}
 
-                                <div className="program-day">{item.day}</div>
-                                <div className="program-activity">{item.title}</div>
+                                <div className="program-day">{item?.day}</div>
+                                <div className="program-activity">{item?.title}</div>
 
-                                <div className={`program-times${item.sunday ? " program-times--sunday" : ""}`}>
-                                    {item.times.map((t) => (
+                                <div className={`program-times${isSunday ? " program-times--sunday" : ""}`}>
+                                    {times.map((t) => (
                                         <span key={t} className="program-time">
-                                            {formatRange(t, { drop00 })}
-                                        </span>
+                      {formatRange(t, { drop00 })}
+                    </span>
                                     ))}
                                 </div>
                             </article>
