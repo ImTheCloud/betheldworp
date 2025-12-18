@@ -8,7 +8,7 @@ const SITE_TITLE = "Bethel Dworp";
 export const metadata: Metadata = {
     title: SITE_TITLE,
     description: "Biserica Betel Dworp – Comunitate creștină penticostală",
-    icons: { icon: "/favicon.ico" },
+    icons: { icon: "/icon.png" },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {

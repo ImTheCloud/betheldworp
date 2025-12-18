@@ -7,7 +7,7 @@ export default function Footer() {
     return (
         <footer className="footer">
             <div className="footer-inner">
-                <img className="footer-logo" src="/favicon.ico" alt="Bethel" />
+                <img className="footer-logo" src="/icon.png" alt="Bethel" />
 
                 <div className="footer-text">
                     <p className="footer-copy">
