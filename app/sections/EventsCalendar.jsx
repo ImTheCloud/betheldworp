@@ -210,23 +210,43 @@ export default function EventsCalendar() {
     const calendarCells = useMemo(() => {
         const year = month.getFullYear();
         const m = month.getMonth();
-        const firstDay = new Date(year, m, 1);
-        const daysInMonth = new Date(year, m + 1, 0).getDate();
-        const startOffset = getMondayIndex(firstDay.getDay());
+
+        const firstOfMonth = new Date(year, m, 1);
+        const lastOfMonth = new Date(year, m + 1, 0);
+
+        const startOffset = getMondayIndex(firstOfMonth.getDay());
+        const lastIndex = getMondayIndex(lastOfMonth.getDay());
+        const endOffset = 6 - lastIndex;
+
+        const gridStart = new Date(year, m, 1);
+        gridStart.setDate(gridStart.getDate() - startOffset);
+
+        const daysInMonth = lastOfMonth.getDate();
+        const totalCells = daysInMonth + startOffset + endOffset;
 
         const cells = [];
-        for (let i = 0; i < startOffset; i++) cells.push({ type: "blank", key: `blank-${i}` });
+        for (let i = 0; i < totalCells; i++) {
+            const d = new Date(gridStart);
+            d.setDate(gridStart.getDate() + i);
 
-        for (let day = 1; day <= daysInMonth; day++) {
-            const dateKey = `${year}-${pad2(m + 1)}-${pad2(day)}`;
-            const event = eventsByDate.get(dateKey) ?? null;
-            const isToday = year === today.getFullYear() && m === today.getMonth() && day === today.getDate();
-            cells.push({ type: "day", key: dateKey, day, isToday, event });
+            const iso = `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+            const event = eventsByDate.get(iso) ?? null;
+
+            const isToday = iso === todayIso;
+            const inCurrentMonth = d.getFullYear() === year && d.getMonth() === m;
+
+            cells.push({
+                key: iso,
+                iso,
+                day: d.getDate(),
+                isToday,
+                inCurrentMonth,
+                event,
+            });
         }
 
-        while (cells.length % 7 !== 0) cells.push({ type: "blank", key: `blank-end-${cells.length}` });
         return cells;
-    }, [month, eventsByDate, today]);
+    }, [month, eventsByDate, todayIso]);
 
     const goPrevMonth = () => setMonth((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1));
     const goNextMonth = () => setMonth((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1));
@@ -248,11 +268,11 @@ export default function EventsCalendar() {
 
                     <div className="ec-card">
                         <div className="ec-head">
-                            <button className="ec-navBtn" onClick={goPrevMonth} aria-label="Previous month">
+                            <button className="ec-navBtn" onClick={goPrevMonth} aria-label="Luna anterioară">
                                 ‹
                             </button>
                             <div className="ec-month">{formatMonthRo(month)}</div>
-                            <button className="ec-navBtn" onClick={goNextMonth} aria-label="Next month">
+                            <button className="ec-navBtn" onClick={goNextMonth} aria-label="Luna următoare">
                                 ›
                             </button>
                         </div>
@@ -267,16 +287,21 @@ export default function EventsCalendar() {
 
                         <div className="ec-grid">
                             {calendarCells.map((cell) => {
-                                if (cell.type === "blank") return <div key={cell.key} className="ec-cell ec-blank" />;
-
                                 const hasEvent = Boolean(cell.event);
 
                                 return (
                                     <div
                                         key={cell.key}
-                                        className={`ec-cell ${cell.isToday ? "is-today" : ""} ${hasEvent ? "has-events" : ""}`}
+                                        className={[
+                                            "ec-cell",
+                                            cell.isToday ? "is-today" : "",
+                                            hasEvent ? "has-events" : "",
+                                            !cell.inCurrentMonth ? "is-outside" : "",
+                                        ]
+                                            .filter(Boolean)
+                                            .join(" ")}
                                     >
-                                        {!hasEvent && <div className="ec-dayBadge">{cell.day}</div>}
+                                        <div className="ec-dayBadge">{cell.day}</div>
 
                                         {hasEvent ? (
                                             <button
@@ -286,7 +311,13 @@ export default function EventsCalendar() {
                                                 title={getEventAriaLabel(cell.event)}
                                                 aria-label={getEventAriaLabel(cell.event)}
                                             >
-                                                <img className="ec-eventBg" src={cell.event.image} alt="Event" loading="lazy" decoding="async" />
+                                                <img
+                                                    className="ec-eventBg"
+                                                    src={cell.event.image}
+                                                    alt="Event"
+                                                    loading="lazy"
+                                                    decoding="async"
+                                                />
                                             </button>
                                         ) : (
                                             <div className="ec-emptyBody" />
@@ -344,7 +375,7 @@ export default function EventsCalendar() {
                                 {selectedEvent.description ? <p className="ev-desc">{selectedEvent.description}</p> : null}
                             </div>
 
-                            <button type="button" className="ev-close" onClick={closeEvent} aria-label="Close">
+                            <button type="button" className="ev-close" onClick={closeEvent} aria-label="Închide">
                                 ×
                             </button>
                         </header>
@@ -381,7 +412,7 @@ export default function EventsCalendar() {
                                     <div className="ev-mapCard">
                                         <iframe
                                             className="ev-map"
-                                            title="Event location"
+                                            title="Locația evenimentului"
                                             loading="lazy"
                                             allowFullScreen
                                             referrerPolicy="no-referrer-when-downgrade"
