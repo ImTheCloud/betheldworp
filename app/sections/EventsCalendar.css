@@ -1,6 +1,6 @@
 .ec-section {
     position: relative;
-    padding: 140px 24px 160px;
+    padding: 110px 24px 120px;
     display: flex;
     justify-content: center;
     background: linear-gradient(180deg, #fafbfc 0%, #ffffff 100%);
@@ -8,13 +8,13 @@
 }
 
 .ec-section::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: 50%;
     transform: translateX(-50%);
-    width: 600px;
-    height: 600px;
+    width: 520px;
+    height: 520px;
     background: radial-gradient(circle, rgba(10, 42, 67, 0.03) 0%, transparent 70%);
     pointer-events: none;
 }
@@ -27,20 +27,20 @@
 
 .ec-header {
     text-align: center;
-    margin-bottom: 60px;
+    margin-bottom: 38px;
 }
 
 .ec-title {
-    font-size: clamp(38px, 5.5vw, 64px);
+    font-size: clamp(34px, 4.8vw, 56px);
     font-weight: 900;
     color: #0a2a43;
     letter-spacing: -0.02em;
     margin: 0;
-    line-height: 1.1;
+    line-height: 1.06;
 }
 
 .ec-inlineInfo {
-    margin-bottom: 20px;
+    margin-bottom: 18px;
     font-weight: 600;
     font-size: 15px;
     color: rgba(10, 42, 67, 0.6);
@@ -48,8 +48,8 @@
 }
 
 .ec-inlineError {
-    margin-bottom: 20px;
-    padding: 16px 20px;
+    margin-bottom: 18px;
+    padding: 14px 18px;
     border-radius: 16px;
     font-weight: 700;
     font-size: 14px;
@@ -60,26 +60,26 @@
 }
 
 .ec-card {
-    border-radius: 28px;
+    border-radius: 26px;
     background: #ffffff;
     border: 1px solid rgba(10, 42, 67, 0.08);
     box-shadow: 0 24px 80px rgba(10, 42, 67, 0.12);
-    padding: 32px;
-    margin-bottom: 50px;
+    padding: 22px;
+    margin-bottom: 42px;
 }
 
 .ec-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 32px;
-    padding-bottom: 24px;
+    gap: 14px;
+    margin-bottom: 18px;
+    padding-bottom: 14px;
     border-bottom: 1px solid rgba(10, 42, 67, 0.08);
 }
 
 .ec-month {
-    font-size: clamp(22px, 3vw, 32px);
+    font-size: clamp(20px, 2.6vw, 28px);
     font-weight: 900;
     color: #0a2a43;
     letter-spacing: -0.01em;
@@ -87,14 +87,14 @@
 }
 
 .ec-navBtn {
-    width: 48px;
-    height: 48px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     border: 1px solid rgba(10, 42, 67, 0.12);
     background: rgba(10, 42, 67, 0.04);
     color: #0a2a43;
     font-weight: 900;
-    font-size: 24px;
+    font-size: 22px;
     cursor: pointer;
     transition: all 0.3s ease;
     display: flex;
@@ -111,8 +111,8 @@
 .ec-weekdays {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 12px;
-    margin-bottom: 12px;
+    gap: 10px;
+    margin-bottom: 10px;
 }
 
 .ec-weekday {
@@ -121,20 +121,20 @@
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: rgba(10, 42, 67, 0.5);
-    font-size: 12px;
+    font-size: 11px;
     padding: 8px 0;
 }
 
 .ec-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 12px;
+    gap: 10px;
 }
 
 .ec-cell {
     position: relative;
     border-radius: 16px;
-    height: 140px;
+    height: 118px;
     border: 1px solid rgba(10, 42, 67, 0.08);
     background: #ffffff;
     overflow: hidden;
@@ -144,18 +144,13 @@
 .ec-blank {
     background: rgba(10, 42, 67, 0.02);
     border: 1px solid rgba(10, 42, 67, 0.04);
-    height: 140px;
+    height: 118px;
 }
 
 .ec-cell:hover {
-    transform: translateY(-4px);
+    transform: translateY(-3px);
     box-shadow: 0 12px 32px rgba(10, 42, 67, 0.15);
     border-color: rgba(10, 42, 67, 0.15);
-}
-
-.ec-cell.is-today {
-    border-color: rgba(22, 70, 120, 0.3);
-    border-width: 2px;
 }
 
 .ec-cell.has-events {
@@ -181,6 +176,12 @@
     background: rgba(255, 255, 255, 0.95);
     border: 1px solid rgba(10, 42, 67, 0.1);
     backdrop-filter: blur(8px);
+}
+
+.ec-cell.is-today .ec-dayBadge {
+    background: linear-gradient(135deg, #0a2a43 0%, #164678 100%);
+    color: #ffffff;
+    border: 1px solid rgba(22, 70, 120, 0.25);
 }
 
 .ec-emptyBody {
@@ -210,33 +211,33 @@
 }
 
 .nl-section {
-    margin-top: 60px;
+    margin-top: 46px;
 }
 
 .nl-header {
-    margin-bottom: 28px;
+    margin-bottom: 24px;
 }
 
 .nl-subtitle {
-    font-size: clamp(28px, 4vw, 42px);
+    font-size: clamp(26px, 3.6vw, 40px);
     font-weight: 900;
     color: #0a2a43;
     letter-spacing: -0.02em;
     margin: 0;
     line-height: 1.1;
     text-align: left;
-    padding-left: 32px;
+    padding-left: 30px;
     position: relative;
 }
 
 .nl-subtitle::before {
-    content: '';
+    content: "";
     position: absolute;
     left: 0;
     top: 50%;
     transform: translateY(-50%);
     width: 4px;
-    height: 32px;
+    height: 30px;
     background: linear-gradient(180deg, #0a2a43 0%, #164678 100%);
     border-radius: 2px;
 }
@@ -246,16 +247,16 @@
     background: #ffffff;
     border: 1px solid rgba(10, 42, 67, 0.08);
     box-shadow: 0 24px 80px rgba(10, 42, 67, 0.12);
-    padding: 48px 56px;
+    padding: 42px 48px;
     text-align: center;
 }
 
 .nl-description {
-    font-size: clamp(16px, 2vw, 18px);
+    font-size: clamp(15px, 1.9vw, 18px);
     line-height: 1.6;
     color: #1a2332;
     opacity: 0.75;
-    margin: 0 0 32px 0;
+    margin: 0 0 28px 0;
     max-width: 600px;
     margin-left: auto;
     margin-right: auto;
@@ -370,16 +371,16 @@
 }
 
 .ev-modal {
-    width: min(900px, 92vw);
+    width: min(980px, 92vw);
     background: #ffffff;
     border-radius: 28px;
     border: 1px solid rgba(10, 42, 67, 0.12);
     box-shadow: 0 40px 140px rgba(10, 42, 67, 0.4);
     animation: modalEnter 0.4s cubic-bezier(.2,.8,.2,1);
-    max-height: 86vh;
+    max-height: 88vh;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
 }
 
 @keyframes modalEnter {
@@ -389,26 +390,25 @@
 
 .ev-header {
     position: relative;
-    padding: 24px 32px 16px;
+    padding: 18px 22px 12px;
     display: flex;
     align-items: flex-start;
-    gap: 16px;
-    flex: 0 0 auto;
+    gap: 14px;
     background: #ffffff;
-    border-bottom: 0;
+    border-bottom: 1px solid rgba(10, 42, 67, 0.06);
 }
 
 .ev-headText {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
     min-width: 0;
     flex: 1 1 auto;
 }
 
 .ev-title {
     margin: 0;
-    font-size: clamp(20px, 3vw, 28px);
+    font-size: clamp(18px, 2.4vw, 26px);
     font-weight: 900;
     letter-spacing: -0.01em;
     color: #0a2a43;
@@ -429,8 +429,8 @@
 
 .ev-close {
     position: absolute;
-    top: 12px;
-    right: 12px;
+    top: 10px;
+    right: 10px;
     width: 38px;
     height: 38px;
     border-radius: 999px;
@@ -444,7 +444,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    opacity: 0.7;
+    opacity: 0.85;
 }
 
 .ev-close:hover {
@@ -455,15 +455,32 @@
 }
 
 .ev-body {
-    flex: 1 1 auto;
-    overflow: auto;
-    padding: 0 32px 32px;
-    -webkit-overflow-scrolling: touch;
+    padding: 14px 22px 18px;
     background: #ffffff;
+    overflow: auto;
+    max-height: calc(88vh - 86px);
+    -webkit-overflow-scrolling: touch;
+}
+
+.ev-layout {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 16px;
+    align-items: stretch;
+}
+
+.ev-media,
+.ev-details {
+    min-width: 0;
+}
+
+.ev-details {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
 .ev-heroImgWrap {
-    margin-top: 0;
     overflow: hidden;
     border-radius: 20px;
     border: 1px solid rgba(10, 42, 67, 0.08);
@@ -473,21 +490,40 @@
 
 .ev-heroImg {
     width: 100%;
-    height: clamp(300px, 40vw, 450px);
+    height: clamp(240px, 24vw, 340px);
     object-fit: cover;
     display: block;
 }
 
+@media (min-width: 901px) {
+    .ev-layout {
+        align-items: stretch;
+    }
+
+    .ev-media {
+        display: flex;
+        height: 100%;
+    }
+
+    .ev-heroImgWrap {
+        flex: 1;
+        height: 100%;
+    }
+
+    .ev-heroImg {
+        height: 100%;
+    }
+}
+
 .ev-infoGrid {
-    margin-top: 24px;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
+    gap: 12px;
 }
 
 .ev-infoCard {
     border-radius: 16px;
-    padding: 20px;
+    padding: 16px;
     background: rgba(10, 42, 67, 0.04);
     border: 1px solid rgba(10, 42, 67, 0.08);
 }
@@ -502,26 +538,25 @@
     letter-spacing: 0.12em;
     text-transform: uppercase;
     color: rgba(10, 42, 67, 0.5);
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
 .ev-infoValue {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 800;
     color: #0a2a43;
-    line-height: 1.4;
+    line-height: 1.35;
 }
 
 .ev-infoSub {
     display: block;
-    margin-top: 8px;
-    font-size: 14px;
-    font-weight: 600;
+    margin-top: 6px;
+    font-size: 13px;
+    font-weight: 650;
     color: rgba(10, 42, 67, 0.6);
 }
 
 .ev-mapCard {
-    margin-top: 20px;
     overflow: hidden;
     border-radius: 20px;
     background: #ffffff;
@@ -531,62 +566,88 @@
 
 .ev-map {
     width: 100%;
-    height: clamp(240px, 28vw, 350px);
+    height: clamp(180px, 18vw, 240px);
     border: 0;
     display: block;
 }
 
 @media (max-width: 900px) {
-    .ec-section { padding: 100px 20px 120px; }
-    .ec-header { margin-bottom: 50px; }
-    .ec-card { padding: 24px; margin-bottom: 40px; }
-    .ec-head { margin-bottom: 24px; padding-bottom: 20px; }
-    .ec-cell, .ec-blank { height: 120px; }
-    .nl-section { margin-top: 50px; }
-    .nl-header { margin-bottom: 24px; }
-    .nl-subtitle { padding-left: 28px; }
-    .nl-subtitle::before { height: 28px; }
+    .ec-section { padding: 100px 20px 110px; }
+    .ec-card { padding: 20px; margin-bottom: 38px; }
+    .ec-cell, .ec-blank { height: 112px; }
+
+    .nl-section { margin-top: 40px; }
     .nl-card { padding: 36px 28px; }
     .nl-input-group { flex-direction: column; }
     .nl-button { width: 100%; }
+
+    .ev-layout { grid-template-columns: 1fr; }
+    .ev-heroImg { height: 250px; }
+    .ev-map { height: 220px; }
+    .ev-body { max-height: calc(88vh - 86px); }
 }
 
 @media (max-width: 700px) {
     .ev-overlay { align-items: flex-end; }
-    .ev-modal { width: 100%; border-radius: 24px 24px 0 0; max-height: 82vh; }
-    .ev-header { padding: 20px 20px 14px; }
+
+    .ev-modal {
+        width: 100%;
+        border-radius: 24px 24px 0 0;
+        max-height: 86vh;
+    }
+
+    .ev-header { padding: 16px 16px 10px; }
+    .ev-body { padding: 12px 16px 16px; max-height: calc(86vh - 78px); }
+
     .ev-close { top: 10px; right: 10px; width: 36px; height: 36px; font-size: 21px; }
-    .ev-body { padding: 0 20px 24px; }
-    .ev-heroImg { height: 280px; }
-    .ev-infoGrid { gap: 12px; }
-    .ev-map { height: 240px; }
+
+    .ev-layout { grid-template-columns: 1fr; gap: 12px; }
+
+    .ev-heroImg { height: 210px; }
+    .ev-map { height: 190px; }
 }
 
 @media (max-width: 600px) {
     .ec-section { padding: 78px 16px 96px; }
     .ec-header { margin-bottom: 34px; }
     .ec-title { font-size: clamp(30px, 7vw, 44px); }
+
     .ec-card { padding: 16px; border-radius: 22px; }
     .ec-head { margin-bottom: 14px; padding-bottom: 12px; gap: 10px; }
     .ec-month { font-size: 20px; }
     .ec-navBtn { width: 40px; height: 40px; font-size: 20px; }
+
     .ec-weekdays { gap: 6px; margin-bottom: 8px; }
     .ec-weekday { font-size: 10px; letter-spacing: 0.06em; padding: 6px 0; }
+
     .ec-grid { gap: 6px; }
     .ec-cell, .ec-blank { height: auto; aspect-ratio: 1 / 1; border-radius: 14px; }
     .ec-blank { background: rgba(10, 42, 67, 0.015); border-color: rgba(10, 42, 67, 0.03); }
     .ec-emptyBody { background: rgba(10, 42, 67, 0.02); width: 100%; height: 100%; }
+
     .ec-dayBadge {
-        top: 6px; left: 6px; width: 24px; height: 24px; min-width: 24px;
-        padding: 0; border-radius: 50%; font-size: 11px; border: 1px solid rgba(10, 42, 67, 0.10);
+        top: 6px;
+        left: 6px;
+        width: 24px;
+        height: 24px;
+        min-width: 24px;
+        padding: 0;
+        border-radius: 50%;
+        font-size: 11px;
+        border: 1px solid rgba(10, 42, 67, 0.10);
     }
+
     .ec-eventCellBtn { border-radius: inherit; overflow: hidden; }
     .ec-eventBg { width: 100%; height: 100%; object-fit: cover; }
+
     .nl-section { margin-top: 34px; }
     .nl-header { margin-bottom: 18px; }
     .nl-subtitle { padding-left: 20px; }
     .nl-subtitle::before { height: 22px; }
     .nl-card { padding: 28px 20px; border-radius: 22px; }
+
+    .ev-heroImg { height: 190px; }
+    .ev-map { height: 175px; }
 }
 
 @media (hover: none) {
