@@ -2,10 +2,10 @@ import "./Footer.css";
 
 export default function Footer() {
     const phoneDisplay = "+32 488 29 70 15";
-    const phoneHref = "+32412345678";
+    const phoneHref = "+32488297015";
 
     return (
-        <footer className="footer">
+        <footer className="footer" id="bethel-footer">
             <div className="footer-inner">
                 <img className="footer-logo" src="/icon.png" alt="Bethel" />
 
