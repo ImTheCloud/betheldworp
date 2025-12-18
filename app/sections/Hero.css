@@ -4,11 +4,11 @@
     width: 100%;
     overflow: hidden;
 
-    /* ✅ pas de noir => fallback plus joli si l'image met 0.2s */
+    /* ✅ pas de noir => fallback plus joli si l'images met 0.2s */
     background: #0a2a43;
 }
 
-/* ✅ image en HTML (plus fiable au first paint) */
+/* ✅ images en HTML (plus fiable au first paint) */
 .hero-bgImg {
     position: absolute;
     inset: 0;

@@ -35,10 +35,10 @@ function YouTubeIcon({ className = "", title = "YouTube" }) {
 export default function Gallery() {
     const IMAGES = useMemo(
         () => [
-            { src: "/image/drone.jpg", alt: "Bethel 1" },
-            { src: "/image/outside.jpg", alt: "Bethel 2" },
-            { src: "/image/inside.jpg", alt: "Bethel 3" },
-            { src: "/image/inside2.jpg", alt: "Bethel 4" },
+            { src: "/images/drone.jpg", alt: "Bethel 1" },
+            { src: "/images/outside.jpg", alt: "Bethel 2" },
+            { src: "/images/inside.jpg", alt: "Bethel 3" },
+            { src: "/images/inside2.jpg", alt: "Bethel 4" },
         ],
         []
     );

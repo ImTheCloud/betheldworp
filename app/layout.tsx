@@ -16,7 +16,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
         <html lang="ro">
         <head>
             <title>{SITE_TITLE}</title>
-            <link rel="preload" as="image" href="/image/drone.jpg" fetchPriority="high" />
+            <link rel="preload" as="image" href="/images/events/drone.jpg" fetchPriority="high" />
         </head>
         <body>
         <VisitTracker />
