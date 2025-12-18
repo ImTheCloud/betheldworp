@@ -7,7 +7,7 @@ export default function Hero() {
         <section className="hero">
             <img
                 className="hero-bgImg"
-                src="/images/events/drone.jpg"
+                src="/images/drone.jpg"
                 alt=""
                 aria-hidden="true"
                 loading="eager"
