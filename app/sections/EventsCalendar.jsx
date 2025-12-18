@@ -140,7 +140,7 @@ export default function EventsCalendar() {
 
         const todayEvent = eventsByDate.get(todayIso);
         const nextEvent = eventsSorted.find((ev) => normalizeDateToIso(ev.dateEvent) >= todayIso);
-        setSelectedId((todayEvent?.id) || (nextEvent?.id) || eventsSorted[0].id);
+        setSelectedId(todayEvent?.id || nextEvent?.id || eventsSorted[0].id);
     }, [eventsSorted, eventsByDate, todayIso, selectedId]);
 
     const openEvent = (ev) => {
@@ -248,14 +248,20 @@ export default function EventsCalendar() {
 
                     <div className="ec-card">
                         <div className="ec-head">
-                            <button className="ec-navBtn" onClick={goPrevMonth} aria-label="Previous month">‹</button>
+                            <button className="ec-navBtn" onClick={goPrevMonth} aria-label="Previous month">
+                                ‹
+                            </button>
                             <div className="ec-month">{formatMonthRo(month)}</div>
-                            <button className="ec-navBtn" onClick={goNextMonth} aria-label="Next month">›</button>
+                            <button className="ec-navBtn" onClick={goNextMonth} aria-label="Next month">
+                                ›
+                            </button>
                         </div>
 
                         <div className="ec-weekdays">
                             {WEEKDAY_LABELS.map((d) => (
-                                <div key={d} className="ec-weekday">{d}</div>
+                                <div key={d} className="ec-weekday">
+                                    {d}
+                                </div>
                             ))}
                         </div>
 
@@ -280,13 +286,7 @@ export default function EventsCalendar() {
                                                 title={getEventAriaLabel(cell.event)}
                                                 aria-label={getEventAriaLabel(cell.event)}
                                             >
-                                                <img
-                                                    className="ec-eventBg"
-                                                    src={cell.event.image}
-                                                    alt="Event"
-                                                    loading="lazy"
-                                                    decoding="async"
-                                                />
+                                                <img className="ec-eventBg" src={cell.event.image} alt="Event" loading="lazy" decoding="async" />
                                             </button>
                                         ) : (
                                             <div className="ec-emptyBody" />
@@ -303,9 +303,7 @@ export default function EventsCalendar() {
                         </div>
 
                         <div className="nl-card">
-                            <p className="nl-description">
-                                Abonează-te și vei primi anunțuri când apar evenimente noi
-                            </p>
+                            <p className="nl-description">Abonează-te și vei primi anunțuri când apar evenimente noi</p>
 
                             {success ? (
                                 <div className="nl-success">
@@ -352,39 +350,45 @@ export default function EventsCalendar() {
                         </header>
 
                         <div className="ev-body">
-                            <div className="ev-heroImgWrap">
-                                <img className="ev-heroImg" src={selectedEvent.image} alt="Event" />
-                            </div>
-
-                            <div className="ev-infoGrid">
-                                <div className="ev-infoCard">
-                                    <div className="ev-infoLabel">Ora</div>
-                                    <div className="ev-infoValue">{selectedEvent.time}</div>
-                                </div>
-
-                                <div className="ev-infoCard">
-                                    <div className="ev-infoLabel">Data</div>
-                                    <div className="ev-infoValue">{formatDateBe(selectedEvent.dateEvent)}</div>
-                                </div>
-
-                                <div className="ev-infoCard ev-infoCard--wide">
-                                    <div className="ev-infoLabel">Locație</div>
-                                    <div className="ev-infoValue">
-                                        {selectedEvent.place}
-                                        <span className="ev-infoSub">{selectedEvent.address}</span>
+                            <div className="ev-layout">
+                                <div className="ev-media">
+                                    <div className="ev-heroImgWrap">
+                                        <img className="ev-heroImg" src={selectedEvent.image} alt="Event" />
                                     </div>
                                 </div>
-                            </div>
 
-                            <div className="ev-mapCard">
-                                <iframe
-                                    className="ev-map"
-                                    title="Event location"
-                                    loading="lazy"
-                                    allowFullScreen
-                                    referrerPolicy="no-referrer-when-downgrade"
-                                    src={`https://www.google.com/maps?q=${mapQuery}&output=embed`}
-                                />
+                                <div className="ev-details">
+                                    <div className="ev-infoGrid">
+                                        <div className="ev-infoCard">
+                                            <div className="ev-infoLabel">Ora</div>
+                                            <div className="ev-infoValue">{selectedEvent.time}</div>
+                                        </div>
+
+                                        <div className="ev-infoCard">
+                                            <div className="ev-infoLabel">Data</div>
+                                            <div className="ev-infoValue">{formatDateBe(selectedEvent.dateEvent)}</div>
+                                        </div>
+
+                                        <div className="ev-infoCard ev-infoCard--wide">
+                                            <div className="ev-infoLabel">Locație</div>
+                                            <div className="ev-infoValue">
+                                                {selectedEvent.place}
+                                                <span className="ev-infoSub">{selectedEvent.address}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="ev-mapCard">
+                                        <iframe
+                                            className="ev-map"
+                                            title="Event location"
+                                            loading="lazy"
+                                            allowFullScreen
+                                            referrerPolicy="no-referrer-when-downgrade"
+                                            src={`https://www.google.com/maps?q=${mapQuery}&output=embed`}
+                                        />
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
