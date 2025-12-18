@@ -8,7 +8,7 @@ const SITE_TITLE = "Bethel Dworp";
 export const metadata: Metadata = {
     title: SITE_TITLE,
     description: "Biserica Betel Dworp – Comunitate creștină penticostală",
-    icons: { icon: "/logo.png" },
+    icons: { icon: "/favicon.ico" },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
@@ -16,7 +16,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
         <html lang="ro">
         <head>
             <title>{SITE_TITLE}</title>
-            <link rel="preload" as="image" href="/images/events/drone.jpg" fetchPriority="high" />
+            <link rel="preload" as="image" href="/images/drone.jpg" fetchPriority="high" />
         </head>
         <body>
         <VisitTracker />
