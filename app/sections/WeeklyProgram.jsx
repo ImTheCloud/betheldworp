@@ -5,6 +5,45 @@ import { useEffect, useMemo, useState } from "react";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "../lib/Firebase";
 
+const LOCAL_PROGRAM_ITEMS = [
+    {
+        day: "Luni",
+        id: "mon",
+        times: ["20:00-21:30"],
+        title: "Seară de Tineret și Adolescenți",
+    },
+    {
+        day: "Marți & Vineri",
+        id: "tue_fri",
+        times: ["20:00-21:30"],
+        title: "Seară de rugăciune",
+    },
+    {
+        day: "Miercuri",
+        id: "wed",
+        times: ["20:00-21:30"],
+        title: "Repetiție cor Mixt",
+    },
+    {
+        day: "Joi",
+        id: "thu",
+        times: ["20:00-21:30"],
+        title: "Repetiție cor Bărbătesc",
+    },
+    {
+        day: "Sâmbătă",
+        id: "sat",
+        times: ["11:00-13:30"],
+        title: "Program cu copii",
+    },
+    {
+        day: "Duminică",
+        id: "sun",
+        times: ["10:00-12:00", "18:00-20:00"],
+        title: "Serviciu Divin",
+    },
+];
+
 function formatTimeToken(token, { drop00 }) {
     const t = String(token || "").trim();
     const m = t.match(/^(\d{1,2}):(\d{2})$/);
@@ -25,33 +64,11 @@ function formatRange(range, opts) {
 }
 
 export default function Program() {
-    const [programItems, setProgramItems] = useState([]);
-    const [programLoading, setProgramLoading] = useState(true);
-    const [programError, setProgramError] = useState("");
+    const programItems = LOCAL_PROGRAM_ITEMS;
 
     const [announcement, setAnnouncement] = useState(null);
     const [announcementLoading, setAnnouncementLoading] = useState(true);
     const [announcementError, setAnnouncementError] = useState("");
-
-    useEffect(() => {
-        const ref = doc(db, "weekly_program", "current");
-        const unsub = onSnapshot(
-            ref,
-            (snap) => {
-                const data = snap.data();
-                const items = Array.isArray(data?.items) ? data.items : [];
-                setProgramItems(items);
-                setProgramLoading(false);
-                setProgramError("");
-            },
-            (err) => {
-                console.error(err);
-                setProgramError("Nu am putut încărca programul săptămânal.");
-                setProgramLoading(false);
-            }
-        );
-        return () => unsub();
-    }, []);
 
     useEffect(() => {
         const ref = doc(db, "program_announcements", "current");
@@ -87,15 +104,9 @@ export default function Program() {
                     <h2 className="program-title">Programul săptămânal</h2>
                 </div>
 
-                {(programLoading || announcementLoading) && (
+                {announcementLoading && (
                     <div className="ec-inlineInfo" style={{ textAlign: "center", marginBottom: 18 }}>
                         Se încarcă...
-                    </div>
-                )}
-
-                {programError && (
-                    <div className="ec-inlineError" style={{ textAlign: "center", marginBottom: 18 }}>
-                        {programError}
                     </div>
                 )}
 
