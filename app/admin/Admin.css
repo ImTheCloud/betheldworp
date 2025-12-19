@@ -1,0 +1,638 @@
+/* Admin.css — version corrigée (header & sections alignés + responsive sans débordement) */
+
+.adminPage {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 40px 18px 70px;
+    background:
+            radial-gradient(circle at 10% 10%, rgba(22, 70, 120, 0.10), transparent 45%),
+            radial-gradient(circle at 90% 90%, rgba(10, 42, 67, 0.10), transparent 45%),
+            linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
+    color: #0a2a43;
+}
+
+/* évite plein de soucis de débordement sur mobile */
+.adminPage,
+.adminPage * {
+    box-sizing: border-box;
+}
+
+.adminWrap {
+    width: 100%;
+    max-width: 980px;
+}
+
+.adminHeader {
+    display: grid;
+    grid-template-columns: 48px 1fr 48px;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 14px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.82);
+    border: 1px solid rgba(10, 42, 67, 0.10);
+    box-shadow: 0 18px 55px rgba(10, 42, 67, 0.08);
+    margin-bottom: 16px;
+}
+
+.adminMark {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, #0a2a43 0%, #164678 100%);
+    color: #fff;
+    font-weight: 950;
+    box-shadow: 0 14px 35px rgba(10, 42, 67, 0.18);
+    user-select: none;
+}
+
+.adminHeaderCenter {
+    text-align: center;
+    color: rgba(10, 42, 67, 0.82);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+}
+
+.adminHeaderTitle {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 950;
+    letter-spacing: -0.02em;
+}
+
+.adminHeaderRightSpacer {
+    width: 42px;
+    height: 42px;
+}
+
+.adminIconBtn {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    border: 1px solid rgba(10, 42, 67, 0.12);
+    background: rgba(255, 255, 255, 0.85);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    color: rgba(10, 42, 67, 0.82);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.adminIconBtn:hover {
+    transform: translateY(-1px);
+    border-color: rgba(10, 42, 67, 0.18);
+    box-shadow: 0 14px 35px rgba(10, 42, 67, 0.10);
+}
+
+.adminStack {
+    display: grid;
+    gap: 14px;
+}
+
+.adminCard {
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(10, 42, 67, 0.10);
+    border-radius: 20px;
+    box-shadow: 0 18px 65px rgba(10, 42, 67, 0.10);
+    padding: 18px;
+    min-width: 0;
+}
+
+.adminCard--center {
+    text-align: center;
+    padding: 34px 18px;
+    max-width: 720px;
+    margin: 60px auto 0;
+}
+
+.adminCard--login {
+    max-width: 520px;
+    margin: 34px auto 0;
+    padding: 22px;
+}
+
+/* ✅ titre section: garde le style + ellipsis pour ne jamais pousser le bouton "Nou" en dessous */
+.adminTitle {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 950;
+    letter-spacing: -0.02em;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.adminMutedLine {
+    margin-top: 12px;
+    font-size: 13px;
+    color: rgba(10, 42, 67, 0.72);
+}
+
+.adminForm {
+    margin-top: 16px;
+    display: grid;
+    gap: 12px;
+}
+
+.adminForm--edit {
+    margin-top: 14px;
+}
+
+.adminLabel {
+    display: grid;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 900;
+    color: rgba(10, 42, 67, 0.86);
+}
+
+.adminInput,
+.adminTextarea {
+    width: 100%;
+    border-radius: 14px;
+    border: 1px solid rgba(10, 42, 67, 0.14);
+    padding: 12px 12px;
+    font-size: 14px;
+    outline: none;
+    background: rgba(255, 255, 255, 0.95);
+    transition: box-shadow 0.15s ease, border-color 0.15s ease;
+    min-width: 0;
+}
+
+.adminTextarea {
+    resize: vertical;
+    min-height: 110px;
+}
+
+.adminInput:focus,
+.adminTextarea:focus {
+    border-color: rgba(22, 70, 120, 0.35);
+    box-shadow: 0 0 0 6px rgba(22, 70, 120, 0.12);
+}
+
+.adminBtn {
+    border: none;
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-weight: 950;
+    cursor: pointer;
+    background: linear-gradient(135deg, #0a2a43 0%, #164678 100%);
+    color: #fff;
+    box-shadow: 0 14px 35px rgba(10, 42, 67, 0.16);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    white-space: nowrap; /* ✅ évite que “+ Nou” se casse */
+}
+
+.adminBtn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 18px 45px rgba(10, 42, 67, 0.20);
+}
+
+.adminBtn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.adminBtn--new {
+    background: #fff;
+    color: #0a2a43;
+    border: 1px solid rgba(10, 42, 67, 0.14);
+    box-shadow: 0 12px 28px rgba(10, 42, 67, 0.08);
+}
+
+.adminBtn--new:hover {
+    transform: translateY(-1px);
+    border-color: rgba(10, 42, 67, 0.20);
+    box-shadow: 0 16px 40px rgba(10, 42, 67, 0.12);
+}
+
+.adminBtnIcon {
+    width: 26px;
+    height: 26px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    background: rgba(10, 42, 67, 0.06);
+    border: 1px solid rgba(10, 42, 67, 0.10);
+    flex: 0 0 auto;
+}
+
+.adminAlert {
+    padding: 12px 12px;
+    border-radius: 14px;
+    background: rgba(176, 0, 32, 0.08);
+    border: 1px solid rgba(176, 0, 32, 0.16);
+    color: #b00020;
+    font-weight: 900;
+    font-size: 13px;
+}
+
+/* ✅ IMPORTANT: toujours sur UNE seule ligne (titre à gauche, actions à droite) */
+.adminTop {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+    flex-wrap: nowrap;   /* ✅ pas de “retour à la ligne” */
+    min-width: 0;
+}
+
+.adminActions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: flex-end;
+    flex: 0 0 auto;      /* ✅ ne rétrécit pas / ne pousse pas le titre */
+    flex-wrap: nowrap;   /* ✅ évite que le bouton passe en dessous */
+}
+
+.adminList {
+    display: grid;
+    gap: 12px;
+}
+
+.adminList--history {
+    margin-top: 10px;
+}
+
+.adminEmpty {
+    text-align: center;
+    padding: 10px 0;
+    color: rgba(10, 42, 67, 0.55);
+    font-weight: 900;
+}
+
+.adminSkeleton {
+    height: 220px;
+    border-radius: 16px;
+    background: linear-gradient(
+            90deg,
+            rgba(10, 42, 67, 0.05),
+            rgba(10, 42, 67, 0.09),
+            rgba(10, 42, 67, 0.05)
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.2s infinite linear;
+}
+
+.adminSpinner {
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    border: 4px solid rgba(10, 42, 67, 0.12);
+    border-top-color: rgba(10, 42, 67, 0.6);
+    margin: 0 auto;
+    animation: spin 0.9s linear infinite;
+}
+
+.adminToggle {
+    width: 52px;
+    height: 30px;
+    border-radius: 999px;
+    border: 1px solid rgba(10, 42, 67, 0.18);
+    background: rgba(255, 255, 255, 0.92);
+    padding: 3px;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    flex: 0 0 auto;
+}
+
+.adminToggle:hover {
+    transform: translateY(-1px);
+    border-color: rgba(10, 42, 67, 0.24);
+    box-shadow: 0 10px 24px rgba(10, 42, 67, 0.08);
+}
+
+.adminToggleThumb {
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    background: #b00020;
+    box-shadow: 0 10px 18px rgba(10, 42, 67, 0.18);
+    transform: translateX(0);
+    transition: transform 0.18s ease, background 0.18s ease;
+}
+
+.adminToggle.is-on .adminToggleThumb {
+    transform: translateX(22px);
+    background: #1aa06d;
+}
+
+.adminToggle:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 6px rgba(22, 70, 120, 0.10);
+}
+
+.adminAffectGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+    gap: 6px;
+    width: 100%;
+    min-width: 0;
+}
+
+.adminAffectChip {
+    width: 100%;
+    border-radius: 999px;
+    border: 1px solid rgba(10, 42, 67, 0.14);
+    background: rgba(255, 255, 255, 0.92);
+    padding: 8px 8px;
+    cursor: pointer;
+    font-weight: 950;
+    font-size: 12px;
+    color: rgba(10, 42, 67, 0.82);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+    min-width: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.adminAffectChip:hover {
+    transform: translateY(-1px);
+    border-color: rgba(10, 42, 67, 0.18);
+    box-shadow: 0 14px 35px rgba(10, 42, 67, 0.08);
+}
+
+.adminAffectChip.is-on {
+    border-color: rgba(176, 0, 32, 0.22);
+    background: rgba(176, 0, 32, 0.06);
+    color: #b00020;
+}
+
+.adminAnnCard {
+    border-radius: 18px;
+    border: 1px solid rgba(10, 42, 67, 0.10);
+    background: rgba(255, 255, 255, 0.92);
+    padding: 14px;
+    box-shadow: 0 10px 30px rgba(10, 42, 67, 0.06);
+    display: grid;
+    gap: 12px;
+    min-width: 0;
+}
+
+.adminAnnCard.is-active {
+    border-color: rgba(22, 70, 120, 0.18);
+    box-shadow: 0 14px 40px rgba(10, 42, 67, 0.08);
+}
+
+/* ✅ empêche l’ID long (events) de casser la mise en page */
+.adminAnnHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 0;
+    flex-wrap: nowrap;
+}
+
+.adminAnnIdChip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 950;
+    color: rgba(10, 42, 67, 0.70);
+    background: rgba(10, 42, 67, 0.05);
+    border: 1px solid rgba(10, 42, 67, 0.10);
+    padding: 6px 10px;
+    border-radius: 999px;
+    min-width: 0;
+    max-width: 220px;             /* ✅ évite débordement */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.adminAnnAffectTitle {
+    font-size: 12px;
+    font-weight: 950;
+    color: rgba(10, 42, 67, 0.78);
+    margin-top: 2px;
+}
+
+.adminMsgActions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    width: 100%;
+    min-width: 0;
+}
+
+.adminDeleteBtn {
+    width: 100%;
+    border-radius: 14px;
+    padding: 12px 14px;
+    cursor: pointer;
+    font-weight: 950;
+    border: 1px solid rgba(176, 0, 32, 0.16);
+    background: rgba(176, 0, 32, 0.06);
+    color: #b00020;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, background 0.15s ease, opacity 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.adminDeleteBtn:hover {
+    transform: translateY(-1px);
+    border-color: rgba(176, 0, 32, 0.22);
+    background: rgba(176, 0, 32, 0.08);
+    box-shadow: 0 14px 35px rgba(176, 0, 32, 0.10);
+}
+
+.adminMsgSaveBtn {
+    width: 100%;
+    border: none;
+    border-radius: 14px;
+    padding: 12px 14px;
+    font-weight: 950;
+    cursor: pointer;
+    background: linear-gradient(135deg, #0a2a43 0%, #164678 100%);
+    color: #fff;
+    box-shadow: 0 14px 35px rgba(10, 42, 67, 0.16);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+
+.adminMsgSaveBtn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 18px 45px rgba(10, 42, 67, 0.20);
+}
+
+.adminMsgSaveBtn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.adminHistoryRow {
+    margin-top: 10px;
+}
+
+.adminSmallBtn {
+    border: 1px solid rgba(10, 42, 67, 0.14);
+    background: rgba(255, 255, 255, 0.90);
+    border-radius: 12px;
+    padding: 10px 12px;
+    cursor: pointer;
+    font-weight: 950;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+.adminSmallBtn:hover {
+    transform: translateY(-1px);
+    border-color: rgba(10, 42, 67, 0.18);
+    box-shadow: 0 14px 35px rgba(10, 42, 67, 0.10);
+}
+
+.adminSmallBtn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.adminHistoryCard {
+    border-radius: 16px;
+    border: 1px solid rgba(10, 42, 67, 0.10);
+    background: rgba(10, 42, 67, 0.02);
+    padding: 12px;
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+}
+
+.adminHistoryTop {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    min-width: 0;
+}
+
+.adminHistoryId {
+    font-size: 12px;
+    font-weight: 950;
+    color: rgba(10, 42, 67, 0.55);
+    background: rgba(10, 42, 67, 0.05);
+    border: 1px solid rgba(10, 42, 67, 0.10);
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    min-width: 0;
+}
+
+.adminHistoryRef {
+    font-weight: 950;
+    color: rgba(10, 42, 67, 0.85);
+    letter-spacing: -0.01em;
+    min-width: 0;
+}
+
+.adminHistoryText {
+    font-size: 13px;
+    font-weight: 750;
+    color: rgba(10, 42, 67, 0.78);
+    line-height: 1.45;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+/* résumé dans les rows collapsées (annonces/events/versets) */
+.adminSummary {
+    flex: 1;
+    min-width: 0;
+    font-size: 13px;
+    color: rgba(10, 42, 67, 0.78);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ✅ IMPORTANT: on NE repasse PLUS en colonne (c’était la cause du bouton sous le titre) */
+@media (max-width: 820px) {
+    .adminAffectGrid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .adminAnnIdChip {
+        max-width: 160px;
+    }
+}
+
+@media (max-width: 600px) {
+    .adminAffectGrid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 6px;
+    }
+
+    .adminAffectChip {
+        font-size: 11px;
+        padding: 7px 6px;
+        white-space: normal;
+        line-height: 1.1;
+    }
+
+    /* sur mobile, on autorise le résumé à prendre 2 lignes si besoin */
+    .adminSummary {
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+
+    /* bouton un peu plus compact */
+    .adminBtn {
+        padding: 9px 12px;
+        gap: 8px;
+    }
+    .adminBtnIcon {
+        width: 24px;
+        height: 24px;
+        border-radius: 9px;
+    }
+
+    .adminAnnIdChip {
+        max-width: 120px;
+    }
+}
+
+@media (max-width: 360px) {
+    .adminMsgActions {
+        grid-template-columns: 1fr;
+    }
+
+    .adminAnnIdChip {
+        max-width: 96px;
+    }
+}
