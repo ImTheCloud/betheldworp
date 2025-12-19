@@ -5,13 +5,8 @@ import { useEffect, useState } from "react";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "../lib/Firebase";
 
-const FALLBACK_VERSE = {
-    reference: "Ioan 14:8",
-    text: "„Doamne”, i-a zis Filip, „arată-ne pe Tatăl și ne este de ajuns!”",
-};
-
 export default function Hero() {
-    const [verse, setVerse] = useState(FALLBACK_VERSE);
+    const [verse, setVerse] = useState({ reference: "", text: "" });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
@@ -23,14 +18,17 @@ export default function Hero() {
             (snap) => {
                 const data = snap.data() || {};
 
-                const next = {
-                    reference: String(data.reference || FALLBACK_VERSE.reference),
-                    text: String(data.text || FALLBACK_VERSE.text),
-                };
+                const reference = String(data.reference ?? "").trim();
+                const text = String(data.text ?? "").trim();
 
-                setVerse(next);
+                setVerse({ reference, text });
                 setLoading(false);
-                setError("");
+
+                if (!reference && !text) {
+                    setError("Nu există verset setat pentru luna curentă.");
+                } else {
+                    setError("");
+                }
             },
             (err) => {
                 console.error(err);
@@ -55,15 +53,15 @@ export default function Hero() {
             />
 
             <div className="hero-content">
-                <h1 className="hero-title">Vă așteptăm la Bethel</h1>
+                <h1 className="hero-title">Vă așteptăm la biserica Bethel </h1>
                 <h2 className="hero-subtitle">În casa lui Dumnezeu</h2>
 
                 <div className="hero-verse" aria-live="polite">
                     <div className="hero-verseLabel">
-                        Versetul lunii : {verse.reference}
+                        Versetul lunii{verse.reference ? ` : ${verse.reference}` : ""}
                         {loading ? " (se încarcă...)" : ""}
                     </div>
-                    <p className="hero-verseText">{verse.text}</p>
+                    {verse.text ? <p className="hero-verseText">{verse.text}</p> : null}
                     {error ? <div className="ec-inlineError">{error}</div> : null}
                 </div>
             </div>
