@@ -56,11 +56,9 @@ function toIdDate(input) {
 const DEFAULT_NEW = {
     title: "Cina Domnului și zi de post",
     description:
-        'Pentru biserică, aceasta este o zi specială: de la 10:00 până la aproximativ 12:30 va fi Cina Domnului în cadrul slujbei. Urmează o pauză până la aproximativ 13:30, apoi reluăm programul bisericii până la 16:00 și programul de seară de la 18h este anulat.\n' +
-        '\n' +
-        'Pe lângă Cina Domnului, cei care pot vor ține și post până la 16:00, pentru o cauză specială care va fi anunțată în acea zi.\n' +
-        '\n' +
-        'Ne întâlnim la biserică, ca să stăm la masă cu Domnul nostru Isus Hristos. Făcând acest lucru, ne amintim de fiecare dată de sacrificiul pe care Domnul Isus Hristos l-a făcut pe crucea de la Golgota, din dragoste pentru noi. Și, după ce a mulțumit lui Dumnezeu, a frânt-o și a zis: „Luați, mâncați; acesta este trupul Meu, care se frânge pentru voi; să faceți lucrul acesta spre pomenirea Mea.” (1 Corinteni 11:24)\n',
+        'Pentru biserică, este o zi specială: va fi o zi de post până la aproximativ 16h. \n' +
+        'De la 10:00 până la 12:30 va fi Cina Domnului în cadrul slujbei : Făcând acest lucru, ne amintim de fiecare dată de sacrificiul pe care Domnul Isus Hristos l-a făcut pe crucea de la Golgota, după aceea urmează o pauză până la 13:30, apoi reluăm programul bisericii până la 16:00. \n' +
+        'Programul de seară de la 18h este anulat.',
     image: "/images/events/cina.png",
     time: "10:00 - 12:00",
     place: "Biserica Penticostala BETHEL Dworp",
