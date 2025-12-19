@@ -1,7 +1,7 @@
 "use client";
 
 import "./WeeklyProgram.css";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "../lib/Firebase";
 
@@ -59,6 +59,12 @@ export default function Program() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
+    // Toast
+    const [toast, setToast] = useState(null); // { title, subtitle, message, moreCount }
+    const [toastPhase, setToastPhase] = useState("enter"); // enter | exit
+    const toastTimerRef = useRef(null);
+    const toastExitRef = useRef(null);
+
     useEffect(() => {
         setLoading(true);
         setError("");
@@ -93,6 +99,79 @@ export default function Program() {
 
     const showAnnouncement = activeAnnouncements.length > 0;
 
+    const getMessagesForProgramId = (programId) => {
+        const pid = safeStr(programId).trim();
+
+        const specific = activeAnnouncements
+            .filter((a) => a.affectedProgramIds.includes(pid))
+            .map((a) => a.message)
+            .filter(Boolean);
+
+        if (specific.length > 0) return { messages: specific, specific: true };
+
+        return {
+            messages: activeAnnouncements.map((a) => a.message).filter(Boolean),
+            specific: false,
+        };
+    };
+
+    function clearToastTimers() {
+        if (toastTimerRef.current) {
+            window.clearTimeout(toastTimerRef.current);
+            toastTimerRef.current = null;
+        }
+        if (toastExitRef.current) {
+            window.clearTimeout(toastExitRef.current);
+            toastExitRef.current = null;
+        }
+    }
+
+    function closeToast() {
+        clearToastTimers();
+        setToastPhase("exit");
+        toastExitRef.current = window.setTimeout(() => {
+            setToast(null);
+            setToastPhase("enter");
+        }, 220);
+    }
+
+    function showToastForItem(item) {
+        if (!showAnnouncement) return;
+
+        const pid = safeStr(item?.id).trim();
+        const { messages, specific } = getMessagesForProgramId(pid);
+
+        const title = `${safeStr(item?.day)} — ${safeStr(item?.title)}`;
+        const subtitle = specific ? "Anunț pentru acest program" : "Anunțuri generale";
+
+        const first = messages?.[0] || "";
+        const moreCount = Math.max(0, (messages?.length || 0) - 1);
+
+        clearToastTimers();
+        setToastPhase("enter");
+        setToast({ title, subtitle, message: first, moreCount });
+
+        toastTimerRef.current = window.setTimeout(() => {
+            closeToast();
+        }, 5000);
+    }
+
+    // Close toast on Escape
+    useEffect(() => {
+        if (!toast) return;
+
+        const onKey = (e) => {
+            if (e.key === "Escape") closeToast();
+        };
+        window.addEventListener("keydown", onKey);
+        return () => window.removeEventListener("keydown", onKey);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [toast]);
+
+    useEffect(() => {
+        return () => clearToastTimers();
+    }, []);
+
     return (
         <section id="program" className="program-section">
             <div className="program-content">
@@ -112,7 +191,6 @@ export default function Program() {
                             <div className="program-announcement-badge" aria-hidden="true">
                                 !
                             </div>
-
                             <div className="program-announcement-headText">
                                 <div className="program-announcement-title">Anunțuri speciale</div>
                             </div>
@@ -135,9 +213,25 @@ export default function Program() {
                         const times = safeArr(item?.times);
 
                         return (
-                            <article key={id} className="program-card">
+                            <article
+                                key={id}
+                                className={`program-card ${flagged ? "program-card--clickable" : ""}`}
+                                role={flagged ? "button" : undefined}
+                                tabIndex={flagged ? 0 : undefined}
+                                aria-label={flagged ? "Apasă pentru a vedea anunțul" : undefined}
+                                onClick={() => {
+                                    if (flagged) showToastForItem(item);
+                                }}
+                                onKeyDown={(e) => {
+                                    if (!flagged) return;
+                                    if (e.key === "Enter" || e.key === " ") {
+                                        e.preventDefault();
+                                        showToastForItem(item);
+                                    }
+                                }}
+                            >
                                 {flagged ? (
-                                    <div className="program-flag" aria-label="Atenție">
+                                    <div className="program-flag program-flagStatic" aria-hidden="true">
                                         <span aria-hidden="true">!</span>
                                     </div>
                                 ) : null}
@@ -148,8 +242,8 @@ export default function Program() {
                                 <div className="program-times">
                                     {times.map((t) => (
                                         <span key={`${id}-${t}`} className="program-time">
-                                            {formatRange(t)}
-                                        </span>
+                      {formatRange(t)}
+                    </span>
                                     ))}
                                 </div>
                             </article>
@@ -163,6 +257,33 @@ export default function Program() {
                         <p className="program-verse-ref">Psalmul 122:1</p>
                     </div>
                 </div>
+            </div>
+
+            {/* Toast */}
+            <div className="program-toastRegion" aria-live="polite" aria-atomic="true">
+                {toast ? (
+                    <div className={`program-toast ${toastPhase === "exit" ? "program-toast--exit" : "program-toast--enter"}`}>
+                        <div className="program-toastTop">
+                            <div className="program-toastIcon" aria-hidden="true">
+                                !
+                            </div>
+
+                            <div className="program-toastText">
+                                <div className="program-toastTitle">{toast.title}</div>
+                                <div className="program-toastSubtitle">{toast.subtitle}</div>
+                            </div>
+
+                            <button type="button" className="program-toastClose" aria-label="Închide" onClick={closeToast}>
+                                ✕
+                            </button>
+                        </div>
+
+                        <div className="program-toastBody">
+                            <div className="program-toastMsg">{toast.message}</div>
+                            {toast.moreCount > 0 ? <div className="program-toastMore">+ {toast.moreCount} alte anunț(uri)</div> : null}
+                        </div>
+                    </div>
+                ) : null}
             </div>
         </section>
     );
