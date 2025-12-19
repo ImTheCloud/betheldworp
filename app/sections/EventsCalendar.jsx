@@ -301,7 +301,8 @@ export default function EventsCalendar() {
                                             .filter(Boolean)
                                             .join(" ")}
                                     >
-                                        <div className="ec-dayBadge">{cell.day}</div>
+                                        {/* ✅ Ne pas afficher le numéro du jour s'il y a un événement */}
+                                        {!hasEvent ? <div className="ec-dayBadge">{cell.day}</div> : null}
 
                                         {hasEvent ? (
                                             <button
