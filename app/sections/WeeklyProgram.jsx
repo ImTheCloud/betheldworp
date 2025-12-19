@@ -6,123 +6,88 @@ import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "../lib/Firebase";
 
 const LOCAL_PROGRAM_ITEMS = [
-    {
-        day: "Luni",
-        id: "mon",
-        times: ["20:00-21:30"],
-        title: "Seară de Tineret și Adolescenți",
-    },
-    {
-        day: "Marți",
-        id: "tue",
-        times: ["20:00-21:30"],
-        title: "Seară de rugăciune",
-    },
-    {
-        day: "Miercuri",
-        id: "wed",
-        times: ["20:00-21:30"],
-        title: "Repetiție cor Mixt",
-    },
-    {
-        day: "Joi",
-        id: "thu",
-        times: ["20:00-21:30"],
-        title: "Repetiție cor Bărbătesc",
-    },
-    {
-        day: "Vineri",
-        id: "fri",
-        times: ["20:00-21:30"],
-        title: "Seară de rugăciune",
-    },
-    {
-        day: "Sâmbătă",
-        id: "sat",
-        times: ["11:00-13:30"],
-        title: "Program cu copii",
-    },
-    {
-        day: "Duminică",
-        id: "sun_am",
-        times: ["10:00-12:00"],
-        title: "Serviciu Divin (Dimineață)",
-    },
-    {
-        day: "Duminică",
-        id: "sun_pm",
-        times: ["18:00-20:00"],
-        title: "Serviciu Divin (Seara)",
-    },
+    { day: "Luni", id: "mon", times: ["20:00-21:30"], title: "Seară de Tineret și Adolescenți" },
+    { day: "Marți", id: "tue", times: ["20:00-21:30"], title: "Seară de rugăciune" },
+    { day: "Miercuri", id: "wed", times: ["20:00-21:30"], title: "Repetiție cor Mixt" },
+    { day: "Joi", id: "thu", times: ["20:00-21:30"], title: "Repetiție cor Bărbătesc" },
+    { day: "Vineri", id: "fri", times: ["20:00-21:30"], title: "Seară de rugăciune" },
+    { day: "Sâmbătă", id: "sat", times: ["11:00-13:30"], title: "Program cu copii" },
+    { day: "Duminică", id: "sun_am", times: ["10:00-12:00"], title: "Serviciu Divin (Dimineață)" },
+    { day: "Duminică", id: "sun_pm", times: ["18:00-20:00"], title: "Serviciu Divin (Seara)" },
 ];
+
+function safeArr(v) {
+    return Array.isArray(v) ? v : [];
+}
 
 function formatTimeToken(token) {
     const t = String(token || "").trim();
     const m = t.match(/^(\d{1,2}):(\d{2})$/);
     if (!m) return t;
-    const hh = String(Number(m[1]));
-    const mm = m[2];
-    return `${hh}h${mm}`;
+    return `${String(Number(m[1]))}h${m[2]}`;
 }
 
 function formatRange(range) {
     const raw = String(range || "").trim().replace(/\s+/g, "");
-    const parts = raw.split("-");
-    if (parts.length !== 2) return range;
-    const start = formatTimeToken(parts[0]);
-    const end = formatTimeToken(parts[1]);
-    return `${start}-${end}`;
+    const [start, end] = raw.split("-");
+    if (!start || !end) return String(range || "");
+    return `${formatTimeToken(start)}-${formatTimeToken(end)}`;
 }
 
 function toStringSet(arr) {
-    return new Set((Array.isArray(arr) ? arr : []).map((x) => String(x)));
+    return new Set(safeArr(arr).map((x) => String(x)));
 }
 
-const LEGACY_FLAG_ALIASES = {
-    tue: ["tue_fri"],
-    fri: ["tue_fri"],
-    sun_am: ["sun"],
-    sun_pm: ["sun"],
-};
-
 function isAffected(affectedSet, id) {
-    if (affectedSet.has(id)) return true;
-    const aliases = LEGACY_FLAG_ALIASES[id];
-    return Array.isArray(aliases) ? aliases.some((a) => affectedSet.has(a)) : false;
+    return affectedSet.has(id);
+}
+
+function normalizeActiveAnnouncements(docData) {
+    const items = safeArr(docData?.items);
+
+    return items
+        .filter((x) => Boolean(x?.active))
+        .map((x) => ({
+            id: String(x?.id ?? ""),
+            affectedProgramIds: safeArr(x?.affectedProgramIds).map((v) => String(v)),
+            message: String(x?.message ?? "").trim(),
+        }))
+        .filter((x) => x.message.length > 0);
 }
 
 export default function Program() {
-    const programItems = LOCAL_PROGRAM_ITEMS;
-
-    const [announcement, setAnnouncement] = useState(null);
-    const [announcementLoading, setAnnouncementLoading] = useState(true);
-    const [announcementError, setAnnouncementError] = useState("");
+    const [docData, setDocData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
     useEffect(() => {
-        const ref = doc(db, "program_announcements", "current");
+        const ref = doc(db, "program_announcements", "announcement");
         const unsub = onSnapshot(
             ref,
             (snap) => {
-                setAnnouncement(snap.data() || null);
-                setAnnouncementLoading(false);
-                setAnnouncementError("");
+                setDocData(snap.exists() ? snap.data() : null);
+                setLoading(false);
+                setError("");
             },
             (err) => {
                 console.error(err);
-                setAnnouncementError("Nu am putut încărca anunțurile.");
-                setAnnouncementLoading(false);
+                setError("Nu am putut încărca anunțurile.");
+                setLoading(false);
             }
         );
 
         return () => unsub();
     }, []);
 
-    const hasAnnouncement = Boolean(announcement?.active);
+    const activeAnnouncements = useMemo(() => normalizeActiveAnnouncements(docData), [docData]);
 
     const affectedIds = useMemo(() => {
-        if (!hasAnnouncement) return new Set();
-        return toStringSet(announcement?.affectedProgramIds);
-    }, [hasAnnouncement, announcement]);
+        const all = [];
+        activeAnnouncements.forEach((a) => all.push(...safeArr(a.affectedProgramIds)));
+        return toStringSet(all);
+    }, [activeAnnouncements]);
+
+    const showAnnouncement = activeAnnouncements.length > 0;
 
     return (
         <section id="program" className="program-section">
@@ -131,46 +96,28 @@ export default function Program() {
                     <h2 className="program-title">Programul săptămânal</h2>
                 </div>
 
-                {announcementLoading && (
-                    <div className="ec-inlineInfo" style={{ textAlign: "center", marginBottom: 18 }}>
-                        Se încarcă...
-                    </div>
-                )}
+                {loading ? (
+                    <div className="program-inlineInfo">Se încarcă...</div>
+                ) : error ? (
+                    <div className="program-inlineError">{error}</div>
+                ) : null}
 
-                {announcementError && (
-                    <div className="ec-inlineError" style={{ textAlign: "center", marginBottom: 18 }}>
-                        {announcementError}
-                    </div>
-                )}
-
-                {hasAnnouncement ? (
+                {showAnnouncement ? (
                     <div className="program-announcement" role="status" aria-live="polite">
-                        <div className="program-attention" aria-hidden="true">
-                            !
+                        <div className="program-announcement-head">
+                            <div className="program-announcement-badge" aria-hidden="true">
+                                !
+                            </div>
+
+                            <div className="program-announcement-headText">
+                                <div className="program-announcement-title">Anunțuri speciale</div>
+                            </div>
                         </div>
 
-                        <div className="program-announcement-body">
-                            <div className="program-announcement-title">{announcement?.title || "Anunț"}</div>
-
-                            {(announcement?.blocks || []).map((b, i) => (
-                                <div key={i}>
-                                    <div className="program-announcement-row">
-                                        <div className="program-announcement-label">
-                                            {String(b?.announcement || "")}
-                                        </div>
-
-                                        <div className="program-announcement-dates">
-                                            {(b?.pills || []).map((p) => (
-                                                <span key={p} className="program-pill">
-                                                    {p}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    {i !== (announcement?.blocks || []).length - 1 ? (
-                                        <div className="program-announcement-sep" />
-                                    ) : null}
+                        <div className="program-announcement-list">
+                            {activeAnnouncements.map((a) => (
+                                <div key={a.id || a.message.slice(0, 24)} className="program-announcement-item">
+                                    {a.message}
                                 </div>
                             ))}
                         </div>
@@ -178,10 +125,10 @@ export default function Program() {
                 ) : null}
 
                 <div className="program-grid">
-                    {programItems.map((item, idx) => {
+                    {LOCAL_PROGRAM_ITEMS.map((item, idx) => {
                         const id = String(item?.id ?? `${item?.day ?? "day"}-${idx}`);
-                        const flagged = hasAnnouncement && isAffected(affectedIds, id);
-                        const times = Array.isArray(item?.times) ? item.times : [];
+                        const flagged = showAnnouncement && isAffected(affectedIds, id);
+                        const times = safeArr(item?.times);
 
                         return (
                             <article key={id} className="program-card">
