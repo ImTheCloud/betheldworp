@@ -39,82 +39,102 @@
     line-height: 1.08;
 }
 
-.program-attention {
-    width: 42px;
-    height: 42px;
+/* Inline loading/error (no inline styles in JSX) */
+.program-inlineInfo,
+.program-inlineError {
+    text-align: center;
+    margin-bottom: 18px;
+}
+
+.program-inlineInfo {
+    color: rgba(10, 42, 67, 0.72);
+    font-weight: 800;
+    font-size: 13px;
+}
+
+.program-inlineError {
+    color: #b00020;
+    font-weight: 900;
+    font-size: 13px;
+}
+
+/* Announcement modern card (NO red gradient background) */
+.program-announcement {
+    width: 100%;
+    margin: 0 0 18px 0;
+    border-radius: 18px;
+    border: 1px solid rgba(10, 42, 67, 0.10);
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 18px 55px rgba(10, 42, 67, 0.10);
+    overflow: hidden;
+    position: relative;
+}
+
+.program-announcement::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: rgba(176, 0, 32, 0.55);
+}
+
+.program-announcement-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px 12px 16px;
+    border-bottom: 1px solid rgba(10, 42, 67, 0.08);
+    background: #fff; /* ✅ no gradient */
+}
+
+.program-announcement-badge {
+    width: 40px;
+    height: 40px;
     border-radius: 14px;
     background: rgba(176, 0, 32, 0.10);
     border: 1px solid rgba(176, 0, 32, 0.18);
     color: #b00020;
-    font-weight: 900;
+    font-weight: 950;
     display: flex;
     align-items: center;
     justify-content: center;
     line-height: 1;
+    flex: 0 0 auto;
 }
 
-.program-announcement {
-    display: grid;
-    grid-template-columns: 42px 1fr;
-    gap: 14px;
-    align-items: start;
-    padding: 16px 18px;
-    border-radius: 18px;
-    border: 1px solid rgba(10, 42, 67, 0.10);
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(250, 251, 252, 0.95));
-    box-shadow: 0 18px 55px rgba(10, 42, 67, 0.10);
-    width: 100%;
-    max-width: none;
-    margin: 0 0 18px 0;
+.program-announcement-headText {
+    min-width: 0;
 }
 
 .program-announcement-title {
-    font-weight: 900;
+    font-weight: 950;
     color: #0a2a43;
-    margin-bottom: 12px;
     font-size: 15px;
     letter-spacing: -0.01em;
+    margin: 0;
 }
 
-.program-announcement-row {
+.program-announcement-list {
+    padding: 12px 16px 14px 16px;
     display: grid;
-    grid-template-columns: 1fr;
     gap: 10px;
 }
 
-.program-announcement-label {
+.program-announcement-item {
+    border-radius: 14px;
+    padding: 10px 12px;
+    border: 1px solid rgba(10, 42, 67, 0.10);
+    background: rgba(10, 42, 67, 0.02);
+    color: rgba(10, 42, 67, 0.86);
     font-size: 13px;
     font-weight: 650;
-    color: rgba(10, 42, 67, 0.82);
-    line-height: 1.35;
+    line-height: 1.5;
+    white-space: pre-wrap;
 }
 
-.program-announcement-dates {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.program-pill {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 7px 10px;
-    border-radius: 999px;
-    font-size: 12px;
-    font-weight: 900;
-    color: #b00020;
-    background: rgba(176, 0, 32, 0.08);
-    border: 1px solid rgba(176, 0, 32, 0.16);
-    white-space: nowrap;
-}
-
-.program-announcement-sep {
-    height: 1px;
-    background: rgba(10, 42, 67, 0.08);
-    margin: 12px 0;
-}
-
+/* Program grid/cards */
 .program-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -211,6 +231,7 @@
     font-size: 13px;
 }
 
+/* Verse highlight */
 .program-verse-highlight {
     position: relative;
     padding: 40px 44px;
@@ -280,14 +301,27 @@
     }
 
     .program-announcement {
-        grid-template-columns: 38px 1fr;
-        padding: 12px 12px;
         border-radius: 14px;
     }
 
-    .program-attention {
-        width: 38px;
-        height: 38px;
+    .program-announcement-head {
+        padding: 12px 12px 10px 12px;
+        gap: 10px;
+    }
+
+    .program-announcement-badge {
+        width: 36px;
+        height: 36px;
+        border-radius: 12px;
+    }
+
+    .program-announcement-list {
+        padding: 10px 12px 12px 12px;
+        gap: 8px;
+    }
+
+    .program-announcement-item {
+        padding: 9px 10px;
         border-radius: 12px;
     }
 
