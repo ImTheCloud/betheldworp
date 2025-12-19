@@ -1,3 +1,7 @@
+/* =========================
+   WeeklyProgram.css (COMPLET)
+   ========================= */
+
 .program-section {
     position: relative;
     padding: 120px 24px 140px;
@@ -39,7 +43,7 @@
     line-height: 1.08;
 }
 
-/* Inline loading/error (no inline styles in JSX) */
+/* Inline loading/error */
 .program-inlineInfo,
 .program-inlineError {
     text-align: center;
@@ -58,7 +62,7 @@
     font-size: 13px;
 }
 
-/* Announcement modern card (NO red gradient background) */
+/* Announcement */
 .program-announcement {
     width: 100%;
     margin: 0 0 18px 0;
@@ -86,7 +90,7 @@
     gap: 12px;
     padding: 14px 16px 12px 16px;
     border-bottom: 1px solid rgba(10, 42, 67, 0.08);
-    background: #fff; /* ✅ no gradient */
+    background: #fff;
 }
 
 .program-announcement-badge {
@@ -102,10 +106,6 @@
     justify-content: center;
     line-height: 1;
     flex: 0 0 auto;
-}
-
-.program-announcement-headText {
-    min-width: 0;
 }
 
 .program-announcement-title {
@@ -163,6 +163,17 @@
     box-shadow: 0 16px 46px rgba(10, 42, 67, 0.12);
 }
 
+/* ✅ clickable card only when flagged */
+.program-card--clickable {
+    cursor: pointer;
+}
+
+.program-card--clickable:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(22, 70, 120, 0.18), 0 16px 46px rgba(10, 42, 67, 0.12);
+}
+
+/* Red flag (visual only) */
 .program-flag {
     position: absolute;
     top: 12px;
@@ -182,6 +193,10 @@
     font-weight: 900;
     line-height: 1;
     font-size: 18px;
+}
+
+.program-flagStatic {
+    pointer-events: none;
 }
 
 .program-day {
@@ -275,6 +290,163 @@
     font-weight: 650;
 }
 
+/* =========================
+   TOAST
+   appear left -> stay
+   disappear right
+   auto close: 5s (JS)
+   ========================= */
+
+.program-toastRegion {
+    position: fixed;
+    left: 18px;
+    right: 18px;
+    bottom: 18px;
+    z-index: 9999;
+    pointer-events: none;
+    display: flex;
+    justify-content: flex-start;
+}
+
+.program-toast {
+    pointer-events: auto;
+    width: min(440px, 100%);
+    border-radius: 16px;
+    border: 1px solid rgba(10, 42, 67, 0.12);
+    background: rgba(255, 255, 255, 0.97);
+    box-shadow: 0 20px 70px rgba(10, 42, 67, 0.20);
+    overflow: hidden;
+    position: relative;
+}
+
+.program-toast::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: rgba(176, 0, 32, 0.65);
+}
+
+.program-toast--enter {
+    animation: programToastIn 0.22s ease both;
+}
+
+.program-toast--exit {
+    animation: programToastOut 0.20s ease both;
+}
+
+@keyframes programToastIn {
+    from {
+        opacity: 0;
+        transform: translateX(-36px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes programToastOut {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(44px);
+    }
+}
+
+.program-toastTop {
+    display: grid;
+    grid-template-columns: 38px 1fr 36px;
+    gap: 10px;
+    align-items: center;
+    padding: 12px 12px 10px 12px;
+    border-bottom: 1px solid rgba(10, 42, 67, 0.08);
+}
+
+.program-toastIcon {
+    width: 38px;
+    height: 38px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 950;
+    color: #b00020;
+    background: rgba(176, 0, 32, 0.10);
+    border: 1px solid rgba(176, 0, 32, 0.18);
+}
+
+.program-toastText {
+    min-width: 0;
+}
+
+.program-toastTitle {
+    font-weight: 950;
+    color: #0a2a43;
+    font-size: 13px;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.program-toastSubtitle {
+    margin-top: 2px;
+    font-size: 12px;
+    font-weight: 800;
+    color: rgba(10, 42, 67, 0.62);
+}
+
+.program-toastClose {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    border: 1px solid rgba(10, 42, 67, 0.10);
+    background: rgba(10, 42, 67, 0.03);
+    cursor: pointer;
+    font-weight: 900;
+    color: rgba(10, 42, 67, 0.72);
+}
+
+.program-toastClose:hover {
+    background: rgba(10, 42, 67, 0.06);
+}
+
+.program-toastClose:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(22, 70, 120, 0.18);
+}
+
+.program-toastBody {
+    padding: 10px 12px 12px 12px;
+}
+
+.program-toastMsg {
+    border-radius: 12px;
+    padding: 9px 10px;
+    border: 1px solid rgba(10, 42, 67, 0.10);
+    background: rgba(10, 42, 67, 0.02);
+    color: rgba(10, 42, 67, 0.86);
+    font-size: 12px;
+    font-weight: 650;
+    line-height: 1.45;
+    white-space: pre-wrap;
+}
+
+.program-toastMore {
+    margin-top: 8px;
+    font-size: 12px;
+    font-weight: 900;
+    color: rgba(22, 70, 120, 0.80);
+}
+
+/* Responsive */
 @media (max-width: 900px) {
     .program-section {
         padding: 96px 20px 110px;
@@ -376,5 +548,15 @@
 
     .program-verse-highlight::before {
         font-size: 80px;
+    }
+
+    .program-toastRegion {
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+    }
+
+    .program-toast {
+        width: 100%;
     }
 }
