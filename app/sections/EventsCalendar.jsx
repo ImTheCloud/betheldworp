@@ -52,7 +52,6 @@ function getEventAriaLabel(ev) {
     if (!ev) return "Eveniment";
     const parts = [ev.title || "Eveniment"];
     if (ev.description) parts.push(ev.description);
-    if (ev.speaker) parts.push(`Prezentator: ${ev.speaker}`);
     if (ev.dateEvent) parts.push(ev.dateEvent);
     return parts.join(" · ");
 }
