@@ -1,26 +1,37 @@
 .footer {
     width: 100%;
-    padding: 28px 20px;
+    padding: 28px 0;
     background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
     border-top: 2px solid rgba(0, 0, 0, 0.06);
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.02);
 }
 
 .footer-inner {
-    max-width: 1200px;
+    width: 100%;
     margin: 0 auto;
+    padding: 0 44px;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 18px;
-    flex-wrap: wrap;
-    text-align: center;
+    gap: 28px;
 }
 
 .footer-brand {
-    display: inline-flex;
+    display: flex;
     align-items: center;
     gap: 12px;
+}
+
+.footer-logo {
+    height: 52px;
+    width: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.08));
+    transition: transform 0.3s ease;
+}
+
+.footer-logo:hover {
+    transform: scale(1.05);
 }
 
 .footer-title {
@@ -33,23 +44,12 @@
     white-space: nowrap;
 }
 
-.footer-logo {
-    height: 44px;
-    width: auto;
-    object-fit: contain;
-    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.08));
-    transition: transform 0.3s ease;
-}
-
-.footer-logo:hover {
-    transform: scale(1.05);
-}
-
 .footer-text {
     display: flex;
     flex-direction: column;
     gap: 6px;
     align-items: center;
+    text-align: center;
 }
 
 .footer-copy {
@@ -98,23 +98,37 @@
     text-decoration: underline;
 }
 
-@media (min-width: 720px) {
+@media (max-width: 1024px) {
     .footer-inner {
-        justify-content: space-between;
-        text-align: left;
+        padding: 0 22px;
     }
 
-    .footer-text {
-        align-items: flex-end;
-        text-align: right;
+    .footer-logo {
+        height: 46px;
     }
 
-    .footer-contacts {
-        justify-content: flex-end;
+    .footer-title {
+        font-size: 14px;
+        letter-spacing: 0.14em;
     }
 }
 
 @media (max-width: 768px) {
+    .footer {
+        padding: 22px 0;
+    }
+
+    .footer-inner {
+        padding: 0 16px;
+        flex-wrap: wrap;
+        text-align: center;
+        gap: 14px;
+    }
+
+    .footer-logo {
+        height: 34px;
+    }
+
     .footer-title {
         font-size: 13px;
         letter-spacing: 0.12em;
