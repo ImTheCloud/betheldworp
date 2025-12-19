@@ -4,10 +4,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { collection, doc, onSnapshot, setDoc, deleteDoc } from "firebase/firestore";
 import { db } from "../../lib/Firebase";
 
-/*
- * Constants and helpers
- */
-
 const EVENT_TYPES = [
     { id: "cina", label: "Cina" },
     { id: "biserica", label: "Biserica" },
@@ -52,22 +48,52 @@ function toIdDate(input) {
     return s;
 }
 
-// Default values for a new event
+function parseDateEventToMs(input) {
+    const s = safeStr(input).trim();
+    if (!s) return null;
+
+    let y, m, d;
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+        const parts = s.split("-").map(Number);
+        y = parts[0];
+        m = parts[1];
+        d = parts[2];
+    } else if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) {
+        const parts = s.split("/").map(Number);
+        d = parts[0];
+        m = parts[1];
+        y = parts[2];
+    } else if (/^\d{2}-\d{2}-\d{4}$/.test(s)) {
+        const parts = s.split("-").map(Number);
+        d = parts[0];
+        m = parts[1];
+        y = parts[2];
+    } else {
+        const mm = s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/);
+        if (!mm) return null;
+        d = Number(mm[1]);
+        m = Number(mm[2]);
+        y = Number(mm[3]);
+    }
+
+    const dt = new Date(y, m - 1, d);
+    if (dt.getFullYear() !== y || dt.getMonth() !== m - 1 || dt.getDate() !== d) return null;
+    dt.setHours(0, 0, 0, 0);
+    return dt.getTime();
+}
+
 const DEFAULT_NEW = {
     title: "Cina Domnului și zi de post",
     description:
         'Pentru biserică, este o zi specială: va fi o zi de post până la aproximativ 16h. \n' +
         'De la 10:00 până la 12:30 va fi Cina Domnului în cadrul slujbei : Făcând acest lucru, ne amintim de fiecare dată de sacrificiul pe care Domnul Isus Hristos l-a făcut pe crucea de la Golgota, după aceea urmează o pauză până la 13:30, apoi reluăm programul bisericii până la 16:00. \n' +
-        'Programul de seară de la 18h este anulat.',
+        "Programul de seară de la 18h este anulat.",
     image: "/images/events/cina.png",
     time: "10:00 - 12:00",
     place: "Biserica Penticostala BETHEL Dworp",
     address: "Alsembergsesteenweg 572, 1653 Beersel",
 };
-
-/*
- * Icons
- */
 
 function IconPlus(props) {
     return (
@@ -108,23 +134,14 @@ function IconChevronDown(props) {
     );
 }
 
-/*
- * EventRow – represents a single event.  The row is collapsible: clicking anywhere on the
- * card toggles its expanded state (unless the click originated on a form control).  The header
- * shows the event ID and a short summary.  When expanded, all editable fields are displayed.
- */
-
 function EventRow({ ev, expanded, onToggleExpand, draft, onChangeField, onRemove, onSave, savingState }) {
-    // Determine if any fields have changed compared to the original event
     const dirty = useMemo(() => {
         const fields = ["dateEvent", "title", "description", "image", "time", "place", "address"];
         return fields.some((f) => safeStr(draft?.[f]).trim() !== safeStr(ev?.[f]).trim());
     }, [draft, ev]);
 
-    // Build a short summary for the collapsed row: prefer the title, otherwise the date
     const summarySource = safeStr(ev.title).trim() || safeStr(ev.dateEvent).trim();
-    const summary =
-        summarySource.length <= 60 ? summarySource : summarySource.slice(0, 60) + "…";
+    const summary = summarySource.length <= 60 ? summarySource : summarySource.slice(0, 60) + "…";
 
     const handleCardClick = (e) => {
         if (e.target.closest("button, input, textarea, select, label")) return;
@@ -135,11 +152,7 @@ function EventRow({ ev, expanded, onToggleExpand, draft, onChangeField, onRemove
         <div className="adminAnnCard" onClick={handleCardClick}>
             <div className="adminAnnHeader">
                 <div className="adminAnnIdChip">{ev.id}</div>
-                {!expanded ? (
-                    <div className="adminSummary">{summary}</div>
-                ) : (
-                    <div style={{ flex: 1 }} />
-                )}
+                {!expanded ? <div className="adminSummary">{summary}</div> : <div style={{ flex: 1 }} />}
                 <button
                     type="button"
                     className="adminSmallBtn"
@@ -161,6 +174,7 @@ function EventRow({ ev, expanded, onToggleExpand, draft, onChangeField, onRemove
             {expanded && (
                 <>
                     <div className="adminMutedLine">Tip: {ev.type || "(necunoscut)"}</div>
+
                     <label className="adminLabel">
                         Dată
                         <input
@@ -171,6 +185,7 @@ function EventRow({ ev, expanded, onToggleExpand, draft, onChangeField, onRemove
                             placeholder="dd/mm/yyyy sau yyyy-mm-dd"
                         />
                     </label>
+
                     <label className="adminLabel">
                         Titlu
                         <input
@@ -179,6 +194,7 @@ function EventRow({ ev, expanded, onToggleExpand, draft, onChangeField, onRemove
                             onChange={(e) => onChangeField(ev.id, "title", e.target.value)}
                         />
                     </label>
+
                     <label className="adminLabel">
                         Descriere
                         <textarea
@@ -188,6 +204,7 @@ function EventRow({ ev, expanded, onToggleExpand, draft, onChangeField, onRemove
                             rows={6}
                         />
                     </label>
+
                     <label className="adminLabel">
                         Imagine (URL)
                         <input
@@ -196,6 +213,7 @@ function EventRow({ ev, expanded, onToggleExpand, draft, onChangeField, onRemove
                             onChange={(e) => onChangeField(ev.id, "image", e.target.value)}
                         />
                     </label>
+
                     <label className="adminLabel">
                         Orar
                         <input
@@ -204,6 +222,7 @@ function EventRow({ ev, expanded, onToggleExpand, draft, onChangeField, onRemove
                             onChange={(e) => onChangeField(ev.id, "time", e.target.value)}
                         />
                     </label>
+
                     <label className="adminLabel">
                         Locație
                         <input
@@ -212,6 +231,7 @@ function EventRow({ ev, expanded, onToggleExpand, draft, onChangeField, onRemove
                             onChange={(e) => onChangeField(ev.id, "place", e.target.value)}
                         />
                     </label>
+
                     <label className="adminLabel">
                         Adresă
                         <input
@@ -220,15 +240,13 @@ function EventRow({ ev, expanded, onToggleExpand, draft, onChangeField, onRemove
                             onChange={(e) => onChangeField(ev.id, "address", e.target.value)}
                         />
                     </label>
+
                     <div className="adminMsgActions">
-                        <button
-                            type="button"
-                            className="adminDeleteBtn"
-                            onClick={() => onRemove(ev.id)}
-                        >
+                        <button type="button" className="adminDeleteBtn" onClick={() => onRemove(ev.id)}>
                             <IconTrash />
                             Șterge
                         </button>
+
                         <button
                             type="button"
                             className="adminMsgSaveBtn"
@@ -248,20 +266,16 @@ function EventRow({ ev, expanded, onToggleExpand, draft, onChangeField, onRemove
     );
 }
 
-/*
- * NewEventCard – used when creating a brand‑new event.  Fields are editable and
- * the card is always expanded.  After saving, the card disappears and the new event
- * appears in the list.
- */
-
 function NewEventCard({ newDraft, setNewDraft, newError, newState, onCancel, onSave, idPreview }) {
     return (
         <div className="adminAnnCard is-active">
             <div className="adminAnnHeader">
                 <div className="adminAnnIdChip">Nou eveniment</div>
             </div>
+
             {idPreview ? <div className="adminMutedLine">ID: {idPreview}</div> : null}
             {newError ? <div className="adminAlert">{newError}</div> : null}
+
             <label className="adminLabel">
                 Tip
                 <select
@@ -276,6 +290,7 @@ function NewEventCard({ newDraft, setNewDraft, newError, newState, onCancel, onS
                     ))}
                 </select>
             </label>
+
             <label className="adminLabel">
                 Dată
                 <input
@@ -286,6 +301,7 @@ function NewEventCard({ newDraft, setNewDraft, newError, newState, onCancel, onS
                     onChange={(e) => setNewDraft((d) => ({ ...d, dateEvent: e.target.value }))}
                 />
             </label>
+
             <label className="adminLabel">
                 Titlu
                 <input
@@ -294,6 +310,7 @@ function NewEventCard({ newDraft, setNewDraft, newError, newState, onCancel, onS
                     onChange={(e) => setNewDraft((d) => ({ ...d, title: e.target.value }))}
                 />
             </label>
+
             <label className="adminLabel">
                 Descriere
                 <textarea
@@ -303,6 +320,7 @@ function NewEventCard({ newDraft, setNewDraft, newError, newState, onCancel, onS
                     rows={6}
                 />
             </label>
+
             <label className="adminLabel">
                 Imagine (URL)
                 <input
@@ -311,6 +329,7 @@ function NewEventCard({ newDraft, setNewDraft, newError, newState, onCancel, onS
                     onChange={(e) => setNewDraft((d) => ({ ...d, image: e.target.value }))}
                 />
             </label>
+
             <label className="adminLabel">
                 Orar
                 <input
@@ -319,6 +338,7 @@ function NewEventCard({ newDraft, setNewDraft, newError, newState, onCancel, onS
                     onChange={(e) => setNewDraft((d) => ({ ...d, time: e.target.value }))}
                 />
             </label>
+
             <label className="adminLabel">
                 Locație
                 <input
@@ -327,6 +347,7 @@ function NewEventCard({ newDraft, setNewDraft, newError, newState, onCancel, onS
                     onChange={(e) => setNewDraft((d) => ({ ...d, place: e.target.value }))}
                 />
             </label>
+
             <label className="adminLabel">
                 Adresă
                 <input
@@ -335,48 +356,31 @@ function NewEventCard({ newDraft, setNewDraft, newError, newState, onCancel, onS
                     onChange={(e) => setNewDraft((d) => ({ ...d, address: e.target.value }))}
                 />
             </label>
+
             <div className="adminMsgActions">
-                <button
-                    type="button"
-                    className="adminDeleteBtn"
-                    onClick={onCancel}
-                    disabled={newState === "saving"}
-                >
+                <button type="button" className="adminDeleteBtn" onClick={onCancel} disabled={newState === "saving"}>
                     Anulează
                 </button>
-                <button
-                    type="button"
-                    className="adminMsgSaveBtn"
-                    onClick={onSave}
-                    disabled={newState === "saving"}
-                >
-                    {newState === "saving"
-                        ? "Se salvează…"
-                        : newState === "saved"
-                            ? "Salvat ✓"
-                            : "Salvează"}
+
+                <button type="button" className="adminMsgSaveBtn" onClick={onSave} disabled={newState === "saving"}>
+                    {newState === "saving" ? "Se salvează…" : newState === "saved" ? "Salvat ✓" : "Salvează"}
                 </button>
             </div>
         </div>
     );
 }
 
-/*
- * EventsAdmin – top‑level component managing the list of events.  Implements
- * collapsible rows for each event, supports adding new events, editing existing ones,
- * deletion and history management.  The "Nou" button appears in the top‑right corner.
- */
-
 export default function EventsAdmin() {
     const mountedRef = useRef(true);
+
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [events, setEvents] = useState([]);
     const [drafts, setDrafts] = useState({});
     const [savingById, setSavingById] = useState({});
     const [expandedIds, setExpandedIds] = useState(() => new Set());
+    const [showHistory, setShowHistory] = useState(false);
 
-    // New event management
     const [showNew, setShowNew] = useState(false);
     const [newDraft, setNewDraft] = useState(() => ({
         type: "cina",
@@ -393,14 +397,15 @@ export default function EventsAdmin() {
         };
     }, []);
 
-    // Load events from Firestore
     useEffect(() => {
         setLoading(true);
         setError("");
+
         const unsubscribe = onSnapshot(
             collection(db, "events"),
             (snap) => {
                 if (!mountedRef.current) return;
+
                 const list = snap.docs.map((d) => {
                     const data = d.data() || {};
                     return {
@@ -415,13 +420,17 @@ export default function EventsAdmin() {
                         address: safeStr(data.address),
                     };
                 });
+
                 setEvents(list);
+
                 setDrafts((prev) => {
                     const next = { ...prev };
                     const alive = new Set(list.map((it) => it.id));
+
                     Object.keys(next).forEach((k) => {
                         if (!alive.has(k)) delete next[k];
                     });
+
                     list.forEach((ev) => {
                         if (!next[ev.id]) {
                             next[ev.id] = {
@@ -435,13 +444,16 @@ export default function EventsAdmin() {
                             };
                         }
                     });
+
                     return next;
                 });
+
                 setExpandedIds((prev) => {
                     const next = new Set();
                     for (const ev of list) if (prev.has(ev.id)) next.add(ev.id);
                     return next;
                 });
+
                 setLoading(false);
             },
             (err) => {
@@ -451,26 +463,47 @@ export default function EventsAdmin() {
                 setLoading(false);
             }
         );
+
         return () => unsubscribe();
     }, []);
 
-    // Sort events by date and then by id
-    const eventsSorted = useMemo(() => {
+    const { upcomingEvents, pastEvents } = useMemo(() => {
         const copy = Array.isArray(events) ? [...events] : [];
-        copy.sort((a, b) => {
-            const aDate = safeStr(a.dateEvent).trim();
-            const bDate = safeStr(b.dateEvent).trim();
-            if (aDate && bDate) {
-                const cmp = aDate.localeCompare(bDate);
-                if (cmp !== 0) return cmp;
-            } else if (aDate) return -1;
-            else if (bDate) return 1;
-            return safeStr(a.id).localeCompare(safeStr(b.id));
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const todayMs = today.getTime();
+
+        const tagged = copy.map((ev) => ({ ev, ms: parseDateEventToMs(ev.dateEvent) }));
+
+        const upcoming = [];
+        const past = [];
+
+        tagged.forEach((x) => {
+            if (x.ms != null && x.ms < todayMs) past.push(x);
+            else upcoming.push(x);
         });
-        return copy;
+
+        upcoming.sort((a, b) => {
+            if (a.ms != null && b.ms != null) {
+                const cmp = a.ms - b.ms;
+                if (cmp !== 0) return cmp;
+            } else if (a.ms != null) return -1;
+            else if (b.ms != null) return 1;
+            return safeStr(a.ev.id).localeCompare(safeStr(b.ev.id));
+        });
+
+        past.sort((a, b) => {
+            if (a.ms != null && b.ms != null) {
+                const cmp = b.ms - a.ms;
+                if (cmp !== 0) return cmp;
+            } else if (a.ms != null) return -1;
+            else if (b.ms != null) return 1;
+            return safeStr(a.ev.id).localeCompare(safeStr(b.ev.id));
+        });
+
+        return { upcomingEvents: upcoming.map((x) => x.ev), pastEvents: past.map((x) => x.ev) };
     }, [events]);
 
-    // Expand/collapse logic
     const toggleExpand = (id) => {
         setExpandedIds((prev) => {
             const next = new Set(prev);
@@ -480,7 +513,6 @@ export default function EventsAdmin() {
         });
     };
 
-    // Update a single field on a draft event
     const setDraftField = (id, field, value) => {
         setDrafts((prev) => ({
             ...prev,
@@ -492,23 +524,27 @@ export default function EventsAdmin() {
         if (error) setError("");
     };
 
-    // Persist changes to an event back to Firestore
     const saveEvent = async (ev) => {
         const id = ev.id;
         const draft = drafts[id];
         if (!draft) return;
+
         const payload = {};
         ["dateEvent", "title", "description", "image", "time", "place", "address"].forEach((f) => {
             const dVal = safeStr(draft[f]).trim();
             const bVal = safeStr(ev[f]).trim();
             if (dVal !== bVal) payload[f] = dVal;
         });
+
         if (!Object.keys(payload).length) return;
+
         setSavingById((m) => ({ ...m, [id]: "saving" }));
         setError("");
+
         try {
             await setDoc(doc(db, "events", id), payload, { merge: true });
             if (!mountedRef.current) return;
+
             setSavingById((m) => ({ ...m, [id]: "saved" }));
             setTimeout(() => {
                 if (!mountedRef.current) return;
@@ -522,12 +558,10 @@ export default function EventsAdmin() {
         }
     };
 
-    // Delete an event permanently
     const removeEvent = async (id) => {
-        const ok = window.confirm(
-            "Ștergi definitiv acest eveniment? (nu va mai exista în listă)"
-        );
+        const ok = window.confirm("Ștergi definitiv acest eveniment? (nu va mai exista în listă)");
         if (!ok) return;
+
         setError("");
         try {
             await deleteDoc(doc(db, "events", id));
@@ -538,7 +572,6 @@ export default function EventsAdmin() {
         }
     };
 
-    // Reset the new event form
     const resetNew = () => {
         setShowNew(false);
         setNewDraft({
@@ -550,7 +583,6 @@ export default function EventsAdmin() {
         setNewError("");
     };
 
-    // Preview the ID for a new event based on its type and date
     const idPreview = useMemo(() => {
         const t = safeStr(newDraft.type).trim();
         const d = safeStr(newDraft.dateEvent).trim();
@@ -558,10 +590,10 @@ export default function EventsAdmin() {
         return `${t}-${toIdDate(d)}`;
     }, [newDraft.type, newDraft.dateEvent]);
 
-    // Save a brand‑new event to Firestore
     const saveNewEvent = async () => {
         const cleanType = safeStr(newDraft.type).trim();
         const cleanDate = safeStr(newDraft.dateEvent).trim();
+
         if (!cleanType) {
             setNewError("Selectează tipul evenimentului.");
             return;
@@ -570,11 +602,13 @@ export default function EventsAdmin() {
             setNewError("Completează data evenimentului.");
             return;
         }
+
         const id = `${cleanType}-${toIdDate(cleanDate)}`;
         if (events.some((e) => e.id === id)) {
             setNewError("Există deja un eveniment cu acest ID.");
             return;
         }
+
         const data = {
             type: cleanType,
             dateEvent: cleanDate,
@@ -585,11 +619,14 @@ export default function EventsAdmin() {
             place: safeStr(newDraft.place).trim(),
             address: safeStr(newDraft.address).trim(),
         };
+
         setNewState("saving");
         setNewError("");
+
         try {
             await setDoc(doc(db, "events", id), data, { merge: true });
             if (!mountedRef.current) return;
+
             setNewState("saved");
             setTimeout(() => {
                 if (!mountedRef.current) return;
@@ -621,11 +658,13 @@ export default function EventsAdmin() {
                     </button>
                 </div>
             </div>
+
             {loading ? (
                 <div className="adminSkeleton" />
             ) : (
                 <div className="adminForm adminForm--edit">
                     {error ? <div className="adminAlert">{error}</div> : null}
+
                     {showNew ? (
                         <NewEventCard
                             newDraft={newDraft}
@@ -637,8 +676,9 @@ export default function EventsAdmin() {
                             idPreview={idPreview}
                         />
                     ) : null}
+
                     <div className="adminList">
-                        {eventsSorted.map((ev) => (
+                        {upcomingEvents.map((ev) => (
                             <EventRow
                                 key={ev.id}
                                 ev={ev}
@@ -651,13 +691,42 @@ export default function EventsAdmin() {
                                 savingState={savingById[ev.id] || "idle"}
                             />
                         ))}
-                        {!eventsSorted.length && !showNew ? (
-                            <div className="adminEmpty">Nu există evenimente. Apasă „Nou”.</div>
+
+                        {!upcomingEvents.length && !showNew ? (
+                            <div className="adminEmpty">Nu există evenimente viitoare. Apasă „Nou”.</div>
                         ) : null}
                     </div>
+
+                    <div className="adminHistoryRow">
+                        <button
+                            type="button"
+                            className="adminSmallBtn"
+                            onClick={() => setShowHistory((v) => !v)}
+                            disabled={!pastEvents.length}
+                        >
+                            {showHistory ? "Ascunde istoricul" : `Arată istoricul (${pastEvents.length})`}
+                        </button>
+                    </div>
+
+                    {showHistory ? (
+                        <div className="adminList adminList--history">
+                            {pastEvents.map((ev) => (
+                                <EventRow
+                                    key={ev.id}
+                                    ev={ev}
+                                    expanded={expandedIds.has(ev.id)}
+                                    onToggleExpand={toggleExpand}
+                                    draft={drafts[ev.id]}
+                                    onChangeField={setDraftField}
+                                    onRemove={removeEvent}
+                                    onSave={saveEvent}
+                                    savingState={savingById[ev.id] || "idle"}
+                                />
+                            ))}
+                        </div>
+                    ) : null}
                 </div>
             )}
         </div>
     );
 }
-
