@@ -20,26 +20,22 @@ function safeArr(v) {
     return Array.isArray(v) ? v : [];
 }
 
+function safeStr(v) {
+    return String(v ?? "");
+}
+
 function formatTimeToken(token) {
-    const t = String(token || "").trim();
+    const t = safeStr(token).trim();
     const m = t.match(/^(\d{1,2}):(\d{2})$/);
     if (!m) return t;
     return `${String(Number(m[1]))}h${m[2]}`;
 }
 
 function formatRange(range) {
-    const raw = String(range || "").trim().replace(/\s+/g, "");
+    const raw = safeStr(range).trim().replace(/\s+/g, "");
     const [start, end] = raw.split("-");
-    if (!start || !end) return String(range || "");
+    if (!start || !end) return safeStr(range);
     return `${formatTimeToken(start)}-${formatTimeToken(end)}`;
-}
-
-function toStringSet(arr) {
-    return new Set(safeArr(arr).map((x) => String(x)));
-}
-
-function isAffected(affectedSet, id) {
-    return affectedSet.has(id);
 }
 
 function normalizeActiveAnnouncements(docData) {
@@ -47,11 +43,14 @@ function normalizeActiveAnnouncements(docData) {
 
     return items
         .filter((x) => Boolean(x?.active))
-        .map((x) => ({
-            id: String(x?.id ?? ""),
-            affectedProgramIds: safeArr(x?.affectedProgramIds).map((v) => String(v)),
-            message: String(x?.message ?? "").trim(),
-        }))
+        .map((x) => {
+            const id = safeStr(x?.id).trim();
+            const affectedProgramIds = safeArr(x?.affectedProgramIds)
+                .map((v) => safeStr(v).trim())
+                .filter(Boolean);
+            const message = safeStr(x?.message).trim();
+            return { id, affectedProgramIds, message };
+        })
         .filter((x) => x.message.length > 0);
 }
 
@@ -61,6 +60,9 @@ export default function Program() {
     const [error, setError] = useState("");
 
     useEffect(() => {
+        setLoading(true);
+        setError("");
+
         const ref = doc(db, "program_announcements", "announcement");
         const unsub = onSnapshot(
             ref,
@@ -82,9 +84,11 @@ export default function Program() {
     const activeAnnouncements = useMemo(() => normalizeActiveAnnouncements(docData), [docData]);
 
     const affectedIds = useMemo(() => {
-        const all = [];
-        activeAnnouncements.forEach((a) => all.push(...safeArr(a.affectedProgramIds)));
-        return toStringSet(all);
+        const set = new Set();
+        activeAnnouncements.forEach((a) => {
+            a.affectedProgramIds.forEach((id) => set.add(id));
+        });
+        return set;
     }, [activeAnnouncements]);
 
     const showAnnouncement = activeAnnouncements.length > 0;
@@ -115,8 +119,8 @@ export default function Program() {
                         </div>
 
                         <div className="program-announcement-list">
-                            {activeAnnouncements.map((a) => (
-                                <div key={a.id || a.message.slice(0, 24)} className="program-announcement-item">
+                            {activeAnnouncements.map((a, i) => (
+                                <div key={a.id || `msg-${i}`} className="program-announcement-item">
                                     {a.message}
                                 </div>
                             ))}
@@ -126,8 +130,8 @@ export default function Program() {
 
                 <div className="program-grid">
                     {LOCAL_PROGRAM_ITEMS.map((item, idx) => {
-                        const id = String(item?.id ?? `${item?.day ?? "day"}-${idx}`);
-                        const flagged = showAnnouncement && isAffected(affectedIds, id);
+                        const id = safeStr(item?.id || `${item?.day || "day"}-${idx}`);
+                        const flagged = showAnnouncement && affectedIds.has(id);
                         const times = safeArr(item?.times);
 
                         return (
