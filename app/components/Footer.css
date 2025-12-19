@@ -17,6 +17,22 @@
     text-align: center;
 }
 
+.footer-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.footer-title {
+    font-size: 16px;
+    font-weight: 900;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #0a2a43;
+    line-height: 1;
+    white-space: nowrap;
+}
+
 .footer-logo {
     height: 44px;
     width: auto;
@@ -45,7 +61,19 @@
     letter-spacing: 0.02em;
 }
 
-.footer-phone {
+.footer-contacts {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.footer-phone,
+.footer-mail {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     font-size: 14px;
     font-weight: 800;
     letter-spacing: 0.02em;
@@ -54,8 +82,41 @@
     transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
-.footer-phone:hover {
+.footer-label {
+    font-weight: 700;
+    opacity: 0.75;
+}
+
+.footer-value {
+    font-weight: 900;
+}
+
+.footer-phone:hover,
+.footer-mail:hover {
     opacity: 0.9;
     transform: translateY(-1px);
     text-decoration: underline;
+}
+
+@media (min-width: 720px) {
+    .footer-inner {
+        justify-content: space-between;
+        text-align: left;
+    }
+
+    .footer-text {
+        align-items: flex-end;
+        text-align: right;
+    }
+
+    .footer-contacts {
+        justify-content: flex-end;
+    }
+}
+
+@media (max-width: 768px) {
+    .footer-title {
+        font-size: 13px;
+        letter-spacing: 0.12em;
+    }
 }
