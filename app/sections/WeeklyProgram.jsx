@@ -13,8 +13,8 @@ const LOCAL_PROGRAM_ITEMS = [
         title: "Seară de Tineret și Adolescenți",
     },
     {
-        day: "Marți & Vineri",
-        id: "tue_fri",
+        day: "Marți",
+        id: "tue",
         times: ["20:00-21:30"],
         title: "Seară de rugăciune",
     },
@@ -31,6 +31,12 @@ const LOCAL_PROGRAM_ITEMS = [
         title: "Repetiție cor Bărbătesc",
     },
     {
+        day: "Vineri",
+        id: "fri",
+        times: ["20:00-21:30"],
+        title: "Seară de rugăciune",
+    },
+    {
         day: "Sâmbătă",
         id: "sat",
         times: ["11:00-13:30"],
@@ -38,29 +44,51 @@ const LOCAL_PROGRAM_ITEMS = [
     },
     {
         day: "Duminică",
-        id: "sun",
-        times: ["10:00-12:00", "18:00-20:00"],
-        title: "Serviciu Divin",
+        id: "sun_am",
+        times: ["10:00-12:00"],
+        title: "Serviciu Divin (Dimineață)",
+    },
+    {
+        day: "Duminică",
+        id: "sun_pm",
+        times: ["18:00-20:00"],
+        title: "Serviciu Divin (Seara)",
     },
 ];
 
-function formatTimeToken(token, { drop00 }) {
+function formatTimeToken(token) {
     const t = String(token || "").trim();
     const m = t.match(/^(\d{1,2}):(\d{2})$/);
     if (!m) return t;
     const hh = String(Number(m[1]));
     const mm = m[2];
-    if (drop00 && mm === "00") return `${hh}h`;
     return `${hh}h${mm}`;
 }
 
-function formatRange(range, opts) {
+function formatRange(range) {
     const raw = String(range || "").trim().replace(/\s+/g, "");
     const parts = raw.split("-");
     if (parts.length !== 2) return range;
-    const start = formatTimeToken(parts[0], opts);
-    const end = formatTimeToken(parts[1], opts);
+    const start = formatTimeToken(parts[0]);
+    const end = formatTimeToken(parts[1]);
     return `${start}-${end}`;
+}
+
+function toStringSet(arr) {
+    return new Set((Array.isArray(arr) ? arr : []).map((x) => String(x)));
+}
+
+const LEGACY_FLAG_ALIASES = {
+    tue: ["tue_fri"],
+    fri: ["tue_fri"],
+    sun_am: ["sun"],
+    sun_pm: ["sun"],
+};
+
+function isAffected(affectedSet, id) {
+    if (affectedSet.has(id)) return true;
+    const aliases = LEGACY_FLAG_ALIASES[id];
+    return Array.isArray(aliases) ? aliases.some((a) => affectedSet.has(a)) : false;
 }
 
 export default function Program() {
@@ -75,8 +103,7 @@ export default function Program() {
         const unsub = onSnapshot(
             ref,
             (snap) => {
-                const data = snap.data() || null;
-                setAnnouncement(data);
+                setAnnouncement(snap.data() || null);
                 setAnnouncementLoading(false);
                 setAnnouncementError("");
             },
@@ -86,15 +113,15 @@ export default function Program() {
                 setAnnouncementLoading(false);
             }
         );
+
         return () => unsub();
     }, []);
 
-    const hasAnnouncement = Boolean(announcement && announcement.active);
+    const hasAnnouncement = Boolean(announcement?.active);
 
     const affectedIds = useMemo(() => {
         if (!hasAnnouncement) return new Set();
-        const ids = Array.isArray(announcement?.affectedProgramIds) ? announcement.affectedProgramIds : [];
-        return new Set(ids.map((x) => String(x)));
+        return toStringSet(announcement?.affectedProgramIds);
     }, [hasAnnouncement, announcement]);
 
     return (
@@ -128,20 +155,22 @@ export default function Program() {
                             {(announcement?.blocks || []).map((b, i) => (
                                 <div key={i}>
                                     <div className="program-announcement-row">
-                                        <div
-                                            className="program-announcement-label"
-                                            dangerouslySetInnerHTML={{ __html: String(b?.labelHtml || "") }}
-                                        />
+                                        <div className="program-announcement-label">
+                                            {String(b?.announcement || "")}
+                                        </div>
+
                                         <div className="program-announcement-dates">
                                             {(b?.pills || []).map((p) => (
                                                 <span key={p} className="program-pill">
-                          {p}
-                        </span>
+                                                    {p}
+                                                </span>
                                             ))}
                                         </div>
                                     </div>
 
-                                    {i !== (announcement?.blocks || []).length - 1 ? <div className="program-announcement-sep" /> : null}
+                                    {i !== (announcement?.blocks || []).length - 1 ? (
+                                        <div className="program-announcement-sep" />
+                                    ) : null}
                                 </div>
                             ))}
                         </div>
@@ -151,15 +180,11 @@ export default function Program() {
                 <div className="program-grid">
                     {programItems.map((item, idx) => {
                         const id = String(item?.id ?? `${item?.day ?? "day"}-${idx}`);
-                        const isSunday = id === "sun" || Boolean(item?.sunday);
-                        const drop00 = isSunday;
-
-                        const flagged = hasAnnouncement && affectedIds.has(id);
-
+                        const flagged = hasAnnouncement && isAffected(affectedIds, id);
                         const times = Array.isArray(item?.times) ? item.times : [];
 
                         return (
-                            <article key={id} className={`program-card${isSunday ? " is-sunday" : ""}`}>
+                            <article key={id} className="program-card">
                                 {flagged ? (
                                     <div className="program-flag" aria-label="Atenție">
                                         <span aria-hidden="true">!</span>
@@ -169,11 +194,11 @@ export default function Program() {
                                 <div className="program-day">{item?.day}</div>
                                 <div className="program-activity">{item?.title}</div>
 
-                                <div className={`program-times${isSunday ? " program-times--sunday" : ""}`}>
+                                <div className="program-times">
                                     {times.map((t) => (
-                                        <span key={t} className="program-time">
-                      {formatRange(t, { drop00 })}
-                    </span>
+                                        <span key={`${id}-${t}`} className="program-time">
+                                            {formatRange(t)}
+                                        </span>
                                     ))}
                                 </div>
                             </article>
