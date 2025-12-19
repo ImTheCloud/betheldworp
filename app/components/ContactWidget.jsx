@@ -10,7 +10,7 @@ const isValidEmail = (value) =>
 export default function ContactWidget() {
     const [open, setOpen] = useState(false);
     const [pulse, setPulse] = useState(false);
-    const [compact, setCompact] = useState(false); // ✅ NEW (mobile: only "?" when footer visible)
+    const [compact, setCompact] = useState(false);
 
     const [name, setName] = useState("");
     const [fromEmail, setFromEmail] = useState("");
@@ -64,7 +64,6 @@ export default function ContactWidget() {
 
         intervalRef.current = setInterval(() => {
             if (open) return;
-
             setPulse(true);
             timeoutRef.current = setTimeout(() => setPulse(false), 1200);
         }, 5000);
@@ -76,72 +75,38 @@ export default function ContactWidget() {
         if (open) setPulse(false);
     }, [open]);
 
-    // ✅ NEW: when footer is visible on mobile, shrink FAB to "?"
     useEffect(() => {
         if (typeof window === "undefined") return;
 
-        const mq = window.matchMedia("(max-width: 700px)");
-        let observer = null;
-        let retryId = null;
+        const getFooter = () =>
+            document.querySelector("#bethel-footer") ||
+            document.querySelector("footer.footer") ||
+            document.querySelector("footer");
 
-        const teardown = () => {
-            if (observer) observer.disconnect();
-            observer = null;
-            if (retryId) clearInterval(retryId);
-            retryId = null;
-        };
-
-        const attachObserver = () => {
-            const footer =
-                document.querySelector("#bethel-footer") ||
-                document.querySelector("footer.footer") ||
-                document.querySelector("footer");
-
-            if (!footer) return false;
-
-            observer = new IntersectionObserver(
-                ([entry]) => {
-                    setCompact(Boolean(entry?.isIntersecting) && mq.matches);
-                },
-                { threshold: 0.01 }
-            );
-
-            observer.observe(footer);
-            return true;
-        };
-
-        const setup = () => {
-            teardown();
-
-            if (!mq.matches) {
-                setCompact(false);
-                return;
+        const computeCompact = () => {
+            const footer = getFooter();
+            if (footer) {
+                const r = footer.getBoundingClientRect();
+                const vh = window.innerHeight || document.documentElement.clientHeight || 0;
+                return r.top < vh && r.bottom > 0;
             }
-
-            if (attachObserver()) return;
-
-            // footer not found yet (rare): retry a bit
-            let tries = 0;
-            retryId = setInterval(() => {
-                tries += 1;
-                if (attachObserver() || tries > 20) {
-                    clearInterval(retryId);
-                    retryId = null;
-                }
-            }, 200);
+            const doc = document.documentElement;
+            return window.innerHeight + window.scrollY >= doc.scrollHeight - 120;
         };
 
-        setup();
+        const update = () => setCompact(computeCompact());
 
-        const onChange = () => setup();
+        update();
+        window.addEventListener("scroll", update, { passive: true });
+        window.addEventListener("resize", update);
 
-        if (mq.addEventListener) mq.addEventListener("change", onChange);
-        else mq.addListener(onChange);
+        const id = setInterval(update, 250);
+        setTimeout(() => clearInterval(id), 6000);
 
         return () => {
-            teardown();
-            if (mq.removeEventListener) mq.removeEventListener("change", onChange);
-            else mq.removeListener(onChange);
+            window.removeEventListener("scroll", update);
+            window.removeEventListener("resize", update);
+            clearInterval(id);
         };
     }, []);
 
@@ -186,8 +151,7 @@ export default function ContactWidget() {
         ];
         if (allowed.includes(e.key)) return;
 
-        if ((e.ctrlKey || e.metaKey) && ["a", "c", "v", "x"].includes(e.key.toLowerCase()))
-            return;
+        if ((e.ctrlKey || e.metaKey) && ["a", "c", "v", "x"].includes(e.key.toLowerCase())) return;
 
         if (!/^\d$/.test(e.key)) e.preventDefault();
     };
@@ -243,9 +207,7 @@ export default function ContactWidget() {
                 title="Ai o întrebare?"
             >
                 <span className="cw-fab-text">Ai o întrebare</span>
-                <span className="cw-fabIcon" aria-hidden="true">
-          ?
-        </span>
+                <span className="cw-fabIcon" aria-hidden="true">?</span>
             </button>
 
             {open && (
@@ -253,7 +215,6 @@ export default function ContactWidget() {
                     <div className="cw-modal" onClick={(e) => e.stopPropagation()}>
                         <header className="cw-header">
                             <h2>Trimite un mesaj</h2>
-
                             <button
                                 type="button"
                                 className="cw-close"
@@ -338,9 +299,7 @@ export default function ContactWidget() {
                                             disabled={sending}
                                             aria-invalid={messageError ? "true" : "false"}
                                         />
-                                        {messageError ? (
-                                            <div className="cw-hint cw-hint--error">{messageError}</div>
-                                        ) : null}
+                                        {messageError ? <div className="cw-hint cw-hint--error">{messageError}</div> : null}
                                     </label>
 
                                     <div className="cw-actions">
