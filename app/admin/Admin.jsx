@@ -220,7 +220,6 @@ export default function Admin() {
                 ) : !isAdmin ? (
                     <div className="adminCard adminCard--center">
                         <h2 className="adminTitle">Acces refuzat</h2>
-                        <div className="adminMutedLine">Ton compte n’a pas les droits admin.</div>
                     </div>
                 ) : (
                     <div className="adminStack">
