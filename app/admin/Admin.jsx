@@ -161,11 +161,11 @@ export default function Admin() {
                     </div>
 
                     <div className="adminHeaderCenter">
-                        <div className="adminHeaderTitle">Bethel Admin</div>
+                        <div className="adminHeaderTitle">Administrare Bethel</div>
                     </div>
 
                     {user ? (
-                        <button className="adminIconBtn" onClick={logout} aria-label="Delogare" title="Delogare">
+                        <button className="adminIconBtn" onClick={logout} aria-label="Deconectare" title="Deconectare">
                             <IconLogout />
                         </button>
                     ) : (
@@ -220,6 +220,7 @@ export default function Admin() {
                 ) : !isAdmin ? (
                     <div className="adminCard adminCard--center">
                         <h2 className="adminTitle">Acces refuzat</h2>
+                        <div className="adminMuted">Nu ai permisiuni pentru a accesa această secțiune.</div>
                     </div>
                 ) : (
                     <div className="adminStack">
