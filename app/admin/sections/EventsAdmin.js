@@ -140,9 +140,6 @@ function EventRow({ ev, expanded, onToggleExpand, draft, onChangeField, onRemove
         return fields.some((f) => safeStr(draft?.[f]).trim() !== safeStr(ev?.[f]).trim());
     }, [draft, ev]);
 
-    const summarySource = safeStr(ev.title).trim() || safeStr(ev.dateEvent).trim();
-    const summary = summarySource.length <= 60 ? summarySource : summarySource.slice(0, 60) + "…";
-
     const handleCardClick = (e) => {
         if (e.target.closest("button, input, textarea, select, label")) return;
         onToggleExpand(ev.id);
@@ -150,9 +147,8 @@ function EventRow({ ev, expanded, onToggleExpand, draft, onChangeField, onRemove
 
     return (
         <div className="adminAnnCard" onClick={handleCardClick}>
-            <div className="adminAnnHeader">
-                <div className="adminAnnIdChip">{ev.id}</div>
-                {!expanded ? <div className="adminSummary">{summary}</div> : <div style={{ flex: 1 }} />}
+            <div className="adminAnnHeader adminAnnHeader--events">
+                <div className="adminAnnIdChip adminAnnIdChip--eventFull">{ev.id}</div>
                 <button
                     type="button"
                     className="adminSmallBtn"
