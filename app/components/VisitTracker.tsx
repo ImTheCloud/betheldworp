@@ -24,12 +24,10 @@ function getBrusselsDayKey() {
     const y = parts.find((p) => p.type === "year")?.value ?? "0000";
     const m = parts.find((p) => p.type === "month")?.value ?? "00";
     const d = parts.find((p) => p.type === "day")?.value ?? "00";
-    return `${y}-${m}-${d}`; // YYYY-MM-DD
+    return `${y}-${m}-${d}`;
 }
 
 async function getGeoClientSide() {
-    // Sans API côté serveur, il faut une API externe pour geo IP.
-    // Tu peux changer de provider si tu veux.
     try {
         const res = await fetch("https://ipapi.co/json/", { cache: "no-store" });
         if (!res.ok) throw new Error("geo failed");
@@ -37,11 +35,10 @@ async function getGeoClientSide() {
 
         return {
             country: data?.country_name || data?.country || "Unknown",
-            region: data?.region || data?.region_code || "Unknown",
             city: data?.city || "Unknown",
         };
     } catch {
-        return { country: "Unknown", region: "Unknown", city: "Unknown" };
+        return { country: "Unknown", city: "Unknown" };
     }
 }
 
@@ -53,13 +50,12 @@ export default function VisitTracker() {
 
         (async () => {
             const day = getBrusselsDayKey();
-            const { country, region, city } = await getGeoClientSide();
+            const { country, city } = await getGeoClientSide();
 
             const c = safeKey(country);
-            const r = safeKey(region);
             const ci = safeKey(city);
 
-            const geoKey = `${c}__${r}__${ci}`;
+            const cityKey = `${c}__${ci}`;
 
             const globalRef = doc(db, "visits", "global");
             const dayRef = doc(db, "visits", `day_${day}`);
@@ -73,9 +69,7 @@ export default function VisitTracker() {
                         total: inc,
                         updatedAt: serverTimestamp(),
                         [`byCountry.${c}`]: inc,
-                        [`byRegion.${c}__${r}`]: inc,
-                        [`byCity.${c}__${r}__${ci}`]: inc,
-                        [`byGeo.${geoKey}`]: inc,
+                        [`byCity.${cityKey}`]: inc,
                     },
                     { merge: true }
                 ),
@@ -86,9 +80,7 @@ export default function VisitTracker() {
                         total: inc,
                         updatedAt: serverTimestamp(),
                         [`byCountry.${c}`]: inc,
-                        [`byRegion.${c}__${r}`]: inc,
-                        [`byCity.${c}__${r}__${ci}`]: inc,
-                        [`byGeo.${geoKey}`]: inc,
+                        [`byCity.${cityKey}`]: inc,
                     },
                     { merge: true }
                 ),

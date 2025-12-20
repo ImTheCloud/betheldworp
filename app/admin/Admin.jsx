@@ -9,6 +9,7 @@ import { db } from "../lib/Firebase";
 import MonthlyVerseAdmin from "./sections/MonthlyVerseAdmin";
 import ProgramAnnouncementsAdmin from "./sections/ProgramAnnouncementsAdmin";
 import EventsAdmin from "./sections/EventsAdmin";
+import StatsAdmin from "./sections/StatsAdmin";
 
 function isValidEmail(value) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
@@ -223,6 +224,7 @@ export default function Admin() {
                     </div>
                 ) : (
                     <div className="adminStack">
+                        <StatsAdmin />
                         <MonthlyVerseAdmin />
                         <ProgramAnnouncementsAdmin />
                         <EventsAdmin />
