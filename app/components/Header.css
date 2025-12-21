@@ -185,16 +185,6 @@
     transform: rotate(180deg);
 }
 
-.header.header-top .langBtnChevIcon {
-    stroke: rgba(255, 255, 255, 0.92);
-    opacity: 0.92;
-}
-
-.header.header-top .langBtn:hover .langBtnChevIcon {
-    stroke: rgba(255, 255, 255, 1);
-    opacity: 1;
-}
-
 .langMenu {
     position: absolute;
     top: calc(100% + 10px);
@@ -310,11 +300,24 @@
     justify-content: center;
     gap: 6px;
     flex-direction: column;
-    border: 1px solid rgba(255, 255, 255, 0.22);
-    background: rgba(255, 255, 255, 0.18);
-    backdrop-filter: blur(8px);
-    transition: background 0.25s ease, border-color 0.25s ease;
+    border: 1px solid rgba(10, 42, 67, 0.12);
+    background: rgba(255, 255, 255, 0.86);
+    box-shadow: 0 10px 30px rgba(6, 24, 50, 0.10);
+    transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
 }
+
+.burger-top {
+    border-color: rgba(255, 255, 255, 0.28);
+    background: rgba(255, 255, 255, 0.18);
+    box-shadow: 0 10px 34px rgba(6, 24, 50, 0.10);
+}
+
+.burger-scrolled {
+    border-color: rgba(10, 42, 67, 0.12);
+    background: rgba(255, 255, 255, 0.86);
+    box-shadow: 0 10px 30px rgba(6, 24, 50, 0.10);
+}
+
 
 .burger span {
     width: 22px;
@@ -322,16 +325,6 @@
     background: rgba(10, 42, 67, 0.92);
     border-radius: 999px;
     transition: transform 0.18s ease, opacity 0.18s ease;
-}
-
-.burger-top {
-    border-color: rgba(255, 255, 255, 0.22);
-    background: rgba(255, 255, 255, 0.18);
-}
-
-.burger-scrolled {
-    border-color: rgba(10, 42, 67, 0.12);
-    background: rgba(255, 255, 255, 0.92);
 }
 
 .burger.is-open span:nth-child(1) {
@@ -462,11 +455,6 @@
 
 .header.header-top .burger span {
     background: rgba(255, 255, 255, 0.95);
-}
-
-.header.header-top .burger-top {
-    border-color: rgba(255, 255, 255, 0.26);
-    background: rgba(255, 255, 255, 0.14);
 }
 
 .header.header-top .langBtn {
