@@ -2,14 +2,68 @@
 
 import "./StatsAdmin.css";
 import { useEffect, useMemo, useState } from "react";
-import { collection, onSnapshot } from "firebase/firestore";
+import { collectionGroup, getDocs } from "firebase/firestore";
 import { db } from "../../lib/Firebase";
 
-function safeStr(v) {
+function s(v) {
     return String(v ?? "");
 }
 
-function getBrusselsDayKey(date = new Date()) {
+function clamp(v, max = 80) {
+    const x = s(v).trim();
+    return x ? x.slice(0, max) : "Unknown";
+}
+
+function normalizeLang(v) {
+    const base = s(v).toLowerCase().split("-")[0] || "unknown";
+    return (base || "unknown").slice(0, 16);
+}
+
+function normalizeDevice(v) {
+    const x = s(v).toLowerCase();
+    if (x === "mobile" || x === "desktop") return x;
+    return "unknown";
+}
+
+function sanitizeKey(v) {
+    return (
+        s(v)
+            .trim()
+            .toLowerCase()
+            .replace(/\./g, "_")
+            .replace(/\//g, "_")
+            .replace(/\s+/g, "_")
+            .replace(/__+/g, "_")
+            .slice(0, 80) || "unknown"
+    );
+}
+
+function unsanitizeKey(str) {
+    return s(str)
+        .split("_")
+        .map((x) => (x ? x.charAt(0).toUpperCase() + x.slice(1) : ""))
+        .join(" ");
+}
+
+function makeCityKey(country, city) {
+    return `${sanitizeKey(country)}__${sanitizeKey(city)}`;
+}
+
+function cityLabelOnly(k) {
+    const parts = s(k).split("__");
+    const cityPart = parts[1] ? parts[1] : parts[0] || "unknown";
+    return unsanitizeKey(cityPart);
+}
+
+function toPercent(count, total) {
+    const c = Number(count) || 0;
+    const t = Number(total) || 0;
+    if (!t) return "0%";
+    const p = (c / t) * 100;
+    return `${Math.round(p * 10) / 10}%`;
+}
+
+function brusselsDayKey(date = new Date()) {
     const parts = new Intl.DateTimeFormat("en-CA", {
         timeZone: "Europe/Brussels",
         year: "numeric",
@@ -25,72 +79,28 @@ function getBrusselsDayKey(date = new Date()) {
         if (p.type === "month") m = p.value;
         if (p.type === "day") d = p.value;
     });
-
     return `${y}-${m}-${d}`;
 }
 
-function unsanitizeKey(str) {
-    return safeStr(str)
-        .split("_")
-        .map((s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : ""))
-        .join(" ");
-}
-
-function extractCounts(data, prefix) {
-    const counts = {};
-    const raw = data || {};
-
-    if (raw[prefix] && typeof raw[prefix] === "object") {
-        Object.entries(raw[prefix]).forEach(([k, v]) => {
-            counts[k] = typeof v === "number" ? v : 0;
-        });
-    }
-
-    Object.entries(raw).forEach(([k, v]) => {
-        if (k.startsWith(prefix + ".")) {
-            const name = k.substring(prefix.length + 1);
-            counts[name] = typeof v === "number" ? v : 0;
-        }
-    });
-
-    return counts;
-}
-
-function toPercent(count, total) {
-    const c = Number(count) || 0;
-    const t = Number(total) || 0;
-    if (!t) return "0%";
-    const p = (c / t) * 100;
-    return `${Math.round(p * 10) / 10}%`;
-}
-
 function buildLastNDaysKeys(n, endKey) {
-    const [yy, mm, dd] = safeStr(endKey).split("-").map(Number);
+    const [yy, mm, dd] = s(endKey).split("-").map(Number);
     const end = new Date(yy, (mm || 1) - 1, dd || 1);
-    const keys = [];
+    const out = [];
     for (let i = n - 1; i >= 0; i--) {
         const dt = new Date(end);
         dt.setDate(dt.getDate() - i);
-        keys.push(getBrusselsDayKey(dt));
+        out.push(brusselsDayKey(dt));
     }
-    return keys;
+    return out;
 }
 
-function normalizeCityKey(key) {
-    const parts = safeStr(key).split("__").filter(Boolean);
-    if (parts.length >= 3) return `${parts[0]}__${parts[parts.length - 1]}`;
-    return safeStr(key);
-}
-
-function parseCityKeyNoRegion(key) {
-    const k = normalizeCityKey(key);
-    const parts = safeStr(k).split("__");
-    if (parts.length >= 2) {
-        const country = unsanitizeKey(parts[0]);
-        const city = unsanitizeKey(parts[1]);
-        return `${city}, ${country}`;
-    }
-    return unsanitizeKey(k);
+function getDayFromSnap(snap, data) {
+    const day = s(data?.day).trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(day)) return day;
+    const path = snap?.ref?.path || "";
+    const m = path.match(/visits\/(day_\d{4}-\d{2}-\d{2})\/visitors\//);
+    if (m?.[1]) return m[1].slice(4);
+    return "0000-00-00";
 }
 
 function polarToCartesian(cx, cy, r, angleDeg) {
@@ -105,341 +115,303 @@ function arcPath(cx, cy, r, startAngle, endAngle) {
     return `M ${start.x} ${start.y} A ${r} ${r} 0 ${largeArc} 0 ${end.x} ${end.y}`;
 }
 
+function hsl(i) {
+    const hue = (i * 47) % 360;
+    return `hsl(${hue} 70% 45%)`;
+}
+
+function DonutWithLegend({ title, rows, total, search, onSearch }) {
+    const base = rows.filter((r) => r.count > 0);
+
+    const topN = 10;
+    const top = base.slice(0, topN);
+    const others = base.slice(topN).reduce((a, r) => a + (Number(r.count) || 0), 0);
+    const slices = others > 0 ? [...top, { key: "__others__", label: "Altele", count: others }] : top;
+
+    const cx = 60;
+    const cy = 60;
+    const r = 46;
+    const stroke = 12;
+
+    const denom = Math.max(1, slices.reduce((a, x) => a + (Number(x.count) || 0), 0));
+    let angle = 0;
+
+    const segs = slices.map((sl, idx) => {
+        const pct = (Number(sl.count) || 0) / denom;
+        const start = angle;
+        const delta = Math.max(0, pct) * 360;
+        let end = start + delta;
+        angle = end;
+        if (idx === slices.length - 1) end = 360;
+
+        const overlap = 0.8;
+        let startAdj = start;
+        let endAdj = end;
+        if (delta > 0) {
+            if (idx !== 0) startAdj = Math.max(0, startAdj - overlap / 2);
+            if (idx !== slices.length - 1) endAdj = Math.min(360, endAdj + overlap / 2);
+        }
+
+        return {
+            ...sl,
+            color: hsl(idx),
+            path: delta > 0 ? arcPath(cx, cy, r, startAdj, endAdj) : null,
+            stroke,
+        };
+    });
+
+    const q = s(search).trim().toLowerCase();
+    const filtered = q ? base.filter((x) => s(x.label).toLowerCase().includes(q)) : base;
+
+    return (
+        <div className="statsCard">
+            <div className="statsCardTop">
+                <div className="statsCardTitle">{title}</div>
+            </div>
+
+            <div className="statsDonutWrap">
+                <div className="statsDonut">
+                    <svg viewBox="0 0 120 120" className="statsDonutSvg" role="img" aria-label="Grafic circular">
+                        <circle cx="60" cy="60" r="46" className="statsDonutBg" />
+                        {segs.map((sg) =>
+                            sg.path ? (
+                                <path
+                                    key={sg.key}
+                                    d={sg.path}
+                                    className="statsDonutSeg"
+                                    style={{ stroke: sg.color, strokeWidth: sg.stroke }}
+                                >
+                                    <title>{`${sg.label}: ${sg.count} (${toPercent(sg.count, Math.max(1, total))})`}</title>
+                                </path>
+                            ) : null
+                        )}
+                        <circle cx="60" cy="60" r="34" className="statsDonutHole" />
+                        <text x="60" y="58" textAnchor="middle" className="statsDonutCenterBig">
+                            {total || 0}
+                        </text>
+                        <text x="60" y="74" textAnchor="middle" className="statsDonutCenterSmall">
+                            vizite
+                        </text>
+                    </svg>
+                </div>
+
+                <div className="statsLegend">
+                    <label className="statsSearch">
+                        <span className="statsSearchLabel">Caută</span>
+                        <input className="statsSearchInput" value={search} onChange={(e) => onSearch(e.target.value)} placeholder="caută…" />
+                    </label>
+
+                    <div className="statsLegendHead">
+                        <div className="statsLegendHeadCell">Nume</div>
+                        <div className="statsLegendHeadCell statsRight">Vizite</div>
+                        <div className="statsLegendHeadCell statsRight">100%</div>
+                    </div>
+
+                    {filtered.length ? (
+                        <div className="statsLegendScroll">
+                            {filtered.map((r2, idx) => {
+                                const color = hsl(idx);
+                                return (
+                                    <div key={r2.key} className="statsLegendRow">
+                                        <span className="statsLegendDot" style={{ background: color }} />
+                                        <span className="statsLegendName" title={r2.label}>
+                                            {r2.label}
+                                        </span>
+                                        <span className="statsLegendCount statsRight">{r2.count}</span>
+                                        <span className="statsLegendPct statsRight">{toPercent(r2.count, Math.max(1, total))}</span>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    ) : (
+                        <div className="statsEmpty">Nu există rezultate.</div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}
+
 export default function StatsAdmin() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
-    const [daysMap, setDaysMap] = useState({});
-    const [daysList, setDaysList] = useState([]);
+    const [rangeMode, setRangeMode] = useState("all");
+    const [mode, setMode] = useState("cities");
+    const [search, setSearch] = useState("");
 
-    const [rangeMode, setRangeMode] = useState("today");
-    const [tab, setTab] = useState("cities");
-    const [query, setQuery] = useState("");
+    const todayKey = useMemo(() => brusselsDayKey(), []);
+    const [allVisits, setAllVisits] = useState([]);
 
     useEffect(() => {
-        let unsubVisits = null;
+        let alive = true;
 
-        setLoading(true);
-        setError("");
+        (async () => {
+            try {
+                setLoading(true);
+                setError("");
 
-        unsubVisits = onSnapshot(
-            collection(db, "visits"),
-            (snap) => {
-                const map = {};
-                const list = [];
-                snap.forEach((d) => {
-                    const id = d.id || "";
-                    if (!id.startsWith("day_")) return;
-                    const data = d.data() || {};
-                    const date = data.date || id.slice(4);
-                    const total = typeof data.total === "number" ? data.total : 0;
-                    map[date] = { ...data, date, total };
-                    list.push({ date, total });
+                const snap = await getDocs(collectionGroup(db, "visitors"));
+                const out = [];
+                snap.forEach((docSnap) => {
+                    const d = docSnap.data() || {};
+                    const day = getDayFromSnap(docSnap, d);
+                    out.push({
+                        day,
+                        country: clamp(d.country, 60),
+                        city: clamp(d.city, 60),
+                        language: normalizeLang(d.language),
+                        deviceType: normalizeDevice(d.deviceType),
+                    });
                 });
-                list.sort((a, b) => a.date.localeCompare(b.date));
-                setDaysMap(map);
-                setDaysList(list);
+
+                if (!alive) return;
+                setAllVisits(out);
                 setLoading(false);
-            },
-            (err) => {
-                console.error(err);
-                setError("Nu am putut încărca statisticile.");
+            } catch (e) {
+                if (!alive) return;
+                console.error(e);
+                setError("Nu am putut încărca vizitele.");
                 setLoading(false);
             }
-        );
+        })();
 
         return () => {
-            if (unsubVisits) unsubVisits();
+            alive = false;
         };
     }, []);
 
-    const todayKey = useMemo(() => getBrusselsDayKey(), []);
-
-    const selectedKeys = useMemo(() => {
-        if (rangeMode === "all") return daysList.map((d) => d.date);
-        if (rangeMode === "today") return [todayKey];
+    const rangeKeys = useMemo(() => {
+        if (rangeMode === "all") return null;
+        if (rangeMode === "today") return new Set([todayKey]);
         const n = Number(rangeMode);
-        if (Number.isFinite(n) && n > 0) return buildLastNDaysKeys(n, todayKey);
-        return [todayKey];
-    }, [rangeMode, daysList, todayKey]);
+        if (!Number.isFinite(n) || n <= 0) return null;
+        return new Set(buildLastNDaysKeys(n, todayKey));
+    }, [rangeMode, todayKey]);
 
-    const selectedDays = useMemo(() => {
-        return selectedKeys.map((k) => daysMap[k]).filter(Boolean);
-    }, [selectedKeys, daysMap]);
+    const scoped = useMemo(() => {
+        if (!rangeKeys) return allVisits;
+        return allVisits.filter((r) => rangeKeys.has(r.day));
+    }, [allVisits, rangeKeys]);
 
-    const totalSelected = useMemo(() => {
-        return selectedDays.reduce((acc, d) => acc + (Number(d.total) || 0), 0);
-    }, [selectedDays]);
+    const total = scoped.length;
 
-    const aggregateCounts = (prefix) => {
-        const agg = {};
-        selectedDays.forEach((day) => {
-            const obj = extractCounts(day, prefix);
-            Object.entries(obj).forEach(([k, v]) => {
-                const key = prefix === "byCity" ? normalizeCityKey(k) : k;
-                agg[key] = (agg[key] || 0) + (Number(v) || 0);
-            });
+    const agg = useMemo(() => {
+        const byCountry = {};
+        const byCity = {};
+        const byLang = {};
+        const byDevice = {};
+
+        scoped.forEach((r) => {
+            const c = sanitizeKey(r.country);
+            const ci = makeCityKey(r.country, r.city);
+            const lg = normalizeLang(r.language);
+            const dv = normalizeDevice(r.deviceType);
+
+            byCountry[c] = (byCountry[c] || 0) + 1;
+            byCity[ci] = (byCity[ci] || 0) + 1;
+            byLang[lg] = (byLang[lg] || 0) + 1;
+            byDevice[dv] = (byDevice[dv] || 0) + 1;
         });
-        return agg;
-    };
 
-    const countriesAll = useMemo(() => {
-        const obj = aggregateCounts("byCountry");
-        const rows = Object.keys(obj).map((k) => ({
-            key: k,
-            name: unsanitizeKey(k),
-            count: Number(obj[k]) || 0,
-        }));
-        rows.sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
-        return rows;
-    }, [selectedDays]);
+        return { byCountry, byCity, byLang, byDevice };
+    }, [scoped]);
 
-    const citiesAll = useMemo(() => {
-        const obj = aggregateCounts("byCity");
-        const rows = Object.keys(obj).map((k) => ({
-            key: k,
-            name: parseCityKeyNoRegion(k),
-            count: Number(obj[k]) || 0,
-        }));
-        rows.sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
-        return rows;
-    }, [selectedDays]);
-
-    const allRows = useMemo(() => {
-        return tab === "countries" ? countriesAll : citiesAll;
-    }, [tab, countriesAll, citiesAll]);
-
-    const placesTotal = useMemo(() => {
-        return allRows.filter((r) => r.count > 0).length;
-    }, [allRows]);
-
-    const q = useMemo(() => safeStr(query).trim().toLowerCase(), [query]);
-
-    const filteredRows = useMemo(() => {
-        if (!q) return allRows;
-        return allRows.filter((r) => safeStr(r.name).toLowerCase().includes(q));
-    }, [allRows, q]);
-
-    const donut = useMemo(() => {
-        const total = Math.max(0, Number(totalSelected) || 0);
-        const title = tab === "countries" ? "Distribuție pe țări" : "Distribuție pe orașe";
-        const base = allRows.filter((r) => r.count > 0);
-
-        const topN = 10;
-        const slicesSrc = base.slice(0, topN);
-
-        const cx = 60;
-        const cy = 60;
-        const r = 46;
-        const stroke = 12;
-
-        if (!total || !slicesSrc.length) return { total, title, slices: [] };
-
-        if (slicesSrc.length === 1) {
-            const hue = 10;
-            return {
-                total,
-                title,
-                slices: [
-                    {
-                        key: slicesSrc[0].key,
-                        label: slicesSrc[0].name,
-                        count: slicesSrc[0].count,
-                        color: `hsl(${hue} 70% 45%)`,
-                        isFull: true,
-                        stroke,
-                    },
-                ],
-            };
+    const rowsForMode = useMemo(() => {
+        if (mode === "countries") {
+            const rows = Object.keys(agg.byCountry).map((k) => ({
+                key: k,
+                label: unsanitizeKey(k),
+                count: Number(agg.byCountry[k]) || 0,
+            }));
+            rows.sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+            return rows;
         }
 
-        const sumTop = slicesSrc.reduce((a, r) => a + r.count, 0);
-        const denom = sumTop || 1;
+        if (mode === "cities") {
+            const rows = Object.keys(agg.byCity).map((k) => ({
+                key: k,
+                label: cityLabelOnly(k),
+                count: Number(agg.byCity[k]) || 0,
+            }));
+            rows.sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+            return rows;
+        }
 
-        let angle = 0;
-        const overlap = 0.8;
+        if (mode === "languages") {
+            const rows = Object.keys(agg.byLang).map((k) => ({
+                key: k,
+                label: k.toUpperCase(),
+                count: Number(agg.byLang[k]) || 0,
+            }));
+            rows.sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+            return rows;
+        }
 
-        const segs = slicesSrc.map((row, idx) => {
-            const pct = row.count / denom;
-            const start = angle;
-            const delta = Math.max(0, pct) * 360;
-            let end = start + delta;
-            angle = end;
+        const rows = Object.keys(agg.byDevice).map((k) => ({
+            key: k,
+            label: unsanitizeKey(k),
+            count: Number(agg.byDevice[k]) || 0,
+        }));
+        rows.sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+        return rows;
+    }, [agg, mode]);
 
-            if (idx === slicesSrc.length - 1) end = 360;
+    const donutTitle = useMemo(() => {
+        if (mode === "countries") return "Distribuție pe țări";
+        if (mode === "cities") return "Distribuție pe orașe";
+        if (mode === "languages") return "Distribuție pe limbi";
+        return "Distribuție pe dispozitive";
+    }, [mode]);
 
-            let startAdj = start;
-            let endAdj = end;
-
-            if (delta > 0) {
-                if (idx !== 0) startAdj = Math.max(0, startAdj - overlap / 2);
-                if (idx !== slicesSrc.length - 1) endAdj = Math.min(360, endAdj + overlap / 2);
-            }
-
-            const path = delta > 0 ? arcPath(cx, cy, r, startAdj, endAdj) : null;
-            const hue = (idx * 42) % 360;
-
-            return {
-                key: row.key,
-                label: row.name,
-                count: row.count,
-                color: `hsl(${hue} 70% 45%)`,
-                path,
-                stroke,
-                isFull: false,
-            };
-        });
-
-        return { total, title, slices: segs };
-    }, [tab, allRows, totalSelected]);
-
-    const legendNameLabel = tab === "countries" ? "Țări" : "Orașe";
-    const placesLabel = tab === "countries" ? "Țări totale" : "Orașe totale";
+    const modeTabs = [
+        { id: "cities", label: "Orașe" },
+        { id: "countries", label: "Țări" },
+        { id: "languages", label: "Limbi" },
+        { id: "devices", label: "Dispozitive" },
+    ];
 
     return (
         <div className="adminCard">
-            <div className="adminTop statsTopBar">
+            <div className="statsTop">
                 <h2 className="adminTitle">Statistici</h2>
 
-                <div className="adminActions statsFilter">
-                    <select
-                        className="statsSelect"
-                        value={rangeMode}
-                        onChange={(e) => setRangeMode(e.target.value)}
-                        aria-label="Selectează perioada"
-                    >
+                <div className="statsTopRight">
+                    <select className="statsSelect" value={rangeMode} onChange={(e) => setRangeMode(e.target.value)} aria-label="Selectează perioada">
+                        <option value="all">Toate</option>
                         <option value="today">Azi</option>
                         <option value="7">Ultimele 7 zile</option>
                         <option value="30">Ultimele 30 zile</option>
-                        <option value="all">Toate</option>
+                        <option value="90">Ultimele 90 zile</option>
                     </select>
                 </div>
             </div>
 
-            <div className="statsTabsWrap" role="tablist" aria-label="Statistici">
-                <div className="statsTabs">
-                    <span className={`statsTabsPill ${tab === "cities" ? "is-on" : ""}`} aria-hidden="true" />
-                    <button
-                        type="button"
-                        className={`statsTab ${tab === "cities" ? "is-active" : ""}`}
-                        onClick={() => {
-                            setTab("cities");
-                            setQuery("");
-                        }}
-                        role="tab"
-                        aria-selected={tab === "cities"}
-                    >
-                        Orașe
-                    </button>
-                    <button
-                        type="button"
-                        className={`statsTab ${tab === "countries" ? "is-active" : ""}`}
-                        onClick={() => {
-                            setTab("countries");
-                            setQuery("");
-                        }}
-                        role="tab"
-                        aria-selected={tab === "countries"}
-                    >
-                        Țări
-                    </button>
-                </div>
-            </div>
-
-            <div className="statsSpacer" aria-hidden="true" />
-
             {loading ? (
                 <div className="adminSkeleton" />
             ) : (
-                <div className="statsContent">
+                <div className="statsLayout">
                     {error ? <div className="adminAlert">{error}</div> : null}
 
-                    <div className="statsChartCard" aria-label="Grafic">
-                        <div className="statsChartTop">
-                            <div className="statsChartTitle">{donut.title}</div>
-                            <div className="statsChartMetaPill">
-                                <span className="statsChartMetaLabel">{placesLabel}</span>
-                                <span className="statsChartMetaValue">{placesTotal}</span>
-                            </div>
-                        </div>
-
-                        <div className="statsDonutWrap">
-                            <div className="statsDonut">
-                                <svg viewBox="0 0 120 120" className="statsDonutSvg" role="img" aria-label="Grafic rotund">
-                                    <circle cx="60" cy="60" r="46" className="statsDonutBg" />
-                                    {donut.slices.map((s) =>
-                                        s.isFull ? (
-                                            <circle
-                                                key={s.key}
-                                                cx="60"
-                                                cy="60"
-                                                r="46"
-                                                className="statsDonutSeg"
-                                                style={{ stroke: s.color, strokeWidth: s.stroke }}
-                                            >
-                                                <title>{`${s.label}: ${s.count} (${toPercent(s.count, Math.max(1, totalSelected))})`}</title>
-                                            </circle>
-                                        ) : s.path ? (
-                                            <path
-                                                key={s.key}
-                                                d={s.path}
-                                                className="statsDonutSeg"
-                                                style={{ stroke: s.color, strokeWidth: s.stroke }}
-                                            >
-                                                <title>{`${s.label}: ${s.count} (${toPercent(s.count, Math.max(1, totalSelected))})`}</title>
-                                            </path>
-                                        ) : null
-                                    )}
-                                    <circle cx="60" cy="60" r="34" className="statsDonutHole" />
-                                    <text x="60" y="58" textAnchor="middle" className="statsDonutCenterBig">
-                                        {totalSelected || 0}
-                                    </text>
-                                    <text x="60" y="74" textAnchor="middle" className="statsDonutCenterSmall">
-                                        total
-                                    </text>
-                                </svg>
-                            </div>
-
-                            <div className="statsLegend" aria-label="Legendă">
-                                <label className="statsSearch">
-                                    <span className="statsSearchLabel">Caută</span>
-                                    <input
-                                        className="statsSearchInput"
-                                        value={query}
-                                        onChange={(e) => setQuery(e.target.value)}
-                                        placeholder={`scrie un ${tab === "countries" ? "stat" : "oraș"}…`}
-                                    />
-                                </label>
-
-                                <div className="statsLegendHead" role="row" aria-label="Coloane legendă">
-                                    <div className="statsLegendHeadCell statsLegendHeadName">{legendNameLabel}</div>
-                                    <div className="statsLegendHeadCell statsLegendHeadCount">Vizite</div>
-                                    <div className="statsLegendHeadCell statsLegendHeadPct">%</div>
-                                </div>
-
-                                {filteredRows.length ? (
-                                    <div className="statsLegendScroll" role="table" aria-label="Listă completă">
-                                        {filteredRows.map((r, idx) => {
-                                            const hue = (idx * 42) % 360;
-                                            const color = `hsl(${hue} 70% 45%)`;
-                                            return (
-                                                <div key={r.key} className="statsLegendRow">
-                                                    <span className="statsLegendDot" style={{ background: color }} />
-                                                    <span className="statsLegendName" title={r.name}>
-                            {r.name}
-                          </span>
-                                                    <span className="statsLegendCount">{r.count}</span>
-                                                    <span className="statsLegendVal">{toPercent(r.count, Math.max(1, totalSelected))}</span>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                ) : (
-                                    <div className="adminEmpty">Nu există rezultate.</div>
-                                )}
-                            </div>
-                        </div>
+                    <div className="statsTabs" role="tablist" aria-label="Grafice">
+                        {modeTabs.map((t) => (
+                            <button
+                                key={t.id}
+                                type="button"
+                                className={`statsTab ${mode === t.id ? "is-active" : ""}`}
+                                onClick={() => {
+                                    setMode(t.id);
+                                    setSearch("");
+                                }}
+                                role="tab"
+                                aria-selected={mode === t.id}
+                            >
+                                {t.label}
+                            </button>
+                        ))}
                     </div>
+
+                    <DonutWithLegend title={donutTitle} rows={rowsForMode} total={total} search={search} onSearch={setSearch} />
                 </div>
             )}
         </div>
