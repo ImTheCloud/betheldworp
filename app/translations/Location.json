@@ -1,0 +1,38 @@
+{
+  "ro": {
+    "title": "Unde ne găsim?",
+    "label": "Locație",
+    "place": "Biserica Penticostală BETHEL Dworp",
+    "address": "Alsembergsesteenweg 572, 1653 Beersel",
+    "map_title": "BETHEL Dworp - Locație",
+    "verse_text": "„Căci unde sunt doi sau trei adunați în Numele Meu, acolo sunt și Eu în mijlocul lor.\"",
+    "verse_ref": "Matei 18:20"
+  },
+  "fr": {
+    "title": "Où nous trouver ?",
+    "label": "Lieu",
+    "place": "Église Pentecôtiste BETHEL Dworp",
+    "address": "Alsembergsesteenweg 572, 1653 Beersel",
+    "map_title": "BETHEL Dworp - Localisation",
+    "verse_text": "« Car là où deux ou trois sont assemblés en mon nom, je suis au milieu d’eux. »",
+    "verse_ref": "Matthieu 18:20"
+  },
+  "nl": {
+    "title": "Waar vind je ons?",
+    "label": "Locatie",
+    "place": "Pinkstergemeente BETHEL Dworp",
+    "address": "Alsembergsesteenweg 572, 1653 Beersel",
+    "map_title": "BETHEL Dworp - Locatie",
+    "verse_text": "“Want waar twee of drie in mijn naam bijeen zijn, daar ben Ik in hun midden.”",
+    "verse_ref": "Mattheüs 18:20"
+  },
+  "en": {
+    "title": "Where to find us",
+    "label": "Location",
+    "place": "Pentecostal Church BETHEL Dworp",
+    "address": "Alsembergsesteenweg 572, 1653 Beersel",
+    "map_title": "BETHEL Dworp - Location",
+    "verse_text": "“For where two or three gather in my name, there am I with them.”",
+    "verse_ref": "Matthew 18:20"
+  }
+}

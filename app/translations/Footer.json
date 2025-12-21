@@ -1,0 +1,38 @@
+{
+  "ro": {
+    "logo_alt": "Bethel",
+    "rights": "Toate drepturile rezervate.",
+    "contact_aria": "Contact",
+    "call_aria": "Sună responsabilul bisericii: {phone}",
+    "responsible": "Responsabil",
+    "developer": "Developer",
+    "email_dev_aria": "Trimite un email dezvoltatorului site-ului"
+  },
+  "fr": {
+    "logo_alt": "Bethel",
+    "rights": "Tous droits réservés.",
+    "contact_aria": "Contact",
+    "call_aria": "Appeler le responsable de l’église : {phone}",
+    "responsible": "Responsable",
+    "developer": "Développeur",
+    "email_dev_aria": "Envoyer un email au développeur du site"
+  },
+  "nl": {
+    "logo_alt": "Bethel",
+    "rights": "Alle rechten voorbehouden.",
+    "contact_aria": "Contact",
+    "call_aria": "Bel de verantwoordelijke van de kerk: {phone}",
+    "responsible": "Verantwoordelijke",
+    "developer": "Developer",
+    "email_dev_aria": "Stuur een e-mail naar de developer"
+  },
+  "en": {
+    "logo_alt": "Bethel",
+    "rights": "All rights reserved.",
+    "contact_aria": "Contact",
+    "call_aria": "Call the church contact person: {phone}",
+    "responsible": "Responsible",
+    "developer": "Developer",
+    "email_dev_aria": "Email the website developer"
+  }
+}

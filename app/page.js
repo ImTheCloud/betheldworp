@@ -9,8 +9,6 @@ import Events from "./sections/EventsCalendar";
 import Gallery from "./sections/Gallery";
 import Donations from "./sections/Donations";
 
-import "./globals.css";
-
 export default function Home() {
     return (
         <>

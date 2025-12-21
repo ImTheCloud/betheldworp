@@ -1,0 +1,38 @@
+{
+  "ro": {
+    "title": "Cine suntem?",
+    "p1": "Suntem creștini penticostali.",
+    "p2": "Credem în Trinitate, adică în Dumnezeu Tatăl, în Fiul și în Duhul Sfânt.",
+    "p3": "Credem că și azi Dumnezeu botează sufletul omului cu Darul Duhului Sfânt ca în ziua Cincizecimii.",
+    "p4": "Credem că Domnul Isus a venit să moară pe cruce pentru păcatele omenirii, ca prin jertfa Lui orice om să fie mântuit.",
+    "verse_text": "„Fiindcă atât de mult a iubit Dumnezeu lumea, că a dat pe singurul Lui Fiu, pentru ca oricine crede în El să nu piară, ci să aibă viaţa veşnică.\"",
+    "verse_ref": "Ioan 3:16"
+  },
+  "fr": {
+    "title": "Qui sommes-nous ?",
+    "p1": "Nous sommes des chrétiens pentecôtistes.",
+    "p2": "Nous croyons en la Trinité : Dieu le Père, le Fils et le Saint-Esprit.",
+    "p3": "Nous croyons qu’aujourd’hui encore, Dieu baptise l’âme par le don du Saint-Esprit comme au jour de la Pentecôte.",
+    "p4": "Nous croyons que le Seigneur Jésus est mort sur la croix pour les péchés de l’humanité, afin que par son sacrifice chacun puisse être sauvé.",
+    "verse_text": "« Car Dieu a tant aimé le monde qu’il a donné son Fils unique, afin que quiconque croit en lui ne périsse point, mais qu’il ait la vie éternelle. »",
+    "verse_ref": "Jean 3:16"
+  },
+  "nl": {
+    "title": "Wie zijn wij?",
+    "p1": "Wij zijn pinksterchristenen.",
+    "p2": "Wij geloven in de Drie-eenheid: God de Vader, de Zoon en de Heilige Geest.",
+    "p3": "Wij geloven dat God ook vandaag de ziel doopt met de gave van de Heilige Geest, zoals op de Pinksterdag.",
+    "p4": "Wij geloven dat de Heer Jezus aan het kruis stierf voor de zonden van de mensheid, zodat door zijn offer ieder mens gered kan worden.",
+    "verse_text": "“Want zo lief heeft God de wereld gehad, dat Hij zijn eniggeboren Zoon gegeven heeft, opdat ieder die in Hem gelooft niet verloren gaat, maar eeuwig leven heeft.”",
+    "verse_ref": "Johannes 3:16"
+  },
+  "en": {
+    "title": "Who are we?",
+    "p1": "We are Pentecostal Christians.",
+    "p2": "We believe in the Trinity: God the Father, the Son, and the Holy Spirit.",
+    "p3": "We believe that even today God baptizes the soul with the gift of the Holy Spirit as on the day of Pentecost.",
+    "p4": "We believe that the Lord Jesus came to die on the cross for the sins of humanity, so that through His sacrifice anyone can be saved.",
+    "verse_text": "“For God so loved the world that He gave His only Son, that whoever believes in Him should not perish but have eternal life.”",
+    "verse_ref": "John 3:16"
+  }
+}

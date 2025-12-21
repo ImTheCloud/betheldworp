@@ -2,6 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import "./Gallery.css";
+import { useLang } from "../components/LanguageProvider";
+import { makeT } from "../lib/i18n";
+import tr from "../translations/Gallery.json";
 
 function getYouTubeId(url) {
     try {
@@ -16,13 +19,7 @@ function getYouTubeId(url) {
 
 function YouTubeIcon({ className = "", title = "YouTube" }) {
     return (
-        <svg
-            className={className}
-            viewBox="0 0 24 24"
-            role="img"
-            aria-label={title}
-            xmlns="http://www.w3.org/2000/svg"
-        >
+        <svg className={className} viewBox="0 0 24 24" role="img" aria-label={title} xmlns="http://www.w3.org/2000/svg">
             <path
                 fill="#FF0000"
                 d="M23.498 6.186a3.014 3.014 0 0 0-2.12-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.378.505A3.014 3.014 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.014 3.014 0 0 0 2.12 2.136c1.873.505 9.378.505 9.378.505s7.505 0 9.378-.505a3.014 3.014 0 0 0 2.12-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814Z"
@@ -33,6 +30,9 @@ function YouTubeIcon({ className = "", title = "YouTube" }) {
 }
 
 export default function Gallery() {
+    const { lang } = useLang();
+    const t = useMemo(() => makeT(tr, lang), [lang]);
+
     const IMAGES = useMemo(
         () => [
             { src: "/images/drone.jpg", alt: "Bethel 1" },
@@ -260,12 +260,12 @@ export default function Gallery() {
             <section id="galerie" className="gal-section">
                 <div className="gal-content">
                     <div className="gal-header">
-                        <h2 className="gal-title">Galerie</h2>
+                        <h2 className="gal-title">{t("title")}</h2>
                     </div>
 
                     <div className="gal-images">
                         <div className="gal-images-header">
-                            <h3 className="gal-subtitle">Imagini</h3>
+                            <h3 className="gal-subtitle">{t("images")}</h3>
                         </div>
 
                         {featuredImage && (
@@ -273,14 +273,9 @@ export default function Gallery() {
                                 type="button"
                                 className="gal-featured"
                                 onClick={() => openImgModal(featuredImage)}
-                                aria-label={`Open ${featuredImage.alt}`}
+                                aria-label={t("open_image")}
                             >
-                                <img
-                                    className="gal-featuredThumb"
-                                    src={featuredImage.src}
-                                    alt={featuredImage.alt}
-                                    loading="lazy"
-                                />
+                                <img className="gal-featuredThumb" src={featuredImage.src} alt={featuredImage.alt} loading="lazy" />
                             </button>
                         )}
 
@@ -292,7 +287,7 @@ export default function Gallery() {
                                         type="button"
                                         className="gal-rowCard"
                                         onClick={() => openImgModal(img)}
-                                        aria-label={`Open ${img.alt}`}
+                                        aria-label={t("open_image")}
                                     >
                                         <div className="gal-rowThumbWrap">
                                             <img className="gal-rowThumb" src={img.src} alt={img.alt} loading="lazy" />
@@ -305,7 +300,7 @@ export default function Gallery() {
 
                     <div className="gal-videos">
                         <div className="gal-video-header">
-                            <h3 className="gal-subtitle">Video</h3>
+                            <h3 className="gal-subtitle">{t("videos")}</h3>
                         </div>
 
                         {featured && (
@@ -313,9 +308,9 @@ export default function Gallery() {
                                 type="button"
                                 className="gal-featured"
                                 onClick={() => openVidModal(featured)}
-                                aria-label="Open featured video"
+                                aria-label={t("open_video")}
                             >
-                                <img className="gal-featuredThumb" src={featured.thumb} alt="Featured video" loading="lazy" />
+                                <img className="gal-featuredThumb" src={featured.thumb} alt={t("featured_video")} loading="lazy" />
                                 <div className="gal-featuredOverlay" aria-hidden="true">
                                     <div className="gal-featuredPlay">▶</div>
                                 </div>
@@ -330,11 +325,13 @@ export default function Gallery() {
                                         type="button"
                                         className="gal-rowCard"
                                         onClick={() => openVidModal(v)}
-                                        aria-label="Open video"
+                                        aria-label={t("open_video")}
                                     >
                                         <div className="gal-rowThumbWrap">
-                                            <img className="gal-rowThumb" src={v.thumb} alt="Video thumbnail" loading="lazy" />
-                                            <div className="gal-rowPlay" aria-hidden="true">▶</div>
+                                            <img className="gal-rowThumb" src={v.thumb} alt={t("video_thumbnail")} loading="lazy" />
+                                            <div className="gal-rowPlay" aria-hidden="true">
+                                                ▶
+                                            </div>
                                         </div>
                                     </button>
                                 ))}
@@ -346,11 +343,13 @@ export default function Gallery() {
                             href="https://www.youtube.com/@bisericapenticostalabethel7695"
                             target="_blank"
                             rel="noreferrer"
-                            aria-label="Visit our YouTube channel"
+                            aria-label={t("visit_youtube")}
                         >
                             <YouTubeIcon className="gal-ytSvg" />
-                            <span className="gal-ytText">Vezi mai multe pe canalul nostru YouTube</span>
-                            <span className="gal-ytArrow" aria-hidden="true">→</span>
+                            <span className="gal-ytText">{t("see_more_youtube")}</span>
+                            <span className="gal-ytArrow" aria-hidden="true">
+                                →
+                            </span>
                         </a>
                     </div>
                 </div>
@@ -359,7 +358,9 @@ export default function Gallery() {
             {imgOpen && activeImg && (
                 <div className="gal-overlay" onClick={closeImgModal}>
                     <div className="gal-modal" onClick={(e) => e.stopPropagation()}>
-                        <button className="gal-close" onClick={closeImgModal} aria-label="Close">×</button>
+                        <button className="gal-close" onClick={closeImgModal} aria-label={t("close")}>
+                            ×
+                        </button>
                         <img className="gal-modalImg" src={activeImg.src} alt={activeImg.alt} />
                     </div>
                 </div>
@@ -368,12 +369,14 @@ export default function Gallery() {
             {vidOpen && activeVid && (
                 <div className="gal-overlay gal-overlay--center" onClick={closeVidModal}>
                     <div className="gal-modal gal-modal--video" onClick={(e) => e.stopPropagation()}>
-                        <button className="gal-close" onClick={closeVidModal} aria-label="Close">×</button>
+                        <button className="gal-close" onClick={closeVidModal} aria-label={t("close")}>
+                            ×
+                        </button>
                         <div className="gal-videoFrameWrap">
                             <iframe
                                 className="gal-videoFrame"
                                 src={`https://www.youtube.com/embed/${activeVid.id}?autoplay=1&rel=0`}
-                                title="YouTube video player"
+                                title={t("youtube_player")}
                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                                 allowFullScreen
                             />

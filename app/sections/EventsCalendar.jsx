@@ -4,8 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import { collection, onSnapshot, serverTimestamp, setDoc, doc } from "firebase/firestore";
 import { db } from "../lib/Firebase";
 import "./EventsCalendar.css";
-
-const WEEKDAY_LABELS = ["Lu", "Ma", "Mi", "Jo", "Vi", "Sâ", "Du"];
+import { useLang } from "../components/LanguageProvider";
+import { getLocale, makeT } from "../lib/i18n";
+import tr from "../translations/EventsCalendar.json";
 
 function getMondayIndex(jsDay) {
     return (jsDay + 6) % 7;
@@ -34,33 +35,20 @@ function normalizeDateToIso(input) {
     return v;
 }
 
-function formatDateBe(inputDate) {
-    const iso = normalizeDateToIso(inputDate);
-    const d = new Date(`${iso}T00:00:00`);
-    return new Intl.DateTimeFormat("fr-BE", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-    }).format(d);
-}
-
-function formatMonthRo(firstOfMonth) {
-    return firstOfMonth.toLocaleDateString("ro-RO", { month: "long", year: "numeric" });
-}
-
-function getEventAriaLabel(ev) {
-    if (!ev) return "Eveniment";
-    const parts = [ev.title || "Eveniment"];
-    if (ev.description) parts.push(ev.description);
-    if (ev.dateEvent) parts.push(ev.dateEvent);
-    return parts.join(" · ");
-}
-
 function isSameMonth(d1, d2) {
     return d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth();
 }
 
 export default function EventsCalendar() {
+    const { lang } = useLang();
+    const t = useMemo(() => makeT(tr, lang), [lang]);
+    const locale = useMemo(() => getLocale(lang), [lang]);
+
+    const weekdayLabels = useMemo(() => {
+        const map = tr?.[lang]?.weekday_labels || tr?.ro?.weekday_labels;
+        return Array.isArray(map) ? map : ["Lu", "Ma", "Mi", "Jo", "Vi", "Sâ", "Du"];
+    }, [lang]);
+
     const today = new Date();
     const todayIso = `${today.getFullYear()}-${pad2(today.getMonth() + 1)}-${pad2(today.getDate())}`;
     const startOfCurrentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -73,21 +61,19 @@ export default function EventsCalendar() {
         const unsub = onSnapshot(
             collection(db, "events"),
             (snap) => {
-                const list = snap.docs
-                    .map((d) => ({ ...d.data(), id: d.id }))
-                    .filter((e) => e && e.dateEvent);
+                const list = snap.docs.map((d) => ({ ...d.data(), id: d.id })).filter((e) => e && e.dateEvent);
                 setEvents(list);
                 setEventsLoading(false);
                 setEventsError("");
             },
             (err) => {
                 console.error(err);
-                setEventsError("Nu am putut încărca evenimentele.");
+                setEventsError(t("error_load_events"));
                 setEventsLoading(false);
             }
         );
         return () => unsub();
-    }, []);
+    }, [t]);
 
     const eventsSorted = useMemo(() => {
         const copy = Array.isArray(events) ? [...events] : [];
@@ -128,10 +114,7 @@ export default function EventsCalendar() {
     const [eventOpen, setEventOpen] = useState(false);
     const [selectedId, setSelectedId] = useState(null);
 
-    const selectedEvent = useMemo(
-        () => eventsSorted.find((e) => e.id === selectedId) ?? null,
-        [eventsSorted, selectedId]
-    );
+    const selectedEvent = useMemo(() => eventsSorted.find((e) => e.id === selectedId) ?? null, [eventsSorted, selectedId]);
 
     useEffect(() => {
         if (!eventsSorted.length) return;
@@ -176,7 +159,7 @@ export default function EventsCalendar() {
         const normalized = cleanEmail.toLowerCase();
 
         if (!isValidEmail(cleanEmail)) {
-            setError("Te rugăm să introduci un email valid.");
+            setError(t("email_invalid"));
             return;
         }
 
@@ -189,21 +172,39 @@ export default function EventsCalendar() {
             });
 
             setSuccess(true);
-            setSuccessText("Înscriere reușită ✓");
+            setSuccessText(t("subscribe_success_short"));
             setEmail("");
         } catch (err) {
             if (err?.code === "permission-denied") {
                 setSuccess(true);
-                setSuccessText("Ești deja abonat(ă) ✓");
+                setSuccessText(t("subscribe_already"));
                 setEmail("");
                 return;
             }
 
             console.error(err);
-            setError("A apărut o eroare. Încearcă din nou.");
+            setError(t("subscribe_error"));
         } finally {
             setSending(false);
         }
+    };
+
+    const formatDate = (inputDate) => {
+        const iso = normalizeDateToIso(inputDate);
+        const d = new Date(`${iso}T00:00:00`);
+        return new Intl.DateTimeFormat(locale, { day: "2-digit", month: "2-digit", year: "numeric" }).format(d);
+    };
+
+    const formatMonth = (firstOfMonth) => {
+        return firstOfMonth.toLocaleDateString(locale, { month: "long", year: "numeric" });
+    };
+
+    const getEventAriaLabel = (ev) => {
+        if (!ev) return t("event");
+        const parts = [ev.title || t("event")];
+        if (ev.description) parts.push(ev.description);
+        if (ev.dateEvent) parts.push(ev.dateEvent);
+        return parts.join(" · ");
     };
 
     const calendarCells = useMemo(() => {
@@ -250,34 +251,32 @@ export default function EventsCalendar() {
     const goPrevMonth = () => setMonth((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1));
     const goNextMonth = () => setMonth((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1));
 
-    const mapQuery = selectedEvent
-        ? encodeURIComponent([selectedEvent.place, selectedEvent.address].filter(Boolean).join(", "))
-        : "";
+    const mapQuery = selectedEvent ? encodeURIComponent([selectedEvent.place, selectedEvent.address].filter(Boolean).join(", ")) : "";
 
     return (
         <>
             <section id="evenimente" className="ec-section">
                 <div className="ec-content">
                     <div className="ec-header">
-                        <h2 className="ec-title">Evenimente</h2>
+                        <h2 className="ec-title">{t("title")}</h2>
                     </div>
 
-                    {eventsLoading && <div className="ec-inlineInfo">Se încarcă evenimentele...</div>}
+                    {eventsLoading && <div className="ec-inlineInfo">{t("loading_events")}</div>}
                     {eventsError && <div className="ec-inlineError">{eventsError}</div>}
 
                     <div className="ec-card">
                         <div className="ec-head">
-                            <button className="ec-navBtn" onClick={goPrevMonth} aria-label="Luna anterioară">
+                            <button className="ec-navBtn" onClick={goPrevMonth} aria-label={t("prev_month")}>
                                 ‹
                             </button>
-                            <div className="ec-month">{formatMonthRo(month)}</div>
-                            <button className="ec-navBtn" onClick={goNextMonth} aria-label="Luna următoare">
+                            <div className="ec-month">{formatMonth(month)}</div>
+                            <button className="ec-navBtn" onClick={goNextMonth} aria-label={t("next_month")}>
                                 ›
                             </button>
                         </div>
 
                         <div className="ec-weekdays">
-                            {WEEKDAY_LABELS.map((d) => (
+                            {weekdayLabels.map((d) => (
                                 <div key={d} className="ec-weekday">
                                     {d}
                                 </div>
@@ -300,7 +299,6 @@ export default function EventsCalendar() {
                                             .filter(Boolean)
                                             .join(" ")}
                                     >
-                                        {/* ✅ Ne pas afficher le numéro du jour s'il y a un événement */}
                                         {!hasEvent ? <div className="ec-dayBadge">{cell.day}</div> : null}
 
                                         {hasEvent ? (
@@ -311,13 +309,7 @@ export default function EventsCalendar() {
                                                 title={getEventAriaLabel(cell.event)}
                                                 aria-label={getEventAriaLabel(cell.event)}
                                             >
-                                                <img
-                                                    className="ec-eventBg"
-                                                    src={cell.event.image}
-                                                    alt="Event"
-                                                    loading="lazy"
-                                                    decoding="async"
-                                                />
+                                                <img className="ec-eventBg" src={cell.event.image} alt={t("event")} loading="lazy" decoding="async" />
                                             </button>
                                         ) : (
                                             <div className="ec-emptyBody" />
@@ -330,16 +322,16 @@ export default function EventsCalendar() {
 
                     <div className="nl-section">
                         <div className="nl-header">
-                            <h3 className="nl-subtitle">Newsletter</h3>
+                            <h3 className="nl-subtitle">{t("newsletter")}</h3>
                         </div>
 
                         <div className="nl-card">
-                            <p className="nl-description">Abonează-te și vei primi anunțuri când apar evenimente noi</p>
+                            <p className="nl-description">{t("newsletter_desc")}</p>
 
                             {success ? (
                                 <div className="nl-success">
-                                    <div className="nl-success-title">{successText || "Înscriere reușită ✓"}</div>
-                                    <div className="nl-success-text">Mulțumim! Vei primi următoarele evenimente pe email.</div>
+                                    <div className="nl-success-title">{successText || t("subscribe_success_short")}</div>
+                                    <div className="nl-success-text">{t("subscribe_success_long")}</div>
                                 </div>
                             ) : (
                                 <form className="nl-form" onSubmit={onSubscribe}>
@@ -351,12 +343,12 @@ export default function EventsCalendar() {
                                             type="email"
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
-                                            placeholder="nume@email.com"
+                                            placeholder={t("email_placeholder")}
                                             autoComplete="email"
                                             disabled={sending}
                                         />
                                         <button className="nl-button" type="submit" disabled={sending}>
-                                            {sending ? "Se trimite..." : "Abonează-te"}
+                                            {sending ? t("sending") : t("subscribe")}
                                         </button>
                                     </div>
                                 </form>
@@ -371,11 +363,11 @@ export default function EventsCalendar() {
                     <div className="ev-modal" onClick={(e) => e.stopPropagation()}>
                         <header className="ev-header">
                             <div className="ev-headText">
-                                <h2 className="ev-title">{selectedEvent.title || "Eveniment"}</h2>
+                                <h2 className="ev-title">{selectedEvent.title || t("event")}</h2>
                                 {selectedEvent.description ? <p className="ev-desc">{selectedEvent.description}</p> : null}
                             </div>
 
-                            <button type="button" className="ev-close" onClick={closeEvent} aria-label="Închide">
+                            <button type="button" className="ev-close" onClick={closeEvent} aria-label={t("close")}>
                                 ×
                             </button>
                         </header>
@@ -384,24 +376,24 @@ export default function EventsCalendar() {
                             <div className="ev-layout">
                                 <div className="ev-media">
                                     <div className="ev-heroImgWrap">
-                                        <img className="ev-heroImg" src={selectedEvent.image} alt="Event" />
+                                        <img className="ev-heroImg" src={selectedEvent.image} alt={t("event")} />
                                     </div>
                                 </div>
 
                                 <div className="ev-details">
                                     <div className="ev-infoGrid">
                                         <div className="ev-infoCard">
-                                            <div className="ev-infoLabel">Ora</div>
+                                            <div className="ev-infoLabel">{t("time")}</div>
                                             <div className="ev-infoValue">{selectedEvent.time}</div>
                                         </div>
 
                                         <div className="ev-infoCard">
-                                            <div className="ev-infoLabel">Data</div>
-                                            <div className="ev-infoValue">{formatDateBe(selectedEvent.dateEvent)}</div>
+                                            <div className="ev-infoLabel">{t("date")}</div>
+                                            <div className="ev-infoValue">{formatDate(selectedEvent.dateEvent)}</div>
                                         </div>
 
                                         <div className="ev-infoCard ev-infoCard--wide">
-                                            <div className="ev-infoLabel">Locație</div>
+                                            <div className="ev-infoLabel">{t("location")}</div>
                                             <div className="ev-infoValue">
                                                 {selectedEvent.place}
                                                 <span className="ev-infoSub">{selectedEvent.address}</span>
@@ -412,7 +404,7 @@ export default function EventsCalendar() {
                                     <div className="ev-mapCard">
                                         <iframe
                                             className="ev-map"
-                                            title="Locația evenimentului"
+                                            title={t("map_title")}
                                             loading="lazy"
                                             allowFullScreen
                                             referrerPolicy="no-referrer-when-downgrade"

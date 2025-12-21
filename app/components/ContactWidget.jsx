@@ -1,13 +1,18 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import emailjs from "@emailjs/browser";
 import "./ContactWidget.css";
+import { useLang } from "./LanguageProvider";
+import { makeT } from "../lib/i18n";
+import tr from "../translations/ContactWidget.json";
 
-const isValidEmail = (value) =>
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
+const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
 
 export default function ContactWidget() {
+    const { lang } = useLang();
+    const t = useMemo(() => makeT(tr, lang), [lang]);
+
     const [open, setOpen] = useState(false);
     const [pulse, setPulse] = useState(false);
     const [compact, setCompact] = useState(false);
@@ -79,9 +84,7 @@ export default function ContactWidget() {
         if (typeof window === "undefined") return;
 
         const getFooter = () =>
-            document.querySelector("#bethel-footer") ||
-            document.querySelector("footer.footer") ||
-            document.querySelector("footer");
+            document.querySelector("#bethel-footer") || document.querySelector("footer.footer") || document.querySelector("footer");
 
         const computeCompact = () => {
             const footer = getFooter();
@@ -121,14 +124,10 @@ export default function ContactWidget() {
     const showEmailError = triedSubmit || touched.email;
     const showMessageError = triedSubmit || touched.message;
 
-    const nameError = showNameError && !cleanName ? "Numele este obligatoriu." : "";
+    const nameError = showNameError && !cleanName ? t("name_required") : "";
     const emailError =
-        showEmailError && !cleanEmail
-            ? "Email este obligatoriu."
-            : showEmailError && cleanEmail && !emailOk
-                ? "Te rugăm să introduci un email valid."
-                : "";
-    const messageError = showMessageError && !cleanMessage ? "Mesajul este obligatoriu." : "";
+        showEmailError && !cleanEmail ? t("email_required") : showEmailError && cleanEmail && !emailOk ? t("email_invalid") : "";
+    const messageError = showMessageError && !cleanMessage ? t("message_required") : "";
 
     const onPhoneChange = (e) => {
         const digitsOnly = e.target.value.replace(/\D/g, "");
@@ -136,19 +135,7 @@ export default function ContactWidget() {
     };
 
     const onPhoneKeyDown = (e) => {
-        const allowed = [
-            "Backspace",
-            "Delete",
-            "Tab",
-            "Enter",
-            "Escape",
-            "ArrowLeft",
-            "ArrowRight",
-            "ArrowUp",
-            "ArrowDown",
-            "Home",
-            "End",
-        ];
+        const allowed = ["Backspace", "Delete", "Tab", "Enter", "Escape", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"];
         if (allowed.includes(e.key)) return;
 
         if ((e.ctrlKey || e.metaKey) && ["a", "c", "v", "x"].includes(e.key.toLowerCase())) return;
@@ -191,7 +178,7 @@ export default function ContactWidget() {
             }, 1800);
         } catch (err) {
             console.error(err);
-            alert("Eroare la trimitere. Încearcă din nou.");
+            alert(t("send_error_alert"));
         } finally {
             setSending(false);
         }
@@ -203,25 +190,27 @@ export default function ContactWidget() {
                 type="button"
                 className={`cw-fab ${pulse ? "cw-fab--pulse" : ""} ${compact ? "cw-fab--compact" : ""}`}
                 onClick={openWidget}
-                aria-label="Ai o întrebare?"
-                title="Ai o întrebare?"
+                aria-label={t("fab_aria")}
+                title={t("fab_title")}
             >
-                <span className="cw-fab-text">Ai o întrebare</span>
-                <span className="cw-fabIcon" aria-hidden="true">?</span>
+                <span className="cw-fab-text">{t("fab_text")}</span>
+                <span className="cw-fabIcon" aria-hidden="true">
+                    ?
+                </span>
             </button>
 
             {open && (
                 <div className="cw-overlay" onClick={close}>
                     <div className="cw-modal" onClick={(e) => e.stopPropagation()}>
                         <header className="cw-header">
-                            <h2>Trimite un mesaj</h2>
+                            <h2>{t("modal_title")}</h2>
                             <button
                                 type="button"
                                 className="cw-close"
                                 onClick={close}
                                 disabled={sending}
-                                aria-label="Închide"
-                                title="Închide"
+                                aria-label={t("close")}
+                                title={t("close")}
                             >
                                 ×
                             </button>
@@ -230,18 +219,18 @@ export default function ContactWidget() {
                         <div className="cw-body">
                             {success ? (
                                 <div className="cw-success">
-                                    <div className="cw-success-title">Mesaj trimis ✅</div>
-                                    <div className="cw-success-sub">Vă vom răspunde cât mai curând.</div>
+                                    <div className="cw-success-title">{t("sent_title")}</div>
+                                    <div className="cw-success-sub">{t("sent_subtitle")}</div>
                                 </div>
                             ) : (
                                 <form className="cw-form" onSubmit={onSend} noValidate>
                                     <label className="cw-field">
-                                        <span>Nume *</span>
+                                        <span>{t("name_label")}</span>
                                         <input
                                             value={name}
                                             onChange={(e) => setName(e.target.value)}
-                                            onBlur={() => setTouched((t) => ({ ...t, name: true }))}
-                                            placeholder="Ex: Andrei Popescu"
+                                            onBlur={() => setTouched((tt) => ({ ...tt, name: true }))}
+                                            placeholder={t("name_placeholder")}
                                             autoComplete="name"
                                             disabled={sending}
                                             required
@@ -251,12 +240,12 @@ export default function ContactWidget() {
                                     </label>
 
                                     <label className="cw-field">
-                                        <span>Email *</span>
+                                        <span>{t("email_label")}</span>
                                         <input
                                             value={fromEmail}
                                             onChange={(e) => setFromEmail(e.target.value)}
-                                            onBlur={() => setTouched((t) => ({ ...t, email: true }))}
-                                            placeholder="Ex: andrei@email.com"
+                                            onBlur={() => setTouched((tt) => ({ ...tt, email: true }))}
+                                            placeholder={t("email_placeholder")}
                                             autoComplete="email"
                                             inputMode="email"
                                             disabled={sending}
@@ -267,7 +256,7 @@ export default function ContactWidget() {
                                     </label>
 
                                     <label className="cw-field">
-                                        <span>Telefon (opțional)</span>
+                                        <span>{t("phone_label")}</span>
                                         <input
                                             value={phone}
                                             onChange={onPhoneChange}
@@ -278,7 +267,7 @@ export default function ContactWidget() {
                                                 const digitsOnly = String(text || "").replace(/\D/g, "");
                                                 setPhone((prev) => (prev + digitsOnly).slice(0, 20));
                                             }}
-                                            placeholder="Ex: 0470123456"
+                                            placeholder={t("phone_placeholder")}
                                             autoComplete="tel"
                                             inputMode="numeric"
                                             pattern="\d*"
@@ -288,12 +277,12 @@ export default function ContactWidget() {
                                     </label>
 
                                     <label className="cw-field">
-                                        <span>Mesaj *</span>
+                                        <span>{t("message_label")}</span>
                                         <textarea
                                             value={message}
                                             onChange={(e) => setMessage(e.target.value)}
-                                            onBlur={() => setTouched((t) => ({ ...t, message: true }))}
-                                            placeholder="Scrie mesajul tău aici..."
+                                            onBlur={() => setTouched((tt) => ({ ...tt, message: true }))}
+                                            placeholder={t("message_placeholder")}
                                             rows={5}
                                             required
                                             disabled={sending}
@@ -304,7 +293,7 @@ export default function ContactWidget() {
 
                                     <div className="cw-actions">
                                         <button className="cw-send" type="submit" disabled={sending}>
-                                            {sending ? "Se trimite..." : "Trimite mesajul"}
+                                            {sending ? t("sending") : t("send")}
                                         </button>
                                     </div>
                                 </form>
