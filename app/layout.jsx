@@ -1,6 +1,7 @@
 import "./globals.css";
 import VisitTracker from "./components/VisitTracker";
 import LanguageProvider from "./components/LanguageProvider";
+import IosViewportFix from "./components/IosViewportFix";
 import { cookies, headers } from "next/headers";
 
 const SITE_TITLE = "Bethel Dworp";
@@ -11,6 +12,12 @@ export const metadata = {
     title: SITE_TITLE,
     description: "Biserica Betel Dworp – Comunitate creștină penticostală",
     icons: { icon: "/icon.png" },
+};
+
+export const viewport = {
+    width: "device-width",
+    initialScale: 1,
+    viewportFit: "cover",
 };
 
 function normalizeLang(v) {
@@ -44,15 +51,11 @@ export default async function RootLayout({ children }) {
         <html lang={lang} suppressHydrationWarning>
         <head>
             <title>{SITE_TITLE}</title>
-            <link
-                rel="preload"
-                as="image"
-                href="/images/drone.jpg"
-                fetchPriority="high"
-            />
+            <link rel="preload" as="image" href="/images/drone.jpg" fetchPriority="high" />
         </head>
         <body>
         <LanguageProvider initialLang={lang}>
+            <IosViewportFix />
             <VisitTracker />
             {children}
         </LanguageProvider>
