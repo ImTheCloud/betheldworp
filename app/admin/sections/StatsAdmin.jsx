@@ -2,7 +2,7 @@
 
 import "./StatsAdmin.css";
 import { useEffect, useMemo, useState } from "react";
-import { collectionGroup, getDocs } from "firebase/firestore";
+import { collection, collectionGroup, getDocs } from "firebase/firestore";
 import { db } from "../../lib/Firebase";
 
 function s(v) {
@@ -63,6 +63,14 @@ function toPercent(count, total) {
     return `${Math.round(p * 10) / 10}%`;
 }
 
+function normalizeDayKey(raw) {
+    const x = s(raw).trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(x)) return x;
+    const m = x.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+    if (m) return `${m[3]}-${m[2]}-${m[1]}`;
+    return "0000-00-00";
+}
+
 function brusselsDayKey(date = new Date()) {
     const parts = new Intl.DateTimeFormat("en-CA", {
         timeZone: "Europe/Brussels",
@@ -95,11 +103,13 @@ function buildLastNDaysKeys(n, endKey) {
 }
 
 function getDayFromSnap(snap, data) {
-    const day = s(data?.day).trim();
-    if (/^\d{4}-\d{2}-\d{2}$/.test(day)) return day;
+    const day = normalizeDayKey(data?.day);
+    if (day !== "0000-00-00") return day;
+
     const path = snap?.ref?.path || "";
-    const m = path.match(/visits\/(day_\d{4}-\d{2}-\d{2})\/visitors\//);
-    if (m?.[1]) return m[1].slice(4);
+    const m = path.match(/visits\/day_(\d{4}-\d{2}-\d{2}|\d{2}-\d{2}-\d{4})\/visitors\//);
+    if (m?.[1]) return normalizeDayKey(m[1]);
+
     return "0000-00-00";
 }
 
@@ -120,7 +130,7 @@ function hsl(i) {
     return `hsl(${hue} 70% 45%)`;
 }
 
-function DonutWithLegend({ title, rows, total, search, onSearch }) {
+function DonutWithLegend({ title, rows, total, search, onSearch, centerLabel }) {
     const base = rows.filter((r) => r.count > 0);
 
     const topN = 10;
@@ -190,7 +200,7 @@ function DonutWithLegend({ title, rows, total, search, onSearch }) {
                             {total || 0}
                         </text>
                         <text x="60" y="74" textAnchor="middle" className="statsDonutCenterSmall">
-                            vizite
+                            {centerLabel || "vizite"}
                         </text>
                     </svg>
                 </div>
@@ -198,7 +208,12 @@ function DonutWithLegend({ title, rows, total, search, onSearch }) {
                 <div className="statsLegend">
                     <label className="statsSearch">
                         <span className="statsSearchLabel">Caută</span>
-                        <input className="statsSearchInput" value={search} onChange={(e) => onSearch(e.target.value)} placeholder="caută…" />
+                        <input
+                            className="statsSearchInput"
+                            value={search}
+                            onChange={(e) => onSearch(e.target.value)}
+                            placeholder="caută…"
+                        />
                     </label>
 
                     <div className="statsLegendHead">
@@ -215,10 +230,12 @@ function DonutWithLegend({ title, rows, total, search, onSearch }) {
                                     <div key={r2.key} className="statsLegendRow">
                                         <span className="statsLegendDot" style={{ background: color }} />
                                         <span className="statsLegendName" title={r2.label}>
-                                            {r2.label}
-                                        </span>
+                      {r2.label}
+                    </span>
                                         <span className="statsLegendCount statsRight">{r2.count}</span>
-                                        <span className="statsLegendPct statsRight">{toPercent(r2.count, Math.max(1, total))}</span>
+                                        <span className="statsLegendPct statsRight">
+                      {toPercent(r2.count, Math.max(1, total))}
+                    </span>
                                     </div>
                                 );
                             })}
@@ -237,11 +254,13 @@ export default function StatsAdmin() {
     const [error, setError] = useState("");
 
     const [rangeMode, setRangeMode] = useState("all");
+    const [source, setSource] = useState("visits");
     const [mode, setMode] = useState("cities");
     const [search, setSearch] = useState("");
 
     const todayKey = useMemo(() => brusselsDayKey(), []);
-    const [allVisits, setAllVisits] = useState([]);
+    const [allDailyVisits, setAllDailyVisits] = useState([]);
+    const [allUniqueVisitors, setAllUniqueVisitors] = useState([]);
 
     useEffect(() => {
         let alive = true;
@@ -251,12 +270,16 @@ export default function StatsAdmin() {
                 setLoading(true);
                 setError("");
 
-                const snap = await getDocs(collectionGroup(db, "visitors"));
-                const out = [];
-                snap.forEach((docSnap) => {
+                const [dailySnap, globalSnap] = await Promise.all([
+                    getDocs(collectionGroup(db, "visitors")),
+                    getDocs(collection(db, "visits_global")),
+                ]);
+
+                const daily = [];
+                dailySnap.forEach((docSnap) => {
                     const d = docSnap.data() || {};
                     const day = getDayFromSnap(docSnap, d);
-                    out.push({
+                    daily.push({
                         day,
                         country: clamp(d.country, 60),
                         city: clamp(d.city, 60),
@@ -265,8 +288,21 @@ export default function StatsAdmin() {
                     });
                 });
 
+                const unique = [];
+                globalSnap.forEach((docSnap) => {
+                    const d = docSnap.data() || {};
+                    unique.push({
+                        day: normalizeDayKey(d.firstDay),
+                        country: clamp(d.country, 60),
+                        city: clamp(d.city, 60),
+                        language: normalizeLang(d.language),
+                        deviceType: normalizeDevice(d.deviceType),
+                    });
+                });
+
                 if (!alive) return;
-                setAllVisits(out);
+                setAllDailyVisits(daily);
+                setAllUniqueVisitors(unique);
                 setLoading(false);
             } catch (e) {
                 if (!alive) return;
@@ -289,10 +325,12 @@ export default function StatsAdmin() {
         return new Set(buildLastNDaysKeys(n, todayKey));
     }, [rangeMode, todayKey]);
 
+    const raw = source === "unique" ? allUniqueVisitors : allDailyVisits;
+
     const scoped = useMemo(() => {
-        if (!rangeKeys) return allVisits;
-        return allVisits.filter((r) => rangeKeys.has(r.day));
-    }, [allVisits, rangeKeys]);
+        if (!rangeKeys) return raw;
+        return raw.filter((r) => rangeKeys.has(r.day));
+    }, [raw, rangeKeys]);
 
     const total = scoped.length;
 
@@ -358,11 +396,12 @@ export default function StatsAdmin() {
     }, [agg, mode]);
 
     const donutTitle = useMemo(() => {
-        if (mode === "countries") return "Distribuție pe țări";
-        if (mode === "cities") return "Distribuție pe orașe";
-        if (mode === "languages") return "Distribuție pe limbi";
-        return "Distribuție pe dispozitive";
-    }, [mode]);
+        const prefix = source === "unique" ? "Vizitatori unici" : "Vizite";
+        if (mode === "countries") return `${prefix} • Distribuție pe țări`;
+        if (mode === "cities") return `${prefix} • Distribuție pe orașe`;
+        if (mode === "languages") return `${prefix} • Distribuție pe limbi`;
+        return `${prefix} • Distribuție pe dispozitive`;
+    }, [mode, source]);
 
     const modeTabs = [
         { id: "cities", label: "Orașe" },
@@ -371,13 +410,33 @@ export default function StatsAdmin() {
         { id: "devices", label: "Dispozitive" },
     ];
 
+    const centerLabel = source === "unique" ? "vizitatori" : "vizite";
+
     return (
         <div className="adminCard">
             <div className="statsTop">
                 <h2 className="adminTitle">Statistici</h2>
 
                 <div className="statsTopRight">
-                    <select className="statsSelect" value={rangeMode} onChange={(e) => setRangeMode(e.target.value)} aria-label="Selectează perioada">
+                    <select
+                        className="statsSelect"
+                        value={source}
+                        onChange={(e) => {
+                            setSource(e.target.value);
+                            setSearch("");
+                        }}
+                        aria-label="Selectează sursa"
+                    >
+                        <option value="visits">Vizite (toate)</option>
+                        <option value="unique">Vizitatori unici</option>
+                    </select>
+
+                    <select
+                        className="statsSelect"
+                        value={rangeMode}
+                        onChange={(e) => setRangeMode(e.target.value)}
+                        aria-label="Selectează perioada"
+                    >
                         <option value="all">Toate</option>
                         <option value="today">Azi</option>
                         <option value="7">Ultimele 7 zile</option>
@@ -411,7 +470,14 @@ export default function StatsAdmin() {
                         ))}
                     </div>
 
-                    <DonutWithLegend title={donutTitle} rows={rowsForMode} total={total} search={search} onSearch={setSearch} />
+                    <DonutWithLegend
+                        title={donutTitle}
+                        rows={rowsForMode}
+                        total={total}
+                        search={search}
+                        onSearch={setSearch}
+                        centerLabel={centerLabel}
+                    />
                 </div>
             )}
         </div>
