@@ -206,6 +206,7 @@
 
 .program-card--clickable .program-cardFace {
     padding-left: 18px;
+    padding-right: 56px;
 }
 
 .program-cardFront {
@@ -239,10 +240,6 @@
     font-size: 18px;
 }
 
-.program-flagStatic {
-    pointer-events: none;
-}
-
 .program-day {
     font-size: 11px;
     font-weight: 800;
@@ -250,7 +247,6 @@
     letter-spacing: 0.1em;
     color: rgba(10, 42, 67, 0.70);
     margin-bottom: 10px;
-    padding-right: 44px;
 }
 
 .program-activity {
@@ -296,12 +292,6 @@
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    padding: 14px 16px;
-    padding-right: 44px;
-}
-
-.program-card--clickable .program-cardBackBodyOnly {
-    padding-left: 18px;
 }
 
 .program-cardBackText {
@@ -431,6 +421,7 @@
 
     .program-card--clickable .program-cardFace {
         padding-left: 16px;
+        padding-right: 40px;
     }
 
     .program-card {
@@ -461,7 +452,6 @@
     .program-day {
         font-size: 10px;
         margin-bottom: 8px;
-        padding-right: 30px;
     }
 
     .program-activity {
@@ -485,15 +475,6 @@
 
     .program-verse-highlight::before {
         font-size: 80px;
-    }
-
-    .program-cardBackBodyOnly {
-        padding: 12px 12px;
-        padding-right: 30px;
-    }
-
-    .program-card--clickable .program-cardBackBodyOnly {
-        padding-left: 16px;
     }
 
     .program-cardBackText {
