@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect } from "react";
-import { doc, setDoc } from "firebase/firestore";
-import { db } from "../lib/Firebase";
 
 const VID_KEY = "bethel_vid";
 
@@ -124,9 +122,7 @@ function getOrCreateVisitorIdSafe() {
         }
     } catch {}
 
-    if (!id) {
-        id = `${Date.now()}_${Math.random().toString(16).slice(2)}`;
-    }
+    if (!id) id = `${Date.now()}_${Math.random().toString(16).slice(2)}`;
 
     memoryVisitorId = id;
     safeStorageSet(VID_KEY, id);
@@ -195,9 +191,15 @@ export default function VisitTracker() {
 
         (async () => {
             try {
+                const [{ doc, setDoc }, { db }] = await Promise.all([
+                    import("firebase/firestore"),
+                    import("../lib/Firebase"),
+                ]);
+
+                if (cancelled || !db) return;
+
                 const day = getBrusselsDayKeySafe();
                 const timeHM = getBrusselsTimeHMSafe();
-
                 const visitorId = getOrCreateVisitorIdSafe();
                 const language = getBrowserLanguageSafe();
                 const dt = deviceTypeSafe();
@@ -221,9 +223,7 @@ export default function VisitTracker() {
                     try {
                         await setDoc(globalRef, globalPayload);
                         safeStorageSet(globalDoneKey, "1");
-                    } catch (e) {
-                        console.error("VisitTracker global write failed:", e);
-                    }
+                    } catch {}
                 }
 
                 const doneKey = `bethel_visit_done_${day}`;
@@ -266,14 +266,10 @@ export default function VisitTracker() {
 
                 try {
                     await setDoc(visitorRef, payload);
-                } catch (e) {
-                    console.error("VisitTracker day write failed:", e);
-                }
+                } catch {}
 
                 safeStorageSet(doneKey, "1");
-            } catch (e) {
-                console.error("VisitTracker fatal:", e);
-            }
+            } catch {}
         })();
 
         return () => {
