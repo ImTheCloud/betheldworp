@@ -87,7 +87,7 @@
     border-radius: 20px;
     color: #0a2a43;
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: background 0.35s ease, border-color 0.35s ease, transform 0.35s ease, box-shadow 0.35s ease;
     opacity: 0;
     transform: translateY(40px);
 }
@@ -106,6 +106,7 @@
     opacity: 0.95;
     margin-bottom: 12px;
     color: #0a2a43;
+    min-height: 26px;
 }
 
 .hero-verseText {
@@ -115,6 +116,41 @@
     font-weight: 800;
     font-style: italic;
     color: #0a2a43;
+    min-height: calc(1.6em * 2);
+}
+
+.hero-verseText.is-skeleton {
+    position: relative;
+    overflow: hidden;
+    color: transparent;
+    user-select: none;
+}
+
+.hero-verseText.is-skeleton::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0.15em;
+    height: calc(1.6em * 2);
+    border-radius: 12px;
+    background: linear-gradient(
+            90deg,
+            rgba(10, 42, 67, 0.14) 0%,
+            rgba(10, 42, 67, 0.28) 35%,
+            rgba(10, 42, 67, 0.14) 70%
+    );
+    background-size: 220% 100%;
+    animation: skeletonShimmer 1.2s ease-in-out infinite;
+}
+
+@keyframes skeletonShimmer {
+    0% { background-position: 0% 0%; }
+    100% { background-position: 100% 0%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hero-verseText.is-skeleton::before { animation: none; }
 }
 
 @keyframes fadeInUp {
@@ -139,12 +175,12 @@
     .hero-subtitle { margin-top: -22px; }
     .hero-verse { padding: 28px 32px; }
     .hero-verseLabel { font-size: 16px; }
-    .hero-verseText { font-size: 18px; }
+    .hero-verseText { font-size: 18px; min-height: calc(1.6em * 2); }
 }
 
 @media (max-width: 480px) {
     .hero-content { padding: 20px; gap: 24px; }
     .hero-verse { padding: 24px 26px; border-radius: 18px; }
     .hero-verseLabel { font-size: 15px; }
-    .hero-verseText { font-size: 17px; }
+    .hero-verseText { font-size: 17px; min-height: calc(1.6em * 2); }
 }
