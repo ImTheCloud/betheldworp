@@ -137,7 +137,8 @@
     animation: cw-overlayFade 0.28s ease;
     overscroll-behavior: contain;
     touch-action: none;
-    height: calc(var(--cw-vh, 1vh) * 100);
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
 }
 
 @keyframes cw-overlayFade {

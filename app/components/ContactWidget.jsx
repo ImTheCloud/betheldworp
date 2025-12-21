@@ -155,7 +155,9 @@ export default function ContactWidget() {
         if (typeof window === "undefined") return;
 
         const getFooter = () =>
-            document.querySelector("#bethel-footer") || document.querySelector("footer.footer") || document.querySelector("footer");
+            document.querySelector("#bethel-footer") ||
+            document.querySelector("footer.footer") ||
+            document.querySelector("footer");
 
         const computeCompact = () => {
             const footer = getFooter();
@@ -197,7 +199,11 @@ export default function ContactWidget() {
 
     const nameError = showNameError && !cleanName ? t("name_required") : "";
     const emailError =
-        showEmailError && !cleanEmail ? t("email_required") : showEmailError && cleanEmail && !emailOk ? t("email_invalid") : "";
+        showEmailError && !cleanEmail
+            ? t("email_required")
+            : showEmailError && cleanEmail && !emailOk
+                ? t("email_invalid")
+                : "";
     const messageError = showMessageError && !cleanMessage ? t("message_required") : "";
 
     const onPhoneChange = (e) => {
@@ -206,7 +212,19 @@ export default function ContactWidget() {
     };
 
     const onPhoneKeyDown = (e) => {
-        const allowed = ["Backspace", "Delete", "Tab", "Enter", "Escape", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"];
+        const allowed = [
+            "Backspace",
+            "Delete",
+            "Tab",
+            "Enter",
+            "Escape",
+            "ArrowLeft",
+            "ArrowRight",
+            "ArrowUp",
+            "ArrowDown",
+            "Home",
+            "End",
+        ];
         if (allowed.includes(e.key)) return;
         if ((e.ctrlKey || e.metaKey) && ["a", "c", "v", "x"].includes(e.key.toLowerCase())) return;
         if (!/^\d$/.test(e.key)) e.preventDefault();
