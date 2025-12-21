@@ -89,7 +89,7 @@ const DEFAULT_NEW = {
         'Pentru biserică, este o zi specială: va fi o zi de post până la aproximativ 16h. \n' +
         'De la 10:00 până la 12:30 va fi Cina Domnului în cadrul slujbei : Făcând acest lucru, ne amintim de fiecare dată de sacrificiul pe care Domnul Isus Hristos l-a făcut pe crucea de la Golgota, după aceea urmează o pauză până la 13:30, apoi reluăm programul bisericii până la 16:00. \n' +
         "Programul de seară de la 18h este anulat.",
-    image: "/images/events/cina.png",
+    image: "/images/events/supper.jpg",
     time: "10:00 - 12:00",
     place: "Biserica Penticostala BETHEL Dworp",
     address: "Alsembergsesteenweg 572, 1653 Beersel",
