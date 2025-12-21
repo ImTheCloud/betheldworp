@@ -156,9 +156,11 @@
 }
 
 .langBtnChev {
-    font-size: 12px;
-    opacity: 0.75;
-    color: rgba(10, 42, 67, 0.85);
+    font-size: 16px;
+    line-height: 1;
+    opacity: 0.85;
+    color: rgba(10, 42, 67, 0.9);
+    transform: translateY(1px);
 }
 
 .langBtn.is-open {
