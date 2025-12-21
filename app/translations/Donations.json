@@ -1,7 +1,6 @@
 {
   "ro": {
     "title": "Donații",
-    "intro": "Susține lucrarea bisericii și proiectele noastre prin donații",
     "beneficiary": "Beneficiar",
     "iban": "IBAN",
     "copy_iban": "Copiază IBAN",
@@ -23,7 +22,6 @@
   },
   "fr": {
     "title": "Dons",
-    "intro": "Soutenez l’œuvre de l’église et nos projets par vos dons",
     "beneficiary": "Bénéficiaire",
     "iban": "IBAN",
     "copy_iban": "Copier l’IBAN",
@@ -45,7 +43,6 @@
   },
   "nl": {
     "title": "Donaties",
-    "intro": "Steun het werk van de kerk en onze projecten met donaties",
     "beneficiary": "Begunstigde",
     "iban": "IBAN",
     "copy_iban": "IBAN kopiëren",
@@ -67,7 +64,6 @@
   },
   "en": {
     "title": "Donations",
-    "intro": "Support the church’s work and our projects through donations",
     "beneficiary": "Beneficiary",
     "iban": "IBAN",
     "copy_iban": "Copy IBAN",
