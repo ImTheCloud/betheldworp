@@ -152,7 +152,6 @@
     cursor: pointer;
 }
 
-/* ✅ jours hors mois */
 .ec-cell.is-outside {
     background: rgba(10, 42, 67, 0.02);
     border-color: rgba(10, 42, 67, 0.05);
@@ -163,7 +162,7 @@
     position: absolute;
     inset: 0;
     background: rgba(255, 255, 255, 0.35);
-    pointer-events: none; /* IMPORTANT: ne bloque pas le clic */
+    pointer-events: none;
     z-index: 2;
 }
 
@@ -175,7 +174,6 @@
     filter: saturate(0.9) brightness(0.92);
 }
 
-/* badge jour (toujours visible) */
 .ec-dayBadge {
     position: absolute;
     top: 10px;
@@ -234,7 +232,6 @@
     transform: scale(1.08);
 }
 
-/* newsletter */
 .nl-section { margin-top: 46px; }
 .nl-header { margin-bottom: 24px; }
 
@@ -368,7 +365,6 @@
     line-height: 1.5;
 }
 
-/* modal */
 .ev-overlay {
     position: fixed;
     inset: 0;
