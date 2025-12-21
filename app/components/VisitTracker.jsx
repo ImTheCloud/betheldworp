@@ -6,19 +6,36 @@ import { db } from "../lib/Firebase";
 
 const VID_KEY = "bethel_vid";
 
-function getBrusselsDayKey() {
+function getBrusselsParts() {
     const parts = new Intl.DateTimeFormat("en-CA", {
         timeZone: "Europe/Brussels",
         year: "numeric",
         month: "2-digit",
         day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
     }).formatToParts(new Date());
 
-    const y = parts.find((p) => p.type === "year")?.value ?? "0000";
-    const m = parts.find((p) => p.type === "month")?.value ?? "00";
-    const d = parts.find((p) => p.type === "day")?.value ?? "00";
+    const get = (t, fallback) => parts.find((p) => p.type === t)?.value ?? fallback;
 
+    return {
+        y: get("year", "0000"),
+        m: get("month", "00"),
+        d: get("day", "00"),
+        hh: get("hour", "00"),
+        mm: get("minute", "00"),
+    };
+}
+
+function getBrusselsDayKey() {
+    const { d, m, y } = getBrusselsParts();
     return `${d}-${m}-${y}`;
+}
+
+function getBrusselsTimeHM() {
+    const { hh, mm } = getBrusselsParts();
+    return `${hh}:${mm}`;
 }
 
 function deviceType() {
@@ -140,15 +157,42 @@ async function getGeoClientSideRobust(ms = 900) {
 export default function VisitTracker() {
     useEffect(() => {
         const day = getBrusselsDayKey();
-        const doneKey = `bethel_visit_done_${day}`;
-        if (safeStorageGet(doneKey) === "1") return;
+        const timeHM = getBrusselsTimeHM();
 
         (async () => {
             const visitorId = getOrCreateVisitorId();
+            const language = getBrowserLanguage();
+            const dt = deviceType();
+
+            const globalDoneKey = `bethel_global_done_${visitorId}`;
+
+            if (safeStorageGet(globalDoneKey) !== "1") {
+                const geo = await getGeoClientSideRobust(900);
+
+                const globalRef = doc(db, "visits_global", visitorId);
+                const globalPayload = {
+                    visitorId,
+                    firstDay: day,
+                    firstTimeHM: timeHM,
+                    deviceType: dt,
+                    language,
+                    country: geo.country,
+                    city: geo.city,
+                };
+
+                try {
+                    await setDoc(globalRef, globalPayload);
+                    safeStorageSet(globalDoneKey, "1");
+                } catch (e) {
+                    console.error("VisitTracker global write failed:", e);
+                }
+            }
+
+            const doneKey = `bethel_visit_done_${day}`;
+            if (safeStorageGet(doneKey) === "1") return;
+
             const payloadKey = `bethel_visit_payload_${day}`;
             const saved = readJsonSafe(payloadKey);
-
-            const language = getBrowserLanguage();
 
             let payload = null;
 
@@ -156,7 +200,8 @@ export default function VisitTracker() {
                 payload = {
                     visitorId,
                     day,
-                    deviceType: saved.deviceType || deviceType(),
+                    timeHM: saved.timeHM || timeHM,
+                    deviceType: saved.deviceType || dt,
                     language: saved.language || language,
                     country: saved.country || "Unknown",
                     city: saved.city || "Unknown",
@@ -167,7 +212,8 @@ export default function VisitTracker() {
                 payload = {
                     visitorId,
                     day,
-                    deviceType: deviceType(),
+                    timeHM,
+                    deviceType: dt,
                     language,
                     country: geo.country,
                     city: geo.city,
@@ -181,13 +227,11 @@ export default function VisitTracker() {
             try {
                 await setDoc(visitorRef, payload);
             } catch (e) {
-                if (process.env.NODE_ENV !== "production") console.error("VisitTracker write failed:", e);
+                console.error("VisitTracker day write failed:", e);
             }
 
             safeStorageSet(doneKey, "1");
-        })().catch((e) => {
-            if (process.env.NODE_ENV !== "production") console.error("VisitTracker fatal:", e);
-        });
+        })().catch((e) => console.error("VisitTracker fatal:", e));
     }, []);
 
     return null;
