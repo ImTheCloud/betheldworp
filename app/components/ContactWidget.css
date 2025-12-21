@@ -137,6 +137,7 @@
     animation: cw-overlayFade 0.28s ease;
     overscroll-behavior: contain;
     touch-action: none;
+    height: calc(var(--cw-vh, 1vh) * 100);
 }
 
 @keyframes cw-overlayFade {
@@ -151,12 +152,13 @@
     border: 1px solid rgba(10, 42, 67, 0.10);
     box-shadow: 0 46px 160px rgba(6, 24, 50, 0.48), 0 2px 0 rgba(255, 255, 255, 0.7) inset;
     animation: cw-modalEnter 0.38s cubic-bezier(.2,.8,.2,1);
-    max-height: 86vh;
+    max-height: calc(var(--cw-vh, 1vh) * 86);
     display: flex;
     flex-direction: column;
     overflow: hidden;
     overscroll-behavior: contain;
     touch-action: pan-y;
+    transform: translateZ(0);
 }
 
 @keyframes cw-modalEnter {
@@ -242,13 +244,14 @@
     box-sizing: border-box;
     margin-top: 8px;
     padding: 12px 12px;
-    font-size: 15px;
+    font-size: 16px;
     border-radius: 14px;
     border: 1px solid rgba(10, 42, 67, 0.16);
     background: rgba(255, 255, 255, 0.96);
     outline: none;
     color: rgba(10, 42, 67, 0.92);
     transition: box-shadow 0.18s ease, border-color 0.18s ease;
+    -webkit-text-size-adjust: 100%;
 }
 
 .cw-field input:focus,
@@ -347,7 +350,7 @@
         width: 100%;
         border-radius: 26px 26px 0 0;
         animation: cw-sheetUp 0.38s cubic-bezier(.2,.8,.2,1);
-        max-height: 90vh;
+        max-height: calc(var(--cw-vh, 1vh) * 90);
     }
 
     @keyframes cw-sheetUp {

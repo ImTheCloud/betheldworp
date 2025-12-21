@@ -30,8 +30,6 @@ function lockBodyScroll() {
         right: body.style.right,
         width: body.style.width,
         overflow: body.style.overflow,
-        overscrollBehavior: body.style.overscrollBehavior,
-        touchAction: body.style.touchAction,
     };
 
     body.style.position = "fixed";
@@ -40,8 +38,6 @@ function lockBodyScroll() {
     body.style.right = "0";
     body.style.width = "100%";
     body.style.overflow = "hidden";
-    body.style.overscrollBehavior = "none";
-    body.style.touchAction = "none";
 
     return () => {
         body.style.position = prev.position;
@@ -50,8 +46,6 @@ function lockBodyScroll() {
         body.style.right = prev.right;
         body.style.width = prev.width;
         body.style.overflow = prev.overflow;
-        body.style.overscrollBehavior = prev.overscrollBehavior;
-        body.style.touchAction = prev.touchAction;
         window.scrollTo(0, scrollY);
     };
 }
@@ -102,6 +96,37 @@ export default function ContactWidget() {
         return () => {
             if (unlock) unlock();
         };
+    }, [open]);
+
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+
+        const docEl = document.documentElement;
+
+        const setVhVar = () => {
+            const vv = window.visualViewport;
+            const h = vv?.height ?? window.innerHeight ?? docEl.clientHeight ?? 0;
+            docEl.style.setProperty("--cw-vh", `${h * 0.01}px`);
+        };
+
+        if (open) {
+            setVhVar();
+            const vv = window.visualViewport;
+            if (vv) {
+                vv.addEventListener("resize", setVhVar);
+                vv.addEventListener("scroll", setVhVar);
+            }
+            window.addEventListener("resize", setVhVar);
+            return () => {
+                const vv2 = window.visualViewport;
+                if (vv2) {
+                    vv2.removeEventListener("resize", setVhVar);
+                    vv2.removeEventListener("scroll", setVhVar);
+                }
+                window.removeEventListener("resize", setVhVar);
+                docEl.style.removeProperty("--cw-vh");
+            };
+        }
     }, [open]);
 
     useEffect(() => {
@@ -183,9 +208,7 @@ export default function ContactWidget() {
     const onPhoneKeyDown = (e) => {
         const allowed = ["Backspace", "Delete", "Tab", "Enter", "Escape", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"];
         if (allowed.includes(e.key)) return;
-
         if ((e.ctrlKey || e.metaKey) && ["a", "c", "v", "x"].includes(e.key.toLowerCase())) return;
-
         if (!/^\d$/.test(e.key)) e.preventDefault();
     };
 
