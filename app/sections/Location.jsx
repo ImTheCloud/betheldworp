@@ -1,20 +1,29 @@
+"use client";
+
 import "./Location.css";
+import { useMemo } from "react";
+import { useLang } from "../components/LanguageProvider";
+import { makeT } from "../lib/i18n";
+import tr from "../translations/Location.json";
 
 export default function Location() {
-    const place = "Biserica Penticostală BETHEL Dworp";
-    const address = "Alsembergsesteenweg 572, 1653 Beersel";
+    const { lang } = useLang();
+    const t = useMemo(() => makeT(tr, lang), [lang]);
+
+    const place = t("place");
+    const address = t("address");
     const full = `${place}, ${address}`;
 
     return (
         <section className="location-section">
             <div className="location-content">
                 <div className="location-header">
-                    <h2 className="location-title">Unde ne găsim?</h2>
+                    <h2 className="location-title">{t("title")}</h2>
                 </div>
 
                 <div className="location-card">
                     <div className="location-info-wrapper">
-                        <span className="location-label">Locație</span>
+                        <span className="location-label">{t("label")}</span>
                         <h3 className="location-place">{place}</h3>
                         <p className="location-address">{address}</p>
                     </div>
@@ -22,7 +31,7 @@ export default function Location() {
                     <div className="location-mapWrap">
                         <iframe
                             className="location-map"
-                            title="BETHEL Dworp - Locație"
+                            title={t("map_title")}
                             loading="lazy"
                             allowFullScreen
                             referrerPolicy="no-referrer-when-downgrade"
@@ -33,10 +42,8 @@ export default function Location() {
 
                 <div className="location-verse-highlight">
                     <div className="location-verse-content">
-                        <p className="location-verse-text">
-                            „Căci unde sunt doi sau trei adunați în Numele Meu, acolo sunt și Eu în mijlocul lor."
-                        </p>
-                        <p className="location-verse-ref">Matei 18:20</p>
+                        <p className="location-verse-text">{t("verse_text")}</p>
+                        <p className="location-verse-ref">{t("verse_ref")}</p>
                     </div>
                 </div>
             </div>

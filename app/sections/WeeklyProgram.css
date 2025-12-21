@@ -1,7 +1,3 @@
-/* =========================
-   WeeklyProgram.css (COMPLET)
-   ========================= */
-
 .program-section {
     position: relative;
     padding: 120px 24px 140px;
@@ -43,7 +39,6 @@
     line-height: 1.08;
 }
 
-/* Inline loading/error */
 .program-inlineInfo,
 .program-inlineError {
     text-align: center;
@@ -62,7 +57,6 @@
     font-size: 13px;
 }
 
-/* Announcement */
 .program-announcement {
     width: 100%;
     margin: 0 0 18px 0;
@@ -134,7 +128,6 @@
     white-space: pre-wrap;
 }
 
-/* Program grid/cards */
 .program-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -145,16 +138,16 @@
 
 .program-card {
     position: relative;
-    padding: 16px 16px;
-    background: #ffffff;
+    padding: 0;
     border-radius: 16px;
     border: 1px solid rgba(10, 42, 67, 0.10);
+    background: #ffffff;
     box-shadow: 0 6px 20px rgba(10, 42, 67, 0.06);
     transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-    display: flex;
-    flex-direction: column;
     min-height: 128px;
     min-width: 0;
+    perspective: 900px;
+    overflow: hidden;
 }
 
 .program-card:hover {
@@ -163,9 +156,19 @@
     box-shadow: 0 16px 46px rgba(10, 42, 67, 0.12);
 }
 
-/* ✅ clickable card only when flagged */
 .program-card--clickable {
     cursor: pointer;
+}
+
+.program-card--clickable::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: rgba(176, 0, 32, 0.42);
+    z-index: 3;
 }
 
 .program-card--clickable:focus-visible {
@@ -173,7 +176,47 @@
     box-shadow: 0 0 0 4px rgba(22, 70, 120, 0.18), 0 16px 46px rgba(10, 42, 67, 0.12);
 }
 
-/* Red flag (visual only) */
+.program-cardInner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 128px;
+    transform-style: preserve-3d;
+    transition: transform 0.55s cubic-bezier(0.22, 0.8, 0.2, 1);
+    will-change: transform;
+}
+
+.program-card--flipped .program-cardInner {
+    transform: rotateY(180deg);
+}
+
+.program-cardFace {
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    background: #ffffff;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    padding: 16px 16px;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.program-card--clickable .program-cardFace {
+    padding-left: 18px;
+}
+
+.program-cardFront {
+    transform: rotateY(0deg) translateZ(1px);
+}
+
+.program-cardBack {
+    transform: rotateY(180deg) translateZ(1px);
+    color: #0a2a43;
+}
+
 .program-flag {
     position: absolute;
     top: 12px;
@@ -186,6 +229,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    z-index: 4;
 }
 
 .program-flag span {
@@ -246,7 +290,29 @@
     font-size: 13px;
 }
 
-/* Verse highlight */
+.program-cardBackBodyOnly {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 14px 16px;
+    padding-right: 44px;
+}
+
+.program-card--clickable .program-cardBackBodyOnly {
+    padding-left: 18px;
+}
+
+.program-cardBackText {
+    width: 100%;
+    color: rgba(10, 42, 67, 0.9);
+    font-size: 12.5px;
+    font-weight: 650;
+    line-height: 1.5;
+    white-space: pre-wrap;
+}
+
 .program-verse-highlight {
     position: relative;
     padding: 40px 44px;
@@ -290,163 +356,17 @@
     font-weight: 650;
 }
 
-/* =========================
-   TOAST
-   appear left -> stay
-   disappear right
-   auto close: 5s (JS)
-   ========================= */
-
-.program-toastRegion {
-    position: fixed;
-    left: 18px;
-    right: 18px;
-    bottom: 18px;
-    z-index: 9999;
-    pointer-events: none;
-    display: flex;
-    justify-content: flex-start;
-}
-
-.program-toast {
-    pointer-events: auto;
-    width: min(440px, 100%);
-    border-radius: 16px;
-    border: 1px solid rgba(10, 42, 67, 0.12);
-    background: rgba(255, 255, 255, 0.97);
-    box-shadow: 0 20px 70px rgba(10, 42, 67, 0.20);
-    overflow: hidden;
-    position: relative;
-}
-
-.program-toast::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 4px;
-    background: rgba(176, 0, 32, 0.65);
-}
-
-.program-toast--enter {
-    animation: programToastIn 0.22s ease both;
-}
-
-.program-toast--exit {
-    animation: programToastOut 0.20s ease both;
-}
-
-@keyframes programToastIn {
-    from {
-        opacity: 0;
-        transform: translateX(-36px);
+@media (prefers-reduced-motion: reduce) {
+    .program-cardInner {
+        transition: none !important;
+        transform: none !important;
     }
-    to {
-        opacity: 1;
-        transform: translateX(0);
+
+    .program-cardBack {
+        display: none;
     }
 }
 
-@keyframes programToastOut {
-    from {
-        opacity: 1;
-        transform: translateX(0);
-    }
-    to {
-        opacity: 0;
-        transform: translateX(44px);
-    }
-}
-
-.program-toastTop {
-    display: grid;
-    grid-template-columns: 38px 1fr 36px;
-    gap: 10px;
-    align-items: center;
-    padding: 12px 12px 10px 12px;
-    border-bottom: 1px solid rgba(10, 42, 67, 0.08);
-}
-
-.program-toastIcon {
-    width: 38px;
-    height: 38px;
-    border-radius: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 950;
-    color: #b00020;
-    background: rgba(176, 0, 32, 0.10);
-    border: 1px solid rgba(176, 0, 32, 0.18);
-}
-
-.program-toastText {
-    min-width: 0;
-}
-
-.program-toastTitle {
-    font-weight: 950;
-    color: #0a2a43;
-    font-size: 13px;
-    letter-spacing: -0.01em;
-    line-height: 1.2;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.program-toastSubtitle {
-    margin-top: 2px;
-    font-size: 12px;
-    font-weight: 800;
-    color: rgba(10, 42, 67, 0.62);
-}
-
-.program-toastClose {
-    width: 36px;
-    height: 36px;
-    border-radius: 12px;
-    border: 1px solid rgba(10, 42, 67, 0.10);
-    background: rgba(10, 42, 67, 0.03);
-    cursor: pointer;
-    font-weight: 900;
-    color: rgba(10, 42, 67, 0.72);
-}
-
-.program-toastClose:hover {
-    background: rgba(10, 42, 67, 0.06);
-}
-
-.program-toastClose:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 4px rgba(22, 70, 120, 0.18);
-}
-
-.program-toastBody {
-    padding: 10px 12px 12px 12px;
-}
-
-.program-toastMsg {
-    border-radius: 12px;
-    padding: 9px 10px;
-    border: 1px solid rgba(10, 42, 67, 0.10);
-    background: rgba(10, 42, 67, 0.02);
-    color: rgba(10, 42, 67, 0.86);
-    font-size: 12px;
-    font-weight: 650;
-    line-height: 1.45;
-    white-space: pre-wrap;
-}
-
-.program-toastMore {
-    margin-top: 8px;
-    font-size: 12px;
-    font-weight: 900;
-    color: rgba(22, 70, 120, 0.80);
-}
-
-/* Responsive */
 @media (max-width: 900px) {
     .program-section {
         padding: 96px 20px 110px;
@@ -457,7 +377,8 @@
         gap: 12px;
     }
 
-    .program-card {
+    .program-card,
+    .program-cardInner {
         min-height: 122px;
     }
 
@@ -503,10 +424,26 @@
         margin-bottom: 40px;
     }
 
-    .program-card {
+    .program-cardFace {
         padding: 14px 12px;
         border-radius: 14px;
+    }
+
+    .program-card--clickable .program-cardFace {
+        padding-left: 16px;
+    }
+
+    .program-card {
+        border-radius: 14px;
         min-height: 124px;
+    }
+
+    .program-cardInner {
+        min-height: 124px;
+    }
+
+    .program-card--clickable::before {
+        width: 3px;
     }
 
     .program-flag {
@@ -550,13 +487,17 @@
         font-size: 80px;
     }
 
-    .program-toastRegion {
-        left: 12px;
-        right: 12px;
-        bottom: 12px;
+    .program-cardBackBodyOnly {
+        padding: 12px 12px;
+        padding-right: 30px;
     }
 
-    .program-toast {
-        width: 100%;
+    .program-card--clickable .program-cardBackBodyOnly {
+        padding-left: 16px;
+    }
+
+    .program-cardBackText {
+        font-size: 11.5px;
+        line-height: 1.45;
     }
 }

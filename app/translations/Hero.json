@@ -1,0 +1,34 @@
+{
+  "ro": {
+    "title": "Vă așteptăm la biserica Bethel",
+    "subtitle": "în casa lui Dumnezeu",
+    "monthly_verse": "Versetul lunii",
+    "loading": "(se încarcă...)",
+    "error_no_verse": "Nu există verset setat pentru luna curentă.",
+    "error_load_verse": "Nu am putut încărca versetul lunii."
+  },
+  "fr": {
+    "title": "Nous vous attendons à l’église Bethel",
+    "subtitle": "dans la maison de Dieu",
+    "monthly_verse": "Verset du mois",
+    "loading": "(chargement...)",
+    "error_no_verse": "Aucun verset n’est défini pour le mois en cours.",
+    "error_load_verse": "Impossible de charger le verset du mois."
+  },
+  "nl": {
+    "title": "Welkom in de Bethelkerk",
+    "subtitle": "in het huis van God",
+    "monthly_verse": "Vers van de maand",
+    "loading": "(laden...)",
+    "error_no_verse": "Er is geen vers ingesteld voor deze maand.",
+    "error_load_verse": "We konden het vers van de maand niet laden."
+  },
+  "en": {
+    "title": "Welcome to Bethel church",
+    "subtitle": "in the house of God",
+    "monthly_verse": "Verse of the month",
+    "loading": "(loading...)",
+    "error_no_verse": "No verse is set for the current month.",
+    "error_load_verse": "We couldn't load the verse of the month."
+  }
+}

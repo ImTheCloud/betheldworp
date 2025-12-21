@@ -1,0 +1,54 @@
+{
+  "ro": {
+    "title": "Galerie",
+    "images": "Imagini",
+    "videos": "Video",
+    "open_image": "Deschide imaginea",
+    "open_video": "Deschide video",
+    "featured_video": "Video recomandat",
+    "video_thumbnail": "Miniatură video",
+    "visit_youtube": "Vizitează canalul nostru YouTube",
+    "see_more_youtube": "Vezi mai multe pe canalul nostru YouTube",
+    "close": "Închide",
+    "youtube_player": "Player YouTube"
+  },
+  "fr": {
+    "title": "Galerie",
+    "images": "Images",
+    "videos": "Vidéos",
+    "open_image": "Ouvrir l’image",
+    "open_video": "Ouvrir la vidéo",
+    "featured_video": "Vidéo à la une",
+    "video_thumbnail": "Miniature vidéo",
+    "visit_youtube": "Visiter notre chaîne YouTube",
+    "see_more_youtube": "Voir plus sur notre chaîne YouTube",
+    "close": "Fermer",
+    "youtube_player": "Lecteur YouTube"
+  },
+  "nl": {
+    "title": "Galerij",
+    "images": "Afbeeldingen",
+    "videos": "Video’s",
+    "open_image": "Afbeelding openen",
+    "open_video": "Video openen",
+    "featured_video": "Uitgelichte video",
+    "video_thumbnail": "Videominiatuur",
+    "visit_youtube": "Bezoek ons YouTube-kanaal",
+    "see_more_youtube": "Bekijk meer op ons YouTube-kanaal",
+    "close": "Sluiten",
+    "youtube_player": "YouTube-speler"
+  },
+  "en": {
+    "title": "Gallery",
+    "images": "Images",
+    "videos": "Videos",
+    "open_image": "Open image",
+    "open_video": "Open video",
+    "featured_video": "Featured video",
+    "video_thumbnail": "Video thumbnail",
+    "visit_youtube": "Visit our YouTube channel",
+    "see_more_youtube": "See more on our YouTube channel",
+    "close": "Close",
+    "youtube_player": "YouTube player"
+  }
+}

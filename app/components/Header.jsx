@@ -1,11 +1,96 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "./Header.css";
+import { useLang } from "./LanguageProvider";
+import { makeT } from "../lib/i18n";
+import tr from "../translations/Header.json";
 
 const SECTION_IDS = ["acasa", "despre-noi", "program", "evenimente", "galerie", "donatii", "locatie"];
 
+function LanguageSwitcher({ className = "", t, lang, setLang, options }) {
+    const [open, setOpen] = useState(false);
+    const wrapRef = useRef(null);
+
+    const current = useMemo(() => options.find((x) => x.value === lang) || options[0], [options, lang]);
+
+    const close = useCallback(() => setOpen(false), []);
+    const toggle = useCallback(() => setOpen((v) => !v), []);
+
+    useEffect(() => {
+        if (!open) return;
+
+        const onDown = (e) => {
+            const el = wrapRef.current;
+            if (!el) return;
+            if (!el.contains(e.target)) close();
+        };
+
+        const onKey = (e) => {
+            if (e.key === "Escape") close();
+        };
+
+        document.addEventListener("pointerdown", onDown);
+        window.addEventListener("keydown", onKey);
+
+        return () => {
+            document.removeEventListener("pointerdown", onDown);
+            window.removeEventListener("keydown", onKey);
+        };
+    }, [open, close]);
+
+    const pick = (value) => {
+        setLang(value);
+        close();
+    };
+
+    return (
+        <div ref={wrapRef} className={`lang ${className}`.trim()}>
+            <button
+                type="button"
+                className={`langBtn ${open ? "is-open" : ""}`}
+                onClick={toggle}
+                aria-label={t("lang_aria")}
+                aria-haspopup="menu"
+                aria-expanded={open}
+            >
+                <span className="langBtnFlag" aria-hidden="true">{current.flag}</span>
+                <span className="langBtnCode" aria-hidden="true">{current.short}</span>
+                <span className="langBtnChev" aria-hidden="true">▾</span>
+            </button>
+
+            {open ? (
+                <div className="langMenu" role="menu" aria-label={t("lang_aria")}>
+                    {options.map((o) => {
+                        const active = o.value === lang;
+                        return (
+                            <button
+                                key={o.value}
+                                type="button"
+                                role="menuitemradio"
+                                aria-checked={active}
+                                className={`langItem ${active ? "is-active" : ""}`}
+                                onClick={() => pick(o.value)}
+                            >
+                                <span className="langItemFlag" aria-hidden="true">{o.flag}</span>
+                                <span className="langItemMain">
+                                    <span className="langItemName">{o.label}</span>
+                                    <span className="langItemCode">{o.short}</span>
+                                </span>
+                                <span className="langItemTick" aria-hidden="true">{active ? "✓" : ""}</span>
+                            </button>
+                        );
+                    })}
+                </div>
+            ) : null}
+        </div>
+    );
+}
+
 export default function Header() {
+    const { lang, setLang } = useLang();
+    const t = useMemo(() => makeT(tr, lang), [lang]);
+
     const [scrolled, setScrolled] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
     const [activeId, setActiveId] = useState("acasa");
@@ -14,16 +99,26 @@ export default function Header() {
 
     const NAV_ITEMS = useMemo(
         () => [
-            { id: "acasa", label: "Acasă", type: "section" },
-            { id: "despre-noi", label: "Cine suntem", type: "section" },
-            { id: "program", label: "Programul săptămânal", type: "section" },
-            { id: "evenimente", label: "Evenimente", type: "section" },
-            { id: "galerie", label: "Galerie", type: "section" },
-            { id: "donatii", label: "Donații", type: "section" },
-            { id: "locatie", label: "Unde ne găsim?", type: "section" },
-            { id: "contact", label: "Contact", type: "contact" },
+            { id: "acasa", labelKey: "nav_home", type: "section" },
+            { id: "despre-noi", labelKey: "nav_about", type: "section" },
+            { id: "program", labelKey: "nav_program", type: "section" },
+            { id: "evenimente", labelKey: "nav_events", type: "section" },
+            { id: "galerie", labelKey: "nav_gallery", type: "section" },
+            { id: "donatii", labelKey: "nav_donations", type: "section" },
+            { id: "locatie", labelKey: "nav_location", type: "section" },
+            { id: "contact", labelKey: "nav_contact", type: "contact" }
         ],
         []
+    );
+
+    const LANG_OPTIONS = useMemo(
+        () => [
+            { value: "ro", label: t("lang_ro"), short: "RO", flag: "🇷🇴" },
+            { value: "fr", label: t("lang_fr"), short: "FR", flag: "🇫🇷" },
+            { value: "nl", label: t("lang_nl"), short: "NL", flag: "🇳🇱" },
+            { value: "en", label: t("lang_en"), short: "EN", flag: "🇬🇧" }
+        ],
+        [t]
     );
 
     useEffect(() => {
@@ -67,7 +162,6 @@ export default function Header() {
         };
     }, [menuOpen]);
 
-    // ✅ Active section detection (reliable)
     useEffect(() => {
         const header = document.querySelector(".header");
         const headerHeight = header?.offsetHeight ?? 82;
@@ -90,9 +184,8 @@ export default function Header() {
             },
             {
                 root: null,
-                // on “décale” la zone observée pour tenir compte du header fixe
                 rootMargin: `-${headerHeight + 24}px 0px -55% 0px`,
-                threshold: [0.08, 0.15, 0.25, 0.35, 0.5, 0.65],
+                threshold: [0.08, 0.15, 0.25, 0.35, 0.5, 0.65]
             }
         );
 
@@ -138,10 +231,10 @@ export default function Header() {
             <button
                 key={item.id}
                 type="button"
-                className={item.type === "section" ? isActive(item.id) : ""}
+                className={`navLink ${item.type === "section" ? isActive(item.id) : ""}`.trim()}
                 onClick={() => onNavClick(item)}
             >
-                {item.label}
+                {t(item.labelKey)}
             </button>
         ));
 
@@ -149,32 +242,39 @@ export default function Header() {
         <>
             <header className={headerClass}>
                 <div className="brand" onClick={() => scrollToSection("acasa")} role="button" tabIndex={0}>
-                    <img src="/icon.png" alt="Bethel Dworp logo" className="logo-img" />
+                    <img src="/icon.png" alt={t("brand_alt")} className="logo-img" />
                     <div className="logo-text">Bethel Dworp</div>
                 </div>
 
                 <nav className="nav">{renderNavButtons()}</nav>
 
-                <button
-                    type="button"
-                    className={burgerClass}
-                    onClick={() => setMenuOpen((v) => !v)}
-                    aria-label="Deschide meniul"
-                    aria-expanded={menuOpen}
-                >
-                    <span />
-                    <span />
-                    <span />
-                </button>
+                <div className="headerRight">
+                    <LanguageSwitcher className="lang--top" t={t} lang={lang} setLang={setLang} options={LANG_OPTIONS} />
+                    <button
+                        type="button"
+                        className={burgerClass}
+                        onClick={() => setMenuOpen((v) => !v)}
+                        aria-label={t("burger_open")}
+                        aria-expanded={menuOpen}
+                    >
+                        <span />
+                        <span />
+                        <span />
+                    </button>
+                </div>
             </header>
 
             <div className={`mnav-overlay ${menuOpen ? "is-open" : ""}`} onClick={() => setMenuOpen(false)} aria-hidden={!menuOpen}>
                 <div className="mnav-panel" onClick={(e) => e.stopPropagation()}>
                     <div className="mnav-top">
-                        <div className="mnav-title">Meniu</div>
-                        <button type="button" className="mnav-close" onClick={() => setMenuOpen(false)} aria-label="Închide meniul">
+                        <div className="mnav-title">{t("menu_title")}</div>
+                        <button type="button" className="mnav-close" onClick={() => setMenuOpen(false)} aria-label={t("menu_close")}>
                             ×
                         </button>
+                    </div>
+
+                    <div className="mnav-lang">
+                        <LanguageSwitcher className="lang--mobile" t={t} lang={lang} setLang={setLang} options={LANG_OPTIONS} />
                     </div>
 
                     <div className="mnav-links">{renderNavButtons()}</div>

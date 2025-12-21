@@ -1,28 +1,15 @@
 "use client";
 
 import "./WeeklyProgram.css";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "../lib/Firebase";
+import { useLang } from "../components/LanguageProvider";
+import { makeT } from "../lib/i18n";
+import tr from "../translations/WeeklyProgram.json";
 
-const LOCAL_PROGRAM_ITEMS = [
-    { day: "Luni", id: "mon", times: ["20:00-21:30"], title: "Seară de Tineret și Adolescenți" },
-    { day: "Marți", id: "tue", times: ["20:00-21:30"], title: "Seară de rugăciune" },
-    { day: "Miercuri", id: "wed", times: ["20:00-21:30"], title: "Repetiție cor Mixt" },
-    { day: "Joi", id: "thu", times: ["20:00-21:30"], title: "Repetiție cor Bărbătesc" },
-    { day: "Vineri", id: "fri", times: ["20:00-21:30"], title: "Seară de rugăciune" },
-    { day: "Sâmbătă", id: "sat", times: ["11:00-13:30"], title: "Program cu copii" },
-    { day: "Duminică", id: "sun_am", times: ["10:00-12:00"], title: "Serviciu Divin (Dimineață)" },
-    { day: "Duminică", id: "sun_pm", times: ["18:00-20:00"], title: "Serviciu Divin (Seara)" },
-];
-
-function safeArr(v) {
-    return Array.isArray(v) ? v : [];
-}
-
-function safeStr(v) {
-    return String(v ?? "");
-}
+const safeArr = (v) => (Array.isArray(v) ? v : []);
+const safeStr = (v) => String(v ?? "");
 
 function formatTimeToken(token) {
     const t = safeStr(token).trim();
@@ -39,31 +26,38 @@ function formatRange(range) {
 }
 
 function normalizeActiveAnnouncements(docData) {
-    const items = safeArr(docData?.items);
-
-    return items
+    return safeArr(docData?.items)
         .filter((x) => Boolean(x?.active))
-        .map((x) => {
-            const id = safeStr(x?.id).trim();
-            const affectedProgramIds = safeArr(x?.affectedProgramIds)
-                .map((v) => safeStr(v).trim())
-                .filter(Boolean);
-            const message = safeStr(x?.message).trim();
-            return { id, affectedProgramIds, message };
-        })
+        .map((x) => ({
+            id: safeStr(x?.id).trim(),
+            affectedProgramIds: safeArr(x?.affectedProgramIds).map((v) => safeStr(v).trim()).filter(Boolean),
+            message: safeStr(x?.message).trim()
+        }))
         .filter((x) => x.message.length > 0);
 }
 
 export default function Program() {
+    const { lang } = useLang();
+    const t = useMemo(() => makeT(tr, lang), [lang]);
+
+    const LOCAL_PROGRAM_ITEMS = useMemo(
+        () => [
+            { day: t("day_mon"), id: "mon", times: ["20:00-21:30"], title: t("act_mon") },
+            { day: t("day_tue"), id: "tue", times: ["20:00-21:30"], title: t("act_tue") },
+            { day: t("day_wed"), id: "wed", times: ["20:00-21:30"], title: t("act_wed") },
+            { day: t("day_thu"), id: "thu", times: ["20:00-21:30"], title: t("act_thu") },
+            { day: t("day_fri"), id: "fri", times: ["20:00-21:30"], title: t("act_fri") },
+            { day: t("day_sat"), id: "sat", times: ["11:00-13:30"], title: t("act_sat") },
+            { day: t("day_sun"), id: "sun_am", times: ["10:00-12:00"], title: t("act_sun_am") },
+            { day: t("day_sun"), id: "sun_pm", times: ["18:00-20:00"], title: t("act_sun_pm") }
+        ],
+        [t]
+    );
+
     const [docData, setDocData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-
-    // Toast
-    const [toast, setToast] = useState(null); // { title, subtitle, message, moreCount }
-    const [toastPhase, setToastPhase] = useState("enter"); // enter | exit
-    const toastTimerRef = useRef(null);
-    const toastExitRef = useRef(null);
+    const [openId, setOpenId] = useState(null);
 
     useEffect(() => {
         setLoading(true);
@@ -79,111 +73,46 @@ export default function Program() {
             },
             (err) => {
                 console.error(err);
-                setError("Nu am putut încărca anunțurile.");
+                setError(t("error_load_announcements"));
                 setLoading(false);
             }
         );
 
         return () => unsub();
-    }, []);
+    }, [t]);
 
     const activeAnnouncements = useMemo(() => normalizeActiveAnnouncements(docData), [docData]);
+    const showAnnouncement = activeAnnouncements.length > 0;
 
     const affectedIds = useMemo(() => {
         const set = new Set();
-        activeAnnouncements.forEach((a) => {
-            a.affectedProgramIds.forEach((id) => set.add(id));
-        });
+        activeAnnouncements.forEach((a) => a.affectedProgramIds.forEach((id) => set.add(id)));
         return set;
     }, [activeAnnouncements]);
 
-    const showAnnouncement = activeAnnouncements.length > 0;
+    const messageForOpen = useMemo(() => {
+        if (!openId) return "";
+        const specific = activeAnnouncements.find((a) => a.affectedProgramIds.includes(openId));
+        return (specific?.message || activeAnnouncements[0]?.message || "").trim();
+    }, [openId, activeAnnouncements]);
 
-    const getMessagesForProgramId = (programId) => {
-        const pid = safeStr(programId).trim();
-
-        const specific = activeAnnouncements
-            .filter((a) => a.affectedProgramIds.includes(pid))
-            .map((a) => a.message)
-            .filter(Boolean);
-
-        if (specific.length > 0) return { messages: specific, specific: true };
-
-        return {
-            messages: activeAnnouncements.map((a) => a.message).filter(Boolean),
-            specific: false,
-        };
-    };
-
-    function clearToastTimers() {
-        if (toastTimerRef.current) {
-            window.clearTimeout(toastTimerRef.current);
-            toastTimerRef.current = null;
-        }
-        if (toastExitRef.current) {
-            window.clearTimeout(toastExitRef.current);
-            toastExitRef.current = null;
-        }
-    }
-
-    function closeToast() {
-        clearToastTimers();
-        setToastPhase("exit");
-        toastExitRef.current = window.setTimeout(() => {
-            setToast(null);
-            setToastPhase("enter");
-        }, 220);
-    }
-
-    function showToastForItem(item) {
-        if (!showAnnouncement) return;
-
-        const pid = safeStr(item?.id).trim();
-        const { messages, specific } = getMessagesForProgramId(pid);
-
-        const title = `${safeStr(item?.day)} — ${safeStr(item?.title)}`;
-        const subtitle = specific ? "Anunț pentru acest program" : "Anunțuri generale";
-
-        const first = messages?.[0] || "";
-        const moreCount = Math.max(0, (messages?.length || 0) - 1);
-
-        clearToastTimers();
-        setToastPhase("enter");
-        setToast({ title, subtitle, message: first, moreCount });
-
-        toastTimerRef.current = window.setTimeout(() => {
-            closeToast();
-        }, 5000);
-    }
-
-    // Close toast on Escape
     useEffect(() => {
-        if (!toast) return;
-
         const onKey = (e) => {
-            if (e.key === "Escape") closeToast();
+            if (e.key === "Escape") setOpenId(null);
         };
         window.addEventListener("keydown", onKey);
         return () => window.removeEventListener("keydown", onKey);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [toast]);
-
-    useEffect(() => {
-        return () => clearToastTimers();
     }, []);
 
     return (
         <section id="program" className="program-section">
             <div className="program-content">
                 <div className="program-header">
-                    <h2 className="program-title">Programul săptămânal</h2>
+                    <h2 className="program-title">{t("title")}</h2>
                 </div>
 
-                {loading ? (
-                    <div className="program-inlineInfo">Se încarcă...</div>
-                ) : error ? (
-                    <div className="program-inlineError">{error}</div>
-                ) : null}
+                {loading ? <div className="program-inlineInfo">{t("loading")}</div> : null}
+                {!loading && error ? <div className="program-inlineError">{error}</div> : null}
 
                 {showAnnouncement ? (
                     <div className="program-announcement" role="status" aria-live="polite">
@@ -191,9 +120,7 @@ export default function Program() {
                             <div className="program-announcement-badge" aria-hidden="true">
                                 !
                             </div>
-                            <div className="program-announcement-headText">
-                                <div className="program-announcement-title">Anunțuri speciale</div>
-                            </div>
+                            <div className="program-announcement-title">{t("special_title")}</div>
                         </div>
 
                         <div className="program-announcement-list">
@@ -208,43 +135,63 @@ export default function Program() {
 
                 <div className="program-grid">
                     {LOCAL_PROGRAM_ITEMS.map((item, idx) => {
-                        const id = safeStr(item?.id || `${item?.day || "day"}-${idx}`);
-                        const flagged = showAnnouncement && affectedIds.has(id);
+                        const id = safeStr(item?.id || `day-${idx}`).trim();
+                        const isAlert = showAnnouncement && affectedIds.has(id);
+                        const isFlipped = openId === id;
                         const times = safeArr(item?.times);
 
                         return (
                             <article
                                 key={id}
-                                className={`program-card ${flagged ? "program-card--clickable" : ""}`}
-                                role={flagged ? "button" : undefined}
-                                tabIndex={flagged ? 0 : undefined}
-                                aria-label={flagged ? "Apasă pentru a vedea anunțul" : undefined}
+                                className={`program-card ${isAlert ? "program-card--alert program-card--clickable" : "program-card--normal"} ${
+                                    isFlipped ? "program-card--flipped" : ""
+                                }`}
+                                role={isAlert ? "button" : undefined}
+                                tabIndex={isAlert ? 0 : undefined}
+                                aria-label={isAlert ? t("card_click_aria") : undefined}
                                 onClick={() => {
-                                    if (flagged) showToastForItem(item);
+                                    if (!isAlert) return;
+                                    setOpenId((cur) => (cur === id ? null : id));
                                 }}
                                 onKeyDown={(e) => {
-                                    if (!flagged) return;
+                                    if (!isAlert) return;
                                     if (e.key === "Enter" || e.key === " ") {
                                         e.preventDefault();
-                                        showToastForItem(item);
+                                        setOpenId((cur) => (cur === id ? null : id));
                                     }
                                 }}
                             >
-                                {flagged ? (
-                                    <div className="program-flag program-flagStatic" aria-hidden="true">
-                                        <span aria-hidden="true">!</span>
+                                <div className="program-cardInner">
+                                    <div className="program-cardFace program-cardFront">
+                                        {isAlert ? (
+                                            <div className="program-flag" aria-hidden="true">
+                                                <span aria-hidden="true">!</span>
+                                            </div>
+                                        ) : null}
+
+                                        <div className="program-day">{item?.day}</div>
+                                        <div className="program-activity">{item?.title}</div>
+
+                                        <div className="program-times">
+                                            {times.map((tt) => (
+                                                <span key={`${id}-${tt}`} className="program-time">
+                                                    {formatRange(tt)}
+                                                </span>
+                                            ))}
+                                        </div>
                                     </div>
-                                ) : null}
 
-                                <div className="program-day">{item?.day}</div>
-                                <div className="program-activity">{item?.title}</div>
+                                    <div className="program-cardFace program-cardBack" aria-hidden={!isFlipped}>
+                                        {isAlert ? (
+                                            <div className="program-flag" aria-hidden="true">
+                                                <span aria-hidden="true">!</span>
+                                            </div>
+                                        ) : null}
 
-                                <div className="program-times">
-                                    {times.map((t) => (
-                                        <span key={`${id}-${t}`} className="program-time">
-                      {formatRange(t)}
-                    </span>
-                                    ))}
+                                        <div className="program-cardBackBody">
+                                            <div className="program-cardBackText">{isFlipped ? messageForOpen : ""}</div>
+                                        </div>
+                                    </div>
                                 </div>
                             </article>
                         );
@@ -253,37 +200,10 @@ export default function Program() {
 
                 <div className="program-verse-highlight">
                     <div className="program-verse-content">
-                        <p className="program-verse-text">„Mă bucur când mi se zice: «Haidem la Casa Domnului!»"</p>
-                        <p className="program-verse-ref">Psalmul 122:1</p>
+                        <p className="program-verse-text">{t("verse_text")}</p>
+                        <p className="program-verse-ref">{t("verse_ref")}</p>
                     </div>
                 </div>
-            </div>
-
-            {/* Toast */}
-            <div className="program-toastRegion" aria-live="polite" aria-atomic="true">
-                {toast ? (
-                    <div className={`program-toast ${toastPhase === "exit" ? "program-toast--exit" : "program-toast--enter"}`}>
-                        <div className="program-toastTop">
-                            <div className="program-toastIcon" aria-hidden="true">
-                                !
-                            </div>
-
-                            <div className="program-toastText">
-                                <div className="program-toastTitle">{toast.title}</div>
-                                <div className="program-toastSubtitle">{toast.subtitle}</div>
-                            </div>
-
-                            <button type="button" className="program-toastClose" aria-label="Închide" onClick={closeToast}>
-                                ✕
-                            </button>
-                        </div>
-
-                        <div className="program-toastBody">
-                            <div className="program-toastMsg">{toast.message}</div>
-                            {toast.moreCount > 0 ? <div className="program-toastMore">+ {toast.moreCount} alte anunț(uri)</div> : null}
-                        </div>
-                    </div>
-                ) : null}
             </div>
         </section>
     );
