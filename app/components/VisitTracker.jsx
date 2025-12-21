@@ -6,41 +6,65 @@ import { db } from "../lib/Firebase";
 
 const VID_KEY = "bethel_vid";
 
-function getBrusselsParts() {
-    const parts = new Intl.DateTimeFormat("en-CA", {
-        timeZone: "Europe/Brussels",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-    }).formatToParts(new Date());
+function pad2(n) {
+    return String(n).padStart(2, "0");
+}
 
-    const get = (t, fallback) => parts.find((p) => p.type === t)?.value ?? fallback;
-
+function getLocalParts() {
+    const d = new Date();
     return {
-        y: get("year", "0000"),
-        m: get("month", "00"),
-        d: get("day", "00"),
-        hh: get("hour", "00"),
-        mm: get("minute", "00"),
+        y: String(d.getFullYear()),
+        m: pad2(d.getMonth() + 1),
+        d: pad2(d.getDate()),
+        hh: pad2(d.getHours()),
+        mm: pad2(d.getMinutes()),
     };
 }
 
-function getBrusselsDayKey() {
-    const { d, m, y } = getBrusselsParts();
+function getBrusselsPartsSafe() {
+    try {
+        const fmt = new Intl.DateTimeFormat("en-CA", {
+            timeZone: "Europe/Brussels",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+        });
+
+        const parts = fmt.formatToParts(new Date());
+        const get = (t, fallback) => parts.find((p) => p.type === t)?.value ?? fallback;
+
+        return {
+            y: get("year", "0000"),
+            m: get("month", "00"),
+            d: get("day", "00"),
+            hh: get("hour", "00"),
+            mm: get("minute", "00"),
+        };
+    } catch {
+        return getLocalParts();
+    }
+}
+
+function getBrusselsDayKeySafe() {
+    const { d, m, y } = getBrusselsPartsSafe();
     return `${d}-${m}-${y}`;
 }
 
-function getBrusselsTimeHM() {
-    const { hh, mm } = getBrusselsParts();
+function getBrusselsTimeHMSafe() {
+    const { hh, mm } = getBrusselsPartsSafe();
     return `${hh}:${mm}`;
 }
 
-function deviceType() {
-    const w = window.innerWidth || 0;
-    return w <= 768 ? "mobile" : "desktop";
+function deviceTypeSafe() {
+    try {
+        const w = window.innerWidth || 0;
+        return w <= 768 ? "mobile" : "desktop";
+    } catch {
+        return "unknown";
+    }
 }
 
 function normalizeTrackerLang(code) {
@@ -50,13 +74,16 @@ function normalizeTrackerLang(code) {
     return base.slice(0, 16) || "ro";
 }
 
-function getBrowserLanguage() {
-    if (typeof navigator === "undefined") return "ro";
-    const first =
-        (Array.isArray(navigator.languages) && navigator.languages[0]) ||
-        navigator.language ||
-        "ro";
-    return normalizeTrackerLang(first);
+function getBrowserLanguageSafe() {
+    try {
+        const first =
+            (Array.isArray(navigator.languages) && navigator.languages[0]) ||
+            navigator.language ||
+            "ro";
+        return normalizeTrackerLang(first);
+    } catch {
+        return "ro";
+    }
 }
 
 function safeStorageGet(key) {
@@ -83,15 +110,23 @@ function readJsonSafe(key) {
 
 let memoryVisitorId = null;
 
-function getOrCreateVisitorId() {
+function getOrCreateVisitorIdSafe() {
     const existing = safeStorageGet(VID_KEY);
     if (existing) return existing;
 
     if (memoryVisitorId) return memoryVisitorId;
 
-    const id =
-        (typeof crypto !== "undefined" && crypto.randomUUID && crypto.randomUUID()) ||
-        `${Date.now()}_${Math.random().toString(16).slice(2)}`;
+    let id = null;
+
+    try {
+        if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+            id = crypto.randomUUID();
+        }
+    } catch {}
+
+    if (!id) {
+        id = `${Date.now()}_${Math.random().toString(16).slice(2)}`;
+    }
 
     memoryVisitorId = id;
     safeStorageSet(VID_KEY, id);
@@ -156,82 +191,94 @@ async function getGeoClientSideRobust(ms = 900) {
 
 export default function VisitTracker() {
     useEffect(() => {
-        const day = getBrusselsDayKey();
-        const timeHM = getBrusselsTimeHM();
+        let cancelled = false;
 
         (async () => {
-            const visitorId = getOrCreateVisitorId();
-            const language = getBrowserLanguage();
-            const dt = deviceType();
+            try {
+                const day = getBrusselsDayKeySafe();
+                const timeHM = getBrusselsTimeHMSafe();
 
-            const globalDoneKey = `bethel_global_done_${visitorId}`;
+                const visitorId = getOrCreateVisitorIdSafe();
+                const language = getBrowserLanguageSafe();
+                const dt = deviceTypeSafe();
 
-            if (safeStorageGet(globalDoneKey) !== "1") {
-                const geo = await getGeoClientSideRobust(900);
+                const globalDoneKey = `bethel_global_done_${visitorId}`;
 
-                const globalRef = doc(db, "visits_global", visitorId);
-                const globalPayload = {
-                    visitorId,
-                    firstDay: day,
-                    firstTimeHM: timeHM,
-                    deviceType: dt,
-                    language,
-                    country: geo.country,
-                    city: geo.city,
-                };
+                if (!cancelled && safeStorageGet(globalDoneKey) !== "1") {
+                    const geo = await getGeoClientSideRobust(900);
+
+                    const globalRef = doc(db, "visits_global", visitorId);
+                    const globalPayload = {
+                        visitorId,
+                        firstDay: day,
+                        firstTimeHM: timeHM,
+                        deviceType: dt,
+                        language,
+                        country: geo.country,
+                        city: geo.city,
+                    };
+
+                    try {
+                        await setDoc(globalRef, globalPayload);
+                        safeStorageSet(globalDoneKey, "1");
+                    } catch (e) {
+                        console.error("VisitTracker global write failed:", e);
+                    }
+                }
+
+                const doneKey = `bethel_visit_done_${day}`;
+                if (!cancelled && safeStorageGet(doneKey) === "1") return;
+
+                const payloadKey = `bethel_visit_payload_${day}`;
+                const saved = readJsonSafe(payloadKey);
+
+                let payload = null;
+
+                if (saved && saved.visitorId === visitorId && saved.day === day) {
+                    payload = {
+                        visitorId,
+                        day,
+                        timeHM: saved.timeHM || timeHM,
+                        deviceType: saved.deviceType || dt,
+                        language: saved.language || language,
+                        country: saved.country || "Unknown",
+                        city: saved.city || "Unknown",
+                    };
+                } else {
+                    const geo = await getGeoClientSideRobust(900);
+
+                    payload = {
+                        visitorId,
+                        day,
+                        timeHM,
+                        deviceType: dt,
+                        language,
+                        country: geo.country,
+                        city: geo.city,
+                    };
+
+                    safeStorageSet(payloadKey, JSON.stringify(payload));
+                }
+
+                if (cancelled) return;
+
+                const visitorRef = doc(db, "visits", `day_${day}`, "visitors", visitorId);
 
                 try {
-                    await setDoc(globalRef, globalPayload);
-                    safeStorageSet(globalDoneKey, "1");
+                    await setDoc(visitorRef, payload);
                 } catch (e) {
-                    console.error("VisitTracker global write failed:", e);
+                    console.error("VisitTracker day write failed:", e);
                 }
-            }
 
-            const doneKey = `bethel_visit_done_${day}`;
-            if (safeStorageGet(doneKey) === "1") return;
-
-            const payloadKey = `bethel_visit_payload_${day}`;
-            const saved = readJsonSafe(payloadKey);
-
-            let payload = null;
-
-            if (saved && saved.visitorId === visitorId && saved.day === day) {
-                payload = {
-                    visitorId,
-                    day,
-                    timeHM: saved.timeHM || timeHM,
-                    deviceType: saved.deviceType || dt,
-                    language: saved.language || language,
-                    country: saved.country || "Unknown",
-                    city: saved.city || "Unknown",
-                };
-            } else {
-                const geo = await getGeoClientSideRobust(900);
-
-                payload = {
-                    visitorId,
-                    day,
-                    timeHM,
-                    deviceType: dt,
-                    language,
-                    country: geo.country,
-                    city: geo.city,
-                };
-
-                safeStorageSet(payloadKey, JSON.stringify(payload));
-            }
-
-            const visitorRef = doc(db, "visits", `day_${day}`, "visitors", visitorId);
-
-            try {
-                await setDoc(visitorRef, payload);
+                safeStorageSet(doneKey, "1");
             } catch (e) {
-                console.error("VisitTracker day write failed:", e);
+                console.error("VisitTracker fatal:", e);
             }
+        })();
 
-            safeStorageSet(doneKey, "1");
-        })().catch((e) => console.error("VisitTracker fatal:", e));
+        return () => {
+            cancelled = true;
+        };
     }, []);
 
     return null;
