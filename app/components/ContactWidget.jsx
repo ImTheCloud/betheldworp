@@ -7,7 +7,17 @@ import { useLang } from "./LanguageProvider";
 import { makeT } from "../lib/i18n";
 import tr from "../translations/ContactWidget.json";
 
+const MAX_NAME = 60;
+const MAX_EMAIL = 120;
+const MAX_PHONE = 20;
+const MAX_MESSAGE = 1200;
+
 const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
+
+function clampStr(v, max) {
+    const s = String(v ?? "");
+    return s.length > max ? s.slice(0, max) : s;
+}
 
 export default function ContactWidget() {
     const { lang } = useLang();
@@ -31,6 +41,88 @@ export default function ContactWidget() {
     const intervalRef = useRef(null);
     const timeoutRef = useRef(null);
 
+    const scrollLockYRef = useRef(0);
+    const scrollLockActiveRef = useRef(false);
+    const bodyPrevRef = useRef(null);
+
+    const lockScroll = useCallback(() => {
+        if (scrollLockActiveRef.current) return;
+        if (typeof window === "undefined") return;
+
+        const body = document.body;
+        const html = document.documentElement;
+
+        scrollLockYRef.current = window.scrollY || 0;
+        bodyPrevRef.current = {
+            overflow: body.style.overflow,
+            position: body.style.position,
+            top: body.style.top,
+            left: body.style.left,
+            right: body.style.right,
+            width: body.style.width,
+            paddingRight: body.style.paddingRight,
+            overscrollBehavior: (body.style.overscrollBehavior || ""),
+            touchAction: (body.style.touchAction || ""),
+            htmlOverflow: html.style.overflow,
+            htmlOverscrollBehavior: (html.style.overscrollBehavior || ""),
+        };
+
+        const scrollbarW = window.innerWidth - (html.clientWidth || window.innerWidth);
+        if (scrollbarW > 0) body.style.paddingRight = `${scrollbarW}px`;
+
+        html.style.overflow = "hidden";
+        html.style.overscrollBehavior = "none";
+
+        body.style.overflow = "hidden";
+        body.style.overscrollBehavior = "none";
+        body.style.touchAction = "none";
+        body.style.position = "fixed";
+        body.style.top = `-${scrollLockYRef.current}px`;
+        body.style.left = "0";
+        body.style.right = "0";
+        body.style.width = "100%";
+
+        scrollLockActiveRef.current = true;
+    }, []);
+
+    const unlockScroll = useCallback(() => {
+        if (!scrollLockActiveRef.current) return;
+        if (typeof window === "undefined") return;
+
+        const body = document.body;
+        const html = document.documentElement;
+        const prev = bodyPrevRef.current;
+
+        if (prev) {
+            body.style.overflow = prev.overflow;
+            body.style.position = prev.position;
+            body.style.top = prev.top;
+            body.style.left = prev.left;
+            body.style.right = prev.right;
+            body.style.width = prev.width;
+            body.style.paddingRight = prev.paddingRight;
+            body.style.overscrollBehavior = prev.overscrollBehavior;
+            body.style.touchAction = prev.touchAction;
+            html.style.overflow = prev.htmlOverflow;
+            html.style.overscrollBehavior = prev.htmlOverscrollBehavior;
+        } else {
+            body.style.overflow = "";
+            body.style.position = "";
+            body.style.top = "";
+            body.style.left = "";
+            body.style.right = "";
+            body.style.width = "";
+            body.style.paddingRight = "";
+            body.style.overscrollBehavior = "";
+            body.style.touchAction = "";
+            html.style.overflow = "";
+            html.style.overscrollBehavior = "";
+        }
+
+        scrollLockActiveRef.current = false;
+        window.scrollTo(0, scrollLockYRef.current || 0);
+    }, []);
+
     const stopTimers = useCallback(() => {
         if (intervalRef.current) clearInterval(intervalRef.current);
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -50,13 +142,10 @@ export default function ContactWidget() {
     }, [sending]);
 
     useEffect(() => {
-        if (!open) return;
-        const prev = document.body.style.overflow;
-        document.body.style.overflow = "hidden";
-        return () => {
-            document.body.style.overflow = prev;
-        };
-    }, [open]);
+        if (open) lockScroll();
+        else unlockScroll();
+        return () => unlockScroll();
+    }, [open, lockScroll, unlockScroll]);
 
     useEffect(() => {
         const handler = () => openWidget();
@@ -129,17 +218,19 @@ export default function ContactWidget() {
         showEmailError && !cleanEmail ? t("email_required") : showEmailError && cleanEmail && !emailOk ? t("email_invalid") : "";
     const messageError = showMessageError && !cleanMessage ? t("message_required") : "";
 
+    const onNameChange = (e) => setName(clampStr(e.target.value, MAX_NAME));
+    const onEmailChange = (e) => setFromEmail(clampStr(e.target.value, MAX_EMAIL));
+    const onMessageChange = (e) => setMessage(clampStr(e.target.value, MAX_MESSAGE));
+
     const onPhoneChange = (e) => {
-        const digitsOnly = e.target.value.replace(/\D/g, "");
-        setPhone(digitsOnly);
+        const digitsOnly = String(e.target.value || "").replace(/\D/g, "");
+        setPhone(clampStr(digitsOnly, MAX_PHONE));
     };
 
     const onPhoneKeyDown = (e) => {
         const allowed = ["Backspace", "Delete", "Tab", "Enter", "Escape", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"];
         if (allowed.includes(e.key)) return;
-
         if ((e.ctrlKey || e.metaKey) && ["a", "c", "v", "x"].includes(e.key.toLowerCase())) return;
-
         if (!/^\d$/.test(e.key)) e.preventDefault();
     };
 
@@ -156,10 +247,10 @@ export default function ContactWidget() {
                 process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
                 process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID,
                 {
-                    name: cleanName,
-                    from_email: cleanEmail,
-                    phone: String(phone || "").trim(),
-                    message: cleanMessage,
+                    name: clampStr(cleanName, MAX_NAME),
+                    from_email: clampStr(cleanEmail, MAX_EMAIL),
+                    phone: clampStr(String(phone || "").trim(), MAX_PHONE),
+                    message: clampStr(cleanMessage, MAX_MESSAGE),
                 },
                 process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
             );
@@ -228,12 +319,13 @@ export default function ContactWidget() {
                                         <span>{t("name_label")}</span>
                                         <input
                                             value={name}
-                                            onChange={(e) => setName(e.target.value)}
+                                            onChange={onNameChange}
                                             onBlur={() => setTouched((tt) => ({ ...tt, name: true }))}
                                             placeholder={t("name_placeholder")}
                                             autoComplete="name"
                                             disabled={sending}
                                             required
+                                            maxLength={MAX_NAME}
                                             aria-invalid={nameError ? "true" : "false"}
                                         />
                                         {nameError ? <div className="cw-hint cw-hint--error">{nameError}</div> : null}
@@ -243,13 +335,14 @@ export default function ContactWidget() {
                                         <span>{t("email_label")}</span>
                                         <input
                                             value={fromEmail}
-                                            onChange={(e) => setFromEmail(e.target.value)}
+                                            onChange={onEmailChange}
                                             onBlur={() => setTouched((tt) => ({ ...tt, email: true }))}
                                             placeholder={t("email_placeholder")}
                                             autoComplete="email"
                                             inputMode="email"
                                             disabled={sending}
                                             required
+                                            maxLength={MAX_EMAIL}
                                             aria-invalid={emailError ? "true" : "false"}
                                         />
                                         {emailError ? <div className="cw-hint cw-hint--error">{emailError}</div> : null}
@@ -265,14 +358,14 @@ export default function ContactWidget() {
                                                 e.preventDefault();
                                                 const text = (e.clipboardData || window.clipboardData).getData("text");
                                                 const digitsOnly = String(text || "").replace(/\D/g, "");
-                                                setPhone((prev) => (prev + digitsOnly).slice(0, 20));
+                                                setPhone((prev) => clampStr(String(prev || "") + digitsOnly, MAX_PHONE));
                                             }}
                                             placeholder={t("phone_placeholder")}
                                             autoComplete="tel"
                                             inputMode="numeric"
                                             pattern="\d*"
                                             disabled={sending}
-                                            maxLength={20}
+                                            maxLength={MAX_PHONE}
                                         />
                                     </label>
 
@@ -280,12 +373,13 @@ export default function ContactWidget() {
                                         <span>{t("message_label")}</span>
                                         <textarea
                                             value={message}
-                                            onChange={(e) => setMessage(e.target.value)}
+                                            onChange={onMessageChange}
                                             onBlur={() => setTouched((tt) => ({ ...tt, message: true }))}
                                             placeholder={t("message_placeholder")}
                                             rows={5}
                                             required
                                             disabled={sending}
+                                            maxLength={MAX_MESSAGE}
                                             aria-invalid={messageError ? "true" : "false"}
                                         />
                                         {messageError ? <div className="cw-hint cw-hint--error">{messageError}</div> : null}
