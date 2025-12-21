@@ -56,7 +56,11 @@ function LanguageSwitcher({ className = "", t, lang, setLang, options }) {
             >
                 <span className="langBtnFlag" aria-hidden="true">{current.flag}</span>
                 <span className="langBtnCode" aria-hidden="true">{current.short}</span>
-                <span className="langBtnChev" aria-hidden="true">▾</span>
+                <span className="langBtnChev" aria-hidden="true">
+                    <svg className="langBtnChevIcon" viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                        <path d="M7 10l5 5 5-5" />
+                    </svg>
+                </span>
             </button>
 
             {open ? (
