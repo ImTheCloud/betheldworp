@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "../lib/Firebase";
-import { useLang } from "./LanguageProvider";
 
 const VID_KEY = "bethel_vid";
 
@@ -18,7 +17,8 @@ function getBrusselsDayKey() {
     const y = parts.find((p) => p.type === "year")?.value ?? "0000";
     const m = parts.find((p) => p.type === "month")?.value ?? "00";
     const d = parts.find((p) => p.type === "day")?.value ?? "00";
-    return `${y}-${m}-${d}`;
+
+    return `${d}-${m}-${y}`;
 }
 
 function deviceType() {
@@ -26,10 +26,20 @@ function deviceType() {
     return w <= 768 ? "mobile" : "desktop";
 }
 
-function normalizeLang(code) {
+function normalizeTrackerLang(code) {
     const raw = String(code || "").trim();
-    const base = (raw || "ro").toLowerCase().split("-")[0] || "ro";
+    const lower = (raw || "ro").toLowerCase();
+    const base = lower.split("-")[0] || "ro";
     return base.slice(0, 16) || "ro";
+}
+
+function getBrowserLanguage() {
+    if (typeof navigator === "undefined") return "ro";
+    const first =
+        (Array.isArray(navigator.languages) && navigator.languages[0]) ||
+        navigator.language ||
+        "ro";
+    return normalizeTrackerLang(first);
 }
 
 function safeStorageGet(key) {
@@ -128,8 +138,6 @@ async function getGeoClientSideRobust(ms = 900) {
 }
 
 export default function VisitTracker() {
-    const { lang } = useLang();
-
     useEffect(() => {
         const day = getBrusselsDayKey();
         const doneKey = `bethel_visit_done_${day}`;
@@ -140,7 +148,7 @@ export default function VisitTracker() {
             const payloadKey = `bethel_visit_payload_${day}`;
             const saved = readJsonSafe(payloadKey);
 
-            const language = normalizeLang(lang || (typeof navigator !== "undefined" ? navigator.language : "ro") || "ro");
+            const language = getBrowserLanguage();
 
             let payload = null;
 
@@ -180,7 +188,7 @@ export default function VisitTracker() {
         })().catch((e) => {
             if (process.env.NODE_ENV !== "production") console.error("VisitTracker fatal:", e);
         });
-    }, [lang]);
+    }, []);
 
     return null;
 }
