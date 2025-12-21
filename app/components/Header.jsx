@@ -54,8 +54,12 @@ function LanguageSwitcher({ className = "", t, lang, setLang, options }) {
                 aria-haspopup="menu"
                 aria-expanded={open}
             >
-                <span className="langBtnFlag" aria-hidden="true">{current.flag}</span>
-                <span className="langBtnCode" aria-hidden="true">{current.short}</span>
+                <span className="langBtnFlag" aria-hidden="true">
+                    {current.flag}
+                </span>
+                <span className="langBtnCode" aria-hidden="true">
+                    {current.short}
+                </span>
                 <span className="langBtnChev" aria-hidden="true">
                     <svg className="langBtnChevIcon" viewBox="0 0 24 24" focusable="false" aria-hidden="true">
                         <path d="M7 10l5 5 5-5" />
@@ -76,12 +80,16 @@ function LanguageSwitcher({ className = "", t, lang, setLang, options }) {
                                 className={`langItem ${active ? "is-active" : ""}`}
                                 onClick={() => pick(o.value)}
                             >
-                                <span className="langItemFlag" aria-hidden="true">{o.flag}</span>
+                                <span className="langItemFlag" aria-hidden="true">
+                                    {o.flag}
+                                </span>
                                 <span className="langItemMain">
                                     <span className="langItemName">{o.label}</span>
                                     <span className="langItemCode">{o.short}</span>
                                 </span>
-                                <span className="langItemTick" aria-hidden="true">{active ? "✓" : ""}</span>
+                                <span className="langItemTick" aria-hidden="true">
+                                    {active ? "✓" : ""}
+                                </span>
                             </button>
                         );
                     })}
@@ -268,17 +276,22 @@ export default function Header() {
                 </div>
             </header>
 
-            <div className={`mnav-overlay ${menuOpen ? "is-open" : ""}`} onClick={() => setMenuOpen(false)} aria-hidden={!menuOpen}>
+            <div
+                className={`mnav-overlay ${menuOpen ? "is-open" : ""}`}
+                onClick={() => setMenuOpen(false)}
+                aria-hidden={!menuOpen}
+            >
                 <div className="mnav-panel" onClick={(e) => e.stopPropagation()}>
                     <div className="mnav-top">
                         <div className="mnav-title">{t("menu_title")}</div>
-                        <button type="button" className="mnav-close" onClick={() => setMenuOpen(false)} aria-label={t("menu_close")}>
+                        <button
+                            type="button"
+                            className="mnav-close"
+                            onClick={() => setMenuOpen(false)}
+                            aria-label={t("menu_close")}
+                        >
                             ×
                         </button>
-                    </div>
-
-                    <div className="mnav-lang">
-                        <LanguageSwitcher className="lang--mobile" t={t} lang={lang} setLang={setLang} options={LANG_OPTIONS} />
                     </div>
 
                     <div className="mnav-links">{renderNavButtons()}</div>
