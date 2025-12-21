@@ -4,7 +4,9 @@
     justify-content: space-between;
     gap: 12px;
     margin-bottom: 12px;
+    flex-wrap: wrap;
 }
+
 
 .statsTopRight {
     display: flex;
@@ -263,6 +265,25 @@
 }
 
 @media (max-width: 720px) {
+    .statsTop {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .adminTitle {
+        width: 100%;
+    }
+
+    .statsTopRight {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .statsSelect {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+
     .statsTabs {
         grid-template-columns: 1fr 1fr;
         gap: 10px;
