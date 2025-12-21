@@ -35,6 +35,9 @@ export default function Hero() {
     }, []);
 
     useEffect(() => {
+        setLoading(true);
+        setLoadFailed(false);
+
         const ref = doc(db, "monthly_verse", "current");
 
         const unsub = onSnapshot(
@@ -66,6 +69,8 @@ export default function Hero() {
     const emptyVerse = !verse.reference && !verse.text;
     const error = loadFailed ? t("error_load_verse") : emptyVerse && !loading ? t("error_no_verse") : "";
 
+    const showSkeleton = loading && !verse.text;
+
     return (
         <section className="hero">
             <img
@@ -89,7 +94,12 @@ export default function Hero() {
                         {loading ? ` ${t("loading")}` : ""}
                     </div>
 
-                    {verse.text ? <p className="hero-verseText">{verse.text}</p> : null}
+                    {(verse.text || showSkeleton) ? (
+                        <p className={`hero-verseText ${showSkeleton ? "is-skeleton" : ""}`.trim()}>
+                            {showSkeleton ? "\u00A0" : verse.text}
+                        </p>
+                    ) : null}
+
                     {error ? <div className="ec-inlineError">{error}</div> : null}
                 </div>
             </div>
