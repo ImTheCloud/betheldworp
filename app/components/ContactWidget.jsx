@@ -46,7 +46,17 @@ function lockBodyScroll() {
         body.style.right = prev.right;
         body.style.width = prev.width;
         body.style.overflow = prev.overflow;
-        window.scrollTo(0, scrollY);
+
+        requestAnimationFrame(() => {
+            const d = document.documentElement;
+            const prevSB = d.style.scrollBehavior;
+            d.style.scrollBehavior = "auto";
+
+            const yNow = window.scrollY || d.scrollTop || 0;
+            if (Math.abs(yNow - scrollY) > 1) window.scrollTo(0, scrollY);
+
+            d.style.scrollBehavior = prevSB;
+        });
     };
 }
 
@@ -71,6 +81,7 @@ export default function ContactWidget() {
 
     const intervalRef = useRef(null);
     const timeoutRef = useRef(null);
+    const bodyRef = useRef(null);
 
     const stopTimers = useCallback(() => {
         if (intervalRef.current) clearInterval(intervalRef.current);
@@ -79,14 +90,43 @@ export default function ContactWidget() {
         timeoutRef.current = null;
     }, []);
 
+    const ensureFieldVisible = useCallback((targetEl) => {
+        const body = bodyRef.current;
+        if (!body || !targetEl) return;
+
+        const bodyRect = body.getBoundingClientRect();
+        const elRect = targetEl.getBoundingClientRect();
+
+        const pad = 14;
+
+        const topDiff = elRect.top - bodyRect.top;
+        const bottomDiff = elRect.bottom - bodyRect.bottom;
+
+        if (topDiff < pad) {
+            body.scrollTop += topDiff - pad;
+        } else if (bottomDiff > -pad) {
+            body.scrollTop += bottomDiff + pad;
+        }
+    }, []);
+
+    const onFieldFocus = useCallback(
+        (e) => {
+            requestAnimationFrame(() => ensureFieldVisible(e.target));
+            setTimeout(() => ensureFieldVisible(e.target), 80);
+        },
+        [ensureFieldVisible]
+    );
+
     const openWidget = useCallback(() => {
         stopTimers();
         setPulse(false);
+        if (typeof document !== "undefined") document.activeElement?.blur?.();
         setOpen(true);
     }, [stopTimers]);
 
     const close = useCallback(() => {
         if (sending) return;
+        if (typeof document !== "undefined") document.activeElement?.blur?.();
         setOpen(false);
     }, [sending]);
 
@@ -127,6 +167,13 @@ export default function ContactWidget() {
                 docEl.style.removeProperty("--cw-vh");
             };
         }
+    }, [open]);
+
+    useEffect(() => {
+        if (!open) return;
+        requestAnimationFrame(() => {
+            if (bodyRef.current) bodyRef.current.scrollTop = 0;
+        });
     }, [open]);
 
     useEffect(() => {
@@ -199,11 +246,7 @@ export default function ContactWidget() {
 
     const nameError = showNameError && !cleanName ? t("name_required") : "";
     const emailError =
-        showEmailError && !cleanEmail
-            ? t("email_required")
-            : showEmailError && cleanEmail && !emailOk
-                ? t("email_invalid")
-                : "";
+        showEmailError && !cleanEmail ? t("email_required") : showEmailError && cleanEmail && !emailOk ? t("email_invalid") : "";
     const messageError = showMessageError && !cleanMessage ? t("message_required") : "";
 
     const onPhoneChange = (e) => {
@@ -309,7 +352,7 @@ export default function ContactWidget() {
                             </button>
                         </header>
 
-                        <div className="cw-body">
+                        <div className="cw-body" ref={bodyRef}>
                             {success ? (
                                 <div className="cw-success">
                                     <div className="cw-success-title">{t("sent_title")}</div>
@@ -323,6 +366,7 @@ export default function ContactWidget() {
                                             value={name}
                                             onChange={(e) => setName(String(e.target.value || "").slice(0, LIMITS.name))}
                                             onBlur={() => setTouched((tt) => ({ ...tt, name: true }))}
+                                            onFocus={onFieldFocus}
                                             placeholder={t("name_placeholder")}
                                             autoComplete="name"
                                             disabled={sending}
@@ -339,6 +383,7 @@ export default function ContactWidget() {
                                             value={fromEmail}
                                             onChange={(e) => setFromEmail(String(e.target.value || "").slice(0, LIMITS.email))}
                                             onBlur={() => setTouched((tt) => ({ ...tt, email: true }))}
+                                            onFocus={onFieldFocus}
                                             placeholder={t("email_placeholder")}
                                             autoComplete="email"
                                             inputMode="email"
@@ -356,6 +401,7 @@ export default function ContactWidget() {
                                             value={phone}
                                             onChange={onPhoneChange}
                                             onKeyDown={onPhoneKeyDown}
+                                            onFocus={onFieldFocus}
                                             onPaste={(e) => {
                                                 e.preventDefault();
                                                 const text = (e.clipboardData || window.clipboardData).getData("text");
@@ -377,6 +423,7 @@ export default function ContactWidget() {
                                             value={message}
                                             onChange={(e) => setMessage(String(e.target.value || "").slice(0, LIMITS.message))}
                                             onBlur={() => setTouched((tt) => ({ ...tt, message: true }))}
+                                            onFocus={onFieldFocus}
                                             placeholder={t("message_placeholder")}
                                             rows={5}
                                             required
