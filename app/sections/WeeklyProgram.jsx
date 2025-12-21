@@ -207,7 +207,9 @@ export default function Program() {
                 {showAnnouncement ? (
                     <div className="program-announcement" role="status" aria-live="polite">
                         <div className="program-announcement-head">
-                            <div className="program-announcement-badge" aria-hidden="true">!</div>
+                            <div className="program-announcement-badge" aria-hidden="true">
+                                !
+                            </div>
                             <div className="program-announcement-title">{t("special_title")}</div>
                         </div>
 
@@ -231,9 +233,9 @@ export default function Program() {
                         return (
                             <article
                                 key={id}
-                                className={`program-card ${isAlert ? "program-card--alert program-card--clickable" : "program-card--normal"} ${
-                                    isFlipped ? "program-card--flipped" : ""
-                                }`}
+                                className={`program-card ${
+                                    isAlert ? "program-card--alert program-card--clickable" : "program-card--normal"
+                                } ${isFlipped ? "program-card--flipped" : ""}`}
                                 role={isAlert ? "button" : undefined}
                                 tabIndex={isAlert ? 0 : undefined}
                                 aria-label={isAlert ? t("card_click_aria") : undefined}
@@ -276,7 +278,7 @@ export default function Program() {
                                             </div>
                                         ) : null}
 
-                                        <div className="program-cardBackBody">
+                                        <div className="program-cardBackBodyOnly">
                                             <div className="program-cardBackText">{isFlipped ? messageForOpen : ""}</div>
                                         </div>
                                     </div>
