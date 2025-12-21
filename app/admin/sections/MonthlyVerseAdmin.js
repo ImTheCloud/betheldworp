@@ -4,29 +4,24 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { doc, collection, onSnapshot, setDoc, deleteDoc } from "firebase/firestore";
 import { db } from "../../lib/Firebase";
 
-/*
- * Helpers
- */
 function safeStr(v) {
     return String(v ?? "");
 }
+
 function pad2(n) {
     return String(n).padStart(2, "0");
 }
 
-// YYYY-MM-DD
 function getTodayId() {
     const now = new Date();
     return `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
 }
 
-// Unique archive id but still sortable by day (ex: 2025-12-19-193027)
 function getArchiveId() {
     const now = new Date();
     return `${getTodayId()}-${pad2(now.getHours())}${pad2(now.getMinutes())}${pad2(now.getSeconds())}`;
 }
 
-// Parse an ID back into a timestamp for sorting history (accepts YYYY-MM-DD and YYYY-MM-DD-xxxxx)
 function parseDateId(id) {
     const s = safeStr(id).trim();
     const m = s.match(/^(\d{4})-(\d{2})-(\d{2})(?:-|$)/);
@@ -34,21 +29,89 @@ function parseDateId(id) {
     return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 0, 0, 0, 0).getTime();
 }
 
-function isVerseValid(reference, text) {
-    return Boolean(safeStr(reference).trim() && safeStr(text).trim());
+const LANGS = [
+    { key: "ro", label: "RO" },
+    { key: "en", label: "EN" },
+    { key: "fr", label: "FR" },
+    { key: "nl", label: "NL" },
+];
+
+function emptyLangMap() {
+    return { ro: "", en: "", fr: "", nl: "" };
 }
 
-function makeSummary(reference, text, max = 60) {
-    const ref = safeStr(reference).trim();
-    const t = safeStr(text).trim();
+function normalizeLangMap(value) {
+    if (!value) return emptyLangMap();
+    if (typeof value === "string") return { ro: safeStr(value).trim(), en: "", fr: "", nl: "" };
+    if (typeof value === "object") {
+        return {
+            ro: safeStr(value?.ro).trim(),
+            en: safeStr(value?.en).trim(),
+            fr: safeStr(value?.fr).trim(),
+            nl: safeStr(value?.nl).trim(),
+        };
+    }
+    return emptyLangMap();
+}
+
+function normalizeVerse(data) {
+    const d = data || {};
+    return {
+        reference: normalizeLangMap(d.reference),
+        text: normalizeLangMap(d.text),
+    };
+}
+
+function cleanVerse(draft) {
+    const r = draft?.reference || emptyLangMap();
+    const t = draft?.text || emptyLangMap();
+    return {
+        reference: {
+            ro: safeStr(r.ro).trim(),
+            en: safeStr(r.en).trim(),
+            fr: safeStr(r.fr).trim(),
+            nl: safeStr(r.nl).trim(),
+        },
+        text: {
+            ro: safeStr(t.ro).trim(),
+            en: safeStr(t.en).trim(),
+            fr: safeStr(t.fr).trim(),
+            nl: safeStr(t.nl).trim(),
+        },
+    };
+}
+
+function pickFallback(map) {
+    const m = map || emptyLangMap();
+    return safeStr(m.ro).trim() || safeStr(m.en).trim() || safeStr(m.fr).trim() || safeStr(m.nl).trim() || "";
+}
+
+function isVerseValidAllLangs(draft) {
+    const v = cleanVerse(draft);
+    for (const l of LANGS) {
+        if (!v.reference[l.key] || !v.text[l.key]) return false;
+    }
+    return true;
+}
+
+function verseEqualTrim(a, b) {
+    const va = cleanVerse(a);
+    const vb = cleanVerse(b);
+    for (const l of LANGS) {
+        if (va.reference[l.key] !== vb.reference[l.key]) return false;
+        if (va.text[l.key] !== vb.text[l.key]) return false;
+    }
+    return true;
+}
+
+function makeSummary(referenceMap, textMap, max = 60) {
+    const ref = pickFallback(referenceMap);
+    const t = pickFallback(textMap);
     if (ref) return ref;
     if (!t) return "—";
     return t.length <= max ? t : t.slice(0, max) + "…";
 }
 
-/*
- * Icons
- */
 function IconChevronDown(props) {
     return (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
@@ -88,9 +151,6 @@ function IconTrash(props) {
     );
 }
 
-/*
- * Reusable Verse card (current + history)
- */
 function VerseCard({
                        label,
                        expanded,
@@ -98,7 +158,9 @@ function VerseCard({
                        draft,
                        dirty,
                        saveState,
+                       activeLang,
                        onToggle,
+                       onLangChange,
                        onChangeField,
                        onSave,
                        onDelete,
@@ -108,6 +170,8 @@ function VerseCard({
         if (e.target.closest("button, input, textarea, select, label")) return;
         onToggle();
     };
+
+    const langKey = activeLang || "ro";
 
     return (
         <div className="adminAnnCard" onClick={onCardClick}>
@@ -136,24 +200,40 @@ function VerseCard({
 
             {expanded ? (
                 <>
+                    <div className="adminAffectGrid">
+                        {LANGS.map((l) => (
+                            <button
+                                key={l.key}
+                                type="button"
+                                className={`adminAffectChip ${langKey === l.key ? "is-on" : ""}`.trim()}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onLangChange(l.key);
+                                }}
+                            >
+                                {l.label}
+                            </button>
+                        ))}
+                    </div>
+
                     <label className="adminLabel">
-                        Referință
+                        Referință ({langKey.toUpperCase()})
                         <input
                             className="adminInput"
-                            value={safeStr(draft.reference)}
-                            onChange={(e) => onChangeField("reference", e.target.value)}
-                            maxLength={60}
+                            value={safeStr(draft?.reference?.[langKey])}
+                            onChange={(e) => onChangeField("reference", langKey, e.target.value)}
+                            maxLength={80}
                         />
                     </label>
 
                     <label className="adminLabel">
-                        Text
+                        Text ({langKey.toUpperCase()})
                         <textarea
                             className="adminTextarea"
-                            value={safeStr(draft.text)}
-                            onChange={(e) => onChangeField("text", e.target.value)}
+                            value={safeStr(draft?.text?.[langKey])}
+                            onChange={(e) => onChangeField("text", langKey, e.target.value)}
                             rows={6}
-                            maxLength={800}
+                            maxLength={1200}
                         />
                     </label>
 
@@ -189,10 +269,9 @@ function VerseCard({
     );
 }
 
-/*
- * NewVerseCard – add a brand new verse (becomes current)
- */
-function NewVerseCard({ newDraft, setNewDraft, newError, newState, onCancel, onSave }) {
+function NewVerseCard({ newDraft, setNewDraft, newError, newState, activeLang, onLangChange, onCancel, onSave }) {
+    const langKey = activeLang || "ro";
+
     return (
         <div className="adminAnnCard is-active">
             <div className="adminAnnHeader">
@@ -201,24 +280,50 @@ function NewVerseCard({ newDraft, setNewDraft, newError, newState, onCancel, onS
 
             {newError ? <div className="adminAlert">{newError}</div> : null}
 
+            <div className="adminAffectGrid">
+                {LANGS.map((l) => (
+                    <button
+                        key={l.key}
+                        type="button"
+                        className={`adminAffectChip ${langKey === l.key ? "is-on" : ""}`.trim()}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onLangChange(l.key);
+                        }}
+                    >
+                        {l.label}
+                    </button>
+                ))}
+            </div>
+
             <label className="adminLabel">
-                Referință
+                Referință ({langKey.toUpperCase()})
                 <input
                     className="adminInput"
-                    value={safeStr(newDraft.reference)}
-                    onChange={(e) => setNewDraft((d) => ({ ...d, reference: e.target.value }))}
-                    maxLength={60}
+                    value={safeStr(newDraft?.reference?.[langKey])}
+                    onChange={(e) =>
+                        setNewDraft((d) => ({
+                            ...d,
+                            reference: { ...(d.reference || emptyLangMap()), [langKey]: e.target.value },
+                        }))
+                    }
+                    maxLength={80}
                 />
             </label>
 
             <label className="adminLabel">
-                Text
+                Text ({langKey.toUpperCase()})
                 <textarea
                     className="adminTextarea"
-                    value={safeStr(newDraft.text)}
-                    onChange={(e) => setNewDraft((d) => ({ ...d, text: e.target.value }))}
+                    value={safeStr(newDraft?.text?.[langKey])}
+                    onChange={(e) =>
+                        setNewDraft((d) => ({
+                            ...d,
+                            text: { ...(d.text || emptyLangMap()), [langKey]: e.target.value },
+                        }))
+                    }
                     rows={6}
-                    maxLength={800}
+                    maxLength={1200}
                 />
             </label>
 
@@ -235,9 +340,6 @@ function NewVerseCard({ newDraft, setNewDraft, newError, newState, onCancel, onS
     );
 }
 
-/*
- * MonthlyVerseAdmin
- */
 export default function MonthlyVerseAdmin() {
     const mountedRef = useRef(true);
     const timeoutRef = useRef(null);
@@ -245,22 +347,24 @@ export default function MonthlyVerseAdmin() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
-    const [current, setCurrent] = useState({ reference: "", text: "" });
-    const [currentDraft, setCurrentDraft] = useState({ reference: "", text: "" });
+    const [current, setCurrent] = useState(() => ({ reference: emptyLangMap(), text: emptyLangMap() }));
+    const [currentDraft, setCurrentDraft] = useState(() => ({ reference: emptyLangMap(), text: emptyLangMap() }));
     const [saveCurrentState, setSaveCurrentState] = useState("idle");
     const [expandedCurrent, setExpandedCurrent] = useState(false);
+    const [currentLang, setCurrentLang] = useState("ro");
 
     const [showNew, setShowNew] = useState(false);
-    const [newDraft, setNewDraft] = useState({ reference: "", text: "" });
+    const [newDraft, setNewDraft] = useState(() => ({ reference: emptyLangMap(), text: emptyLangMap() }));
     const [newState, setNewState] = useState("idle");
     const [newError, setNewError] = useState("");
+    const [newLang, setNewLang] = useState("ro");
 
     const [showHistory, setShowHistory] = useState(false);
-    const [history, setHistory] = useState([]); // [{id, reference, text, t}]
+    const [history, setHistory] = useState([]);
     const [expandedHistoryIds, setExpandedHistoryIds] = useState(() => new Set());
-
-    const [historyDrafts, setHistoryDrafts] = useState({}); // id -> {reference, text}
-    const [savingHistoryById, setSavingHistoryById] = useState({}); // id -> state
+    const [historyDrafts, setHistoryDrafts] = useState({});
+    const [savingHistoryById, setSavingHistoryById] = useState({});
+    const [historyLangById, setHistoryLangById] = useState({});
 
     const CURRENT_REF = useMemo(() => doc(db, "monthly_verse", "current"), []);
 
@@ -278,7 +382,6 @@ export default function MonthlyVerseAdmin() {
         };
     }, []);
 
-    // Current verse
     useEffect(() => {
         setLoading(true);
         setError("");
@@ -288,10 +391,8 @@ export default function MonthlyVerseAdmin() {
             CURRENT_REF,
             (snap) => {
                 if (!mountedRef.current) return;
-
                 const data = snap.exists() ? snap.data() || {} : {};
-                const next = { reference: safeStr(data.reference), text: safeStr(data.text) };
-
+                const next = normalizeVerse(data);
                 setCurrent(next);
                 setCurrentDraft(next);
                 setLoading(false);
@@ -307,7 +408,6 @@ export default function MonthlyVerseAdmin() {
         return () => unsub();
     }, [CURRENT_REF]);
 
-    // History collection
     useEffect(() => {
         const unsub = onSnapshot(
             collection(db, "monthly_verse"),
@@ -318,11 +418,11 @@ export default function MonthlyVerseAdmin() {
                 const list = [];
                 snap.forEach((d) => {
                     if (d.id === "current") return;
-                    const data = d.data() || {};
+                    const base = normalizeVerse(d.data() || {});
                     list.push({
                         id: d.id,
-                        reference: safeStr(data.reference),
-                        text: safeStr(data.text),
+                        reference: base.reference,
+                        text: base.text,
                         t: parseDateId(d.id) || 0,
                     });
                 });
@@ -332,7 +432,6 @@ export default function MonthlyVerseAdmin() {
 
                 setHistory(sliced);
 
-                // keep drafts if user modified; otherwise sync from firestore
                 setHistoryDrafts((prev) => {
                     const next = { ...prev };
                     const alive = new Set(sliced.map((x) => x.id));
@@ -350,21 +449,29 @@ export default function MonthlyVerseAdmin() {
                             return;
                         }
 
-                        const dirty =
-                            safeStr(cur.reference).trim() !== safeStr(base.reference).trim() ||
-                            safeStr(cur.text).trim() !== safeStr(base.text).trim();
-
+                        const dirty = !verseEqualTrim(cur, base);
                         if (!dirty) next[h.id] = base;
                     });
 
                     return next;
                 });
 
-                // keep expanded ids only if still present
                 setExpandedHistoryIds((prev) => {
                     const alive = new Set(sliced.map((x) => x.id));
                     const next = new Set();
                     prev.forEach((id) => alive.has(id) && next.add(id));
+                    return next;
+                });
+
+                setHistoryLangById((prev) => {
+                    const alive = new Set(sliced.map((x) => x.id));
+                    const next = { ...prev };
+                    Object.keys(next).forEach((k) => {
+                        if (!alive.has(k)) delete next[k];
+                    });
+                    sliced.forEach((h) => {
+                        if (!next[h.id]) next[h.id] = "ro";
+                    });
                     return next;
                 });
             },
@@ -374,34 +481,25 @@ export default function MonthlyVerseAdmin() {
         return () => unsub();
     }, []);
 
-    // Derived states
-    const currentDirty =
-        safeStr(currentDraft.reference).trim() !== safeStr(current.reference).trim() ||
-        safeStr(currentDraft.text).trim() !== safeStr(current.text).trim();
+    const currentDirty = !verseEqualTrim(currentDraft, current);
 
-    const currentSummary = useMemo(
-        () => makeSummary(currentDraft.reference, currentDraft.text),
-        [currentDraft.reference, currentDraft.text]
-    );
+    const currentSummary = useMemo(() => makeSummary(currentDraft.reference, currentDraft.text), [currentDraft]);
 
-    // Current actions
     const saveCurrent = async () => {
         setError("");
-        const ref = safeStr(currentDraft.reference).trim();
-        const text = safeStr(currentDraft.text).trim();
-
-        if (!isVerseValid(ref, text)) {
-            setError("Completează referința și textul.");
+        if (!isVerseValidAllLangs(currentDraft)) {
+            setError("Completează referința și textul pentru toate cele 4 limbi.");
             return;
         }
 
         setSaveCurrentState("saving");
         try {
-            await setDoc(CURRENT_REF, { reference: ref, text }, { merge: true });
+            const v = cleanVerse(currentDraft);
+            await setDoc(CURRENT_REF, { reference: v.reference, text: v.text }, { merge: true });
 
             if (!mountedRef.current) return;
-            setCurrent({ reference: ref, text });
-            setCurrentDraft({ reference: ref, text });
+            setCurrent(v);
+            setCurrentDraft(v);
             setTransientState(setSaveCurrentState, "saved");
         } catch (err) {
             console.error(err);
@@ -418,12 +516,12 @@ export default function MonthlyVerseAdmin() {
         setError("");
         setSaveCurrentState("saving");
         try {
-            // delete doc "current"
             await deleteDoc(CURRENT_REF);
 
             if (!mountedRef.current) return;
-            setCurrent({ reference: "", text: "" });
-            setCurrentDraft({ reference: "", text: "" });
+            const empty = { reference: emptyLangMap(), text: emptyLangMap() };
+            setCurrent(empty);
+            setCurrentDraft(empty);
             setTransientState(setSaveCurrentState, "saved");
         } catch (err) {
             console.error(err);
@@ -433,20 +531,17 @@ export default function MonthlyVerseAdmin() {
         }
     };
 
-    // New verse actions
     const cancelNew = () => {
         setShowNew(false);
-        setNewDraft({ reference: "", text: "" });
+        setNewDraft({ reference: emptyLangMap(), text: emptyLangMap() });
         setNewState("idle");
         setNewError("");
+        setNewLang("ro");
     };
 
     const saveNew = async () => {
-        const ref = safeStr(newDraft.reference).trim();
-        const text = safeStr(newDraft.text).trim();
-
-        if (!isVerseValid(ref, text)) {
-            setNewError("Completează referința și textul.");
+        if (!isVerseValidAllLangs(newDraft)) {
+            setNewError("Completează referința și textul pentru toate cele 4 limbi.");
             return;
         }
 
@@ -454,15 +549,16 @@ export default function MonthlyVerseAdmin() {
         setNewError("");
 
         try {
-            // archive previous current if any
-            const prevRef = safeStr(current.reference).trim();
-            const prevText = safeStr(current.text).trim();
-            if (prevRef || prevText) {
-                await setDoc(doc(db, "monthly_verse", getArchiveId()), { reference: prevRef, text: prevText });
+            const prev = cleanVerse(current);
+            const hasPrev =
+                pickFallback(prev.reference) || pickFallback(prev.text);
+
+            if (hasPrev) {
+                await setDoc(doc(db, "monthly_verse", getArchiveId()), { reference: prev.reference, text: prev.text });
             }
 
-            // set new current
-            await setDoc(CURRENT_REF, { reference: ref, text }, { merge: true });
+            const v = cleanVerse(newDraft);
+            await setDoc(CURRENT_REF, { reference: v.reference, text: v.text }, { merge: true });
 
             if (!mountedRef.current) return;
             setNewState("saved");
@@ -475,7 +571,6 @@ export default function MonthlyVerseAdmin() {
         }
     };
 
-    // History actions
     const toggleHistory = (id) => {
         const key = safeStr(id).trim();
         if (!key) return;
@@ -486,16 +581,20 @@ export default function MonthlyVerseAdmin() {
         });
     };
 
-    const setHistoryField = (id, field, value) => {
+    const setHistoryField = (id, field, lang, value) => {
         const key = safeStr(id).trim();
         if (!key) return;
-        setHistoryDrafts((prev) => ({
-            ...prev,
-            [key]: {
-                ...(prev[key] || { reference: "", text: "" }),
-                [field]: value,
-            },
-        }));
+        const l = safeStr(lang).trim() || "ro";
+        setHistoryDrafts((prev) => {
+            const base = prev[key] || { reference: emptyLangMap(), text: emptyLangMap() };
+            return {
+                ...prev,
+                [key]: {
+                    ...base,
+                    [field]: { ...(base[field] || emptyLangMap()), [l]: value },
+                },
+            };
+        });
         if (error) setError("");
     };
 
@@ -504,30 +603,21 @@ export default function MonthlyVerseAdmin() {
         if (!key) return;
 
         const base = history.find((h) => h.id === key);
-        const draft = historyDrafts[key] || { reference: "", text: "" };
+        const draft = historyDrafts[key] || (base ? { reference: base.reference, text: base.text } : { reference: emptyLangMap(), text: emptyLangMap() });
 
-        const ref = safeStr(draft.reference).trim();
-        const text = safeStr(draft.text).trim();
-
-        if (!isVerseValid(ref, text)) {
-            setError("Completează referința și textul.");
+        if (!isVerseValidAllLangs(draft)) {
+            setError("Completează referința și textul pentru toate cele 4 limbi.");
             return;
         }
 
-        // no changes
-        if (
-            base &&
-            safeStr(base.reference).trim() === ref &&
-            safeStr(base.text).trim() === text
-        ) {
-            return;
-        }
+        if (base && verseEqualTrim(draft, { reference: base.reference, text: base.text })) return;
 
         setSavingHistoryById((m) => ({ ...m, [key]: "saving" }));
         setError("");
 
         try {
-            await setDoc(doc(db, "monthly_verse", key), { reference: ref, text }, { merge: true });
+            const v = cleanVerse(draft);
+            await setDoc(doc(db, "monthly_verse", key), { reference: v.reference, text: v.text }, { merge: true });
 
             if (!mountedRef.current) return;
             setSavingHistoryById((m) => ({ ...m, [key]: "saved" }));
@@ -554,7 +644,6 @@ export default function MonthlyVerseAdmin() {
             await deleteDoc(doc(db, "monthly_verse", key));
 
             if (!mountedRef.current) return;
-            // optimistic cleanup (snapshot will also refresh)
             setHistoryDrafts((prev) => {
                 const next = { ...prev };
                 delete next[key];
@@ -567,6 +656,11 @@ export default function MonthlyVerseAdmin() {
             });
             setSavingHistoryById((m) => {
                 const next = { ...m };
+                delete next[key];
+                return next;
+            });
+            setHistoryLangById((prev) => {
+                const next = { ...prev };
                 delete next[key];
                 return next;
             });
@@ -610,12 +704,13 @@ export default function MonthlyVerseAdmin() {
                             setNewDraft={setNewDraft}
                             newError={newError}
                             newState={newState}
+                            activeLang={newLang}
+                            onLangChange={setNewLang}
                             onCancel={cancelNew}
                             onSave={saveNew}
                         />
                     ) : null}
 
-                    {/* Current verse (editable + delete + save) */}
                     <VerseCard
                         label="Curent"
                         expanded={expandedCurrent}
@@ -623,9 +718,15 @@ export default function MonthlyVerseAdmin() {
                         draft={currentDraft}
                         dirty={currentDirty}
                         saveState={saveCurrentState}
+                        activeLang={currentLang}
+                        onLangChange={setCurrentLang}
                         onToggle={() => setExpandedCurrent((v) => !v)}
-                        onChangeField={(field, value) => {
-                            setCurrentDraft((s) => ({ ...s, [field]: value }));
+                        onChangeField={(field, lang, value) => {
+                            const l = safeStr(lang).trim() || "ro";
+                            setCurrentDraft((s) => ({
+                                ...s,
+                                [field]: { ...(s[field] || emptyLangMap()), [l]: value },
+                            }));
                             if (error) setError("");
                             if (saveCurrentState !== "idle") setSaveCurrentState("idle");
                         }}
@@ -634,7 +735,6 @@ export default function MonthlyVerseAdmin() {
                         deleteTitle="Șterge versetul curent"
                     />
 
-                    {/* History toggle */}
                     <div className="adminHistoryRow">
                         <button
                             type="button"
@@ -646,17 +746,15 @@ export default function MonthlyVerseAdmin() {
                         </button>
                     </div>
 
-                    {/* History list (editable + delete + save per entry) */}
                     {showHistory ? (
                         <div className="adminList adminList--history">
                             {history.map((h) => {
                                 const expanded = expandedHistoryIds.has(h.id);
-                                const draft = historyDrafts[h.id] || { reference: h.reference, text: h.text };
-                                const baseRef = safeStr(h.reference).trim();
-                                const baseText = safeStr(h.text).trim();
-                                const dirty =
-                                    safeStr(draft.reference).trim() !== baseRef ||
-                                    safeStr(draft.text).trim() !== baseText;
+                                const base = { reference: h.reference, text: h.text };
+                                const draft = historyDrafts[h.id] || base;
+                                const dirty = !verseEqualTrim(draft, base);
+                                const state = savingHistoryById[h.id] || "idle";
+                                const lang = historyLangById[h.id] || "ro";
 
                                 return (
                                     <VerseCard
@@ -666,9 +764,11 @@ export default function MonthlyVerseAdmin() {
                                         summary={makeSummary(h.reference, h.text)}
                                         draft={draft}
                                         dirty={dirty}
-                                        saveState={savingHistoryById[h.id] || "idle"}
+                                        saveState={state}
+                                        activeLang={lang}
+                                        onLangChange={(l) => setHistoryLangById((m) => ({ ...m, [h.id]: l }))}
                                         onToggle={() => toggleHistory(h.id)}
-                                        onChangeField={(field, value) => setHistoryField(h.id, field, value)}
+                                        onChangeField={(field, l, value) => setHistoryField(h.id, field, l, value)}
                                         onSave={() => saveHistory(h.id)}
                                         onDelete={() => deleteHistory(h.id)}
                                         deleteTitle="Șterge din istoric"
