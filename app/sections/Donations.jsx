@@ -69,7 +69,6 @@ export default function Donations() {
             <div className="don-content">
                 <div className="don-header">
                     <h2 className="don-title">{t("title")}</h2>
-                    <p className="don-intro">{t("intro")}</p>
                 </div>
 
                 <div className="don-bank-card">
