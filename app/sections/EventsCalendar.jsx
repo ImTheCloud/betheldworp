@@ -39,6 +39,16 @@ function isSameMonth(d1, d2) {
     return d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth();
 }
 
+function pickByLang(value, lang) {
+    if (!value) return "";
+    if (typeof value === "string") return String(value || "").trim();
+    if (typeof value === "object") {
+        const v = value?.[lang] ?? value?.ro ?? value?.en ?? "";
+        return String(v || "").trim();
+    }
+    return "";
+}
+
 export default function EventsCalendar() {
     const { lang } = useLang();
     const t = useMemo(() => makeT(tr, lang), [lang]);
@@ -61,7 +71,20 @@ export default function EventsCalendar() {
         const unsub = onSnapshot(
             collection(db, "events"),
             (snap) => {
-                const list = snap.docs.map((d) => ({ ...d.data(), id: d.id })).filter((e) => e && e.dateEvent);
+                const list = snap.docs
+                    .map((d) => {
+                        const data = d.data() || {};
+                        const dateEvent = normalizeDateToIso(data.dateEvent);
+                        return {
+                            ...data,
+                            id: d.id,
+                            dateEvent,
+                            title: pickByLang(data.title, lang),
+                            description: pickByLang(data.description, lang),
+                        };
+                    })
+                    .filter((e) => e && e.dateEvent);
+
                 setEvents(list);
                 setEventsLoading(false);
                 setEventsError("");
@@ -73,17 +96,17 @@ export default function EventsCalendar() {
             }
         );
         return () => unsub();
-    }, [t]);
+    }, [lang, t]);
 
     const eventsSorted = useMemo(() => {
         const copy = Array.isArray(events) ? [...events] : [];
-        copy.sort((a, b) => normalizeDateToIso(a.dateEvent).localeCompare(normalizeDateToIso(b.dateEvent)));
+        copy.sort((a, b) => String(a.dateEvent || "").localeCompare(String(b.dateEvent || "")));
         return copy;
     }, [events]);
 
     const eventsByDate = useMemo(() => {
         const map = new Map();
-        for (const ev of eventsSorted) map.set(normalizeDateToIso(ev.dateEvent), ev);
+        for (const ev of eventsSorted) map.set(String(ev.dateEvent || ""), ev);
         return map;
     }, [eventsSorted]);
 
@@ -95,7 +118,7 @@ export default function EventsCalendar() {
         if (!eventsSorted.length) return;
 
         const hasInCurrentMonth = eventsSorted.some((ev) => {
-            const d = new Date(`${normalizeDateToIso(ev.dateEvent)}T00:00:00`);
+            const d = new Date(`${ev.dateEvent}T00:00:00`);
             return isSameMonth(d, startOfCurrentMonth);
         });
 
@@ -105,8 +128,8 @@ export default function EventsCalendar() {
             return;
         }
 
-        const next = eventsSorted.find((ev) => normalizeDateToIso(ev.dateEvent) >= todayIso) || eventsSorted[0];
-        const nextDate = new Date(`${normalizeDateToIso(next.dateEvent)}T00:00:00`);
+        const next = eventsSorted.find((ev) => ev.dateEvent >= todayIso) || eventsSorted[0];
+        const nextDate = new Date(`${next.dateEvent}T00:00:00`);
         setMonth(new Date(nextDate.getFullYear(), nextDate.getMonth(), 1));
         setDidPickMonth(true);
     }, [didPickMonth, eventsSorted, startOfCurrentMonth, todayIso]);
@@ -121,7 +144,7 @@ export default function EventsCalendar() {
         if (selectedId && eventsSorted.some((e) => e.id === selectedId)) return;
 
         const todayEvent = eventsByDate.get(todayIso);
-        const nextEvent = eventsSorted.find((ev) => normalizeDateToIso(ev.dateEvent) >= todayIso);
+        const nextEvent = eventsSorted.find((ev) => ev.dateEvent >= todayIso);
         setSelectedId(todayEvent?.id || nextEvent?.id || eventsSorted[0].id);
     }, [eventsSorted, eventsByDate, todayIso, selectedId]);
 
@@ -189,10 +212,13 @@ export default function EventsCalendar() {
         }
     };
 
-    const formatDate = (inputDate) => {
-        const iso = normalizeDateToIso(inputDate);
+    const formatDate = (iso) => {
         const d = new Date(`${iso}T00:00:00`);
-        return new Intl.DateTimeFormat(locale, { day: "2-digit", month: "2-digit", year: "numeric" }).format(d);
+        return new Intl.DateTimeFormat(locale, {
+            day: "2-digit",
+            month: "long",
+            year: "numeric",
+        }).format(d);
     };
 
     const formatMonth = (firstOfMonth) => {
@@ -203,7 +229,7 @@ export default function EventsCalendar() {
         if (!ev) return t("event");
         const parts = [ev.title || t("event")];
         if (ev.description) parts.push(ev.description);
-        if (ev.dateEvent) parts.push(ev.dateEvent);
+        if (ev.dateEvent) parts.push(formatDate(ev.dateEvent));
         return parts.join(" · ");
     };
 

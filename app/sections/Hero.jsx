@@ -8,6 +8,16 @@ import { useLang } from "../components/LanguageProvider";
 import { makeT } from "../lib/i18n";
 import tr from "../translations/Hero.json";
 
+function pickByLang(value, lang) {
+    if (!value) return "";
+    if (typeof value === "string") return value;
+    if (typeof value === "object") {
+        const v = value?.[lang] ?? value?.ro ?? value?.en ?? "";
+        return String(v || "").trim();
+    }
+    return "";
+}
+
 export default function Hero() {
     const { lang } = useLang();
     const t = useMemo(() => makeT(tr, lang), [lang]);
@@ -31,8 +41,9 @@ export default function Hero() {
             ref,
             (snap) => {
                 const data = snap.data() || {};
-                const reference = String(data.reference ?? "").trim();
-                const text = String(data.text ?? "").trim();
+
+                const reference = pickByLang(data.reference, lang);
+                const text = pickByLang(data.text, lang);
 
                 const prev = lastRef.current;
                 if (prev.reference !== reference || prev.text !== text) {
@@ -50,7 +61,7 @@ export default function Hero() {
         );
 
         return () => unsub();
-    }, []);
+    }, [lang]);
 
     const emptyVerse = !verse.reference && !verse.text;
     const error = loadFailed ? t("error_load_verse") : emptyVerse && !loading ? t("error_no_verse") : "";
@@ -77,6 +88,7 @@ export default function Hero() {
                         {verse.reference ? ` : ${verse.reference}` : ""}
                         {loading ? ` ${t("loading")}` : ""}
                     </div>
+
                     {verse.text ? <p className="hero-verseText">{verse.text}</p> : null}
                     {error ? <div className="ec-inlineError">{error}</div> : null}
                 </div>
