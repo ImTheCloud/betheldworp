@@ -10,6 +10,8 @@
     display: flex;
     justify-content: flex-end;
     flex: 0 0 auto;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
 .statsSelect {
