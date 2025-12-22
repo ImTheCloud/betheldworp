@@ -10,6 +10,7 @@ import MonthlyVerseAdmin from "./sections/MonthlyVerseAdmin";
 import ProgramAnnouncementsAdmin from "./sections/ProgramAnnouncementsAdmin";
 import EventsAdmin from "./sections/EventsAdmin";
 import StatsAdmin from "./sections/StatsAdmin";
+import NewsletterAdmin from "./sections/NewsletterAdmin";
 
 function isValidEmail(value) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
@@ -225,6 +226,7 @@ export default function Admin() {
                 ) : (
                     <div className="adminStack">
                         <StatsAdmin />
+                        <NewsletterAdmin />
                         <MonthlyVerseAdmin />
                         <ProgramAnnouncementsAdmin />
                         <EventsAdmin />
