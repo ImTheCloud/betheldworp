@@ -49,10 +49,11 @@ function makeCityKey(country, city) {
     return `${sanitizeKey(country)}__${sanitizeKey(city)}`;
 }
 
-function cityLabelOnly(k) {
+function cityLabelWithCountry(k) {
     const parts = s(k).split("__");
+    const countryPart = parts[0] || "unknown";
     const cityPart = parts[1] ? parts[1] : parts[0] || "unknown";
-    return unsanitizeKey(cityPart);
+    return `${unsanitizeKey(cityPart)}, ${unsanitizeKey(countryPart)}`;
 }
 
 function toPercent(count, total) {
@@ -131,47 +132,64 @@ function hsl(i) {
 }
 
 function DonutWithLegend({ title, rows, total, search, onSearch, centerLabel }) {
-    const base = rows.filter((r) => r.count > 0);
-
-    const topN = 10;
-    const top = base.slice(0, topN);
-    const others = base.slice(topN).reduce((a, r) => a + (Number(r.count) || 0), 0);
-    const slices = others > 0 ? [...top, { key: "__others__", label: "Altele", count: others }] : top;
-
-    const cx = 60;
-    const cy = 60;
-    const r = 46;
-    const stroke = 12;
-
-    const denom = Math.max(1, slices.reduce((a, x) => a + (Number(x.count) || 0), 0));
-    let angle = 0;
-
-    const segs = slices.map((sl, idx) => {
-        const pct = (Number(sl.count) || 0) / denom;
-        const start = angle;
-        const delta = Math.max(0, pct) * 360;
-        let end = start + delta;
-        angle = end;
-        if (idx === slices.length - 1) end = 360;
-
-        const overlap = 0.8;
-        let startAdj = start;
-        let endAdj = end;
-        if (delta > 0) {
-            if (idx !== 0) startAdj = Math.max(0, startAdj - overlap / 2);
-            if (idx !== slices.length - 1) endAdj = Math.min(360, endAdj + overlap / 2);
-        }
-
-        return {
-            ...sl,
-            color: hsl(idx),
-            path: delta > 0 ? arcPath(cx, cy, r, startAdj, endAdj) : null,
-            stroke,
-        };
-    });
+    const base = rows.filter((r) => (Number(r.count) || 0) > 0);
 
     const q = s(search).trim().toLowerCase();
     const filtered = q ? base.filter((x) => s(x.label).toLowerCase().includes(q)) : base;
+
+    const topN = 10;
+
+    const { slices, segs, colorByKey } = useMemo(() => {
+        const colorMap = {};
+        base.forEach((r, idx) => {
+            colorMap[r.key] = hsl(idx);
+        });
+
+        const top = base.slice(0, topN);
+        const others = base.slice(topN).reduce((a, r) => a + (Number(r.count) || 0), 0);
+        const slicesLocal = others > 0 ? [...top, { key: "__others__", label: "Altele", count: others }] : top;
+
+        if (others > 0) colorMap.__others__ = hsl(top.length);
+
+        const cx = 60;
+        const cy = 60;
+        const r = 46;
+        const stroke = 12;
+
+        const denom = Math.max(1, slicesLocal.reduce((a, x) => a + (Number(x.count) || 0), 0));
+        let angle = 0;
+
+        const segsLocal = slicesLocal.map((sl, idx) => {
+            const pct = (Number(sl.count) || 0) / denom;
+            const start = angle;
+            const delta = Math.max(0, pct) * 360;
+
+            let end = start + delta;
+            angle = end;
+
+            if (idx === slicesLocal.length - 1) end = 360;
+
+            const overlap = 0.8;
+            let startAdj = start;
+            let endAdj = end;
+            if (delta > 0) {
+                if (idx !== 0) startAdj = Math.max(0, startAdj - overlap / 2);
+                if (idx !== slicesLocal.length - 1) endAdj = Math.min(360, endAdj + overlap / 2);
+            }
+
+            return {
+                ...sl,
+                color: colorMap[sl.key] || hsl(idx),
+                stroke,
+                path: delta > 0 ? arcPath(cx, cy, r, startAdj, endAdj) : null,
+            };
+        });
+
+        return { slices: slicesLocal, segs: segsLocal, colorByKey: colorMap };
+    }, [base]);
+
+    const isSingleSlice = slices.length === 1 && (Number(slices[0]?.count) || 0) > 0;
+    const tooltipTotal = Math.max(1, total);
 
     return (
         <div className="statsCard">
@@ -183,18 +201,38 @@ function DonutWithLegend({ title, rows, total, search, onSearch, centerLabel }) 
                 <div className="statsDonut">
                     <svg viewBox="0 0 120 120" className="statsDonutSvg" role="img" aria-label="Grafic circular">
                         <circle cx="60" cy="60" r="46" className="statsDonutBg" />
-                        {segs.map((sg) =>
-                            sg.path ? (
-                                <path
-                                    key={sg.key}
-                                    d={sg.path}
-                                    className="statsDonutSeg"
-                                    style={{ stroke: sg.color, strokeWidth: sg.stroke }}
-                                >
-                                    <title>{`${sg.label}: ${sg.count} (${toPercent(sg.count, Math.max(1, total))})`}</title>
-                                </path>
-                            ) : null
+
+                        {isSingleSlice ? (
+                            <circle
+                                cx="60"
+                                cy="60"
+                                r="46"
+                                className="statsDonutSeg"
+                                style={{
+                                    stroke: colorByKey[slices[0].key] || hsl(0),
+                                    strokeWidth: segs[0]?.stroke || 12,
+                                }}
+                            >
+                                <title>{`${slices[0].label}: ${slices[0].count} (${toPercent(
+                                    slices[0].count,
+                                    tooltipTotal
+                                )})`}</title>
+                            </circle>
+                        ) : (
+                            segs.map((sg) =>
+                                sg.path ? (
+                                    <path
+                                        key={sg.key}
+                                        d={sg.path}
+                                        className="statsDonutSeg"
+                                        style={{ stroke: sg.color, strokeWidth: sg.stroke }}
+                                    >
+                                        <title>{`${sg.label}: ${sg.count} (${toPercent(sg.count, tooltipTotal)})`}</title>
+                                    </path>
+                                ) : null
+                            )
                         )}
+
                         <circle cx="60" cy="60" r="34" className="statsDonutHole" />
                         <text x="60" y="58" textAnchor="middle" className="statsDonutCenterBig">
                             {total || 0}
@@ -225,17 +263,15 @@ function DonutWithLegend({ title, rows, total, search, onSearch, centerLabel }) 
                     {filtered.length ? (
                         <div className="statsLegendScroll">
                             {filtered.map((r2, idx) => {
-                                const color = hsl(idx);
+                                const color = colorByKey[r2.key] || hsl(idx);
                                 return (
                                     <div key={r2.key} className="statsLegendRow">
                                         <span className="statsLegendDot" style={{ background: color }} />
                                         <span className="statsLegendName" title={r2.label}>
-                      {r2.label}
-                    </span>
+                                            {r2.label}
+                                        </span>
                                         <span className="statsLegendCount statsRight">{r2.count}</span>
-                                        <span className="statsLegendPct statsRight">
-                      {toPercent(r2.count, Math.max(1, total))}
-                    </span>
+                                        <span className="statsLegendPct statsRight">{toPercent(r2.count, tooltipTotal)}</span>
                                     </div>
                                 );
                             })}
@@ -253,7 +289,7 @@ export default function StatsAdmin() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
-    const [rangeMode, setRangeMode] = useState("all");
+    const [rangeMode, setRangeMode] = useState("today");
     const [source, setSource] = useState("visits");
     const [mode, setMode] = useState("cities");
     const [search, setSearch] = useState("");
@@ -329,7 +365,7 @@ export default function StatsAdmin() {
 
     const scoped = useMemo(() => {
         if (!rangeKeys) return raw;
-        return raw.filter((r) => rangeKeys.has(r.day));
+        return raw.filter((r) => rangeKeys.has(r.day) || r.day === "0000-00-00");
     }, [raw, rangeKeys]);
 
     const total = scoped.length;
@@ -356,43 +392,48 @@ export default function StatsAdmin() {
     }, [scoped]);
 
     const rowsForMode = useMemo(() => {
-        if (mode === "countries") {
-            const rows = Object.keys(agg.byCountry).map((k) => ({
-                key: k,
-                label: unsanitizeKey(k),
-                count: Number(agg.byCountry[k]) || 0,
-            }));
+        const sortRows = (rows) => {
             rows.sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
             return rows;
+        };
+
+        if (mode === "countries") {
+            return sortRows(
+                Object.keys(agg.byCountry).map((k) => ({
+                    key: k,
+                    label: unsanitizeKey(k),
+                    count: Number(agg.byCountry[k]) || 0,
+                }))
+            );
         }
 
         if (mode === "cities") {
-            const rows = Object.keys(agg.byCity).map((k) => ({
-                key: k,
-                label: cityLabelOnly(k),
-                count: Number(agg.byCity[k]) || 0,
-            }));
-            rows.sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
-            return rows;
+            return sortRows(
+                Object.keys(agg.byCity).map((k) => ({
+                    key: k,
+                    label: cityLabelWithCountry(k),
+                    count: Number(agg.byCity[k]) || 0,
+                }))
+            );
         }
 
         if (mode === "languages") {
-            const rows = Object.keys(agg.byLang).map((k) => ({
-                key: k,
-                label: k.toUpperCase(),
-                count: Number(agg.byLang[k]) || 0,
-            }));
-            rows.sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
-            return rows;
+            return sortRows(
+                Object.keys(agg.byLang).map((k) => ({
+                    key: k,
+                    label: k.toUpperCase(),
+                    count: Number(agg.byLang[k]) || 0,
+                }))
+            );
         }
 
-        const rows = Object.keys(agg.byDevice).map((k) => ({
-            key: k,
-            label: unsanitizeKey(k),
-            count: Number(agg.byDevice[k]) || 0,
-        }));
-        rows.sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
-        return rows;
+        return sortRows(
+            Object.keys(agg.byDevice).map((k) => ({
+                key: k,
+                label: unsanitizeKey(k),
+                count: Number(agg.byDevice[k]) || 0,
+            }))
+        );
     }, [agg, mode]);
 
     const donutTitle = useMemo(() => {
