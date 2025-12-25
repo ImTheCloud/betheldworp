@@ -5,6 +5,8 @@ import { useEffect, useMemo, useState } from "react";
 import { collection, collectionGroup, getDocs } from "firebase/firestore";
 import { db } from "../../lib/Firebase";
 
+const SITE_START_KEY = "2025-12-21";
+
 function s(v) {
     return String(v ?? "");
 }
@@ -23,6 +25,42 @@ function normalizeDevice(v) {
     const x = s(v).toLowerCase();
     if (x === "mobile" || x === "desktop") return x;
     return "unknown";
+}
+
+function languageDisplayName(code) {
+    const c = s(code).trim().toLowerCase();
+    if (!c || c === "unknown") return "Necunoscut";
+
+    try {
+        const dn = new Intl.DisplayNames(["ro"], { type: "language" });
+        const name = dn.of(c);
+        if (name) return name.charAt(0).toUpperCase() + name.slice(1);
+    } catch {
+        // ignore
+    }
+
+    const map = {
+        ro: "Română",
+        fr: "Franceză",
+        en: "Engleză",
+        nl: "Neerlandeză",
+        de: "Germană",
+        es: "Spaniolă",
+        it: "Italiană",
+        pt: "Portugheză",
+        ar: "Arabă",
+        tr: "Turcă",
+        ru: "Rusă",
+        pl: "Poloneză",
+    };
+
+    return map[c] || c.toUpperCase();
+}
+
+function formatRoDateFromKey(key) {
+    const [yy, mm, dd] = s(key).split("-").map(Number);
+    if (!yy || !mm || !dd) return s(key);
+    return `${String(dd).padStart(2, "0")}.${String(mm).padStart(2, "0")}.${yy}`;
 }
 
 function sanitizeKey(v) {
@@ -271,7 +309,9 @@ function DonutWithLegend({ title, rows, total, search, onSearch, centerLabel }) 
                                             {r2.label}
                                         </span>
                                         <span className="statsLegendCount statsRight">{r2.count}</span>
-                                        <span className="statsLegendPct statsRight">{toPercent(r2.count, tooltipTotal)}</span>
+                                        <span className="statsLegendPct statsRight">
+                                            {toPercent(r2.count, tooltipTotal)}
+                                        </span>
                                     </div>
                                 );
                             })}
@@ -295,6 +335,8 @@ export default function StatsAdmin() {
     const [search, setSearch] = useState("");
 
     const todayKey = useMemo(() => brusselsDayKey(), []);
+    const siteStartLabel = useMemo(() => formatRoDateFromKey(SITE_START_KEY), []);
+
     const [allDailyVisits, setAllDailyVisits] = useState([]);
     const [allUniqueVisitors, setAllUniqueVisitors] = useState([]);
 
@@ -421,7 +463,7 @@ export default function StatsAdmin() {
             return sortRows(
                 Object.keys(agg.byLang).map((k) => ({
                     key: k,
-                    label: k.toUpperCase(),
+                    label: languageDisplayName(k),
                     count: Number(agg.byLang[k]) || 0,
                 }))
             );
@@ -478,7 +520,7 @@ export default function StatsAdmin() {
                         onChange={(e) => setRangeMode(e.target.value)}
                         aria-label="Selectează perioada"
                     >
-                        <option value="all">Toate</option>
+                        <option value="all">{`De la început (${siteStartLabel})`}</option>
                         <option value="today">Azi</option>
                         <option value="7">Ultimele 7 zile</option>
                         <option value="30">Ultimele 30 zile</option>
