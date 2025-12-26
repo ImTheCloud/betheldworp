@@ -146,6 +146,8 @@
     font-size: 13px;
     font-weight: 900;
     color: rgba(10, 42, 67, 0.86);
+    min-width: 0;
+    max-width: 100%;
 }
 
 .adminInput,
@@ -164,6 +166,21 @@
 .adminTextarea {
     resize: vertical;
     min-height: 110px;
+}
+
+.adminInput[type="date"],
+.adminInput[type="datetime-local"],
+.adminInput[type="month"],
+.adminInput[type="time"] {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    inline-size: 100%;
+    max-inline-size: 100%;
+    min-inline-size: 0;
+    display: block;
+    -webkit-appearance: none;
+    appearance: none;
 }
 
 .adminInput:focus,
