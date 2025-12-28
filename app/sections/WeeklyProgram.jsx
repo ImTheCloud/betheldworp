@@ -316,12 +316,6 @@ export default function Program() {
 
                         return (
                             <article key={id} className={`program-card ${isCancelled ? "program-card--cancelled" : "program-card--normal"}`}>
-                                {dm ? (
-                                    <div className="program-cardDateAbs" title={full} aria-label={full}>
-                                        {dm}
-                                    </div>
-                                ) : null}
-
                                 {isCancelled ? <div className="program-statusPill program-statusPill--abs">{t("status_cancelled")}</div> : null}
 
                                 <div className="program-cardInnerFlat">
@@ -331,12 +325,20 @@ export default function Program() {
 
                                     <div className="program-activity">{item?.title}</div>
 
-                                    <div className="program-times">
-                                        {times.map((tt) => (
-                                            <span key={`${id}-${tt}`} className={`program-time ${isCancelled ? "program-time--cancelled" : ""}`}>
-                                                {formatRange(tt)}
-                                            </span>
-                                        ))}
+                                    <div className="program-bottomRow">
+                                        <div className="program-timesScroll" aria-label="Times">
+                                            {times.map((tt) => (
+                                                <span key={`${id}-${tt}`} className={`program-time ${isCancelled ? "program-time--cancelled" : ""}`}>
+                                                    {formatRange(tt)}
+                                                </span>
+                                            ))}
+                                        </div>
+
+                                        {dm ? (
+                                            <div className="program-dateFixed" title={full} aria-label={full}>
+                                                {dm}
+                                            </div>
+                                        ) : null}
                                     </div>
                                 </div>
                             </article>
