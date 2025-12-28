@@ -258,9 +258,6 @@ export default function Program() {
                     </div>
                 </div>
 
-                {loading ? <div className="program-inlineInfo">{t("loading")}</div> : null}
-                {!loading && error ? <div className="program-inlineError">{error}</div> : null}
-
                 <div className="program-grid">
                     {LOCAL_PROGRAM_ITEMS.map((item, idx) => {
                         const id = safeStr(item?.id || `day-${idx}`).trim();
