@@ -7,7 +7,7 @@ import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from
 import { db } from "../lib/Firebase";
 
 import MonthlyVerseAdmin from "./sections/MonthlyVerseAdmin";
-import ProgramAnnouncementsAdmin from "./sections/ProgramAnnouncementsAdmin";
+import ProgramOverridesAdmin from "./sections/ProgramOverridesAdmin";
 import EventsAdmin from "./sections/EventsAdmin";
 import StatsAdmin from "./sections/StatsAdmin";
 import NewsletterAdmin from "./sections/NewsletterAdmin";
@@ -228,7 +228,7 @@ export default function Admin() {
                         <StatsAdmin />
                         <NewsletterAdmin />
                         <MonthlyVerseAdmin />
-                        <ProgramAnnouncementsAdmin />
+                        <ProgramOverridesAdmin />
                         <EventsAdmin />
                     </div>
                 )}

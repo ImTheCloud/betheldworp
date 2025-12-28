@@ -2,9 +2,9 @@
   "ro": {
     "title": "Programul săptămânal",
     "loading": "Se încarcă...",
-    "error_load_announcements": "Nu am putut încărca anunțurile.",
-    "special_title": "Anunțuri speciale",
-    "card_click_aria": "Apasă pentru a vedea anunțul",
+    "error_load_overrides": "Nu am putut încărca modificările programului.",
+    "status_cancelled": "Anulat",
+    "week_to": "până la",
     "verse_text": "„Mă bucur când mi se zice: «Haidem la Casa Domnului!»\"",
     "verse_ref": "Psalmul 122:1",
     "day_mon": "Luni",
@@ -21,14 +21,15 @@
     "act_fri": "Seară de rugăciune",
     "act_sat": "Program cu copii",
     "act_sun_am": "Serviciu Divin (Dimineață)",
-    "act_sun_pm": "Serviciu Divin (Seara)"
+    "act_sun_pm": "Serviciu Divin (Seara)",
+    "week_label": "Săptămâna {n}"
   },
   "fr": {
     "title": "Programme hebdomadaire",
     "loading": "Chargement...",
-    "error_load_announcements": "Impossible de charger les annonces.",
-    "special_title": "Annonces spéciales",
-    "card_click_aria": "Appuie pour voir l’annonce",
+    "error_load_overrides": "Impossible de charger les modifications du programme.",
+    "status_cancelled": "Annulé",
+    "week_to": "au",
     "verse_text": "« Je suis dans la joie quand on me dit : Allons à la maison de l’Éternel ! »",
     "verse_ref": "Psaume 122:1",
     "day_mon": "Lundi",
@@ -45,14 +46,15 @@
     "act_fri": "Soirée de prière",
     "act_sat": "Programme pour enfants",
     "act_sun_am": "Culte (matin)",
-    "act_sun_pm": "Culte (soir)"
+    "act_sun_pm": "Culte (soir)",
+    "week_label": "Semaine {n}"
   },
   "nl": {
     "title": "Weekprogramma",
     "loading": "Laden...",
-    "error_load_announcements": "We konden de mededelingen niet laden.",
-    "special_title": "Speciale mededelingen",
-    "card_click_aria": "Klik om de mededeling te zien",
+    "error_load_overrides": "We konden de wijzigingen van het programma niet laden.",
+    "status_cancelled": "Geannuleerd",
+    "week_to": "tot",
     "verse_text": "“Ik was blij toen men mij zei: Laten wij naar het huis van de HEER gaan!”",
     "verse_ref": "Psalm 122:1",
     "day_mon": "Maandag",
@@ -69,14 +71,15 @@
     "act_fri": "Gebedsavond",
     "act_sat": "Kinderprogramma",
     "act_sun_am": "Eredienst (ochtend)",
-    "act_sun_pm": "Eredienst (avond)"
+    "act_sun_pm": "Eredienst (avond)",
+    "week_label": "Week {n}"
   },
   "en": {
     "title": "Weekly program",
     "loading": "Loading...",
-    "error_load_announcements": "We couldn't load the announcements.",
-    "special_title": "Special announcements",
-    "card_click_aria": "Tap to view the announcement",
+    "error_load_overrides": "We couldn't load the program changes.",
+    "status_cancelled": "Cancelled",
+    "week_to": "to",
     "verse_text": "“I rejoiced with those who said to me, ‘Let us go to the house of the LORD.’”",
     "verse_ref": "Psalm 122:1",
     "day_mon": "Monday",
@@ -93,6 +96,7 @@
     "act_fri": "Prayer evening",
     "act_sat": "Kids program",
     "act_sun_am": "Service (morning)",
-    "act_sun_pm": "Service (evening)"
+    "act_sun_pm": "Service (evening)",
+    "week_label": "Week {n}"
   }
 }

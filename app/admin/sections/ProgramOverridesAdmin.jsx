@@ -1,15 +1,9 @@
+// ProgramOverridesAdmin.jsx
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { collection, deleteDoc, doc, onSnapshot, setDoc, getDoc } from "firebase/firestore";
+import { collection, deleteDoc, doc, getDoc, onSnapshot, setDoc } from "firebase/firestore";
 import { db } from "../../lib/Firebase";
-
-const LANGS = [
-    { key: "ro", label: "RO" },
-    { key: "en", label: "EN" },
-    { key: "fr", label: "FR" },
-    { key: "nl", label: "NL" },
-];
 
 const AFFECT_OPTIONS = [
     { id: "mon", label: "Lun" },
@@ -25,126 +19,6 @@ const AFFECT_OPTIONS = [
 const safeArr = (v) => (Array.isArray(v) ? v : []);
 const safeStr = (v) => String(v ?? "");
 
-function emptyLangMap() {
-    return { ro: "", en: "", fr: "", nl: "" };
-}
-
-function normalizeLangMap(value) {
-    if (!value) return emptyLangMap();
-    if (typeof value === "string") return { ro: safeStr(value).trim(), en: "", fr: "", nl: "" };
-    if (typeof value === "object") {
-        return {
-            ro: safeStr(value?.ro).trim(),
-            en: safeStr(value?.en).trim(),
-            fr: safeStr(value?.fr).trim(),
-            nl: safeStr(value?.nl).trim(),
-        };
-    }
-    return emptyLangMap();
-}
-
-function pickByLang(value, lang) {
-    if (!value) return "";
-    if (typeof value === "string") return value.trim();
-    if (typeof value === "object") {
-        const v = value?.[lang] ?? value?.ro ?? value?.en ?? "";
-        return String(v || "").trim();
-    }
-    return "";
-}
-
-function getBrusselsDayISO(date = new Date()) {
-    const parts = new Intl.DateTimeFormat("en-CA", {
-        timeZone: "Europe/Brussels",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-    }).formatToParts(date);
-
-    let y = "0000",
-        m = "00",
-        d = "00";
-    parts.forEach((p) => {
-        if (p.type === "year") y = p.value;
-        if (p.type === "month") m = p.value;
-        if (p.type === "day") d = p.value;
-    });
-
-    return `${y}-${m}-${d}`;
-}
-
-function parseISO(iso) {
-    const m = safeStr(iso).trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    if (!m) return null;
-    const yy = Number(m[1]);
-    const mm = Number(m[2]);
-    const dd = Number(m[3]);
-    const dt = new Date(yy, mm - 1, dd);
-    const time = dt.getTime();
-    if (!Number.isFinite(time)) return null;
-    return { yy, mm, dd, time };
-}
-
-function parseDMY(dmy) {
-    const m = safeStr(dmy).trim().match(/^(\d{2})-(\d{2})-(\d{4})$/);
-    if (!m) return null;
-    const dd = Number(m[1]);
-    const mm = Number(m[2]);
-    const yy = Number(m[3]);
-    const dt = new Date(yy, mm - 1, dd);
-    const time = dt.getTime();
-    if (!Number.isFinite(time)) return null;
-    return { yy, mm, dd, time };
-}
-
-function parseDayFlexible(value) {
-    const s = safeStr(value).trim();
-    return parseDMY(s) || parseISO(s);
-}
-
-function formatDMYFromISO(iso) {
-    const p = parseISO(iso);
-    if (!p) return "";
-    return `${String(p.dd).padStart(2, "0")}-${String(p.mm).padStart(2, "0")}-${String(p.yy).padStart(4, "0")}`;
-}
-
-function makeSummary(msgObj, max = 64) {
-    const t = pickByLang(msgObj, "ro") || pickByLang(msgObj, "en") || pickByLang(msgObj, "fr") || pickByLang(msgObj, "nl") || "";
-    const s = safeStr(t).trim();
-    if (!s) return "—";
-    return s.length <= max ? s : s.slice(0, max) + "…";
-}
-
-function normalizeAnnouncement(docId, data, todayTime) {
-    const untilRaw = safeStr(data?.until || data?.date || "").trim();
-    const untilParsed = parseDayFlexible(untilRaw);
-    const untilISO = untilParsed
-        ? `${String(untilParsed.yy).padStart(4, "0")}-${String(untilParsed.mm).padStart(2, "0")}-${String(untilParsed.dd).padStart(2, "0")}`
-        : "";
-
-    const message = normalizeLangMap(data?.message);
-    const affectedProgramIds = safeArr(data?.affectedProgramIds)
-        .map((v) => safeStr(v).trim())
-        .filter(Boolean);
-
-    const active = untilParsed ? todayTime <= untilParsed.time : false;
-
-    return {
-        id: safeStr(docId).trim(),
-        active,
-        untilRaw,
-        untilISO,
-        untilTime: untilParsed?.time ?? 0,
-        affectedProgramIds,
-        message,
-    };
-}
-
-function isValidAllLangsMessage(msg) {
-    const m = msg || emptyLangMap();
-    return LANGS.every((l) => safeStr(m[l.key]).trim().length > 0);
-}
-
 function toSet(arr) {
     return new Set(safeArr(arr).map((x) => safeStr(x).trim()).filter(Boolean));
 }
@@ -154,6 +28,87 @@ function sameArrayAsSet(arr, set) {
     if (a.length !== set.size) return false;
     for (const x of a) if (!set.has(x)) return false;
     return true;
+}
+
+function isValidWeekKey(v) {
+    const s = safeStr(v).trim().toUpperCase();
+    return /^\d{4}-W\d{2}$/.test(s);
+}
+
+function normalizeWeekKey(v) {
+    const s = safeStr(v).trim().toUpperCase();
+    return isValidWeekKey(s) ? s : "";
+}
+
+function parseWeekKey(weekKey) {
+    const s = normalizeWeekKey(weekKey);
+    if (!s) return null;
+    const m = s.match(/^(\d{4})-W(\d{2})$/);
+    if (!m) return null;
+    const year = Number(m[1]);
+    const week = Number(m[2]);
+    if (!Number.isFinite(year) || !Number.isFinite(week) || week < 1 || week > 53) return null;
+    return { year, week };
+}
+
+function startOfISOWeekUTC(isoYear, isoWeek) {
+    const jan4 = new Date(Date.UTC(isoYear, 0, 4, 12, 0, 0));
+    const day = jan4.getUTCDay() || 7;
+    const mondayWeek1 = new Date(jan4.getTime() + (1 - day) * 86400000);
+    return new Date(mondayWeek1.getTime() + (isoWeek - 1) * 7 * 86400000);
+}
+
+function getISOWeekYearAndNumberUTC(dateUTC) {
+    const d = new Date(Date.UTC(dateUTC.getUTCFullYear(), dateUTC.getUTCMonth(), dateUTC.getUTCDate(), 12, 0, 0));
+    const day = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - day);
+    const isoYear = d.getUTCFullYear();
+    const yearStart = new Date(Date.UTC(isoYear, 0, 1, 12, 0, 0));
+    const week = Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+    return { isoYear, week };
+}
+
+function getCurrentWeekKeyUTC() {
+    const { isoYear, week } = getISOWeekYearAndNumberUTC(new Date());
+    return `${String(isoYear).padStart(4, "0")}-W${String(week).padStart(2, "0")}`;
+}
+
+function labelForAffected(id) {
+    return AFFECT_OPTIONS.find((x) => x.id === id)?.label || id;
+}
+
+function makeAffectedSummary(arr, max = 60) {
+    const list = safeArr(arr).map((x) => safeStr(x).trim()).filter(Boolean);
+    if (!list.length) return "—";
+    const txt = list.map(labelForAffected).join(", ");
+    return txt.length <= max ? txt : txt.slice(0, max) + "…";
+}
+
+function shortId(id) {
+    const s = safeStr(id).trim();
+    if (!s) return "—";
+    return s.split("•")[0].trim().split(" ")[0].trim();
+}
+
+function normalizeOverride(docId, data, currentWeekStartUTC) {
+    const idRaw = safeStr(docId).trim();
+    const weekKey = normalizeWeekKey(data?.weekKey) || normalizeWeekKey(idRaw) || shortId(idRaw).toUpperCase();
+    const parsed = parseWeekKey(weekKey);
+
+    const affectedProgramIds = safeArr(data?.affectedProgramIds)
+        .map((v) => safeStr(v).trim())
+        .filter(Boolean);
+
+    const weekStartUTC = parsed ? startOfISOWeekUTC(parsed.year, parsed.week) : null;
+    const upcoming = weekStartUTC ? weekStartUTC.getTime() >= currentWeekStartUTC.getTime() : false;
+
+    return {
+        id: idRaw,
+        weekKey,
+        weekStartUTC: weekStartUTC?.getTime?.() ?? 0,
+        upcoming,
+        affectedProgramIds,
+    };
 }
 
 function IconTrash(props) {
@@ -195,24 +150,10 @@ function IconChevronDown(props) {
     );
 }
 
-function AnnouncementCard({
-                              item,
-                              expanded,
-                              activeLang,
-                              draft,
-                              saveState,
-                              errorText,
-                              onToggleExpand,
-                              onChangeLang,
-                              onToggleAffected,
-                              onChangeUntilISO,
-                              onChangeMessage,
-                              onSave,
-                              onDelete,
-                          }) {
+function OverrideCard({ item, expanded, draft, saveState, errorText, onToggleExpand, onToggleAffected, onChangeWeekKey, onSave, onDelete }) {
     const id = safeStr(item?.id).trim();
     const affectedSet = useMemo(() => toSet(draft?.affectedProgramIds ?? item?.affectedProgramIds), [draft, item]);
-    const langKey = activeLang || "ro";
+    const weekKeyValue = safeStr(draft?.weekKey ?? item?.weekKey);
 
     const onCardClick = (e) => {
         if (e.target.closest("button, input, textarea, select, label")) return;
@@ -220,10 +161,18 @@ function AnnouncementCard({
     };
 
     return (
-        <div className={`adminAnnCard${item?.active ? " is-active" : ""}`} onClick={onCardClick}>
+        <div className={`adminAnnCard${item?.upcoming ? " is-active" : ""}`} onClick={onCardClick}>
             <div className="adminAnnHeader">
-                <div className="adminAnnIdChip">{id || "—"}</div>
-                {!expanded ? <div className="adminSummary">{makeSummary(draft?.message ?? item?.message)}</div> : <div style={{ flex: 1 }} />}
+                <div className="adminAnnIdChip" title={weekKeyValue || id || ""}>
+                    {shortId(weekKeyValue || id)}
+                </div>
+
+                {!expanded ? (
+                    <div className="adminSummary">Anulat: {makeAffectedSummary(draft?.affectedProgramIds ?? item?.affectedProgramIds)}</div>
+                ) : (
+                    <div style={{ flex: 1 }} />
+                )}
+
                 <button
                     type="button"
                     className="adminSmallBtn"
@@ -247,16 +196,16 @@ function AnnouncementCard({
                     {errorText ? <div className="adminAlert">{errorText}</div> : null}
 
                     <label className="adminLabel">
-                        Until
+                        Săptămână
                         <input
                             className="adminInput"
-                            type="date"
-                            value={safeStr(draft?.untilISO ?? item?.untilISO)}
-                            onChange={(e) => onChangeUntilISO(id, e.target.value)}
+                            type="week"
+                            value={weekKeyValue}
+                            onChange={(e) => onChangeWeekKey(id, e.target.value)}
                         />
                     </label>
 
-                    <div className="adminAffectGrid" aria-label="Zile afectate">
+                    <div className="adminAffectGrid" aria-label="Crêneaux anulate">
                         {AFFECT_OPTIONS.map((opt) => {
                             const on = affectedSet.has(opt.id);
                             return (
@@ -275,33 +224,6 @@ function AnnouncementCard({
                             );
                         })}
                     </div>
-
-                    <div className="adminAffectGrid" aria-label="Limbă mesaj">
-                        {LANGS.map((l) => (
-                            <button
-                                key={`${id}-lang-${l.key}`}
-                                type="button"
-                                className={`adminAffectChip ${langKey === l.key ? "is-on" : ""}`.trim()}
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onChangeLang(id, l.key);
-                                }}
-                            >
-                                {l.label}
-                            </button>
-                        ))}
-                    </div>
-
-                    <label className="adminLabel">
-                        Mesaj ({langKey.toUpperCase()})
-                        <textarea
-                            className="adminTextarea"
-                            value={safeStr(draft?.message?.[langKey] ?? item?.message?.[langKey])}
-                            onChange={(e) => onChangeMessage(id, langKey, e.target.value)}
-                            rows={5}
-                            maxLength={1200}
-                        />
-                    </label>
 
                     <div className="adminMsgActions">
                         <button
@@ -335,41 +257,25 @@ function AnnouncementCard({
     );
 }
 
-function NewAnnouncementCard({
-                                 draft,
-                                 activeLang,
-                                 saveState,
-                                 errorText,
-                                 onChangeLang,
-                                 onToggleAffected,
-                                 onChangeUntilISO,
-                                 onChangeMessage,
-                                 onCancel,
-                                 onSave,
-                             }) {
+function NewOverrideCard({ draft, saveState, errorText, onToggleAffected, onChangeWeekKey, onCancel, onSave }) {
     const affectedSet = useMemo(() => toSet(draft?.affectedProgramIds), [draft]);
-    const langKey = activeLang || "ro";
+    const weekKeyValue = safeStr(draft?.weekKey);
 
     return (
         <div className="adminAnnCard is-active">
             <div className="adminAnnHeader">
-                <div className="adminAnnIdChip">Nou anunț</div>
+                <div className="adminAnnIdChip">Nouă anulare</div>
                 <div style={{ flex: 1 }} />
             </div>
 
             {errorText ? <div className="adminAlert">{errorText}</div> : null}
 
             <label className="adminLabel">
-                Until
-                <input
-                    className="adminInput"
-                    type="date"
-                    value={safeStr(draft?.untilISO)}
-                    onChange={(e) => onChangeUntilISO("__new__", e.target.value)}
-                />
+                Săptămână
+                <input className="adminInput" type="week" value={weekKeyValue} onChange={(e) => onChangeWeekKey("__new__", e.target.value)} />
             </label>
 
-            <div className="adminAffectGrid" aria-label="Zile afectate">
+            <div className="adminAffectGrid" aria-label="Crêneaux anulate">
                 {AFFECT_OPTIONS.map((opt) => {
                     const on = affectedSet.has(opt.id);
                     return (
@@ -389,33 +295,6 @@ function NewAnnouncementCard({
                 })}
             </div>
 
-            <div className="adminAffectGrid" aria-label="Limbă mesaj">
-                {LANGS.map((l) => (
-                    <button
-                        key={`new-lang-${l.key}`}
-                        type="button"
-                        className={`adminAffectChip ${langKey === l.key ? "is-on" : ""}`.trim()}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onChangeLang("__new__", l.key);
-                        }}
-                    >
-                        {l.label}
-                    </button>
-                ))}
-            </div>
-
-            <label className="adminLabel">
-                Mesaj ({langKey.toUpperCase()})
-                <textarea
-                    className="adminTextarea"
-                    value={safeStr(draft?.message?.[langKey])}
-                    onChange={(e) => onChangeMessage("__new__", langKey, e.target.value)}
-                    rows={5}
-                    maxLength={1200}
-                />
-            </label>
-
             <div className="adminMsgActions">
                 <button type="button" className="adminDeleteBtn" onClick={onCancel} disabled={saveState === "saving"}>
                     Anulează
@@ -429,7 +308,7 @@ function NewAnnouncementCard({
     );
 }
 
-export default function ProgramAnnouncementsAdmin() {
+export default function ProgramOverridesAdmin() {
     const mountedRef = useRef(true);
     const timeoutRef = useRef(null);
 
@@ -443,20 +322,21 @@ export default function ProgramAnnouncementsAdmin() {
     const [draftsById, setDraftsById] = useState({});
     const [saveStateById, setSaveStateById] = useState({});
     const [errorById, setErrorById] = useState({});
-    const [langById, setLangById] = useState({});
 
     const [showNew, setShowNew] = useState(false);
     const [newDraft, setNewDraft] = useState(() => ({
-        untilISO: getBrusselsDayISO(),
+        weekKey: getCurrentWeekKeyUTC(),
         affectedProgramIds: [],
-        message: emptyLangMap(),
     }));
-    const [newLang, setNewLang] = useState("ro");
     const [newError, setNewError] = useState("");
     const [newState, setNewState] = useState("idle");
 
-    const todayISO = useMemo(() => getBrusselsDayISO(), []);
-    const todayTime = useMemo(() => parseISO(todayISO)?.time ?? Date.now(), [todayISO]);
+    const currentWeekKey = useMemo(() => getCurrentWeekKeyUTC(), []);
+    const currentParsed = useMemo(() => parseWeekKey(currentWeekKey), [currentWeekKey]);
+    const currentWeekStartUTC = useMemo(() => {
+        if (!currentParsed) return new Date(Date.UTC(2000, 0, 1, 12, 0, 0));
+        return startOfISOWeekUTC(currentParsed.year, currentParsed.week);
+    }, [currentParsed]);
 
     const setTransientState = (id, value = "saved") => {
         setSaveStateById((m) => ({ ...m, [id]: value }));
@@ -479,19 +359,19 @@ export default function ProgramAnnouncementsAdmin() {
         setLoading(true);
         setGlobalError("");
 
-        const ref = collection(db, "program_announcements");
+        const ref = collection(db, "program_overrides");
         const unsub = onSnapshot(
             ref,
             (snap) => {
                 if (!mountedRef.current) return;
 
                 const list = [];
-                snap.forEach((d) => list.push(normalizeAnnouncement(d.id, d.data() || {}, todayTime)));
+                snap.forEach((d) => list.push(normalizeOverride(d.id, d.data() || {}, currentWeekStartUTC)));
 
                 list.sort((a, b) => {
-                    if (a.active !== b.active) return a.active ? -1 : 1;
-                    if (a.active) return a.untilTime - b.untilTime || a.id.localeCompare(b.id);
-                    return b.untilTime - a.untilTime || a.id.localeCompare(b.id);
+                    if (a.upcoming !== b.upcoming) return a.upcoming ? -1 : 1;
+                    if (a.upcoming) return a.weekStartUTC - b.weekStartUTC || a.weekKey.localeCompare(b.weekKey);
+                    return b.weekStartUTC - a.weekStartUTC || a.weekKey.localeCompare(b.weekKey);
                 });
 
                 setItems(list);
@@ -509,9 +389,8 @@ export default function ProgramAnnouncementsAdmin() {
                         if (!id) return;
 
                         const base = {
-                            untilISO: it.untilISO,
+                            weekKey: it.weekKey,
                             affectedProgramIds: safeArr(it.affectedProgramIds),
-                            message: { ...it.message },
                         };
 
                         if (!next[id]) {
@@ -520,13 +399,10 @@ export default function ProgramAnnouncementsAdmin() {
                         }
 
                         const cur = next[id];
-                        const dirtyUntil = safeStr(cur.untilISO).trim() !== safeStr(base.untilISO).trim();
+                        const dirtyWeek = safeStr(cur.weekKey).trim().toUpperCase() !== safeStr(base.weekKey).trim().toUpperCase();
                         const dirtyAffect = !sameArrayAsSet(cur.affectedProgramIds, toSet(base.affectedProgramIds));
-                        const dirtyMsg = LANGS.some(
-                            (l) => safeStr(cur?.message?.[l.key]).trim() !== safeStr(base?.message?.[l.key]).trim()
-                        );
 
-                        if (!dirtyUntil && !dirtyAffect && !dirtyMsg) next[id] = base;
+                        if (!dirtyWeek && !dirtyAffect) next[id] = base;
                     });
 
                     return next;
@@ -539,33 +415,21 @@ export default function ProgramAnnouncementsAdmin() {
                     return next;
                 });
 
-                setLangById((prev) => {
-                    const alive = new Set(list.map((x) => x.id));
-                    const next = { ...prev };
-                    Object.keys(next).forEach((k) => {
-                        if (!alive.has(k)) delete next[k];
-                    });
-                    list.forEach((it) => {
-                        if (!next[it.id]) next[it.id] = "ro";
-                    });
-                    return next;
-                });
-
                 setLoading(false);
             },
             (err) => {
                 console.error(err);
                 if (!mountedRef.current) return;
                 setLoading(false);
-                setGlobalError("Nu am putut încărca anunțurile.");
+                setGlobalError("Nu am putut încărca modificările programului.");
             }
         );
 
         return () => unsub();
-    }, [todayTime]);
+    }, [currentWeekStartUTC]);
 
-    const activeItems = useMemo(() => items.filter((x) => x.active), [items]);
-    const historyItems = useMemo(() => items.filter((x) => !x.active), [items]);
+    const upcomingItems = useMemo(() => items.filter((x) => x.upcoming), [items]);
+    const historyItems = useMemo(() => items.filter((x) => !x.upcoming), [items]);
 
     const toggleExpand = useCallback((id) => {
         const key = safeStr(id).trim();
@@ -577,25 +441,12 @@ export default function ProgramAnnouncementsAdmin() {
         });
     }, []);
 
-    const changeLang = (id, lang) => {
+    const changeWeekKey = (id, wk) => {
         const key = safeStr(id).trim();
-        const l = safeStr(lang).trim();
-        if (!l) return;
+        const weekKey = normalizeWeekKey(wk);
 
         if (key === "__new__") {
-            setNewLang(l);
-            return;
-        }
-
-        if (!key) return;
-        setLangById((m) => ({ ...m, [key]: l }));
-    };
-
-    const changeUntilISO = (id, iso) => {
-        const key = safeStr(id).trim();
-
-        if (key === "__new__") {
-            setNewDraft((d) => ({ ...d, untilISO: iso }));
+            setNewDraft((d) => ({ ...d, weekKey: weekKey || safeStr(wk).trim() }));
             if (newError) setNewError("");
             if (globalError) setGlobalError("");
             return;
@@ -604,7 +455,7 @@ export default function ProgramAnnouncementsAdmin() {
         if (!key) return;
         setDraftsById((prev) => ({
             ...prev,
-            [key]: { ...(prev[key] || { untilISO: "", affectedProgramIds: [], message: emptyLangMap() }), untilISO: iso },
+            [key]: { ...(prev[key] || { weekKey: "", affectedProgramIds: [] }), weekKey: weekKey || safeStr(wk).trim() },
         }));
         setErrorById((m) => ({ ...m, [key]: "" }));
         if (globalError) setGlobalError("");
@@ -628,7 +479,7 @@ export default function ProgramAnnouncementsAdmin() {
 
         if (!key) return;
         setDraftsById((prev) => {
-            const cur = prev[key] || { untilISO: "", affectedProgramIds: [], message: emptyLangMap() };
+            const cur = prev[key] || { weekKey: "", affectedProgramIds: [] };
             const set = toSet(cur.affectedProgramIds);
             set.has(p) ? set.delete(p) : set.add(p);
             return { ...prev, [key]: { ...cur, affectedProgramIds: Array.from(set) } };
@@ -637,38 +488,10 @@ export default function ProgramAnnouncementsAdmin() {
         if (globalError) setGlobalError("");
     };
 
-    const changeMessage = (id, lang, value) => {
-        const key = safeStr(id).trim();
-        const l = safeStr(lang).trim();
-        if (!l) return;
-
-        if (key === "__new__") {
-            setNewDraft((d) => ({ ...d, message: { ...(d.message || emptyLangMap()), [l]: value } }));
-            if (newError) setNewError("");
-            if (globalError) setGlobalError("");
-            return;
-        }
-
-        if (!key) return;
-        setDraftsById((prev) => {
-            const cur = prev[key] || { untilISO: "", affectedProgramIds: [], message: emptyLangMap() };
-            return { ...prev, [key]: { ...cur, message: { ...(cur.message || emptyLangMap()), [l]: value } } };
-        });
-        setErrorById((m) => ({ ...m, [key]: "" }));
-        if (globalError) setGlobalError("");
-    };
-
-    const computeDocIdFromUntilISO = (untilISO) => {
-        const iso = safeStr(untilISO).trim();
-        const dmy = formatDMYFromISO(iso);
-        if (!dmy) return "";
-        return `ann_${dmy}`;
-    };
-
     const ensureUniqueId = async (baseId) => {
-        const id = safeStr(baseId).trim();
+        const id = normalizeWeekKey(baseId) || safeStr(baseId).trim();
         if (!id) return "";
-        const ref = doc(db, "program_announcements", id);
+        const ref = doc(db, "program_overrides", id);
         const snap = await getDoc(ref);
         if (!snap.exists()) return id;
         const now = new Date();
@@ -681,11 +504,9 @@ export default function ProgramAnnouncementsAdmin() {
     const startNew = () => {
         setShowNew(true);
         setNewDraft({
-            untilISO: getBrusselsDayISO(),
+            weekKey: getCurrentWeekKeyUTC(),
             affectedProgramIds: [],
-            message: emptyLangMap(),
         });
-        setNewLang("ro");
         setNewError("");
         setNewState("idle");
         if (globalError) setGlobalError("");
@@ -698,23 +519,15 @@ export default function ProgramAnnouncementsAdmin() {
     };
 
     const saveNew = async () => {
-        const iso = safeStr(newDraft?.untilISO).trim();
-        const untilDMY = formatDMYFromISO(iso);
-        const untilValid = Boolean(parseISO(iso)) && Boolean(untilDMY);
-
+        const wk = normalizeWeekKey(newDraft?.weekKey);
         const affected = safeArr(newDraft?.affectedProgramIds).map((x) => safeStr(x).trim()).filter(Boolean);
-        const msg = normalizeLangMap(newDraft?.message);
 
-        if (!untilValid) {
-            setNewError("Completează data (until).");
+        if (!wk) {
+            setNewError("Selectează o săptămână validă.");
             return;
         }
         if (!affected.length) {
-            setNewError("Selectează cel puțin o zi afectată.");
-            return;
-        }
-        if (!isValidAllLangsMessage(msg)) {
-            setNewError("Completează mesajul pentru toate cele 4 limbi.");
+            setNewError("Selectează cel puțin un crêneau anulat.");
             return;
         }
 
@@ -722,14 +535,8 @@ export default function ProgramAnnouncementsAdmin() {
         setNewState("saving");
 
         try {
-            const baseId = computeDocIdFromUntilISO(iso);
-            const finalId = await ensureUniqueId(baseId);
-
-            await setDoc(
-                doc(db, "program_announcements", finalId),
-                { until: untilDMY, affectedProgramIds: affected, message: msg },
-                { merge: true }
-            );
+            const finalId = await ensureUniqueId(wk);
+            await setDoc(doc(db, "program_overrides", finalId), { weekKey: wk, affectedProgramIds: affected }, { merge: true });
 
             if (!mountedRef.current) return;
             setNewState("saved");
@@ -741,14 +548,13 @@ export default function ProgramAnnouncementsAdmin() {
                     next.add(finalId);
                     return next;
                 });
-                setLangById((m) => ({ ...m, [finalId]: "ro" }));
                 setNewState("idle");
             }, 900);
         } catch (err) {
             console.error(err);
             if (!mountedRef.current) return;
             setNewState("error");
-            setNewError("Nu am putut salva anunțul nou.");
+            setNewError("Nu am putut salva modificarea.");
         }
     };
 
@@ -758,28 +564,19 @@ export default function ProgramAnnouncementsAdmin() {
 
         const base = items.find((x) => x.id === key);
         const draft = draftsById[key] || {
-            untilISO: base?.untilISO || "",
+            weekKey: base?.weekKey || "",
             affectedProgramIds: base?.affectedProgramIds || [],
-            message: base?.message || emptyLangMap(),
         };
 
-        const iso = safeStr(draft.untilISO).trim();
-        const untilDMY = formatDMYFromISO(iso);
-        const untilValid = Boolean(parseISO(iso)) && Boolean(untilDMY);
-
+        const wk = normalizeWeekKey(draft.weekKey);
         const affected = safeArr(draft.affectedProgramIds).map((x) => safeStr(x).trim()).filter(Boolean);
-        const msg = normalizeLangMap(draft.message);
 
-        if (!untilValid) {
-            setErrorById((m) => ({ ...m, [key]: "Completează data (until)." }));
+        if (!wk) {
+            setErrorById((m) => ({ ...m, [key]: "Selectează o săptămână validă." }));
             return;
         }
         if (!affected.length) {
-            setErrorById((m) => ({ ...m, [key]: "Selectează cel puțin o zi afectată." }));
-            return;
-        }
-        if (!isValidAllLangsMessage(msg)) {
-            setErrorById((m) => ({ ...m, [key]: "Completează mesajul pentru toate cele 4 limbi." }));
+            setErrorById((m) => ({ ...m, [key]: "Selectează cel puțin un crêneau anulat." }));
             return;
         }
 
@@ -787,11 +584,11 @@ export default function ProgramAnnouncementsAdmin() {
         setSaveStateById((m) => ({ ...m, [key]: "saving" }));
 
         try {
-            const desiredBaseId = computeDocIdFromUntilISO(iso);
+            const desiredId = wk;
 
-            if (desiredBaseId && desiredBaseId !== key) {
+            if (desiredId && desiredId !== key) {
                 const ok = window.confirm(
-                    `Ai schimbat data (until).\n\nAsta va crea un nou anunț (${desiredBaseId}) cu aceleași date și îl va păstra pe cel vechi.\n\nContinui?`
+                    `Ai schimbat săptămâna.\n\nAsta va crea un nou document (${desiredId}) cu aceleași date și îl va păstra pe cel vechi.\n\nContinui?`
                 );
                 if (!ok) {
                     setSaveStateById((m) => ({ ...m, [key]: "idle" }));
@@ -799,13 +596,9 @@ export default function ProgramAnnouncementsAdmin() {
                 }
             }
 
-            const targetId = desiredBaseId && desiredBaseId !== key ? await ensureUniqueId(desiredBaseId) : key;
+            const targetId = desiredId && desiredId !== key ? await ensureUniqueId(desiredId) : key;
 
-            await setDoc(
-                doc(db, "program_announcements", targetId),
-                { until: untilDMY, affectedProgramIds: affected, message: msg },
-                { merge: true }
-            );
+            await setDoc(doc(db, "program_overrides", targetId), { weekKey: wk, affectedProgramIds: affected }, { merge: true });
 
             if (!mountedRef.current) return;
 
@@ -814,11 +607,7 @@ export default function ProgramAnnouncementsAdmin() {
                 if (baseCur) {
                     setDraftsById((prev) => ({
                         ...prev,
-                        [key]: {
-                            untilISO: baseCur.untilISO,
-                            affectedProgramIds: safeArr(baseCur.affectedProgramIds),
-                            message: { ...baseCur.message },
-                        },
+                        [key]: { weekKey: baseCur.weekKey, affectedProgramIds: safeArr(baseCur.affectedProgramIds) },
                     }));
                 }
                 setSaveStateById((m) => ({ ...m, [key]: "idle" }));
@@ -827,7 +616,6 @@ export default function ProgramAnnouncementsAdmin() {
                     next.add(targetId);
                     return next;
                 });
-                setLangById((m) => ({ ...m, [targetId]: langById[key] || "ro" }));
                 setTransientState(targetId, "saved");
             } else {
                 setTransientState(key, "saved");
@@ -844,7 +632,7 @@ export default function ProgramAnnouncementsAdmin() {
         const key = safeStr(id).trim();
         if (!key) return;
 
-        const ok = window.confirm("Ștergi definitiv acest anunț?");
+        const ok = window.confirm("Ștergi definitiv această anulare?");
         if (!ok) return;
 
         setGlobalError("");
@@ -852,7 +640,7 @@ export default function ProgramAnnouncementsAdmin() {
         setSaveStateById((m) => ({ ...m, [key]: "saving" }));
 
         try {
-            await deleteDoc(doc(db, "program_announcements", key));
+            await deleteDoc(doc(db, "program_overrides", key));
 
             if (!mountedRef.current) return;
             setDraftsById((prev) => {
@@ -863,11 +651,6 @@ export default function ProgramAnnouncementsAdmin() {
             setExpandedIds((prev) => {
                 const next = new Set(prev);
                 next.delete(key);
-                return next;
-            });
-            setLangById((prev) => {
-                const next = { ...prev };
-                delete next[key];
                 return next;
             });
             setSaveStateById((prev) => {
@@ -884,14 +667,14 @@ export default function ProgramAnnouncementsAdmin() {
             console.error(err);
             if (!mountedRef.current) return;
             setSaveStateById((m) => ({ ...m, [key]: "error" }));
-            setErrorById((m) => ({ ...m, [key]: "Nu am putut șterge anunțul." }));
+            setErrorById((m) => ({ ...m, [key]: "Nu am putut șterge." }));
         }
     };
 
     return (
         <div className="adminCard">
             <div className="adminTop">
-                <h2 className="adminTitle">Anunțuri speciale</h2>
+                <h2 className="adminTitle">Modificări program (anulări)</h2>
                 <div className="adminActions">
                     <button className="adminBtn adminBtn--new" type="button" onClick={startNew} disabled={loading || showNew}>
                         <span className="adminBtnIcon" aria-hidden="true">
@@ -909,49 +692,42 @@ export default function ProgramAnnouncementsAdmin() {
                     {globalError ? <div className="adminAlert">{globalError}</div> : null}
 
                     {showNew ? (
-                        <NewAnnouncementCard
+                        <NewOverrideCard
                             draft={newDraft}
-                            activeLang={newLang}
                             saveState={newState}
                             errorText={newError}
-                            onChangeLang={changeLang}
                             onToggleAffected={toggleAffected}
-                            onChangeUntilISO={changeUntilISO}
-                            onChangeMessage={changeMessage}
+                            onChangeWeekKey={changeWeekKey}
                             onCancel={cancelNew}
                             onSave={saveNew}
                         />
                     ) : null}
 
                     <div className="adminList">
-                        {activeItems.map((it) => {
+                        {upcomingItems.map((it) => {
                             const id = it.id;
                             return (
-                                <AnnouncementCard
+                                <OverrideCard
                                     key={id}
                                     item={it}
                                     expanded={expandedIds.has(id)}
-                                    activeLang={langById[id] || "ro"}
                                     draft={
                                         draftsById[id] || {
-                                            untilISO: it.untilISO,
+                                            weekKey: it.weekKey,
                                             affectedProgramIds: it.affectedProgramIds,
-                                            message: it.message,
                                         }
                                     }
                                     saveState={saveStateById[id] || "idle"}
                                     errorText={errorById[id] || ""}
                                     onToggleExpand={toggleExpand}
-                                    onChangeLang={changeLang}
                                     onToggleAffected={toggleAffected}
-                                    onChangeUntilISO={changeUntilISO}
-                                    onChangeMessage={changeMessage}
+                                    onChangeWeekKey={changeWeekKey}
                                     onSave={saveOne}
                                     onDelete={deleteOne}
                                 />
                             );
                         })}
-                        {!activeItems.length ? <div className="adminEmpty">Nu există anunț activ. Apasă „Nou”.</div> : null}
+                        {!upcomingItems.length ? <div className="adminEmpty">Nu există anulări viitoare. Apasă „Nou”.</div> : null}
                     </div>
 
                     <div className="adminHistoryRow">
@@ -965,25 +741,21 @@ export default function ProgramAnnouncementsAdmin() {
                             {historyItems.map((it) => {
                                 const id = it.id;
                                 return (
-                                    <AnnouncementCard
+                                    <OverrideCard
                                         key={id}
                                         item={it}
                                         expanded={expandedIds.has(id)}
-                                        activeLang={langById[id] || "ro"}
                                         draft={
                                             draftsById[id] || {
-                                                untilISO: it.untilISO,
+                                                weekKey: it.weekKey,
                                                 affectedProgramIds: it.affectedProgramIds,
-                                                message: it.message,
                                             }
                                         }
                                         saveState={saveStateById[id] || "idle"}
                                         errorText={errorById[id] || ""}
                                         onToggleExpand={toggleExpand}
-                                        onChangeLang={changeLang}
                                         onToggleAffected={toggleAffected}
-                                        onChangeUntilISO={changeUntilISO}
-                                        onChangeMessage={changeMessage}
+                                        onChangeWeekKey={changeWeekKey}
                                         onSave={saveOne}
                                         onDelete={deleteOne}
                                     />
