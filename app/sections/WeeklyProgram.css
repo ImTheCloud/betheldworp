@@ -120,21 +120,9 @@
     display: none;
 }
 
-.program-inlineInfo,
-.program-inlineError {
-    text-align: center;
-    margin-bottom: 18px;
-}
-
 .program-inlineInfo {
     color: rgba(10, 42, 67, 0.72);
     font-weight: 800;
-    font-size: 13px;
-}
-
-.program-inlineError {
-    color: rgba(10, 42, 67, 0.9);
-    font-weight: 900;
     font-size: 13px;
 }
 
