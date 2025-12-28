@@ -92,7 +92,7 @@
     "act_thu": "Men’s choir rehearsal",
     "act_fri": "Prayer evening",
     "act_sat": "Kids program",
-    "act_sun_am": "Worship service (morning)",
-    "act_sun_pm": "Worship service (evening)"
+    "act_sun_am": "Service (morning)",
+    "act_sun_pm": "Service (evening)"
   }
 }
