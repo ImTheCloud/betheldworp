@@ -1,4 +1,3 @@
-// WeeklyProgram.jsx
 "use client";
 
 import "./WeeklyProgram.css";
@@ -19,7 +18,7 @@ function capFirst(s) {
 }
 
 function getBrusselsISO(date = new Date()) {
-    const parts = new Intl.DateTimeFormat("en-CAt", {
+    const parts = new Intl.DateTimeFormat("en-CA", {
         timeZone: "Europe/Brussels",
         year: "numeric",
         month: "2-digit",
@@ -143,6 +142,41 @@ function normalizeWeekOverride(docId, data) {
     return { weekKey, affectedProgramIds };
 }
 
+function formatBrusselsDDMM(dateObj) {
+    const parts = new Intl.DateTimeFormat("en-GB", {
+        timeZone: "Europe/Brussels",
+        day: "2-digit",
+        month: "2-digit",
+    }).formatToParts(dateObj);
+
+    let dd = "00",
+        mm = "00";
+    parts.forEach((p) => {
+        if (p.type === "day") dd = p.value;
+        if (p.type === "month") mm = p.value;
+    });
+    return `${dd}/${mm}`;
+}
+
+function formatBrusselsDDMMYYYY(dateObj) {
+    const parts = new Intl.DateTimeFormat("en-GB", {
+        timeZone: "Europe/Brussels",
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+    }).formatToParts(dateObj);
+
+    let dd = "00",
+        mm = "00",
+        yy = "0000";
+    parts.forEach((p) => {
+        if (p.type === "day") dd = p.value;
+        if (p.type === "month") mm = p.value;
+        if (p.type === "year") yy = p.value;
+    });
+    return `${dd}/${mm}/${yy}`;
+}
+
 export default function Program() {
     const { lang } = useLang();
     const t = useMemo(() => makeT(tr, lang), [lang]);
@@ -182,37 +216,50 @@ export default function Program() {
         return { start, end, weekKey, weekTitle, rangeLong, rangeShort };
     }, [lang, weekOffset, t]);
 
+    const dateMetaById = useMemo(() => {
+        const byId = {};
+        const dayIndexById = {
+            mon: 0,
+            tue: 1,
+            wed: 2,
+            thu: 3,
+            fri: 4,
+            sat: 5,
+            sun_am: 6,
+            sun_pm: 6,
+        };
+
+        Object.entries(dayIndexById).forEach(([id, dayIndex]) => {
+            const d = addDaysUTC(weekInfo.start, dayIndex);
+            byId[id] = {
+                dm: formatBrusselsDDMM(d),
+                full: formatBrusselsDDMMYYYY(d),
+            };
+        });
+
+        return byId;
+    }, [weekInfo.start]);
+
     const [ovDoc, setOvDoc] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
 
     useEffect(() => {
-        setLoading(true);
-        setError("");
-
         const ref = doc(db, "program_overrides", weekInfo.weekKey);
         const unsub = onSnapshot(
             ref,
             (snap) => {
                 if (!snap.exists()) {
                     setOvDoc(null);
-                    setLoading(false);
-                    setError("");
                     return;
                 }
                 setOvDoc({ id: snap.id, data: snap.data() || {} });
-                setLoading(false);
-                setError("");
             },
-            (err) => {
-                console.error(err);
-                setError(t("error_load_overrides"));
-                setLoading(false);
+            () => {
+                setOvDoc(null);
             }
         );
 
         return () => unsub();
-    }, [t, weekInfo.weekKey]);
+    }, [weekInfo.weekKey]);
 
     const cancelledSet = useMemo(() => {
         const set = new Set();
@@ -264,12 +311,22 @@ export default function Program() {
                         const times = safeArr(item?.times);
                         const isCancelled = cancelledSet.has(id);
 
+                        const dm = safeStr(dateMetaById?.[id]?.dm || "");
+                        const full = safeStr(dateMetaById?.[id]?.full || "");
+
                         return (
                             <article key={id} className={`program-card ${isCancelled ? "program-card--cancelled" : "program-card--normal"}`}>
+                                {dm ? (
+                                    <div className="program-cardDateAbs" title={full} aria-label={full}>
+                                        {dm}
+                                    </div>
+                                ) : null}
+
+                                {isCancelled ? <div className="program-statusPill program-statusPill--abs">{t("status_cancelled")}</div> : null}
+
                                 <div className="program-cardInnerFlat">
                                     <div className="program-cardTop">
                                         <div className="program-day">{item?.day}</div>
-                                        {isCancelled ? <div className="program-statusPill">{t("status_cancelled")}</div> : null}
                                     </div>
 
                                     <div className="program-activity">{item?.title}</div>
