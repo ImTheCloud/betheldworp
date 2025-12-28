@@ -1,3 +1,4 @@
+/* WeeklyProgram.css */
 .program-section {
     position: relative;
     padding: 120px 24px 140px;
@@ -28,6 +29,10 @@
 .program-header {
     text-align: center;
     margin-bottom: 22px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
 }
 
 .program-title {
@@ -37,6 +42,82 @@
     letter-spacing: -0.02em;
     margin: 0;
     line-height: 1.08;
+}
+
+.program-weekPicker {
+    display: grid;
+    grid-template-columns: 44px 1fr 44px;
+    align-items: center;
+    gap: 12px;
+    width: min(760px, 100%);
+    padding: 14px 14px;
+    border-radius: 22px;
+    border: 1px solid rgba(10, 42, 67, 0.12);
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 16px 46px rgba(10, 42, 67, 0.10);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.program-weekBtn {
+    height: 44px;
+    width: 44px;
+    border-radius: 14px;
+    border: 1px solid rgba(10, 42, 67, 0.14);
+    background: rgba(10, 42, 67, 0.04);
+    color: #0a2a43;
+    font-weight: 950;
+    font-size: 22px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.program-weekBtn:hover {
+    transform: translateY(-1px);
+    background: rgba(10, 42, 67, 0.06);
+    border-color: rgba(10, 42, 67, 0.2);
+}
+
+.program-weekBtn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(22, 70, 120, 0.18);
+}
+
+.program-weekMeta {
+    min-width: 0;
+    display: grid;
+    gap: 6px;
+}
+
+.program-weekTitle {
+    color: rgba(10, 42, 67, 0.92);
+    font-weight: 980;
+    font-size: 16px;
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.program-weekRange {
+    color: rgba(10, 42, 67, 0.72);
+    font-weight: 850;
+    font-size: 13px;
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+    font-variant-numeric: tabular-nums;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.program-weekRange--short {
+    display: none;
 }
 
 .program-inlineInfo,
@@ -52,80 +133,9 @@
 }
 
 .program-inlineError {
-    color: #b00020;
+    color: rgba(10, 42, 67, 0.9);
     font-weight: 900;
     font-size: 13px;
-}
-
-.program-announcement {
-    width: 100%;
-    margin: 0 0 18px 0;
-    border-radius: 18px;
-    border: 1px solid rgba(10, 42, 67, 0.10);
-    background: rgba(255, 255, 255, 0.96);
-    box-shadow: 0 18px 55px rgba(10, 42, 67, 0.10);
-    overflow: hidden;
-    position: relative;
-}
-
-.program-announcement::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 4px;
-    background: rgba(176, 0, 32, 0.55);
-}
-
-.program-announcement-head {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 14px 16px 12px 16px;
-    border-bottom: 1px solid rgba(10, 42, 67, 0.08);
-    background: #fff;
-}
-
-.program-announcement-badge {
-    width: 40px;
-    height: 40px;
-    border-radius: 14px;
-    background: rgba(176, 0, 32, 0.10);
-    border: 1px solid rgba(176, 0, 32, 0.18);
-    color: #b00020;
-    font-weight: 950;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
-    flex: 0 0 auto;
-}
-
-.program-announcement-title {
-    font-weight: 950;
-    color: #0a2a43;
-    font-size: 15px;
-    letter-spacing: -0.01em;
-    margin: 0;
-}
-
-.program-announcement-list {
-    padding: 12px 16px 14px 16px;
-    display: grid;
-    gap: 10px;
-}
-
-.program-announcement-item {
-    border-radius: 14px;
-    padding: 10px 12px;
-    border: 1px solid rgba(10, 42, 67, 0.10);
-    background: rgba(10, 42, 67, 0.02);
-    color: rgba(10, 42, 67, 0.86);
-    font-size: 13px;
-    font-weight: 650;
-    line-height: 1.5;
-    white-space: pre-wrap;
 }
 
 .program-grid {
@@ -146,7 +156,6 @@
     transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
     min-height: 128px;
     min-width: 0;
-    perspective: 900px;
     overflow: hidden;
 }
 
@@ -156,88 +165,20 @@
     box-shadow: 0 16px 46px rgba(10, 42, 67, 0.12);
 }
 
-.program-card--clickable {
-    cursor: pointer;
-}
-
-.program-card--clickable::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 4px;
-    background: rgba(176, 0, 32, 0.42);
-    z-index: 3;
-}
-
-.program-card--clickable:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 4px rgba(22, 70, 120, 0.18), 0 16px 46px rgba(10, 42, 67, 0.12);
-}
-
-.program-cardInner {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    min-height: 128px;
-    transform-style: preserve-3d;
-    transition: transform 0.55s cubic-bezier(0.22, 0.8, 0.2, 1);
-    will-change: transform;
-}
-
-.program-card--flipped .program-cardInner {
-    transform: rotateY(180deg);
-}
-
-.program-cardFace {
-    position: absolute;
-    inset: 0;
-    border-radius: 16px;
-    background: #ffffff;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
+.program-cardInnerFlat {
     padding: 16px 16px;
     display: flex;
     flex-direction: column;
     min-width: 0;
-    overflow: hidden;
+    height: 100%;
 }
 
-.program-card--clickable .program-cardFace {
-    padding-left: 18px;
-    padding-right: 56px;
-}
-
-.program-cardFront {
-    transform: rotateY(0deg) translateZ(1px);
-}
-
-.program-cardBack {
-    transform: rotateY(180deg) translateZ(1px);
-    color: #0a2a43;
-}
-
-.program-flag {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    width: 36px;
-    height: 36px;
-    border-radius: 14px;
-    background: rgba(176, 0, 32, 0.10);
-    border: 1px solid rgba(176, 0, 32, 0.18);
+.program-cardTop {
     display: flex;
     align-items: center;
-    justify-content: center;
-    z-index: 4;
-}
-
-.program-flag span {
-    color: #b00020;
-    font-weight: 900;
-    line-height: 1;
-    font-size: 18px;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
 }
 
 .program-day {
@@ -246,7 +187,33 @@
     text-transform: uppercase;
     letter-spacing: 0.1em;
     color: rgba(10, 42, 67, 0.70);
-    margin-bottom: 10px;
+    margin: 0;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.program-statusPill {
+    flex: 0 0 auto;
+    font-size: 11px;
+    font-weight: 950;
+    letter-spacing: -0.01em;
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(10, 42, 67, 0.14);
+    background: rgba(10, 42, 67, 0.06);
+    color: rgba(10, 42, 67, 0.88);
+    font-variant-numeric: tabular-nums;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.program-statusPill::before {
+    content: "ℹ️";
+    font-size: 12px;
+    line-height: 1;
 }
 
 .program-activity {
@@ -254,7 +221,7 @@
     font-weight: 850;
     line-height: 1.25;
     color: #1a2332;
-    margin-bottom: 12px;
+    margin: 0 0 12px 0;
     letter-spacing: -0.01em;
     flex-grow: 1;
     min-width: 0;
@@ -286,21 +253,21 @@
     font-size: 13px;
 }
 
-.program-cardBackBodyOnly {
-    height: 100%;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
+.program-card--cancelled {
+    border-color: rgba(10, 42, 67, 0.14);
+    background: rgba(10, 42, 67, 0.02);
 }
 
-.program-cardBackText {
-    width: 100%;
-    color: rgba(10, 42, 67, 0.9);
-    font-size: 12.5px;
-    font-weight: 650;
-    line-height: 1.5;
-    white-space: pre-wrap;
+.program-card--cancelled .program-activity {
+    color: rgba(26, 35, 50, 0.75);
+}
+
+.program-time--cancelled {
+    color: rgba(10, 42, 67, 0.62);
+    background: rgba(10, 42, 67, 0.04);
+    border-color: rgba(10, 42, 67, 0.12);
+    text-decoration: line-through;
+    opacity: 0.85;
 }
 
 .program-verse-highlight {
@@ -346,17 +313,6 @@
     font-weight: 650;
 }
 
-@media (prefers-reduced-motion: reduce) {
-    .program-cardInner {
-        transition: none !important;
-        transform: none !important;
-    }
-
-    .program-cardBack {
-        display: none;
-    }
-}
-
 @media (max-width: 900px) {
     .program-section {
         padding: 96px 20px 110px;
@@ -367,14 +323,8 @@
         gap: 12px;
     }
 
-    .program-card,
-    .program-cardInner {
+    .program-card {
         min-height: 122px;
-    }
-
-    .program-verse-highlight {
-        padding: 36px 28px;
-        border-radius: 24px;
     }
 }
 
@@ -383,29 +333,30 @@
         padding: 78px 16px 96px;
     }
 
-    .program-announcement {
-        border-radius: 14px;
+    .program-weekPicker {
+        grid-template-columns: 42px 1fr 42px;
+        padding: 12px 12px;
+        border-radius: 18px;
     }
 
-    .program-announcement-head {
-        padding: 12px 12px 10px 12px;
-        gap: 10px;
+    .program-weekBtn {
+        height: 42px;
+        width: 42px;
+        border-radius: 13px;
     }
 
-    .program-announcement-badge {
-        width: 36px;
-        height: 36px;
-        border-radius: 12px;
+    .program-weekTitle {
+        font-size: 14px;
+        white-space: normal;
     }
 
-    .program-announcement-list {
-        padding: 10px 12px 12px 12px;
-        gap: 8px;
+    .program-weekRange--long {
+        display: none;
     }
 
-    .program-announcement-item {
-        padding: 9px 10px;
-        border-radius: 12px;
+    .program-weekRange--short {
+        display: block;
+        white-space: normal;
     }
 
     .program-grid {
@@ -414,44 +365,13 @@
         margin-bottom: 40px;
     }
 
-    .program-cardFace {
-        padding: 14px 12px;
-        border-radius: 14px;
-    }
-
-    .program-card--clickable .program-cardFace {
-        padding-left: 16px;
-        padding-right: 40px;
-    }
-
     .program-card {
         border-radius: 14px;
         min-height: 124px;
     }
 
-    .program-cardInner {
-        min-height: 124px;
-    }
-
-    .program-card--clickable::before {
-        width: 3px;
-    }
-
-    .program-flag {
-        top: 8px;
-        right: 8px;
-        width: 22px;
-        height: 22px;
-        border-radius: 9px;
-    }
-
-    .program-flag span {
-        font-size: 13px;
-    }
-
-    .program-day {
-        font-size: 10px;
-        margin-bottom: 8px;
+    .program-cardInnerFlat {
+        padding: 14px 12px;
     }
 
     .program-activity {
@@ -475,10 +395,5 @@
 
     .program-verse-highlight::before {
         font-size: 80px;
-    }
-
-    .program-cardBackText {
-        font-size: 11.5px;
-        line-height: 1.45;
     }
 }

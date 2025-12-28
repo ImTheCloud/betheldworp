@@ -1,8 +1,9 @@
+// WeeklyProgram.jsx
 "use client";
 
 import "./WeeklyProgram.css";
 import { useEffect, useMemo, useState } from "react";
-import { collection, onSnapshot } from "firebase/firestore";
+import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "../lib/Firebase";
 import { useLang } from "../components/LanguageProvider";
 import { makeT } from "../lib/i18n";
@@ -11,13 +12,21 @@ import tr from "../translations/WeeklyProgram.json";
 const safeArr = (v) => (Array.isArray(v) ? v : []);
 const safeStr = (v) => String(v ?? "");
 
-function getBrusselsDayISO(date = new Date()) {
-    const parts = new Intl.DateTimeFormat("en-CA", {
+function capFirst(s) {
+    const x = safeStr(s);
+    if (!x) return "";
+    return x.charAt(0).toUpperCase() + x.slice(1);
+}
+
+function getBrusselsISO(date = new Date()) {
+    const parts = new Intl.DateTimeFormat("en-CAt", {
         timeZone: "Europe/Brussels",
         year: "numeric",
         month: "2-digit",
         day: "2-digit",
-    }).formatToParts(date);
+    })
+        .formatToParts(date)
+        .filter(Boolean);
 
     let y = "0000",
         m = "00",
@@ -31,39 +40,87 @@ function getBrusselsDayISO(date = new Date()) {
     return `${y}-${m}-${d}`;
 }
 
-function parseISO(iso) {
-    const m = safeStr(iso).trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    if (!m) return null;
-    const yy = Number(m[1]);
-    const mm = Number(m[2]);
-    const dd = Number(m[3]);
-    const dt = new Date(yy, mm - 1, dd);
-    const time = dt.getTime();
-    if (!Number.isFinite(time)) return null;
-    return { yy, mm, dd, time };
+function addDaysUTC(date, days) {
+    return new Date(date.getTime() + days * 24 * 60 * 60 * 1000);
 }
 
-function parseDMY(dmy) {
-    const m = safeStr(dmy).trim().match(/^(\d{2})-(\d{2})-(\d{4})$/);
-    if (!m) return null;
-    const dd = Number(m[1]);
-    const mm = Number(m[2]);
-    const yy = Number(m[3]);
-    const dt = new Date(yy, mm - 1, dd);
-    const time = dt.getTime();
-    if (!Number.isFinite(time)) return null;
-    return { yy, mm, dd, time };
+function getBrusselsYMD(date = new Date()) {
+    const parts = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Europe/Brussels",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+    }).formatToParts(date);
+
+    let yy = 0,
+        mm = 0,
+        dd = 0;
+
+    parts.forEach((p) => {
+        if (p.type === "year") yy = Number(p.value);
+        if (p.type === "month") mm = Number(p.value);
+        if (p.type === "day") dd = Number(p.value);
+    });
+
+    return { yy, mm, dd };
 }
 
-function parseDayFlexible(value) {
-    const s = safeStr(value).trim();
-    return parseDMY(s) || parseISO(s);
+function getBrusselsWeekRange(date = new Date()) {
+    const { yy, mm, dd } = getBrusselsYMD(date);
+    const noonUTC = new Date(Date.UTC(yy, mm - 1, dd, 12, 0, 0));
+    const dow = noonUTC.getUTCDay();
+    const mondayIndex = (dow + 6) % 7;
+    const start = addDaysUTC(noonUTC, -mondayIndex);
+    const end = addDaysUTC(start, 6);
+    return { start, end };
 }
 
-function formatDMYFromISO(iso) {
-    const p = parseISO(iso);
-    if (!p) return "";
-    return `${String(p.dd).padStart(2, "0")}-${String(p.mm).padStart(2, "0")}-${String(p.yy).padStart(4, "0")}`;
+function getISOWeekYearAndNumberUTC(dateUTC) {
+    const d = new Date(Date.UTC(dateUTC.getUTCFullYear(), dateUTC.getUTCMonth(), dateUTC.getUTCDate()));
+    const day = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - day);
+    const isoYear = d.getUTCFullYear();
+    const yearStart = new Date(Date.UTC(isoYear, 0, 1));
+    const week = Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+    return { isoYear, week };
+}
+
+function clampWeekOffset(n) {
+    const x = Number(n);
+    if (!Number.isFinite(x)) return 0;
+    return Math.max(-104, Math.min(104, Math.trunc(x)));
+}
+
+function getLocaleFromLang(lang) {
+    const l = safeStr(lang).toLowerCase();
+    if (l.startsWith("fr")) return "fr-BE";
+    if (l.startsWith("nl")) return "nl-BE";
+    if (l.startsWith("ro")) return "ro-RO";
+    return "en-GB";
+}
+
+function formatWeekRangeLong(startUTC, endUTC, lang, t) {
+    const locale = getLocaleFromLang(lang);
+
+    const weekdayLong = new Intl.DateTimeFormat(locale, { weekday: "long", timeZone: "Europe/Brussels" });
+    const dayMonthLong = new Intl.DateTimeFormat(locale, { day: "numeric", month: "long", timeZone: "Europe/Brussels" });
+    const yearLong = new Intl.DateTimeFormat(locale, { year: "numeric", timeZone: "Europe/Brussels" });
+
+    const startWeekday = capFirst(weekdayLong.format(startUTC));
+    const endWeekday = capFirst(weekdayLong.format(endUTC));
+    const startDayMonth = safeStr(dayMonthLong.format(startUTC));
+    const endDayMonth = safeStr(dayMonthLong.format(endUTC));
+    const endYear = safeStr(yearLong.format(endUTC));
+
+    const to = (t("week_to") || "to").trim();
+
+    return `${startWeekday} ${startDayMonth} ${to} ${endWeekday} ${endDayMonth} ${endYear}`;
+}
+
+function formatWeekRangeShort(startUTC, endUTC, lang) {
+    const locale = getLocaleFromLang(lang);
+    const fmt = new Intl.DateTimeFormat(locale, { day: "2-digit", month: "2-digit", year: "numeric", timeZone: "Europe/Brussels" });
+    return `${safeStr(fmt.format(startUTC))} – ${safeStr(fmt.format(endUTC))}`;
 }
 
 function formatTimeToken(token) {
@@ -80,40 +137,10 @@ function formatRange(range) {
     return `${formatTimeToken(start)}-${formatTimeToken(end)}`;
 }
 
-function pickByLang(value, lang) {
-    if (!value) return "";
-    if (typeof value === "string") return value.trim();
-    if (typeof value === "object") {
-        const v = value?.[lang] ?? value?.ro ?? value?.en ?? "";
-        return String(v || "").trim();
-    }
-    return "";
-}
-
-function normalizeAnnouncement(docId, data, lang, todayTime) {
-    const untilRaw = safeStr(data?.until || data?.date || "").trim();
-    const untilParsed = parseDayFlexible(untilRaw);
-    if (!untilParsed) return null;
-    if (todayTime > untilParsed.time) return null;
-
-    const message = pickByLang(data?.message, lang);
-    if (!message) return null;
-
-    const affectedProgramIds = safeArr(data?.affectedProgramIds)
-        .map((v) => safeStr(v).trim())
-        .filter(Boolean);
-
-    if (!affectedProgramIds.length) return null;
-
-    const untilDMY = untilRaw.match(/^\d{2}-\d{2}-\d{4}$/) ? untilRaw : formatDMYFromISO(untilRaw);
-
-    return {
-        id: safeStr(docId).trim() || untilRaw,
-        untilTime: untilParsed.time,
-        untilDMY: untilDMY || "",
-        affectedProgramIds,
-        message,
-    };
+function normalizeWeekOverride(docId, data) {
+    const weekKey = safeStr(data?.weekKey || docId).trim().toUpperCase();
+    const affectedProgramIds = safeArr(data?.affectedProgramIds).map((v) => safeStr(v).trim()).filter(Boolean);
+    return { weekKey, affectedProgramIds };
 }
 
 export default function Program() {
@@ -134,61 +161,71 @@ export default function Program() {
         [t]
     );
 
-    const [annRaw, setAnnRaw] = useState([]);
+    const [weekOffset, setWeekOffset] = useState(0);
+
+    const weekInfo = useMemo(() => {
+        const base = new Date();
+        const { start: baseStart } = getBrusselsWeekRange(base);
+
+        const start = addDaysUTC(baseStart, clampWeekOffset(weekOffset) * 7);
+        const end = addDaysUTC(start, 6);
+
+        const { isoYear, week } = getISOWeekYearAndNumberUTC(start);
+        const weekKey = `${String(isoYear).padStart(4, "0")}-W${String(week).padStart(2, "0")}`;
+
+        const weekLabelTemplate = t("week_label") || "Week {n}";
+        const weekTitle = safeStr(weekLabelTemplate).replaceAll("{n}", String(week));
+
+        const rangeLong = formatWeekRangeLong(start, end, lang, t);
+        const rangeShort = formatWeekRangeShort(start, end, lang);
+
+        return { start, end, weekKey, weekTitle, rangeLong, rangeShort };
+    }, [lang, weekOffset, t]);
+
+    const [ovDoc, setOvDoc] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-    const [openId, setOpenId] = useState(null);
-
-    const todayISO = useMemo(() => getBrusselsDayISO(), []);
-    const todayTime = useMemo(() => parseISO(todayISO)?.time ?? Date.now(), [todayISO]);
 
     useEffect(() => {
         setLoading(true);
         setError("");
 
-        const ref = collection(db, "program_announcements");
+        const ref = doc(db, "program_overrides", weekInfo.weekKey);
         const unsub = onSnapshot(
             ref,
             (snap) => {
-                const list = [];
-                snap.forEach((d) => list.push({ id: d.id, data: d.data() || {} }));
-                setAnnRaw(list);
+                if (!snap.exists()) {
+                    setOvDoc(null);
+                    setLoading(false);
+                    setError("");
+                    return;
+                }
+                setOvDoc({ id: snap.id, data: snap.data() || {} });
                 setLoading(false);
                 setError("");
             },
             (err) => {
                 console.error(err);
-                setError(t("error_load_announcements"));
+                setError(t("error_load_overrides"));
                 setLoading(false);
             }
         );
 
         return () => unsub();
-    }, [t]);
+    }, [t, weekInfo.weekKey]);
 
-    const activeAnnouncements = useMemo(() => {
-        const out = annRaw.map((x) => normalizeAnnouncement(x.id, x.data, lang, todayTime)).filter(Boolean);
-        out.sort((a, b) => a.untilTime - b.untilTime || a.id.localeCompare(b.id));
-        return out;
-    }, [annRaw, lang, todayTime]);
-
-    const showAnnouncement = activeAnnouncements.length > 0;
-
-    const affectedIds = useMemo(() => {
+    const cancelledSet = useMemo(() => {
         const set = new Set();
-        activeAnnouncements.forEach((a) => a.affectedProgramIds.forEach((id) => set.add(id)));
+        if (!ovDoc) return set;
+        const o = normalizeWeekOverride(ovDoc.id, ovDoc.data);
+        safeArr(o.affectedProgramIds).forEach((id) => set.add(id));
         return set;
-    }, [activeAnnouncements]);
-
-    const messageForOpen = useMemo(() => {
-        if (!openId) return "";
-        const specific = activeAnnouncements.find((a) => a.affectedProgramIds.includes(openId));
-        return (specific?.message || "").trim();
-    }, [openId, activeAnnouncements]);
+    }, [ovDoc]);
 
     useEffect(() => {
         const onKey = (e) => {
-            if (e.key === "Escape") setOpenId(null);
+            if (e.key === "ArrowLeft") setWeekOffset((v) => clampWeekOffset(v - 1));
+            if (e.key === "ArrowRight") setWeekOffset((v) => clampWeekOffset(v + 1));
         };
         window.addEventListener("keydown", onKey);
         return () => window.removeEventListener("keydown", onKey);
@@ -199,88 +236,53 @@ export default function Program() {
             <div className="program-content">
                 <div className="program-header">
                     <h2 className="program-title">{t("title")}</h2>
+
+                    <div className="program-weekPicker" role="group" aria-label={weekInfo.weekTitle}>
+                        <button type="button" className="program-weekBtn" aria-label="Previous week" onClick={() => setWeekOffset((v) => clampWeekOffset(v - 1))}>
+                            ‹
+                        </button>
+
+                        <div className="program-weekMeta">
+                            <div className="program-weekTitle">{weekInfo.weekTitle}</div>
+                            <div className="program-weekRange program-weekRange--long" aria-hidden="true">
+                                {weekInfo.rangeLong}
+                            </div>
+                            <div className="program-weekRange program-weekRange--short" aria-hidden="true">
+                                {weekInfo.rangeShort}
+                            </div>
+                        </div>
+
+                        <button type="button" className="program-weekBtn" aria-label="Next week" onClick={() => setWeekOffset((v) => clampWeekOffset(v + 1))}>
+                            ›
+                        </button>
+                    </div>
                 </div>
 
                 {loading ? <div className="program-inlineInfo">{t("loading")}</div> : null}
                 {!loading && error ? <div className="program-inlineError">{error}</div> : null}
 
-                {showAnnouncement ? (
-                    <div className="program-announcement" role="status" aria-live="polite">
-                        <div className="program-announcement-head">
-                            <div className="program-announcement-badge" aria-hidden="true">
-                                !
-                            </div>
-                            <div className="program-announcement-title">{t("special_title")}</div>
-                        </div>
-
-                        <div className="program-announcement-list">
-                            {activeAnnouncements.map((a) => (
-                                <div key={a.id} className="program-announcement-item">
-                                    {a.message}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                ) : null}
-
                 <div className="program-grid">
                     {LOCAL_PROGRAM_ITEMS.map((item, idx) => {
                         const id = safeStr(item?.id || `day-${idx}`).trim();
-                        const isAlert = showAnnouncement && affectedIds.has(id);
-                        const isFlipped = openId === id;
                         const times = safeArr(item?.times);
+                        const isCancelled = cancelledSet.has(id);
 
                         return (
-                            <article
-                                key={id}
-                                className={`program-card ${
-                                    isAlert ? "program-card--alert program-card--clickable" : "program-card--normal"
-                                } ${isFlipped ? "program-card--flipped" : ""}`}
-                                role={isAlert ? "button" : undefined}
-                                tabIndex={isAlert ? 0 : undefined}
-                                aria-label={isAlert ? t("card_click_aria") : undefined}
-                                onClick={() => {
-                                    if (!isAlert) return;
-                                    setOpenId((cur) => (cur === id ? null : id));
-                                }}
-                                onKeyDown={(e) => {
-                                    if (!isAlert) return;
-                                    if (e.key === "Enter" || e.key === " ") {
-                                        e.preventDefault();
-                                        setOpenId((cur) => (cur === id ? null : id));
-                                    }
-                                }}
-                            >
-                                <div className="program-cardInner">
-                                    <div className="program-cardFace program-cardFront">
-                                        {isAlert ? (
-                                            <div className="program-flag" aria-hidden="true">
-                                                <span aria-hidden="true">!</span>
-                                            </div>
-                                        ) : null}
-
+                            <article key={id} className={`program-card ${isCancelled ? "program-card--cancelled" : "program-card--normal"}`}>
+                                <div className="program-cardInnerFlat">
+                                    <div className="program-cardTop">
                                         <div className="program-day">{item?.day}</div>
-                                        <div className="program-activity">{item?.title}</div>
-
-                                        <div className="program-times">
-                                            {times.map((tt) => (
-                                                <span key={`${id}-${tt}`} className="program-time">
-                                                    {formatRange(tt)}
-                                                </span>
-                                            ))}
-                                        </div>
+                                        {isCancelled ? <div className="program-statusPill">{t("status_cancelled")}</div> : null}
                                     </div>
 
-                                    <div className="program-cardFace program-cardBack" aria-hidden={!isFlipped}>
-                                        {isAlert ? (
-                                            <div className="program-flag" aria-hidden="true">
-                                                <span aria-hidden="true">!</span>
-                                            </div>
-                                        ) : null}
+                                    <div className="program-activity">{item?.title}</div>
 
-                                        <div className="program-cardBackBodyOnly">
-                                            <div className="program-cardBackText">{isFlipped ? messageForOpen : ""}</div>
-                                        </div>
+                                    <div className="program-times">
+                                        {times.map((tt) => (
+                                            <span key={`${id}-${tt}`} className={`program-time ${isCancelled ? "program-time--cancelled" : ""}`}>
+                                                {formatRange(tt)}
+                                            </span>
+                                        ))}
                                     </div>
                                 </div>
                             </article>
