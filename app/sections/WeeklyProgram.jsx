@@ -17,28 +17,6 @@ function capFirst(s) {
     return x.charAt(0).toUpperCase() + x.slice(1);
 }
 
-function getBrusselsISO(date = new Date()) {
-    const parts = new Intl.DateTimeFormat("en-CA", {
-        timeZone: "Europe/Brussels",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-    })
-        .formatToParts(date)
-        .filter(Boolean);
-
-    let y = "0000",
-        m = "00",
-        d = "00";
-    parts.forEach((p) => {
-        if (p.type === "year") y = p.value;
-        if (p.type === "month") m = p.value;
-        if (p.type === "day") d = p.value;
-    });
-
-    return `${y}-${m}-${d}`;
-}
-
 function addDaysUTC(date, days) {
     return new Date(date.getTime() + days * 24 * 60 * 60 * 1000);
 }
@@ -314,26 +292,22 @@ export default function Program() {
                         const dm = safeStr(dateMetaById?.[id]?.dm || "");
                         const full = safeStr(dateMetaById?.[id]?.full || "");
 
+                        const firstTime = times.length ? formatRange(times[0]) : "";
+                        const extraCount = times.length > 1 ? ` (+${times.length - 1})` : "";
+                        const timeLabel = (firstTime + extraCount).trim();
+
                         return (
                             <article key={id} className={`program-card ${isCancelled ? "program-card--cancelled" : "program-card--normal"}`}>
-                                {isCancelled ? <div className="program-statusPill program-statusPill--abs">{t("status_cancelled")}</div> : null}
-
                                 <div className="program-cardInnerFlat">
                                     <div className="program-cardTop">
                                         <div className="program-day">{item?.day}</div>
+                                        {isCancelled ? <div className="program-statusPill">{t("status_cancelled")}</div> : null}
                                     </div>
 
                                     <div className="program-activity">{item?.title}</div>
 
                                     <div className="program-bottomRow">
-                                        <div className="program-timesScroll" aria-label="Times">
-                                            {times.map((tt) => (
-                                                <span key={`${id}-${tt}`} className={`program-time ${isCancelled ? "program-time--cancelled" : ""}`}>
-                                                    {formatRange(tt)}
-                                                </span>
-                                            ))}
-                                        </div>
-
+                                        {timeLabel ? <div className={`program-timeLine ${isCancelled ? "program-timeLine--cancelled" : ""}`}>{timeLabel}</div> : <div />}
                                         {dm ? (
                                             <div className="program-dateFixed" title={full} aria-label={full}>
                                                 {dm}
