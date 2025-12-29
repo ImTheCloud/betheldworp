@@ -292,9 +292,10 @@ export default function Program() {
                         const dm = safeStr(dateMetaById?.[id]?.dm || "");
                         const full = safeStr(dateMetaById?.[id]?.full || "");
 
-                        const firstTime = times.length ? formatRange(times[0]) : "";
-                        const extraCount = times.length > 1 ? ` (+${times.length - 1})` : "";
-                        const timeLabel = (firstTime + extraCount).trim();
+                        const cleanedTimes = times.map((x) => safeStr(x).trim()).filter(Boolean);
+                        const firstTime = cleanedTimes.length ? formatRange(cleanedTimes[0]) : "";
+                        const extraCount = cleanedTimes.length > 1 ? ` (+${cleanedTimes.length - 1})` : "";
+                        const timeLabel = firstTime ? `${firstTime}${extraCount}` : "";
 
                         return (
                             <article key={id} className={`program-card ${isCancelled ? "program-card--cancelled" : "program-card--normal"}`}>
@@ -307,7 +308,7 @@ export default function Program() {
                                     <div className="program-activity">{item?.title}</div>
 
                                     <div className="program-bottomRow">
-                                        {timeLabel ? <div className={`program-timeLine ${isCancelled ? "program-timeLine--cancelled" : ""}`}>{timeLabel}</div> : <div />}
+                                        {timeLabel ? <div className={`program-timeLine ${isCancelled ? "program-timeLine--cancelled" : ""}`}>{timeLabel}</div> : null}
                                         {dm ? (
                                             <div className="program-dateFixed" title={full} aria-label={full}>
                                                 {dm}

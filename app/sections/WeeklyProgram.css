@@ -198,7 +198,7 @@
 }
 
 .program-activity {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 850;
     line-height: 1.25;
     color: #1a2332;
@@ -211,14 +211,14 @@
 .program-bottomRow {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: 10px;
     min-width: 0;
 }
 
 .program-timeLine {
-    flex: 1 1 auto;
-    min-width: 0;
+    flex: 0 0 auto;
+    width: fit-content;
+    max-width: 72%;
     display: inline-flex;
     align-items: center;
     font-size: 12px;
@@ -238,6 +238,7 @@
 }
 
 .program-dateFixed {
+    margin-left: auto;
     flex: 0 0 auto;
     font-size: 12px;
     font-weight: 900;
@@ -380,9 +381,14 @@
         padding: 4px 8px;
     }
 
+    .program-activity {
+        font-size: 14px;
+    }
+
     .program-timeLine {
         font-size: 11px;
         padding: 5px 9px;
+        max-width: 70%;
     }
 
     .program-bottomRow {
