@@ -157,32 +157,32 @@
 .program-cardTop {
     display: flex;
     align-items: center;
-    justify-content: flex-start;
-    gap: 12px;
+    justify-content: space-between;
+    gap: 10px;
     margin-bottom: 10px;
-    padding-right: 96px;
+    min-width: 0;
 }
 
 .program-day {
     flex: 1 1 auto;
+    min-width: 0;
     font-size: 11px;
     font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.08em;
     color: rgba(10, 42, 67, 0.70);
     margin: 0;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: clip;
 }
 
 .program-statusPill {
     flex: 0 0 auto;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 950;
     letter-spacing: -0.01em;
-    padding: 6px 10px;
+    padding: 5px 8px;
     border-radius: 999px;
     border: 1px solid rgba(10, 42, 67, 0.14);
     background: rgba(10, 42, 67, 0.06);
@@ -190,20 +190,11 @@
     font-variant-numeric: tabular-nums;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
     white-space: nowrap;
 }
 
 .program-statusPill::before {
-    content: "ℹ️";
-    font-size: 12px;
-    line-height: 1;
-}
-
-.program-statusPill--abs {
-    position: absolute;
-    top: 12px;
-    right: 12px;
+    content: none;
 }
 
 .program-activity {
@@ -220,45 +211,30 @@
 .program-bottomRow {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 10px;
     min-width: 0;
 }
 
-.program-timesScroll {
-    display: flex;
-    gap: 8px;
-    align-items: center;
+.program-timeLine {
     flex: 1 1 auto;
     min-width: 0;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding-bottom: 2px;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-}
-
-.program-timesScroll::-webkit-scrollbar {
-    display: none;
-}
-
-.program-time {
-    flex: 0 0 auto;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
     font-size: 12px;
-    font-weight: 800;
+    font-weight: 850;
     color: #164678;
     padding: 6px 10px;
     border-radius: 999px;
     background: rgba(22, 70, 120, 0.08);
     border: 1px solid rgba(22, 70, 120, 0.14);
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: clip;
 }
 
-.program-time::before {
-    content: "🕐";
-    font-size: 13px;
+.program-timeLine::before {
+    content: none;
 }
 
 .program-dateFixed {
@@ -270,6 +246,7 @@
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
     padding-left: 2px;
+    text-align: right;
 }
 
 .program-card--cancelled {
@@ -281,12 +258,12 @@
     color: rgba(26, 35, 50, 0.75);
 }
 
-.program-time--cancelled {
+.program-timeLine--cancelled {
     color: rgba(10, 42, 67, 0.62);
     background: rgba(10, 42, 67, 0.04);
     border-color: rgba(10, 42, 67, 0.12);
     text-decoration: line-through;
-    opacity: 0.85;
+    opacity: 0.9;
 }
 
 .program-verse-highlight {
@@ -393,13 +370,19 @@
         padding: 14px 12px;
     }
 
-    .program-cardTop {
-        padding-right: 92px;
+    .program-day {
+        font-size: 10px;
+        letter-spacing: 0.06em;
     }
 
-    .program-statusPill--abs {
-        top: 10px;
-        right: 10px;
+    .program-statusPill {
+        font-size: 10px;
+        padding: 4px 8px;
+    }
+
+    .program-timeLine {
+        font-size: 11px;
+        padding: 5px 9px;
     }
 
     .program-bottomRow {
