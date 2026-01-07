@@ -54,8 +54,9 @@ function LanguageSwitcher({ className = "", t, lang, setLang, options }) {
                 aria-haspopup="menu"
                 aria-expanded={open}
             >
+                {/* MODIFICATION ICI : Utilisation d'une image au lieu du texte emoji */}
                 <span className="langBtnFlag" aria-hidden="true">
-                    {current.flag}
+                    <img src={current.flagImg} alt={current.short} />
                 </span>
                 <span className="langBtnCode" aria-hidden="true">
                     {current.short}
@@ -80,8 +81,9 @@ function LanguageSwitcher({ className = "", t, lang, setLang, options }) {
                                 className={`langItem ${active ? "is-active" : ""}`}
                                 onClick={() => pick(o.value)}
                             >
+                                {/* MODIFICATION ICI : Utilisation d'une image */}
                                 <span className="langItemFlag" aria-hidden="true">
-                                    {o.flag}
+                                    <img src={o.flagImg} alt={o.short} />
                                 </span>
                                 <span className="langItemMain">
                                     <span className="langItemName">{o.label}</span>
@@ -123,12 +125,13 @@ export default function Header() {
         []
     );
 
+    // MODIFICATION ICI : Remplacement des emojis par des liens CDN vers les drapeaux
     const LANG_OPTIONS = useMemo(
         () => [
-            { value: "ro", label: t("lang_ro"), short: "RO", flag: "🇷🇴" },
-            { value: "fr", label: t("lang_fr"), short: "FR", flag: "🇫🇷" },
-            { value: "nl", label: t("lang_nl"), short: "NL", flag: "🇳🇱" },
-            { value: "en", label: t("lang_en"), short: "EN", flag: "🇬🇧" }
+            { value: "ro", label: t("lang_ro"), short: "RO", flagImg: "https://flagcdn.com/w40/ro.png" },
+            { value: "fr", label: t("lang_fr"), short: "FR", flagImg: "https://flagcdn.com/w40/fr.png" },
+            { value: "nl", label: t("lang_nl"), short: "NL", flagImg: "https://flagcdn.com/w40/nl.png" },
+            { value: "en", label: t("lang_en"), short: "EN", flagImg: "https://flagcdn.com/w40/gb.png" }
         ],
         [t]
     );
