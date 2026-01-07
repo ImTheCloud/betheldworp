@@ -56,6 +56,7 @@ Official website of **Bethel Dworp**, built with **Next.js (App Router)**, a mod
 
 ## 📄 License
 
-© Bethel Dworp. All rights reserved.
+**Exclusive property of Popadiuc Claudiu - Bethel Dworp. All rights reserved.**
+This source code is provided for reference purposes only. No license is granted to use, copy, modify, or distribute this software in any form without the prior written permission of the author.
 
 
