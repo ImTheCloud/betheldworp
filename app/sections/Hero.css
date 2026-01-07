@@ -14,18 +14,16 @@
     height: 100%;
     object-fit: cover;
     object-position: center bottom;
-    transform: scale(1);
+    transform: scale(1) translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
     will-change: transform;
-    animation: heroZoom 18s ease-in-out infinite alternate;
+    animation: heroZoom 10s ease-in-out infinite alternate;
 }
 
 @keyframes heroZoom {
-    from { transform: scale(1); }
-    to { transform: scale(1.20); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .hero-bgImg { animation: none; transform: scale(1); }
+    from { transform: scale(1) translateZ(0); }
+    to { transform: scale(1.20) translateZ(0); }
 }
 
 .hero-content {
