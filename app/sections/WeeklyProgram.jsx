@@ -29,16 +29,12 @@ function getBrusselsYMD(date = new Date()) {
         day: "2-digit",
     }).formatToParts(date);
 
-    let yy = 0,
-        mm = 0,
-        dd = 0;
-
+    let yy = 0, mm = 0, dd = 0;
     parts.forEach((p) => {
         if (p.type === "year") yy = Number(p.value);
         if (p.type === "month") mm = Number(p.value);
         if (p.type === "day") dd = Number(p.value);
     });
-
     return { yy, mm, dd };
 }
 
@@ -62,12 +58,6 @@ function getISOWeekYearAndNumberUTC(dateUTC) {
     return { isoYear, week };
 }
 
-function clampWeekOffset(n) {
-    const x = Number(n);
-    if (!Number.isFinite(x)) return 0;
-    return Math.max(-104, Math.min(104, Math.trunc(x)));
-}
-
 function getLocaleFromLang(lang) {
     const l = safeStr(lang).toLowerCase();
     if (l.startsWith("fr")) return "fr-BE";
@@ -78,26 +68,18 @@ function getLocaleFromLang(lang) {
 
 function formatWeekRangeLong(startUTC, endUTC, lang, t) {
     const locale = getLocaleFromLang(lang);
-
-    const weekdayLong = new Intl.DateTimeFormat(locale, { weekday: "long", timeZone: "Europe/Brussels" });
     const dayMonthLong = new Intl.DateTimeFormat(locale, { day: "numeric", month: "long", timeZone: "Europe/Brussels" });
     const yearLong = new Intl.DateTimeFormat(locale, { year: "numeric", timeZone: "Europe/Brussels" });
 
-    const startWeekday = capFirst(weekdayLong.format(startUTC));
-    const endWeekday = capFirst(weekdayLong.format(endUTC));
-    const startDayMonth = safeStr(dayMonthLong.format(startUTC));
-    const endDayMonth = safeStr(dayMonthLong.format(endUTC));
-    const endYear = safeStr(yearLong.format(endUTC));
+    // Format: "05 janvier - 11 janvier 2026"
+    const startPart = safeStr(dayMonthLong.format(startUTC));
+    const endPart = safeStr(dayMonthLong.format(endUTC));
+    const yearPart = safeStr(yearLong.format(endUTC));
 
-    const to = (t("week_to") || "to").trim();
-
-    return `${startWeekday} ${startDayMonth} ${to} ${endWeekday} ${endDayMonth} ${endYear}`;
-}
-
-function formatWeekRangeShort(startUTC, endUTC, lang) {
-    const locale = getLocaleFromLang(lang);
-    const fmt = new Intl.DateTimeFormat(locale, { day: "2-digit", month: "2-digit", year: "numeric", timeZone: "Europe/Brussels" });
-    return `${safeStr(fmt.format(startUTC))} – ${safeStr(fmt.format(endUTC))}`;
+    // Utilisation du mot de liaison (ex: "au" ou "to") ou un simple tiret pour le minimalisme
+    // Pour un design très clean, le tiret est souvent préférable, mais on garde la logique de langue si souhaité.
+    // Ici, je force un formatage très propre : "5 Janvier — 11 Janvier 2026"
+    return `${startPart} — ${endPart} ${yearPart}`;
 }
 
 function formatTimeToken(token) {
@@ -121,14 +103,8 @@ function normalizeWeekOverride(docId, data) {
 }
 
 function formatBrusselsDDMM(dateObj) {
-    const parts = new Intl.DateTimeFormat("en-GB", {
-        timeZone: "Europe/Brussels",
-        day: "2-digit",
-        month: "2-digit",
-    }).formatToParts(dateObj);
-
-    let dd = "00",
-        mm = "00";
+    const parts = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Brussels", day: "2-digit", month: "2-digit" }).formatToParts(dateObj);
+    let dd = "00", mm = "00";
     parts.forEach((p) => {
         if (p.type === "day") dd = p.value;
         if (p.type === "month") mm = p.value;
@@ -137,16 +113,8 @@ function formatBrusselsDDMM(dateObj) {
 }
 
 function formatBrusselsDDMMYYYY(dateObj) {
-    const parts = new Intl.DateTimeFormat("en-GB", {
-        timeZone: "Europe/Brussels",
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-    }).formatToParts(dateObj);
-
-    let dd = "00",
-        mm = "00",
-        yy = "0000";
+    const parts = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Brussels", day: "2-digit", month: "2-digit", year: "numeric" }).formatToParts(dateObj);
+    let dd = "00", mm = "00", yy = "0000";
     parts.forEach((p) => {
         if (p.type === "day") dd = p.value;
         if (p.type === "month") mm = p.value;
@@ -159,54 +127,32 @@ export default function Program() {
     const { lang } = useLang();
     const t = useMemo(() => makeT(tr, lang), [lang]);
 
-    const LOCAL_PROGRAM_ITEMS = useMemo(
-        () => [
-            { day: t("day_mon"), id: "mon", times: ["20:00-21:30"], title: t("act_mon") },
-            { day: t("day_tue"), id: "tue", times: ["20:00-21:30"], title: t("act_tue") },
-            { day: t("day_wed"), id: "wed", times: ["20:00-21:30"], title: t("act_wed") },
-            { day: t("day_thu"), id: "thu", times: ["20:00-21:30"], title: t("act_thu") },
-            { day: t("day_fri"), id: "fri", times: ["20:00-21:30"], title: t("act_fri") },
-            { day: t("day_sat"), id: "sat", times: ["11:00-13:30"], title: t("act_sat") },
-            { day: t("day_sun"), id: "sun_am", times: ["10:00-12:00"], title: t("act_sun_am") },
-            { day: t("day_sun"), id: "sun_pm", times: ["18:00-20:00"], title: t("act_sun_pm") },
-        ],
-        [t]
-    );
-
-    const [weekOffset, setWeekOffset] = useState(0);
+    const LOCAL_PROGRAM_ITEMS = useMemo(() => [
+        { day: t("day_mon"), id: "mon", times: ["20:00-21:30"], title: t("act_mon") },
+        { day: t("day_tue"), id: "tue", times: ["20:00-21:30"], title: t("act_tue") },
+        { day: t("day_wed"), id: "wed", times: ["20:00-21:30"], title: t("act_wed") },
+        { day: t("day_thu"), id: "thu", times: ["20:00-21:30"], title: t("act_thu") },
+        { day: t("day_fri"), id: "fri", times: ["20:00-21:30"], title: t("act_fri") },
+        { day: t("day_sat"), id: "sat", times: ["11:00-13:30"], title: t("act_sat") },
+        { day: t("day_sun"), id: "sun_am", times: ["10:00-12:00"], title: t("act_sun_am") },
+        { day: t("day_sun"), id: "sun_pm", times: ["18:00-20:00"], title: t("act_sun_pm") },
+    ], [t]);
 
     const weekInfo = useMemo(() => {
         const base = new Date();
-        const { start: baseStart } = getBrusselsWeekRange(base);
-
-        const start = addDaysUTC(baseStart, clampWeekOffset(weekOffset) * 7);
-        const end = addDaysUTC(start, 6);
-
+        const { start, end } = getBrusselsWeekRange(base);
         const { isoYear, week } = getISOWeekYearAndNumberUTC(start);
         const weekKey = `${String(isoYear).padStart(4, "0")}-W${String(week).padStart(2, "0")}`;
 
-        const weekLabelTemplate = t("week_label") || "Week {n}";
-        const weekTitle = safeStr(weekLabelTemplate).replaceAll("{n}", String(week));
-
+        // On construit la chaîne de date propre
         const rangeLong = formatWeekRangeLong(start, end, lang, t);
-        const rangeShort = formatWeekRangeShort(start, end, lang);
 
-        return { start, end, weekKey, weekTitle, rangeLong, rangeShort };
-    }, [lang, weekOffset, t]);
+        return { start, weekKey, rangeLong };
+    }, [lang, t]);
 
     const dateMetaById = useMemo(() => {
         const byId = {};
-        const dayIndexById = {
-            mon: 0,
-            tue: 1,
-            wed: 2,
-            thu: 3,
-            fri: 4,
-            sat: 5,
-            sun_am: 6,
-            sun_pm: 6,
-        };
-
+        const dayIndexById = { mon: 0, tue: 1, wed: 2, thu: 3, fri: 4, sat: 5, sun_am: 6, sun_pm: 6 };
         Object.entries(dayIndexById).forEach(([id, dayIndex]) => {
             const d = addDaysUTC(weekInfo.start, dayIndex);
             byId[id] = {
@@ -214,7 +160,6 @@ export default function Program() {
                 full: formatBrusselsDDMMYYYY(d),
             };
         });
-
         return byId;
     }, [weekInfo.start]);
 
@@ -222,65 +167,25 @@ export default function Program() {
 
     useEffect(() => {
         const ref = doc(db, "program_overrides", weekInfo.weekKey);
-        const unsub = onSnapshot(
-            ref,
-            (snap) => {
-                if (!snap.exists()) {
-                    setOvDoc(null);
-                    return;
-                }
-                setOvDoc({ id: snap.id, data: snap.data() || {} });
-            },
-            () => {
-                setOvDoc(null);
-            }
+        const unsub = onSnapshot(ref,
+            (snap) => setOvDoc(snap.exists() ? { id: snap.id, data: snap.data() } : null),
+            () => setOvDoc(null)
         );
-
         return () => unsub();
     }, [weekInfo.weekKey]);
 
     const cancelledSet = useMemo(() => {
-        const set = new Set();
-        if (!ovDoc) return set;
+        if (!ovDoc) return new Set();
         const o = normalizeWeekOverride(ovDoc.id, ovDoc.data);
-        safeArr(o.affectedProgramIds).forEach((id) => set.add(id));
-        return set;
+        return new Set(o.affectedProgramIds);
     }, [ovDoc]);
-
-    useEffect(() => {
-        const onKey = (e) => {
-            if (e.key === "ArrowLeft") setWeekOffset((v) => clampWeekOffset(v - 1));
-            if (e.key === "ArrowRight") setWeekOffset((v) => clampWeekOffset(v + 1));
-        };
-        window.addEventListener("keydown", onKey);
-        return () => window.removeEventListener("keydown", onKey);
-    }, []);
 
     return (
         <section id="program" className="program-section">
             <div className="program-content">
                 <div className="program-header">
                     <h2 className="program-title">{t("title")}</h2>
-
-                    <div className="program-weekPicker" role="group" aria-label={weekInfo.weekTitle}>
-                        <button type="button" className="program-weekBtn" aria-label="Previous week" onClick={() => setWeekOffset((v) => clampWeekOffset(v - 1))}>
-                            ‹
-                        </button>
-
-                        <div className="program-weekMeta">
-                            <div className="program-weekTitle">{weekInfo.weekTitle}</div>
-                            <div className="program-weekRange program-weekRange--long" aria-hidden="true">
-                                {weekInfo.rangeLong}
-                            </div>
-                            <div className="program-weekRange program-weekRange--short" aria-hidden="true">
-                                {weekInfo.rangeShort}
-                            </div>
-                        </div>
-
-                        <button type="button" className="program-weekBtn" aria-label="Next week" onClick={() => setWeekOffset((v) => clampWeekOffset(v + 1))}>
-                            ›
-                        </button>
-                    </div>
+                    <p className="program-subtitle">{weekInfo.rangeLong}</p>
                 </div>
 
                 <div className="program-grid">
@@ -288,32 +193,23 @@ export default function Program() {
                         const id = safeStr(item?.id || `day-${idx}`).trim();
                         const times = safeArr(item?.times);
                         const isCancelled = cancelledSet.has(id);
-
                         const dm = safeStr(dateMetaById?.[id]?.dm || "");
                         const full = safeStr(dateMetaById?.[id]?.full || "");
 
                         const cleanedTimes = times.map((x) => safeStr(x).trim()).filter(Boolean);
-                        const firstTime = cleanedTimes.length ? formatRange(cleanedTimes[0]) : "";
-                        const extraCount = cleanedTimes.length > 1 ? ` (+${cleanedTimes.length - 1})` : "";
-                        const timeLabel = firstTime ? `${firstTime}${extraCount}` : "";
+                        const timeLabel = cleanedTimes.length ? formatRange(cleanedTimes[0]) + (cleanedTimes.length > 1 ? " +" : "") : "";
 
                         return (
                             <article key={id} className={`program-card ${isCancelled ? "program-card--cancelled" : "program-card--normal"}`}>
                                 <div className="program-cardInnerFlat">
                                     <div className="program-cardTop">
                                         <div className="program-day">{item?.day}</div>
-                                        {isCancelled ? <div className="program-statusPill">{t("status_cancelled")}</div> : null}
+                                        {isCancelled && <div className="program-statusPill">{t("status_cancelled")}</div>}
                                     </div>
-
                                     <div className="program-activity">{item?.title}</div>
-
                                     <div className="program-bottomRow">
-                                        {timeLabel ? <div className={`program-timeLine ${isCancelled ? "program-timeLine--cancelled" : ""}`}>{timeLabel}</div> : null}
-                                        {dm ? (
-                                            <div className="program-dateFixed" title={full} aria-label={full}>
-                                                {dm}
-                                            </div>
-                                        ) : null}
+                                        {timeLabel && <div className={`program-timeLine ${isCancelled ? "program-timeLine--cancelled" : ""}`}>{timeLabel}</div>}
+                                        {dm && <div className="program-dateFixed" title={full}>{dm}</div>}
                                     </div>
                                 </div>
                             </article>
