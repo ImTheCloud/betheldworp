@@ -557,8 +557,9 @@
     }
 
     .logo-text {
-        font-size: 13px;
-        letter-spacing: 0.12em;
+        font-size: 16px;
+        letter-spacing: 0.14em; 
+        font-weight: 900;
     }
 
     .nav {
