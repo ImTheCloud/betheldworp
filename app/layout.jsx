@@ -2,6 +2,8 @@ import "./globals.css";
 import VisitTracker from "./components/VisitTracker";
 import LanguageProvider from "./components/LanguageProvider";
 import { cookies, headers } from "next/headers";
+// 1. L'import est correct ici
+import { Analytics } from "@vercel/analytics/next";
 
 const SITE_TITLE = "Bethel Dworp";
 const COOKIE = "bethel_lang";
@@ -55,6 +57,8 @@ export default async function RootLayout({ children }) {
         <LanguageProvider initialLang={lang}>
             <VisitTracker />
             {children}
+            <Analytics />
+
         </LanguageProvider>
         </body>
         </html>
