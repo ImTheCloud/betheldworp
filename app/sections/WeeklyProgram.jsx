@@ -71,14 +71,10 @@ function formatWeekRangeLong(startUTC, endUTC, lang, t) {
     const dayMonthLong = new Intl.DateTimeFormat(locale, { day: "numeric", month: "long", timeZone: "Europe/Brussels" });
     const yearLong = new Intl.DateTimeFormat(locale, { year: "numeric", timeZone: "Europe/Brussels" });
 
-    // Format: "05 janvier - 11 janvier 2026"
     const startPart = safeStr(dayMonthLong.format(startUTC));
     const endPart = safeStr(dayMonthLong.format(endUTC));
     const yearPart = safeStr(yearLong.format(endUTC));
 
-    // Utilisation du mot de liaison (ex: "au" ou "to") ou un simple tiret pour le minimalisme
-    // Pour un design très clean, le tiret est souvent préférable, mais on garde la logique de langue si souhaité.
-    // Ici, je force un formatage très propre : "5 Janvier — 11 Janvier 2026"
     return `${startPart} — ${endPart} ${yearPart}`;
 }
 
@@ -143,17 +139,21 @@ export default function Program() {
         const { start, end } = getBrusselsWeekRange(base);
         const { isoYear, week } = getISOWeekYearAndNumberUTC(start);
         const weekKey = `${String(isoYear).padStart(4, "0")}-W${String(week).padStart(2, "0")}`;
-
-        // On construit la chaîne de date propre
         const rangeLong = formatWeekRangeLong(start, end, lang, t);
-
         return { start, weekKey, rangeLong };
     }, [lang, t]);
 
+    const currentDayIndex = useMemo(() => {
+        const { yy, mm, dd } = getBrusselsYMD(new Date());
+        const d = new Date(Date.UTC(yy, mm - 1, dd, 12, 0, 0));
+        return (d.getUTCDay() + 6) % 7;
+    }, []);
+
+    const dayIdToIndex = { mon: 0, tue: 1, wed: 2, thu: 3, fri: 4, sat: 5, sun_am: 6, sun_pm: 6 };
+
     const dateMetaById = useMemo(() => {
         const byId = {};
-        const dayIndexById = { mon: 0, tue: 1, wed: 2, thu: 3, fri: 4, sat: 5, sun_am: 6, sun_pm: 6 };
-        Object.entries(dayIndexById).forEach(([id, dayIndex]) => {
+        Object.entries(dayIdToIndex).forEach(([id, dayIndex]) => {
             const d = addDaysUTC(weekInfo.start, dayIndex);
             byId[id] = {
                 dm: formatBrusselsDDMM(d),
@@ -193,6 +193,14 @@ export default function Program() {
                         const id = safeStr(item?.id || `day-${idx}`).trim();
                         const times = safeArr(item?.times);
                         const isCancelled = cancelledSet.has(id);
+
+                        const itemDayIdx = dayIdToIndex[id];
+                        const isToday = itemDayIdx === currentDayIndex;
+
+                        let statusClass = "program-card--normal";
+                        if (isCancelled) statusClass = "program-card--cancelled";
+                        else if (isToday) statusClass = "program-card--today";
+
                         const dm = safeStr(dateMetaById?.[id]?.dm || "");
                         const full = safeStr(dateMetaById?.[id]?.full || "");
 
@@ -200,15 +208,16 @@ export default function Program() {
                         const timeLabel = cleanedTimes.length ? formatRange(cleanedTimes[0]) + (cleanedTimes.length > 1 ? " +" : "") : "";
 
                         return (
-                            <article key={id} className={`program-card ${isCancelled ? "program-card--cancelled" : "program-card--normal"}`}>
+                            <article key={id} className={`program-card ${statusClass}`}>
                                 <div className="program-cardInnerFlat">
                                     <div className="program-cardTop">
-                                        <div className="program-day">{item?.day}</div>
-                                        {isCancelled && <div className="program-statusPill">{t("status_cancelled")}</div>}
+                                        <div className={`program-day ${isToday && !isCancelled ? "program-day--today" : ""}`}>{item?.day}</div>
+                                        {isCancelled && <div className="program-statusPill program-statusPill--cancelled">{t("status_cancelled")}</div>}
+                                        {isToday && !isCancelled && <div className="program-statusPill program-statusPill--today">{t("status_today")}</div>}
                                     </div>
                                     <div className="program-activity">{item?.title}</div>
                                     <div className="program-bottomRow">
-                                        {timeLabel && <div className={`program-timeLine ${isCancelled ? "program-timeLine--cancelled" : ""}`}>{timeLabel}</div>}
+                                        {timeLabel && <div className={`program-timeLine ${isCancelled ? "program-timeLine--cancelled" : ""} ${isToday && !isCancelled ? "program-timeLine--today" : ""}`}>{timeLabel}</div>}
                                         {dm && <div className="program-dateFixed" title={full}>{dm}</div>}
                                     </div>
                                 </div>
