@@ -105,7 +105,7 @@
 }
 
 .program-day--today {
-    color: #059669;
+    color: #065f46;
 }
 
 .program-statusPill {
@@ -118,15 +118,16 @@
 }
 
 .program-statusPill--cancelled {
-    background: #fef2f2;
-    border: 1px solid rgba(220, 38, 38, 0.1);
-    color: #dc2626;
+    background: rgba(185, 28, 28, 0.12);
+    border: 1px solid rgba(185, 28, 28, 0.22);
+    color: #991b1b;
 }
 
+
 .program-statusPill--today {
-    background: #ecfdf5;
-    border: 1px solid rgba(16, 185, 129, 0.1);
-    color: #059669;
+    background: rgba(5, 150, 105, 0.18);
+    border: 1px solid rgba(5, 150, 105, 0.28);
+    color: #065f46;
 }
 
 .program-activity {
@@ -160,8 +161,8 @@
 }
 
 .program-timeLine--today {
-    color: #047857;
-    background: rgba(16, 185, 129, 0.1);
+    color: #064e3b;
+    background: rgba(5, 150, 105, 0.18);
 }
 
 .program-dateFixed {
@@ -173,22 +174,22 @@
 }
 
 .program-card--cancelled {
-    background: #fffafa;
-    border-color: rgba(220, 38, 38, 0.12);
+    background: #fff6f6;
+    border-color: rgba(185, 28, 28, 0.22);
 }
 .program-card--cancelled .program-activity { color: rgba(10, 42, 67, 0.5); }
 .program-timeLine--cancelled {
     text-decoration: line-through;
-    opacity: 0.6;
+    opacity: 0.7;
     background: transparent;
-    color: rgba(10, 42, 67, 0.5);
-    border: 1px solid rgba(10, 42, 67, 0.1);
+    color: rgba(10, 42, 67, 0.6);
+    border: 1px solid rgba(10, 42, 67, 0.14);
 }
 
 .program-card--today {
-    background: #fcfefe;
-    border-color: rgba(16, 185, 129, 0.25);
-    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.06);
+    background: #f6fdfb;
+    border-color: rgba(5, 150, 105, 0.38);
+    box-shadow: 0 8px 22px rgba(5, 150, 105, 0.10);
 }
 
 .program-verse-highlight {
