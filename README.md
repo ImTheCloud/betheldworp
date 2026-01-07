@@ -56,4 +56,6 @@ Official website of **Bethel Dworp**, built with **Next.js (App Router)**, a mod
 
 ## 📄 License
 
-Private project — **All rights reserved**.
+© Bethel Dworp. All rights reserved.
+
+
