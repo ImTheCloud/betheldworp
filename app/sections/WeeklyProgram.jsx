@@ -1,8 +1,8 @@
 "use client";
 
 import "./WeeklyProgram.css";
-import { useEffect, useMemo, useState } from "react";
-import { doc, onSnapshot } from "firebase/firestore";
+import React, { useEffect, useMemo, useState } from "react";
+import { collection, doc, onSnapshot } from "firebase/firestore";
 import { db } from "../lib/Firebase";
 import { useLang } from "../components/LanguageProvider";
 import { makeT } from "../lib/i18n";
@@ -10,6 +10,7 @@ import tr from "../translations/WeeklyProgram.json";
 
 const safeArr = (v) => (Array.isArray(v) ? v : []);
 const safeStr = (v) => String(v ?? "");
+const safeObj = (v) => (v && typeof v === "object" && !Array.isArray(v) ? v : {});
 
 function capFirst(s) {
     const x = safeStr(s);
@@ -95,7 +96,19 @@ function formatRange(range) {
 function normalizeWeekOverride(docId, data) {
     const weekKey = safeStr(data?.weekKey || docId).trim().toUpperCase();
     const affectedProgramIds = safeArr(data?.affectedProgramIds).map((v) => safeStr(v).trim()).filter(Boolean);
-    return { weekKey, affectedProgramIds };
+    const replacements = safeObj(data?.replacements);
+    const additions = safeObj(data?.additions);
+    return { weekKey, affectedProgramIds, replacements, additions };
+}
+
+function pickByLang(value, lang) {
+    if (!value) return "";
+    if (typeof value === "string") return String(value || "").trim();
+    if (typeof value === "object") {
+        const v = value?.[lang] ?? value?.ro ?? value?.en ?? "";
+        return String(v || "").trim();
+    }
+    return "";
 }
 
 function formatBrusselsDDMM(dateObj) {
@@ -134,20 +147,28 @@ export default function Program() {
         { day: t("day_sun"), id: "sun_pm", times: ["18:00-20:00"], title: t("act_sun_pm") },
     ], [t]);
 
+    const [weekOffset, setWeekOffset] = useState(0);
+
     const weekInfo = useMemo(() => {
         const base = new Date();
+        base.setDate(base.getDate() + weekOffset * 7);
         const { start, end } = getBrusselsWeekRange(base);
         const { isoYear, week } = getISOWeekYearAndNumberUTC(start);
         const weekKey = `${String(isoYear).padStart(4, "0")}-W${String(week).padStart(2, "0")}`;
         const rangeLong = formatWeekRangeLong(start, end, lang, t);
         return { start, weekKey, rangeLong };
-    }, [lang, t]);
+    }, [lang, t, weekOffset]);
+
+    const goPrev = () => setWeekOffset((o) => o - 1);
+    const goNext = () => setWeekOffset((o) => o + 1);
+    const goToday = () => setWeekOffset(0);
 
     const currentDayIndex = useMemo(() => {
+        if (weekOffset !== 0) return -1; // no "today" highlight for other weeks
         const { yy, mm, dd } = getBrusselsYMD(new Date());
         const d = new Date(Date.UTC(yy, mm - 1, dd, 12, 0, 0));
         return (d.getUTCDay() + 6) % 7;
-    }, []);
+    }, [weekOffset]);
 
     const dayIdToIndex = { mon: 0, tue: 1, wed: 2, thu: 3, fri: 4, sat: 5, sun_am: 6, sun_pm: 6 };
 
@@ -174,18 +195,60 @@ export default function Program() {
         return () => unsub();
     }, [weekInfo.weekKey]);
 
-    const cancelledSet = useMemo(() => {
-        if (!ovDoc) return new Set();
+    const overrideData = useMemo(() => {
+        if (!ovDoc) return { cancelledSet: new Set(), replacements: {}, additions: {} };
         const o = normalizeWeekOverride(ovDoc.id, ovDoc.data);
-        return new Set(o.affectedProgramIds);
+        return { cancelledSet: new Set(o.affectedProgramIds), replacements: o.replacements, additions: o.additions };
     }, [ovDoc]);
+
+    const { cancelledSet, replacements, additions } = overrideData;
+
+    // ── Events data for replacement & addition display ──
+    const [eventsMap, setEventsMap] = useState(new Map());
+
+    // Fetch events if we have replacements OR additions
+    const hasLinkedEvents = useMemo(() => {
+        const replKeys = Object.keys(replacements).filter((k) => !!replacements[k]);
+        const addKeys = Object.keys(additions).filter((k) => !!additions[k]);
+        return replKeys.length > 0 || addKeys.length > 0;
+    }, [replacements, additions]);
+
+    useEffect(() => {
+        if (!hasLinkedEvents) {
+            setEventsMap(new Map());
+            return;
+        }
+        const unsub = onSnapshot(
+            collection(db, "events"),
+            (snap) => {
+                const m = new Map();
+                snap.docs.forEach((d) => {
+                    const data = d.data() || {};
+                    m.set(d.id, {
+                        title: pickByLang(data.title, lang),
+                        time: safeStr(data.time).trim(),
+                    });
+                });
+                setEventsMap(m);
+            },
+            () => setEventsMap(new Map())
+        );
+        return () => unsub();
+    }, [hasLinkedEvents, lang]);
 
     return (
         <section id="program" className="program-section">
             <div className="program-content">
                 <div className="program-header">
                     <h2 className="program-title">{t("title")}</h2>
-                    <p className="program-subtitle">{weekInfo.rangeLong}</p>
+                    <div className="program-weekNav">
+                        <button type="button" className="program-weekNavBtn" onClick={goPrev} aria-label="Previous week">‹</button>
+                        <p className="program-subtitle">{weekInfo.rangeLong}</p>
+                        <button type="button" className="program-weekNavBtn" onClick={goNext} aria-label="Next week">›</button>
+                    </div>
+                    {weekOffset !== 0 && (
+                        <button type="button" className="program-todayBtn" onClick={goToday}>{t("status_today")}</button>
+                    )}
                 </div>
 
                 <div className="program-grid">
@@ -193,35 +256,82 @@ export default function Program() {
                         const id = safeStr(item?.id || `day-${idx}`).trim();
                         const times = safeArr(item?.times);
                         const isCancelled = cancelledSet.has(id);
+                        const replacementEventId = safeStr(replacements[id]).trim();
+                        const replacementEvent = replacementEventId ? eventsMap.get(replacementEventId) : null;
+                        const isReplaced = isCancelled && !!replacementEvent;
 
                         const itemDayIdx = dayIdToIndex[id];
                         const isToday = itemDayIdx === currentDayIndex;
 
                         let statusClass = "program-card--normal";
-                        if (isCancelled) statusClass = "program-card--cancelled";
+                        if (isReplaced) statusClass = "program-card--replaced";
+                        else if (isCancelled) statusClass = "program-card--cancelled";
                         else if (isToday) statusClass = "program-card--today";
 
                         const dm = safeStr(dateMetaById?.[id]?.dm || "");
                         const full = safeStr(dateMetaById?.[id]?.full || "");
 
+                        const displayTitle = isReplaced ? replacementEvent.title : item?.title;
+                        const displayTime = isReplaced && replacementEvent.time ? replacementEvent.time : null;
+
                         const cleanedTimes = times.map((x) => safeStr(x).trim()).filter(Boolean);
-                        const timeLabel = cleanedTimes.length ? formatRange(cleanedTimes[0]) + (cleanedTimes.length > 1 ? " +" : "") : "";
+                        const defaultTimeLabel = cleanedTimes.length ? formatRange(cleanedTimes[0]) + (cleanedTimes.length > 1 ? " +" : "") : "";
+                        const timeLabel = isReplaced && displayTime ? displayTime : defaultTimeLabel;
+
+                        const additionEventId = safeStr(additions[id]).trim();
+                        const additionEvent = additionEventId ? eventsMap.get(additionEventId) : null;
 
                         return (
-                            <article key={id} className={`program-card ${statusClass}`}>
-                                <div className="program-cardInnerFlat">
-                                    <div className="program-cardTop">
-                                        <div className={`program-day ${isToday && !isCancelled ? "program-day--today" : ""}`}>{item?.day}</div>
-                                        {isCancelled && <div className="program-statusPill program-statusPill--cancelled">{t("status_cancelled")}</div>}
-                                        {isToday && !isCancelled && <div className="program-statusPill program-statusPill--today">{t("status_today")}</div>}
+                            <React.Fragment key={id}>
+                                <article className={`program-card ${statusClass}`}>
+                                    <div className="program-cardInnerFlat">
+                                        <div className="program-cardTop">
+                                            <div className={`program-day ${isToday && !isCancelled ? "program-day--today" : ""}`}>{item?.day}</div>
+                                            {isReplaced && <div className="program-statusPill program-statusPill--replaced">{t("status_replaced")}</div>}
+                                            {isCancelled && !isReplaced && <div className="program-statusPill program-statusPill--cancelled">{t("status_cancelled")}</div>}
+                                            {isToday && !isCancelled && <div className="program-statusPill program-statusPill--today">{t("status_today")}</div>}
+                                        </div>
+                                        <div className="program-activity">{displayTitle}</div>
+                                        <div className="program-bottomRow">
+                                            {timeLabel && <div className={`program-timeLine ${isCancelled && !isReplaced ? "program-timeLine--cancelled" : ""} ${isReplaced ? "program-timeLine--replaced" : ""} ${isToday && !isCancelled ? "program-timeLine--today" : ""}`}>{timeLabel}</div>}
+                                            {dm && <div className="program-dateFixed" title={full}>{dm}</div>}
+                                        </div>
+                                        {isReplaced && (
+                                            <button
+                                                type="button"
+                                                className="program-replacementLink"
+                                                onClick={() => {
+                                                    window.dispatchEvent(new CustomEvent("open-event", { detail: { eventId: replacementEventId } }));
+                                                }}
+                                            >{t("see_event")}</button>
+                                        )}
                                     </div>
-                                    <div className="program-activity">{item?.title}</div>
-                                    <div className="program-bottomRow">
-                                        {timeLabel && <div className={`program-timeLine ${isCancelled ? "program-timeLine--cancelled" : ""} ${isToday && !isCancelled ? "program-timeLine--today" : ""}`}>{timeLabel}</div>}
-                                        {dm && <div className="program-dateFixed" title={full}>{dm}</div>}
-                                    </div>
-                                </div>
-                            </article>
+                                </article>
+
+                                {/* Extra addition card */}
+                                {additionEvent && (
+                                    <article className="program-card program-card--replaced">
+                                        <div className="program-cardInnerFlat">
+                                            <div className="program-cardTop">
+                                                <div className="program-day">{item?.day}</div>
+                                                <div className="program-statusPill program-statusPill--replaced">{t("status_addition")}</div>
+                                            </div>
+                                            <div className="program-activity">{additionEvent.title}</div>
+                                            <div className="program-bottomRow">
+                                                {additionEvent.time && <div className="program-timeLine program-timeLine--replaced">{additionEvent.time}</div>}
+                                                {dm && <div className="program-dateFixed" title={full}>{dm}</div>}
+                                            </div>
+                                            <button
+                                                type="button"
+                                                className="program-replacementLink"
+                                                onClick={() => {
+                                                    window.dispatchEvent(new CustomEvent("open-event", { detail: { eventId: additionEventId } }));
+                                                }}
+                                            >{t("see_event")}</button>
+                                        </div>
+                                    </article>
+                                )}
+                            </React.Fragment>
                         );
                     })}
                 </div>

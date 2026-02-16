@@ -155,6 +155,25 @@ export default function EventsCalendar() {
 
     const closeEvent = () => setEventOpen(false);
 
+    // Listen for "open-event" dispatched from WeeklyProgram
+    useEffect(() => {
+        const handler = (e) => {
+            const eventId = e?.detail?.eventId;
+            if (!eventId) return;
+            const ev = eventsSorted.find((x) => x.id === eventId);
+            if (!ev) return;
+            // Navigate calendar to the event's month
+            const d = new Date(`${ev.dateEvent}T00:00:00`);
+            if (!Number.isNaN(d.getTime())) {
+                setMonth(new Date(d.getFullYear(), d.getMonth(), 1));
+            }
+            setSelectedId(ev.id);
+            setEventOpen(true);
+        };
+        window.addEventListener("open-event", handler);
+        return () => window.removeEventListener("open-event", handler);
+    }, [eventsSorted]);
+
     useEffect(() => {
         if (!eventOpen) return;
         const prev = document.body.style.overflow;

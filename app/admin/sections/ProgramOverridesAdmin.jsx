@@ -5,6 +5,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { collection, deleteDoc, doc, getDoc, onSnapshot, setDoc } from "firebase/firestore";
 import { db } from "../../lib/Firebase";
 
+const safeObj = (v) => (v && typeof v === "object" && !Array.isArray(v) ? v : {});
+
 const AFFECT_OPTIONS = [
     { id: "mon", label: "Lun" },
     { id: "tue", label: "Mar" },
@@ -15,6 +17,32 @@ const AFFECT_OPTIONS = [
     { id: "sun_am", label: "Dum AM" },
     { id: "sun_pm", label: "Dum PM" },
 ];
+
+// Days offset from Monday (ISO week start) for each program slot
+const DAY_OFFSET = { mon: 0, tue: 1, wed: 2, thu: 3, fri: 4, sat: 5, sun_am: 6, sun_pm: 6 };
+
+function pad2(n) { return String(n).padStart(2, "0"); }
+
+/** Given a weekKey like "2026-W08" and a program slot id, return the ISO date string "YYYY-MM-DD" */
+function dateForSlot(weekKey, slotId) {
+    const parsed = parseWeekKey(weekKey);
+    if (!parsed) return "";
+    const monday = startOfISOWeekUTC(parsed.year, parsed.week);
+    const offset = DAY_OFFSET[slotId];
+    if (offset == null) return "";
+    const d = new Date(monday.getTime() + offset * 86400000);
+    return `${d.getUTCFullYear()}-${pad2(d.getUTCMonth() + 1)}-${pad2(d.getUTCDate())}`;
+}
+
+/** Normalize "dd-mm-yyyy" or "dd/mm/yyyy" to "yyyy-mm-dd"; pass through if already ISO */
+function normalizeDateStr(v) {
+    const s = String(v || "").trim();
+    if (!s) return "";
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+    const m = s.match(/^(\d{1,2})[/\-](\d{1,2})[/\-](\d{4})$/);
+    if (m) return `${m[3]}-${pad2(Number(m[2]))}-${pad2(Number(m[1]))}`;
+    return s;
+}
 
 const safeArr = (v) => (Array.isArray(v) ? v : []);
 const safeStr = (v) => String(v ?? "");
@@ -99,6 +127,9 @@ function normalizeOverride(docId, data, currentWeekStartUTC) {
         .map((v) => safeStr(v).trim())
         .filter(Boolean);
 
+    const replacements = safeObj(data?.replacements);
+    const additions = safeObj(data?.additions);
+
     const weekStartUTC = parsed ? startOfISOWeekUTC(parsed.year, parsed.week) : null;
     const upcoming = weekStartUTC ? weekStartUTC.getTime() >= currentWeekStartUTC.getTime() : false;
 
@@ -108,6 +139,8 @@ function normalizeOverride(docId, data, currentWeekStartUTC) {
         weekStartUTC: weekStartUTC?.getTime?.() ?? 0,
         upcoming,
         affectedProgramIds,
+        replacements,
+        additions,
     };
 }
 
@@ -150,15 +183,22 @@ function IconChevronDown(props) {
     );
 }
 
-function OverrideCard({ item, expanded, draft, saveState, errorText, onToggleExpand, onToggleAffected, onChangeWeekKey, onSave, onDelete }) {
+function OverrideCard({ item, expanded, draft, saveState, errorText, eventsList, weekKeyForCard, onToggleExpand, onToggleAffected, onChangeWeekKey, onChangeReplacement, onChangeAddition, onSave, onDelete }) {
     const id = safeStr(item?.id).trim();
     const affectedSet = useMemo(() => toSet(draft?.affectedProgramIds ?? item?.affectedProgramIds), [draft, item]);
     const weekKeyValue = safeStr(draft?.weekKey ?? item?.weekKey);
+    const replacements = safeObj(draft?.replacements ?? item?.replacements);
+    const additions = safeObj(draft?.additions ?? item?.additions);
+    const additionsCount = Object.values(additions).filter(Boolean).length;
 
     const onCardClick = (e) => {
         if (e.target.closest("button, input, textarea, select, label")) return;
         onToggleExpand(id);
     };
+
+    const summaryParts = [];
+    if (affectedSet.size > 0) summaryParts.push(`${affectedSet.size} anulări`);
+    if (additionsCount > 0) summaryParts.push(`${additionsCount} extra`);
 
     return (
         <div className={`adminAnnCard${item?.upcoming ? " is-active" : ""}`} onClick={onCardClick}>
@@ -168,7 +208,7 @@ function OverrideCard({ item, expanded, draft, saveState, errorText, onToggleExp
                 </div>
 
                 {!expanded ? (
-                    <div className="adminSummary">Anulat: {makeAffectedSummary(draft?.affectedProgramIds ?? item?.affectedProgramIds)}</div>
+                    <div className="adminSummary">{summaryParts.join(" · ") || "—"}</div>
                 ) : (
                     <div style={{ flex: 1 }} />
                 )}
@@ -205,22 +245,87 @@ function OverrideCard({ item, expanded, draft, saveState, errorText, onToggleExp
                         />
                     </label>
 
-                    <div className="adminAffectGrid" aria-label="Crêneaux anulate">
-                        {AFFECT_OPTIONS.map((opt) => {
-                            const on = affectedSet.has(opt.id);
+                    {/* ── Section: Anulări (Cancellations) ── */}
+                    <div className="overrideSection overrideSection--cancel">
+                        <div className="overrideSectionHeader">
+                            <span className="overrideSectionIcon overrideSectionIcon--cancel">✕</span>
+                            <span className="overrideSectionTitle">Anulări</span>
+                        </div>
+                        <div className="adminAffectGrid" aria-label="Crêneaux anulate">
+                            {AFFECT_OPTIONS.map((opt) => {
+                                const on = affectedSet.has(opt.id);
+                                return (
+                                    <button
+                                        key={`${id}-${opt.id}`}
+                                        type="button"
+                                        className={`adminAffectChip${on ? " is-on" : ""}`}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onToggleAffected(id, opt.id);
+                                        }}
+                                        title={opt.label}
+                                    >
+                                        {opt.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        {/* Replacement dropdowns for each affected day */}
+                        {AFFECT_OPTIONS.filter((opt) => affectedSet.has(opt.id)).map((opt) => {
+                            const slotDate = dateForSlot(weekKeyValue, opt.id);
+                            const filtered = safeArr(eventsList).filter((ev) => !slotDate || ev.dateISO === slotDate);
                             return (
-                                <button
-                                    key={`${id}-${opt.id}`}
-                                    type="button"
-                                    className={`adminAffectChip${on ? " is-on" : ""}`}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        onToggleAffected(id, opt.id);
-                                    }}
-                                    title={opt.label}
-                                >
-                                    {opt.label}
-                                </button>
+                                <div className="overrideSlotRow" key={`${id}-repl-${opt.id}`}>
+                                    <span className="overrideSlotDay">{opt.label}</span>
+                                    {slotDate && <span className="overrideSlotDate">{slotDate}</span>}
+                                    <select
+                                        className="adminInput"
+                                        value={safeStr(replacements[opt.id])}
+                                        onChange={(e) => {
+                                            e.stopPropagation();
+                                            onChangeReplacement(id, opt.id, e.target.value);
+                                        }}
+                                    >
+                                        <option value="">— Doar anulat —</option>
+                                        {filtered.map((ev) => (
+                                            <option key={ev.id} value={ev.id}>{ev.label}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    {/* ── Section: Eveniment Extra (Additions) ── */}
+                    <div className="overrideSection overrideSection--extra">
+                        <div className="overrideSectionHeader">
+                            <span className="overrideSectionIcon overrideSectionIcon--extra">+</span>
+                            <span className="overrideSectionTitle">Eveniment Extra</span>
+                        </div>
+                        {AFFECT_OPTIONS.map((opt) => {
+                            const slotDate = dateForSlot(weekKeyValue, opt.id);
+                            const filtered = safeArr(eventsList).filter((ev) => !slotDate || ev.dateISO === slotDate);
+                            const hasAddition = !!safeStr(additions[opt.id]).trim();
+                            if (!hasAddition && !filtered.length) return null;
+                            return (
+                                <div className="overrideSlotRow" key={`${id}-add-${opt.id}`}>
+                                    <span className="overrideSlotDay">{opt.label}</span>
+                                    {slotDate && <span className="overrideSlotDate">{slotDate}</span>}
+                                    <select
+                                        className="adminInput"
+                                        value={safeStr(additions[opt.id])}
+                                        onChange={(e) => {
+                                            e.stopPropagation();
+                                            onChangeAddition(id, opt.id, e.target.value);
+                                        }}
+                                    >
+                                        <option value="">— Niciun extra —</option>
+                                        {filtered.map((ev) => (
+                                            <option key={ev.id} value={ev.id}>{ev.label}</option>
+                                        ))}
+                                    </select>
+                                </div>
                             );
                         })}
                     </div>
@@ -257,14 +362,16 @@ function OverrideCard({ item, expanded, draft, saveState, errorText, onToggleExp
     );
 }
 
-function NewOverrideCard({ draft, saveState, errorText, onToggleAffected, onChangeWeekKey, onCancel, onSave }) {
+function NewOverrideCard({ draft, saveState, errorText, eventsList, weekKeyForCard, onToggleAffected, onChangeWeekKey, onChangeReplacement, onChangeAddition, onCancel, onSave }) {
     const affectedSet = useMemo(() => toSet(draft?.affectedProgramIds), [draft]);
     const weekKeyValue = safeStr(draft?.weekKey);
+    const replacements = safeObj(draft?.replacements);
+    const additions = safeObj(draft?.additions);
 
     return (
         <div className="adminAnnCard is-active">
             <div className="adminAnnHeader">
-                <div className="adminAnnIdChip">Nouă anulare</div>
+                <div className="adminAnnIdChip">Nou</div>
                 <div style={{ flex: 1 }} />
             </div>
 
@@ -275,22 +382,86 @@ function NewOverrideCard({ draft, saveState, errorText, onToggleAffected, onChan
                 <input className="adminInput" type="week" value={weekKeyValue} onChange={(e) => onChangeWeekKey("__new__", e.target.value)} />
             </label>
 
-            <div className="adminAffectGrid" aria-label="Crêneaux anulate">
-                {AFFECT_OPTIONS.map((opt) => {
-                    const on = affectedSet.has(opt.id);
+            {/* ── Section: Anulări ── */}
+            <div className="overrideSection overrideSection--cancel">
+                <div className="overrideSectionHeader">
+                    <span className="overrideSectionIcon overrideSectionIcon--cancel">✕</span>
+                    <span className="overrideSectionTitle">Anulări</span>
+                </div>
+                <div className="adminAffectGrid" aria-label="Crêneaux anulate">
+                    {AFFECT_OPTIONS.map((opt) => {
+                        const on = affectedSet.has(opt.id);
+                        return (
+                            <button
+                                key={`new-${opt.id}`}
+                                type="button"
+                                className={`adminAffectChip${on ? " is-on" : ""}`}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onToggleAffected("__new__", opt.id);
+                                }}
+                                title={opt.label}
+                            >
+                                {opt.label}
+                            </button>
+                        );
+                    })}
+                </div>
+
+                {AFFECT_OPTIONS.filter((opt) => affectedSet.has(opt.id)).map((opt) => {
+                    const slotDate = dateForSlot(weekKeyValue, opt.id);
+                    const filtered = safeArr(eventsList).filter((ev) => !slotDate || ev.dateISO === slotDate);
                     return (
-                        <button
-                            key={`new-${opt.id}`}
-                            type="button"
-                            className={`adminAffectChip${on ? " is-on" : ""}`}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onToggleAffected("__new__", opt.id);
-                            }}
-                            title={opt.label}
-                        >
-                            {opt.label}
-                        </button>
+                        <div className="overrideSlotRow" key={`new-repl-${opt.id}`}>
+                            <span className="overrideSlotDay">{opt.label}</span>
+                            {slotDate && <span className="overrideSlotDate">{slotDate}</span>}
+                            <select
+                                className="adminInput"
+                                value={safeStr(replacements[opt.id])}
+                                onChange={(e) => {
+                                    e.stopPropagation();
+                                    onChangeReplacement("__new__", opt.id, e.target.value);
+                                }}
+                            >
+                                <option value="">— Doar anulat —</option>
+                                {filtered.map((ev) => (
+                                    <option key={ev.id} value={ev.id}>{ev.label}</option>
+                                ))}
+                            </select>
+                        </div>
+                    );
+                })}
+            </div>
+
+            {/* ── Section: Eveniment Extra ── */}
+            <div className="overrideSection overrideSection--extra">
+                <div className="overrideSectionHeader">
+                    <span className="overrideSectionIcon overrideSectionIcon--extra">+</span>
+                    <span className="overrideSectionTitle">Eveniment Extra</span>
+                </div>
+                {AFFECT_OPTIONS.map((opt) => {
+                    const slotDate = dateForSlot(weekKeyValue, opt.id);
+                    const filtered = safeArr(eventsList).filter((ev) => !slotDate || ev.dateISO === slotDate);
+                    const hasAddition = !!safeStr(additions[opt.id]).trim();
+                    if (!hasAddition && !filtered.length) return null;
+                    return (
+                        <div className="overrideSlotRow" key={`new-add-${opt.id}`}>
+                            <span className="overrideSlotDay">{opt.label}</span>
+                            {slotDate && <span className="overrideSlotDate">{slotDate}</span>}
+                            <select
+                                className="adminInput"
+                                value={safeStr(additions[opt.id])}
+                                onChange={(e) => {
+                                    e.stopPropagation();
+                                    onChangeAddition("__new__", opt.id, e.target.value);
+                                }}
+                            >
+                                <option value="">— Niciun extra —</option>
+                                {filtered.map((ev) => (
+                                    <option key={ev.id} value={ev.id}>{ev.label}</option>
+                                ))}
+                            </select>
+                        </div>
                     );
                 })}
             </div>
@@ -306,6 +477,16 @@ function NewOverrideCard({ draft, saveState, errorText, onToggleAffected, onChan
             </div>
         </div>
     );
+}
+
+function pickByLang(value) {
+    if (!value) return "";
+    if (typeof value === "string") return value.trim();
+    if (typeof value === "object") {
+        const v = value?.ro ?? value?.en ?? value?.fr ?? value?.nl ?? "";
+        return String(v || "").trim();
+    }
+    return "";
 }
 
 export default function ProgramOverridesAdmin() {
@@ -327,9 +508,40 @@ export default function ProgramOverridesAdmin() {
     const [newDraft, setNewDraft] = useState(() => ({
         weekKey: getCurrentWeekKeyUTC(),
         affectedProgramIds: [],
+        replacements: {},
+        additions: {},
     }));
     const [newError, setNewError] = useState("");
     const [newState, setNewState] = useState("idle");
+
+    // ── Events list for the dropdown ──
+    const [eventsList, setEventsList] = useState([]);
+
+    useEffect(() => {
+        const unsub = onSnapshot(
+            collection(db, "events"),
+            (snap) => {
+                if (!mountedRef.current) return;
+                const list = snap.docs.map((d) => {
+                    const data = d.data() || {};
+                    const title = pickByLang(data.title);
+                    const dateRaw = safeStr(data.dateEvent).trim();
+                    const time = safeStr(data.time).trim();
+                    // Normalize dateEvent to ISO for filtering
+                    const dateISO = normalizeDateStr(dateRaw);
+                    return {
+                        id: d.id,
+                        dateISO,
+                        label: `${title}${dateRaw ? " (" + dateRaw + ")" : ""}${time ? " — " + time : ""}`,
+                    };
+                });
+                list.sort((a, b) => a.label.localeCompare(b.label));
+                setEventsList(list);
+            },
+            (err) => console.error("events fetch for overrides:", err)
+        );
+        return () => unsub();
+    }, []);
 
     const currentWeekKey = useMemo(() => getCurrentWeekKeyUTC(), []);
     const currentParsed = useMemo(() => parseWeekKey(currentWeekKey), [currentWeekKey]);
@@ -391,6 +603,8 @@ export default function ProgramOverridesAdmin() {
                         const base = {
                             weekKey: it.weekKey,
                             affectedProgramIds: safeArr(it.affectedProgramIds),
+                            replacements: safeObj(it.replacements),
+                            additions: safeObj(it.additions),
                         };
 
                         if (!next[id]) {
@@ -401,8 +615,10 @@ export default function ProgramOverridesAdmin() {
                         const cur = next[id];
                         const dirtyWeek = safeStr(cur.weekKey).trim().toUpperCase() !== safeStr(base.weekKey).trim().toUpperCase();
                         const dirtyAffect = !sameArrayAsSet(cur.affectedProgramIds, toSet(base.affectedProgramIds));
+                        const dirtyRepl = JSON.stringify(safeObj(cur.replacements)) !== JSON.stringify(safeObj(base.replacements));
+                        const dirtyAdd = JSON.stringify(safeObj(cur.additions)) !== JSON.stringify(safeObj(base.additions));
 
-                        if (!dirtyWeek && !dirtyAffect) next[id] = base;
+                        if (!dirtyWeek && !dirtyAffect && !dirtyRepl && !dirtyAdd) next[id] = base;
                     });
 
                     return next;
@@ -470,7 +686,10 @@ export default function ProgramOverridesAdmin() {
             setNewDraft((d) => {
                 const set = toSet(d.affectedProgramIds);
                 set.has(p) ? set.delete(p) : set.add(p);
-                return { ...d, affectedProgramIds: Array.from(set) };
+                // Also clean up replacements if unchecking
+                const repl = { ...safeObj(d.replacements) };
+                if (!set.has(p)) delete repl[p];
+                return { ...d, affectedProgramIds: Array.from(set), replacements: repl };
             });
             if (newError) setNewError("");
             if (globalError) setGlobalError("");
@@ -479,13 +698,69 @@ export default function ProgramOverridesAdmin() {
 
         if (!key) return;
         setDraftsById((prev) => {
-            const cur = prev[key] || { weekKey: "", affectedProgramIds: [] };
+            const cur = prev[key] || { weekKey: "", affectedProgramIds: [], replacements: {}, additions: {} };
             const set = toSet(cur.affectedProgramIds);
             set.has(p) ? set.delete(p) : set.add(p);
-            return { ...prev, [key]: { ...cur, affectedProgramIds: Array.from(set) } };
+            const repl = { ...safeObj(cur.replacements) };
+            if (!set.has(p)) delete repl[p];
+            return { ...prev, [key]: { ...cur, affectedProgramIds: Array.from(set), replacements: repl } };
         });
         setErrorById((m) => ({ ...m, [key]: "" }));
         if (globalError) setGlobalError("");
+    };
+
+    const changeReplacement = (id, programId, eventId) => {
+        const key = safeStr(id).trim();
+        const p = safeStr(programId).trim();
+        if (!p) return;
+
+        if (key === "__new__") {
+            setNewDraft((d) => {
+                const repl = { ...safeObj(d.replacements) };
+                if (eventId) repl[p] = eventId;
+                else delete repl[p];
+                return { ...d, replacements: repl };
+            });
+            if (newError) setNewError("");
+            return;
+        }
+
+        if (!key) return;
+        setDraftsById((prev) => {
+            const cur = prev[key] || { weekKey: "", affectedProgramIds: [], replacements: {} };
+            const repl = { ...safeObj(cur.replacements) };
+            if (eventId) repl[p] = eventId;
+            else delete repl[p];
+            return { ...prev, [key]: { ...cur, replacements: repl } };
+        });
+        setErrorById((m) => ({ ...m, [key]: "" }));
+    };
+
+    const changeAddition = (id, programId, eventId) => {
+        const key = safeStr(id).trim();
+        const p = safeStr(programId).trim();
+        if (!p) return;
+
+        if (key === "__new__") {
+            setNewDraft((d) => {
+                const add = { ...safeObj(d.additions) };
+                if (eventId) add[p] = eventId;
+                else delete add[p];
+                return { ...d, additions: add };
+            });
+            if (newError) setNewError("");
+            return;
+        }
+
+        if (!key) return;
+        setDraftsById((prev) => {
+            const cur = prev[key] || { weekKey: "", affectedProgramIds: [], replacements: {}, additions: {} };
+            const add = { ...safeObj(cur.additions) };
+            if (eventId) add[p] = eventId;
+            else delete add[p];
+            return { ...prev, [key]: { ...cur, additions: add } };
+        });
+        setErrorById((m) => ({ ...m, [key]: "" }));
     };
 
     const ensureUniqueId = async (baseId) => {
@@ -506,6 +781,8 @@ export default function ProgramOverridesAdmin() {
         setNewDraft({
             weekKey: getCurrentWeekKeyUTC(),
             affectedProgramIds: [],
+            replacements: {},
+            additions: {},
         });
         setNewError("");
         setNewState("idle");
@@ -521,12 +798,15 @@ export default function ProgramOverridesAdmin() {
     const saveNew = async () => {
         const wk = normalizeWeekKey(newDraft?.weekKey);
         const affected = safeArr(newDraft?.affectedProgramIds).map((x) => safeStr(x).trim()).filter(Boolean);
+        const replacements = safeObj(newDraft?.replacements);
+        const additions = safeObj(newDraft?.additions);
+        const hasAdditions = Object.keys(additions).some((k) => !!additions[k]);
 
         if (!wk) {
             setNewError("Selectează o săptămână validă.");
             return;
         }
-        if (!affected.length) {
+        if (!affected.length && !hasAdditions) {
             setNewError("Selectează cel puțin un crêneau anulat.");
             return;
         }
@@ -536,7 +816,7 @@ export default function ProgramOverridesAdmin() {
 
         try {
             const finalId = await ensureUniqueId(wk);
-            await setDoc(doc(db, "program_overrides", finalId), { weekKey: wk, affectedProgramIds: affected }, { merge: true });
+            await setDoc(doc(db, "program_overrides", finalId), { weekKey: wk, affectedProgramIds: affected, replacements, additions }, { merge: true });
 
             if (!mountedRef.current) return;
             setNewState("saved");
@@ -566,16 +846,21 @@ export default function ProgramOverridesAdmin() {
         const draft = draftsById[key] || {
             weekKey: base?.weekKey || "",
             affectedProgramIds: base?.affectedProgramIds || [],
+            replacements: base?.replacements || {},
+            additions: base?.additions || {},
         };
 
         const wk = normalizeWeekKey(draft.weekKey);
         const affected = safeArr(draft.affectedProgramIds).map((x) => safeStr(x).trim()).filter(Boolean);
+        const replacements = safeObj(draft.replacements);
+        const additions = safeObj(draft.additions);
+        const hasAdditions = Object.keys(additions).some((k) => !!additions[k]);
 
         if (!wk) {
             setErrorById((m) => ({ ...m, [key]: "Selectează o săptămână validă." }));
             return;
         }
-        if (!affected.length) {
+        if (!affected.length && !hasAdditions) {
             setErrorById((m) => ({ ...m, [key]: "Selectează cel puțin un crêneau anulat." }));
             return;
         }
@@ -598,7 +883,7 @@ export default function ProgramOverridesAdmin() {
 
             const targetId = desiredId && desiredId !== key ? await ensureUniqueId(desiredId) : key;
 
-            await setDoc(doc(db, "program_overrides", targetId), { weekKey: wk, affectedProgramIds: affected }, { merge: true });
+            await setDoc(doc(db, "program_overrides", targetId), { weekKey: wk, affectedProgramIds: affected, replacements, additions }, { merge: true });
 
             if (!mountedRef.current) return;
 
@@ -674,7 +959,7 @@ export default function ProgramOverridesAdmin() {
     return (
         <div className="adminCard">
             <div className="adminTop">
-                <h2 className="adminTitle">Modificări program (anulări)</h2>
+                <h2 className="adminTitle">Modificări program</h2>
                 <div className="adminActions">
                     <button className="adminBtn adminBtn--new" type="button" onClick={startNew} disabled={loading || showNew}>
                         <span className="adminBtnIcon" aria-hidden="true">
@@ -696,8 +981,11 @@ export default function ProgramOverridesAdmin() {
                             draft={newDraft}
                             saveState={newState}
                             errorText={newError}
+                            eventsList={eventsList}
                             onToggleAffected={toggleAffected}
                             onChangeWeekKey={changeWeekKey}
+                            onChangeReplacement={changeReplacement}
+                            onChangeAddition={changeAddition}
                             onCancel={cancelNew}
                             onSave={saveNew}
                         />
@@ -715,13 +1003,18 @@ export default function ProgramOverridesAdmin() {
                                         draftsById[id] || {
                                             weekKey: it.weekKey,
                                             affectedProgramIds: it.affectedProgramIds,
+                                            replacements: it.replacements,
+                                            additions: it.additions,
                                         }
                                     }
                                     saveState={saveStateById[id] || "idle"}
                                     errorText={errorById[id] || ""}
+                                    eventsList={eventsList}
                                     onToggleExpand={toggleExpand}
                                     onToggleAffected={toggleAffected}
                                     onChangeWeekKey={changeWeekKey}
+                                    onChangeReplacement={changeReplacement}
+                                    onChangeAddition={changeAddition}
                                     onSave={saveOne}
                                     onDelete={deleteOne}
                                 />
@@ -749,13 +1042,18 @@ export default function ProgramOverridesAdmin() {
                                             draftsById[id] || {
                                                 weekKey: it.weekKey,
                                                 affectedProgramIds: it.affectedProgramIds,
+                                                replacements: it.replacements,
+                                                additions: it.additions,
                                             }
                                         }
                                         saveState={saveStateById[id] || "idle"}
                                         errorText={errorById[id] || ""}
+                                        eventsList={eventsList}
                                         onToggleExpand={toggleExpand}
                                         onToggleAffected={toggleAffected}
                                         onChangeWeekKey={changeWeekKey}
+                                        onChangeReplacement={changeReplacement}
+                                        onChangeAddition={changeAddition}
                                         onSave={saveOne}
                                         onDelete={deleteOne}
                                     />

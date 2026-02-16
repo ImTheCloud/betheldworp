@@ -4,9 +4,9 @@
     justify-content: center;
     padding: 40px 18px 70px;
     background:
-            radial-gradient(circle at 10% 10%, rgba(22, 70, 120, 0.10), transparent 45%),
-            radial-gradient(circle at 90% 90%, rgba(10, 42, 67, 0.10), transparent 45%),
-            linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
+        radial-gradient(circle at 10% 10%, rgba(22, 70, 120, 0.10), transparent 45%),
+        radial-gradient(circle at 90% 90%, rgba(10, 42, 67, 0.10), transparent 45%),
+        linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
     color: #0a2a43;
 }
 
@@ -279,6 +279,42 @@
     margin-top: 10px;
 }
 
+/* ── Search ── */
+.adminSearchRow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.adminSearchInput {
+    flex: 1;
+    min-width: 0;
+}
+
+.adminSearchCount {
+    font-size: 12px;
+    font-weight: 800;
+    color: rgba(10, 42, 67, 0.55);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* ── Pagination ── */
+.adminPagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding-top: 4px;
+}
+
+.adminPaginationInfo {
+    font-size: 13px;
+    font-weight: 900;
+    color: rgba(10, 42, 67, 0.6);
+    font-variant-numeric: tabular-nums;
+}
+
 .adminEmpty {
     text-align: center;
     padding: 10px 0;
@@ -289,12 +325,10 @@
 .adminSkeleton {
     height: 220px;
     border-radius: 16px;
-    background: linear-gradient(
-            90deg,
+    background: linear-gradient(90deg,
             rgba(10, 42, 67, 0.05),
             rgba(10, 42, 67, 0.09),
-            rgba(10, 42, 67, 0.05)
-    );
+            rgba(10, 42, 67, 0.05));
     background-size: 200% 100%;
     animation: shimmer 1.2s infinite linear;
 }
@@ -404,6 +438,82 @@
 .adminAnnCard.is-active {
     border-color: rgba(22, 70, 120, 0.18);
     box-shadow: 0 14px 40px rgba(10, 42, 67, 0.08);
+}
+
+/* ── Override Section groups (Anulări / Extras) ── */
+.overrideSection {
+    border-radius: 14px;
+    padding: 14px;
+    display: grid;
+    gap: 10px;
+    border-left: 3px solid rgba(10, 42, 67, 0.12);
+    background: rgba(10, 42, 67, 0.02);
+}
+
+.overrideSection--cancel {
+    border-left-color: #b00020;
+    background: rgba(176, 0, 32, 0.03);
+}
+
+.overrideSection--extra {
+    border-left-color: #d97706;
+    background: rgba(217, 119, 6, 0.04);
+}
+
+.overrideSectionHeader {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.overrideSectionIcon {
+    width: 22px;
+    height: 22px;
+    border-radius: 7px;
+    display: grid;
+    place-items: center;
+    font-size: 12px;
+    font-weight: 900;
+    flex-shrink: 0;
+}
+
+.overrideSectionIcon--cancel {
+    background: rgba(176, 0, 32, 0.10);
+    color: #b00020;
+}
+
+.overrideSectionIcon--extra {
+    background: rgba(217, 119, 6, 0.12);
+    color: #92600a;
+}
+
+.overrideSectionTitle {
+    font-size: 13px;
+    font-weight: 900;
+    color: rgba(10, 42, 67, 0.78);
+    letter-spacing: -0.01em;
+}
+
+.overrideSlotRow {
+    display: grid;
+    grid-template-columns: auto auto 1fr;
+    align-items: center;
+    gap: 8px;
+}
+
+.overrideSlotDay {
+    font-size: 12px;
+    font-weight: 900;
+    color: rgba(10, 42, 67, 0.72);
+    white-space: nowrap;
+}
+
+.overrideSlotDate {
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(10, 42, 67, 0.45);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
 }
 
 .adminAnnHeader {
@@ -588,12 +698,19 @@
 }
 
 @keyframes shimmer {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 @media (max-width: 820px) {
