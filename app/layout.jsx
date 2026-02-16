@@ -39,28 +39,31 @@ async function getInitialLang() {
     return fromHeader || "ro";
 }
 
+import NewsletterPopup from "./components/NewsletterPopup";
+
 export default async function RootLayout({ children }) {
     const lang = await getInitialLang();
 
     return (
         <html lang={lang} suppressHydrationWarning>
-        <head>
-            <title>{SITE_TITLE}</title>
-            <link
-                rel="preload"
-                as="image"
-                href="/images/drone.jpg"
-                fetchPriority="high"
-            />
-        </head>
-        <body>
-        <LanguageProvider initialLang={lang}>
-            <VisitTracker />
-            {children}
-            <Analytics />
+            <head>
+                <title>{SITE_TITLE}</title>
+                <link
+                    rel="preload"
+                    as="image"
+                    href="/images/drone.jpg"
+                    fetchPriority="high"
+                />
+            </head>
+            <body>
+                <LanguageProvider initialLang={lang}>
+                    <VisitTracker />
+                    {children}
+                    <NewsletterPopup />
+                    <Analytics />
 
-        </LanguageProvider>
-        </body>
+                </LanguageProvider>
+            </body>
         </html>
     );
 }
