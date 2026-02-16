@@ -1,0 +1,54 @@
+{
+    "ro": {
+        "title": "Abonează-te la noutăți",
+        "desc": "Primește programul săptămânal și anunțuri importante direct pe email.",
+        "email_placeholder": "Adresa ta de email",
+        "subscribe": "Abonează-te",
+        "already_subscribed": "Sunt deja abonat",
+        "sending": "Se trimite...",
+        "success_title": "Mulțumim!",
+        "success_desc": "Te-ai abonat cu succes.",
+        "email_invalid": "Adresa de email nu este validă.",
+        "error_generic": "A apărut o eroare. Încearcă din nou.",
+        "privacy_note": "Nu trimitem spam. Te poți dezabona oricând."
+    },
+    "fr": {
+        "title": "Restez informé",
+        "desc": "Recevez le programme hebdomadaire et les annonces importantes par email.",
+        "email_placeholder": "Votre adresse email",
+        "subscribe": "S'abonner",
+        "already_subscribed": "Déjà abonné",
+        "sending": "Envoi...",
+        "success_title": "Merci !",
+        "success_desc": "Inscription réussie.",
+        "email_invalid": "Adresse email invalide.",
+        "error_generic": "Une erreur est survenue. Réessayez.",
+        "privacy_note": "Pas de spam. Désabonnement à tout moment."
+    },
+    "nl": {
+        "title": "Blijf op de hoogte",
+        "desc": "Ontvang het weekprogramma en belangrijke aankondigingen per e-mail.",
+        "email_placeholder": "Uw e-mailadres",
+        "subscribe": "Abonneren",
+        "already_subscribed": "Al geabonneerd",
+        "sending": "Verzenden...",
+        "success_title": "Bedankt!",
+        "success_desc": "Succesvol geabonneerd.",
+        "email_invalid": "Ongeldig e-mailadres.",
+        "error_generic": "Er is een fout opgetreden. Probeer opnieuw.",
+        "privacy_note": "Geen spam. U kunt zich op elk moment afmelden."
+    },
+    "en": {
+        "title": "Stay updated",
+        "desc": "Receive the weekly program and important announcements via email.",
+        "email_placeholder": "Your email address",
+        "subscribe": "Subscribe",
+        "already_subscribed": "Already subscribed",
+        "sending": "Sending...",
+        "success_title": "Thank you!",
+        "success_desc": "Successfully subscribed.",
+        "email_invalid": "Invalid email address.",
+        "error_generic": "An error occurred. Try again.",
+        "privacy_note": "No spam. Unsubscribe anytime."
+    }
+}
