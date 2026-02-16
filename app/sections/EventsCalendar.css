@@ -1,6 +1,6 @@
 .ec-section {
     position: relative;
-    padding: 110px 24px 120px;
+    padding: 55px 24px 60px;
     display: flex;
     justify-content: center;
     background: linear-gradient(180deg, #fafbfc 0%, #ffffff 100%);
@@ -232,8 +232,13 @@
     transform: scale(1.08);
 }
 
-.nl-section { margin-top: 46px; }
-.nl-header { margin-bottom: 24px; }
+.nl-section {
+    margin-top: 46px;
+}
+
+.nl-header {
+    margin-bottom: 24px;
+}
 
 .nl-subtitle {
     font-size: clamp(26px, 3.6vw, 40px);
@@ -279,7 +284,10 @@
     margin-right: auto;
 }
 
-.nl-form { max-width: 500px; margin: 0 auto; }
+.nl-form {
+    max-width: 500px;
+    margin: 0 auto;
+}
 
 .nl-input-group {
     display: flex;
@@ -300,7 +308,9 @@
     transition: all 0.2s ease;
 }
 
-.nl-input::placeholder { color: rgba(10, 42, 67, 0.4); }
+.nl-input::placeholder {
+    color: rgba(10, 42, 67, 0.4);
+}
 
 .nl-input:focus {
     border-color: rgba(22, 70, 120, 0.4);
@@ -378,8 +388,13 @@
 }
 
 @keyframes overlayFade {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 .ev-modal {
@@ -388,7 +403,7 @@
     border-radius: 28px;
     border: 1px solid rgba(10, 42, 67, 0.12);
     box-shadow: 0 40px 140px rgba(10, 42, 67, 0.4);
-    animation: modalEnter 0.4s cubic-bezier(.2,.8,.2,1);
+    animation: modalEnter 0.4s cubic-bezier(.2, .8, .2, 1);
     max-height: 88vh;
     overflow: hidden;
     display: flex;
@@ -396,8 +411,15 @@
 }
 
 @keyframes modalEnter {
-    from { opacity: 0; transform: scale(0.96) translateY(20px); }
-    to { opacity: 1; transform: scale(1) translateY(0); }
+    from {
+        opacity: 0;
+        transform: scale(0.96) translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
 }
 
 .ev-header {
@@ -482,7 +504,9 @@
 }
 
 .ev-media,
-.ev-details { min-width: 0; }
+.ev-details {
+    min-width: 0;
+}
 
 .ev-details {
     display: flex;
@@ -506,10 +530,23 @@
 }
 
 @media (min-width: 901px) {
-    .ev-layout { align-items: stretch; }
-    .ev-media { display: flex; height: 100%; }
-    .ev-heroImgWrap { flex: 1; height: 100%; }
-    .ev-heroImg { height: 100%; }
+    .ev-layout {
+        align-items: stretch;
+    }
+
+    .ev-media {
+        display: flex;
+        height: 100%;
+    }
+
+    .ev-heroImgWrap {
+        flex: 1;
+        height: 100%;
+    }
+
+    .ev-heroImg {
+        height: 100%;
+    }
 }
 
 .ev-infoGrid {
@@ -525,7 +562,9 @@
     border: 1px solid rgba(10, 42, 67, 0.08);
 }
 
-.ev-infoCard--wide { grid-column: 1 / -1; }
+.ev-infoCard--wide {
+    grid-column: 1 / -1;
+}
 
 .ev-infoLabel {
     font-size: 11px;
@@ -567,23 +606,56 @@
 }
 
 @media (max-width: 900px) {
-    .ec-section { padding: 100px 20px 110px; }
-    .ec-card { padding: 20px; margin-bottom: 38px; }
-    .ec-cell { height: 112px; }
+    .ec-section {
+        padding: 100px 20px 110px;
+    }
 
-    .nl-section { margin-top: 40px; }
-    .nl-card { padding: 36px 28px; }
-    .nl-input-group { flex-direction: column; }
-    .nl-button { width: 100%; }
+    .ec-card {
+        padding: 20px;
+        margin-bottom: 38px;
+    }
 
-    .ev-layout { grid-template-columns: 1fr; }
-    .ev-heroImg { height: 250px; }
-    .ev-map { height: 220px; }
-    .ev-body { max-height: calc(88vh - 86px); }
+    .ec-cell {
+        height: 112px;
+    }
+
+    .nl-section {
+        margin-top: 40px;
+    }
+
+    .nl-card {
+        padding: 36px 28px;
+    }
+
+    .nl-input-group {
+        flex-direction: column;
+    }
+
+    .nl-button {
+        width: 100%;
+    }
+
+    .ev-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .ev-heroImg {
+        height: 250px;
+    }
+
+    .ev-map {
+        height: 220px;
+    }
+
+    .ev-body {
+        max-height: calc(88vh - 86px);
+    }
 }
 
 @media (max-width: 700px) {
-    .ev-overlay { align-items: flex-end; }
+    .ev-overlay {
+        align-items: flex-end;
+    }
 
     .ev-modal {
         width: 100%;
@@ -591,33 +663,97 @@
         max-height: 86vh;
     }
 
-    .ev-header { padding: 16px 16px 10px; }
-    .ev-body { padding: 12px 16px 16px; max-height: calc(86vh - 78px); }
+    .ev-header {
+        padding: 16px 16px 10px;
+    }
 
-    .ev-close { top: 10px; right: 10px; width: 36px; height: 36px; font-size: 21px; }
+    .ev-body {
+        padding: 12px 16px 16px;
+        max-height: calc(86vh - 78px);
+    }
 
-    .ev-layout { grid-template-columns: 1fr; gap: 12px; }
+    .ev-close {
+        top: 10px;
+        right: 10px;
+        width: 36px;
+        height: 36px;
+        font-size: 21px;
+    }
 
-    .ev-heroImg { height: 210px; }
-    .ev-map { height: 190px; }
+    .ev-layout {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .ev-heroImg {
+        height: 210px;
+    }
+
+    .ev-map {
+        height: 190px;
+    }
 }
 
 @media (max-width: 600px) {
-    .ec-section { padding: 78px 16px 96px; }
-    .ec-header { margin-bottom: 34px; }
-    .ec-title { font-size: clamp(30px, 7vw, 44px); }
+    .ec-section {
+        padding: 78px 16px 96px;
+    }
 
-    .ec-card { padding: 16px; border-radius: 22px; }
-    .ec-head { margin-bottom: 14px; padding-bottom: 12px; gap: 10px; }
-    .ec-month { font-size: 20px; }
-    .ec-navBtn { width: 40px; height: 40px; font-size: 20px; }
+    .ec-header {
+        margin-bottom: 34px;
+    }
 
-    .ec-weekdays { gap: 6px; margin-bottom: 8px; }
-    .ec-weekday { font-size: 10px; letter-spacing: 0.06em; padding: 6px 0; }
+    .ec-title {
+        font-size: clamp(30px, 7vw, 44px);
+    }
 
-    .ec-grid { gap: 6px; }
-    .ec-cell { height: auto; aspect-ratio: 1 / 1; border-radius: 14px; }
-    .ec-emptyBody { background: rgba(10, 42, 67, 0.02); width: 100%; height: 100%; }
+    .ec-card {
+        padding: 16px;
+        border-radius: 22px;
+    }
+
+    .ec-head {
+        margin-bottom: 14px;
+        padding-bottom: 12px;
+        gap: 10px;
+    }
+
+    .ec-month {
+        font-size: 20px;
+    }
+
+    .ec-navBtn {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+    }
+
+    .ec-weekdays {
+        gap: 6px;
+        margin-bottom: 8px;
+    }
+
+    .ec-weekday {
+        font-size: 10px;
+        letter-spacing: 0.06em;
+        padding: 6px 0;
+    }
+
+    .ec-grid {
+        gap: 6px;
+    }
+
+    .ec-cell {
+        height: auto;
+        aspect-ratio: 1 / 1;
+        border-radius: 14px;
+    }
+
+    .ec-emptyBody {
+        background: rgba(10, 42, 67, 0.02);
+        width: 100%;
+        height: 100%;
+    }
 
     .ec-dayBadge {
         top: 6px;
@@ -631,23 +767,70 @@
         border: 1px solid rgba(10, 42, 67, 0.10);
     }
 
-    .ec-eventCellBtn { border-radius: inherit; overflow: hidden; }
-    .ec-eventBg { width: 100%; height: 100%; object-fit: cover; }
+    .ec-eventCellBtn {
+        border-radius: inherit;
+        overflow: hidden;
+    }
 
-    .nl-section { margin-top: 34px; }
-    .nl-header { margin-bottom: 18px; }
-    .nl-subtitle { padding-left: 20px; }
-    .nl-subtitle::before { height: 22px; }
-    .nl-card { padding: 28px 20px; border-radius: 22px; }
+    .ec-eventBg {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
 
-    .ev-heroImg { height: 190px; }
-    .ev-map { height: 175px; }
+    .nl-section {
+        margin-top: 34px;
+    }
+
+    .nl-header {
+        margin-bottom: 18px;
+    }
+
+    .nl-subtitle {
+        padding-left: 20px;
+    }
+
+    .nl-subtitle::before {
+        height: 22px;
+    }
+
+    .nl-card {
+        padding: 28px 20px;
+        border-radius: 22px;
+    }
+
+    .ev-heroImg {
+        height: 190px;
+    }
+
+    .ev-map {
+        height: 175px;
+    }
 }
 
 @media (hover: none) {
-    .ec-cell:hover { transform: none; box-shadow: none; border-color: rgba(10, 42, 67, 0.08); }
-    .ec-navBtn:hover { transform: none; box-shadow: none; background: rgba(10, 42, 67, 0.04); }
-    .ec-eventCellBtn:hover .ec-eventBg { transform: none; }
-    .nl-button:hover { transform: none; box-shadow: 0 8px 24px rgba(10, 42, 67, 0.25); }
-    .ev-close:hover { transform: none; }
+    .ec-cell:hover {
+        transform: none;
+        box-shadow: none;
+        border-color: rgba(10, 42, 67, 0.08);
+    }
+
+    .ec-navBtn:hover {
+        transform: none;
+        box-shadow: none;
+        background: rgba(10, 42, 67, 0.04);
+    }
+
+    .ec-eventCellBtn:hover .ec-eventBg {
+        transform: none;
+    }
+
+    .nl-button:hover {
+        transform: none;
+        box-shadow: 0 8px 24px rgba(10, 42, 67, 0.25);
+    }
+
+    .ev-close:hover {
+        transform: none;
+    }
 }

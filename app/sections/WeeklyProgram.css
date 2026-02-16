@@ -1,6 +1,6 @@
 .program-section {
     position: relative;
-    padding: 100px 24px 120px;
+    padding: 50px 24px 60px;
     display: flex;
     justify-content: center;
     background: linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
@@ -27,7 +27,7 @@
 
 .program-header {
     text-align: center;
-    margin-bottom: 40px;
+    margin-bottom: 16px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -273,16 +273,26 @@
     transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
+.program-card--clickable::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(225deg, rgba(217, 155, 25, 0.22) 50%, transparent 50%);
+    border-radius: 0 17px 0 0;
+    pointer-events: none;
+}
+
 .program-card--clickable::after {
     content: "↗";
     position: absolute;
-    top: 6px;
-    right: 6px;
-    font-size: 11px;
+    top: 3px;
+    right: 4px;
+    font-size: 9px;
     font-weight: 900;
     color: #92600a;
-    opacity: 0.7;
-    transition: opacity 0.15s ease;
     pointer-events: none;
 }
 
@@ -300,7 +310,7 @@
     align-items: center;
     gap: 8px;
     justify-content: center;
-    margin: -4px auto 10px;
+    margin: 0 auto 16px;
     padding: 6px 16px;
     border-radius: 10px;
     background: rgba(217, 155, 25, 0.10);
