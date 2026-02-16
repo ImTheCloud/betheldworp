@@ -246,9 +246,6 @@ export default function Program() {
                         <p className="program-subtitle">{weekInfo.rangeLong}</p>
                         <button type="button" className="program-weekNavBtn" onClick={goNext} aria-label="Next week">›</button>
                     </div>
-                    {weekOffset !== 0 && (
-                        <button type="button" className="program-todayBtn" onClick={goToday}>{t("status_today")}</button>
-                    )}
                 </div>
 
                 <div className="program-grid">
@@ -283,7 +280,10 @@ export default function Program() {
 
                         return (
                             <React.Fragment key={id}>
-                                <article className={`program-card ${statusClass}`}>
+                                <article
+                                    className={`program-card ${statusClass}${isReplaced ? " program-card--clickable" : ""}`}
+                                    onClick={isReplaced ? () => window.dispatchEvent(new CustomEvent("open-event", { detail: { eventId: replacementEventId } })) : undefined}
+                                >
                                     <div className="program-cardInnerFlat">
                                         <div className="program-cardTop">
                                             <div className={`program-day ${isToday && !isCancelled ? "program-day--today" : ""}`}>{item?.day}</div>
@@ -295,22 +295,17 @@ export default function Program() {
                                         <div className="program-bottomRow">
                                             {timeLabel && <div className={`program-timeLine ${isCancelled && !isReplaced ? "program-timeLine--cancelled" : ""} ${isReplaced ? "program-timeLine--replaced" : ""} ${isToday && !isCancelled ? "program-timeLine--today" : ""}`}>{timeLabel}</div>}
                                             {dm && <div className="program-dateFixed" title={full}>{dm}</div>}
+                                            {isReplaced && <span className="program-clickHint">{t("see_event")}</span>}
                                         </div>
-                                        {isReplaced && (
-                                            <button
-                                                type="button"
-                                                className="program-replacementLink"
-                                                onClick={() => {
-                                                    window.dispatchEvent(new CustomEvent("open-event", { detail: { eventId: replacementEventId } }));
-                                                }}
-                                            >{t("see_event")}</button>
-                                        )}
                                     </div>
                                 </article>
 
                                 {/* Extra addition card */}
                                 {additionEvent && (
-                                    <article className="program-card program-card--replaced">
+                                    <article
+                                        className="program-card program-card--replaced program-card--clickable"
+                                        onClick={() => window.dispatchEvent(new CustomEvent("open-event", { detail: { eventId: additionEventId } }))}
+                                    >
                                         <div className="program-cardInnerFlat">
                                             <div className="program-cardTop">
                                                 <div className="program-day">{item?.day}</div>
@@ -320,14 +315,8 @@ export default function Program() {
                                             <div className="program-bottomRow">
                                                 {additionEvent.time && <div className="program-timeLine program-timeLine--replaced">{additionEvent.time}</div>}
                                                 {dm && <div className="program-dateFixed" title={full}>{dm}</div>}
+                                                <span className="program-clickHint">{t("see_event")}</span>
                                             </div>
-                                            <button
-                                                type="button"
-                                                className="program-replacementLink"
-                                                onClick={() => {
-                                                    window.dispatchEvent(new CustomEvent("open-event", { detail: { eventId: additionEventId } }));
-                                                }}
-                                            >{t("see_event")}</button>
                                         </div>
                                     </article>
                                 )}

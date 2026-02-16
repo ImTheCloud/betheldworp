@@ -268,24 +268,36 @@
     background: rgba(217, 155, 25, 0.12);
 }
 
-.program-replacementLink {
-    display: inline-block;
-    margin-top: 8px;
-    padding: 0;
-    border: none;
-    background: none;
+.program-card--clickable {
     cursor: pointer;
-    font-size: 12px;
-    font-weight: 700;
-    color: #92600a;
-    text-decoration: none;
-    letter-spacing: 0.01em;
-    transition: color 0.2s ease;
+    border-left: 3px solid #d99b19;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.program-replacementLink:hover {
-    color: #6b4508;
-    text-decoration: underline;
+.program-card--clickable:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(10, 42, 67, 0.12);
+}
+
+.program-clickHint {
+    margin-left: auto;
+    font-size: 11px;
+    font-weight: 800;
+    color: #92600a;
+    white-space: nowrap;
+    animation: hintPulse 2s ease-in-out infinite;
+}
+
+@keyframes hintPulse {
+
+    0%,
+    100% {
+        opacity: 0.6;
+    }
+
+    50% {
+        opacity: 1;
+    }
 }
 
 .program-verse-highlight {
