@@ -84,7 +84,7 @@ export default function NewsletterPopup() {
             <div className="nl-popup-card">
                 <button
                     className="nl-popup-close"
-                    onClick={() => handleClose(false)}
+                    onClick={() => handleClose(true)}
                     aria-label="Close"
                 >
                     ×

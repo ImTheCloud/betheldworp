@@ -156,7 +156,8 @@ export default function Program() {
         const { isoYear, week } = getISOWeekYearAndNumberUTC(start);
         const weekKey = `${String(isoYear).padStart(4, "0")}-W${String(week).padStart(2, "0")}`;
         const rangeLong = formatWeekRangeLong(start, end, lang, t);
-        return { start, weekKey, rangeLong };
+        const weekLabel = t("week_label").replace("{n}", week);
+        return { start, weekKey, rangeLong, weekLabel };
     }, [lang, t, weekOffset]);
 
     const goPrev = () => setWeekOffset((o) => o - 1);
@@ -243,7 +244,10 @@ export default function Program() {
                     <h2 className="program-title">{t("title")}</h2>
                     <div className="program-weekNav">
                         <button type="button" className="program-weekNavBtn" onClick={goPrev} aria-label="Previous week">‹</button>
-                        <p className="program-subtitle">{weekInfo.rangeLong}</p>
+                        <div className="program-navText">
+                            <div className="program-weekNum">{weekInfo.weekLabel}</div>
+                            <div className="program-subtitle">{weekInfo.rangeLong}</div>
+                        </div>
                         <button type="button" className="program-weekNavBtn" onClick={goNext} aria-label="Next week">›</button>
                     </div>
                 </div>
