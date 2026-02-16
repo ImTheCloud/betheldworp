@@ -26,7 +26,9 @@
     "act_sun_am": "Serviciu Divin (Dimineață)",
     "act_sun_pm": "Serviciu Divin (Seara)",
     "week_label": "Săptămâna {n}",
-    "see_event": "Vezi detalii ↗"
+    "see_event": "Vezi detalii ↗",
+    "clickable_hint_one": "1 modificare — apasă pe cardul evidențiat pentru detalii.",
+    "clickable_hint_many": "{n} modificări — apasă pe cardurile evidențiate pentru detalii."
   },
   "fr": {
     "title": "Programme hebdomadaire",
@@ -55,7 +57,9 @@
     "act_sun_am": "Culte (matin)",
     "act_sun_pm": "Culte (soir)",
     "week_label": "Semaine {n}",
-    "see_event": "Voir détails ↗"
+    "see_event": "Voir détails ↗",
+    "clickable_hint_one": "1 modification — cliquez sur la carte en surbrillance pour voir.",
+    "clickable_hint_many": "{n} modifications — cliquez sur les cartes en surbrillance pour voir."
   },
   "nl": {
     "title": "Weekprogramma",
@@ -84,7 +88,9 @@
     "act_sun_am": "Eredienst (ochtend)",
     "act_sun_pm": "Eredienst (avond)",
     "week_label": "Week {n}",
-    "see_event": "Details bekijken ↗"
+    "see_event": "Details bekijken ↗",
+    "clickable_hint_one": "1 wijziging — klik op de gemarkeerde kaart voor details.",
+    "clickable_hint_many": "{n} wijzigingen — klik op de gemarkeerde kaarten voor details."
   },
   "en": {
     "title": "Weekly program",
@@ -113,6 +119,8 @@
     "act_sun_am": "Service (morning)",
     "act_sun_pm": "Service (evening)",
     "week_label": "Week {n}",
-    "see_event": "See details ↗"
+    "see_event": "See details ↗",
+    "clickable_hint_one": "1 change — click the highlighted card for details.",
+    "clickable_hint_many": "{n} changes — click the highlighted cards for details."
   }
 }

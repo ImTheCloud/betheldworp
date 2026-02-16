@@ -248,6 +248,19 @@ export default function Program() {
                     </div>
                 </div>
 
+                {(() => {
+                    const linkedCount = Object.keys(replacements).length + Object.keys(additions).length;
+                    if (!linkedCount) return null;
+                    const hintKey = linkedCount === 1 ? "clickable_hint_one" : "clickable_hint_many";
+                    const hintText = t(hintKey).replace("{n}", linkedCount);
+                    return (
+                        <div className="program-clickableBanner">
+                            <span className="program-clickableBannerIcon">↗</span>
+                            {hintText}
+                        </div>
+                    );
+                })()}
+
                 <div className="program-grid">
                     {LOCAL_PROGRAM_ITEMS.map((item, idx) => {
                         const id = safeStr(item?.id || `day-${idx}`).trim();
@@ -295,7 +308,6 @@ export default function Program() {
                                         <div className="program-bottomRow">
                                             {timeLabel && <div className={`program-timeLine ${isCancelled && !isReplaced ? "program-timeLine--cancelled" : ""} ${isReplaced ? "program-timeLine--replaced" : ""} ${isToday && !isCancelled ? "program-timeLine--today" : ""}`}>{timeLabel}</div>}
                                             {dm && <div className="program-dateFixed" title={full}>{dm}</div>}
-                                            {isReplaced && <span className="program-clickHint">{t("see_event")}</span>}
                                         </div>
                                     </div>
                                 </article>
@@ -315,7 +327,6 @@ export default function Program() {
                                             <div className="program-bottomRow">
                                                 {additionEvent.time && <div className="program-timeLine program-timeLine--replaced">{additionEvent.time}</div>}
                                                 {dm && <div className="program-dateFixed" title={full}>{dm}</div>}
-                                                <span className="program-clickHint">{t("see_event")}</span>
                                             </div>
                                         </div>
                                     </article>

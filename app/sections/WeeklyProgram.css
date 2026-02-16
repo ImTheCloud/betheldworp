@@ -270,8 +270,24 @@
 
 .program-card--clickable {
     cursor: pointer;
-    border-left: 3px solid #d99b19;
     transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.program-card--clickable::after {
+    content: "↗";
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    font-size: 11px;
+    font-weight: 900;
+    color: #92600a;
+    opacity: 0.7;
+    transition: opacity 0.15s ease;
+    pointer-events: none;
+}
+
+.program-card--clickable:hover::after {
+    opacity: 1;
 }
 
 .program-card--clickable:hover {
@@ -279,25 +295,33 @@
     box-shadow: 0 6px 20px rgba(10, 42, 67, 0.12);
 }
 
-.program-clickHint {
-    margin-left: auto;
-    font-size: 11px;
-    font-weight: 800;
-    color: #92600a;
-    white-space: nowrap;
-    animation: hintPulse 2s ease-in-out infinite;
+.program-clickableBanner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+    margin: -4px auto 10px;
+    padding: 6px 16px;
+    border-radius: 10px;
+    background: rgba(217, 155, 25, 0.10);
+    border: 1px solid rgba(217, 155, 25, 0.25);
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #7a5209;
 }
 
-@keyframes hintPulse {
-
-    0%,
-    100% {
-        opacity: 0.6;
-    }
-
-    50% {
-        opacity: 1;
-    }
+.program-clickableBannerIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: rgba(217, 155, 25, 0.22);
+    font-size: 11px;
+    font-weight: 900;
+    color: #92600a;
+    flex-shrink: 0;
 }
 
 .program-verse-highlight {
