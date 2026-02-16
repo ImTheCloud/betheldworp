@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { collection, deleteDoc, doc, getDoc, onSnapshot, setDoc } from "firebase/firestore";
 import { db } from "../../lib/Firebase";
+import { usePagination } from "../hooks/usePagination";
+import PaginationControls from "../components/PaginationControls";
 
 const LANGS = [
     { key: "ro", label: "RO" },
@@ -184,19 +186,19 @@ function IconChevronDown(props) {
 }
 
 function EventCard({
-                       ev,
-                       expanded,
-                       draft,
-                       activeLang,
-                       savingState,
-                       errorText,
-                       onToggleExpand,
-                       onChangeLang,
-                       onChangeField,
-                       onChangeLangField,
-                       onSave,
-                       onDelete,
-                   }) {
+    ev,
+    expanded,
+    draft,
+    activeLang,
+    savingState,
+    errorText,
+    onToggleExpand,
+    onChangeLang,
+    onChangeField,
+    onChangeLangField,
+    onSave,
+    onDelete,
+}) {
     const id = safeStr(ev?.id).trim();
     const langKey = activeLang || "ro";
 
@@ -384,17 +386,17 @@ function EventCard({
 }
 
 function NewEventCard({
-                          draft,
-                          activeLang,
-                          saveState,
-                          errorText,
-                          idPreview,
-                          onChangeLang,
-                          onChangeField,
-                          onChangeLangField,
-                          onCancel,
-                          onSave,
-                      }) {
+    draft,
+    activeLang,
+    saveState,
+    errorText,
+    idPreview,
+    onChangeLang,
+    onChangeField,
+    onChangeLangField,
+    onCancel,
+    onSave,
+}) {
     const langKey = activeLang || "ro";
 
     return (
@@ -667,6 +669,9 @@ export default function EventsAdmin() {
 
         return { upcomingEvents: up, pastEvents: past };
     }, [events, todayTime]);
+
+    const upcomingPagination = usePagination(upcomingEvents, 5);
+    const pastPagination = usePagination(pastEvents, 5);
 
     const toggleExpand = useCallback((id) => {
         const key = safeStr(id).trim();
@@ -990,7 +995,7 @@ export default function EventsAdmin() {
                     ) : null}
 
                     <div className="adminList">
-                        {upcomingEvents.map((ev) => {
+                        {upcomingPagination.paginatedItems.map((ev) => {
                             const d = draftsById[ev.id] || {
                                 dateISO: ev.dateISO,
                                 title: { ...ev.title },
@@ -1023,6 +1028,13 @@ export default function EventsAdmin() {
                         {!upcomingEvents.length && !showNew ? <div className="adminEmpty">Nu există evenimente viitoare. Apasă „Nou”.</div> : null}
                     </div>
 
+                    <PaginationControls
+                        page={upcomingPagination.page}
+                        totalPages={upcomingPagination.totalPages}
+                        onNext={upcomingPagination.nextPage}
+                        onPrev={upcomingPagination.prevPage}
+                    />
+
                     <div className="adminHistoryRow">
                         <button type="button" className="adminSmallBtn" onClick={() => setShowHistory((v) => !v)} disabled={!pastEvents.length}>
                             {showHistory ? "Ascunde istoricul" : `Arată istoricul (${pastEvents.length})`}
@@ -1030,37 +1042,45 @@ export default function EventsAdmin() {
                     </div>
 
                     {showHistory ? (
-                        <div className="adminList adminList--history">
-                            {pastEvents.map((ev) => {
-                                const d = draftsById[ev.id] || {
-                                    dateISO: ev.dateISO,
-                                    title: { ...ev.title },
-                                    description: { ...ev.description },
-                                    image: ev.image,
-                                    time: ev.time,
-                                    place: ev.place,
-                                    address: ev.address,
-                                };
+                        <>
+                            <div className="adminList adminList--history">
+                                {pastPagination.paginatedItems.map((ev) => {
+                                    const d = draftsById[ev.id] || {
+                                        dateISO: ev.dateISO,
+                                        title: { ...ev.title },
+                                        description: { ...ev.description },
+                                        image: ev.image,
+                                        time: ev.time,
+                                        place: ev.place,
+                                        address: ev.address,
+                                    };
 
-                                return (
-                                    <EventCard
-                                        key={ev.id}
-                                        ev={ev}
-                                        expanded={expandedIds.has(ev.id)}
-                                        draft={d}
-                                        activeLang={langById[ev.id] || "ro"}
-                                        savingState={savingById[ev.id] || "idle"}
-                                        errorText={errorById[ev.id] || ""}
-                                        onToggleExpand={toggleExpand}
-                                        onChangeLang={changeLang}
-                                        onChangeField={changeField}
-                                        onChangeLangField={changeLangField}
-                                        onSave={saveOne}
-                                        onDelete={deleteOne}
-                                    />
-                                );
-                            })}
-                        </div>
+                                    return (
+                                        <EventCard
+                                            key={ev.id}
+                                            ev={ev}
+                                            expanded={expandedIds.has(ev.id)}
+                                            draft={d}
+                                            activeLang={langById[ev.id] || "ro"}
+                                            savingState={savingById[ev.id] || "idle"}
+                                            errorText={errorById[ev.id] || ""}
+                                            onToggleExpand={toggleExpand}
+                                            onChangeLang={changeLang}
+                                            onChangeField={changeField}
+                                            onChangeLangField={changeLangField}
+                                            onSave={saveOne}
+                                            onDelete={deleteOne}
+                                        />
+                                    );
+                                })}
+                            </div>
+                            <PaginationControls
+                                page={pastPagination.page}
+                                totalPages={pastPagination.totalPages}
+                                onNext={pastPagination.nextPage}
+                                onPrev={pastPagination.prevPage}
+                            />
+                        </>
                     ) : null}
                 </div>
             ) : null}

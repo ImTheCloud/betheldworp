@@ -4,6 +4,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { collection, deleteDoc, doc, getDoc, onSnapshot, setDoc } from "firebase/firestore";
 import { db } from "../../lib/Firebase";
+import { usePagination } from "../hooks/usePagination";
+import PaginationControls from "../components/PaginationControls";
 
 const safeObj = (v) => (v && typeof v === "object" && !Array.isArray(v) ? v : {});
 
@@ -647,6 +649,9 @@ export default function ProgramOverridesAdmin() {
     const upcomingItems = useMemo(() => items.filter((x) => x.upcoming), [items]);
     const historyItems = useMemo(() => items.filter((x) => !x.upcoming), [items]);
 
+    const upcomingPagination = usePagination(upcomingItems, 5);
+    const historyPagination = usePagination(historyItems, 5);
+
     const toggleExpand = useCallback((id) => {
         const key = safeStr(id).trim();
         if (!key) return;
@@ -992,7 +997,7 @@ export default function ProgramOverridesAdmin() {
                     ) : null}
 
                     <div className="adminList">
-                        {upcomingItems.map((it) => {
+                        {upcomingPagination.paginatedItems.map((it) => {
                             const id = it.id;
                             return (
                                 <OverrideCard
@@ -1023,6 +1028,13 @@ export default function ProgramOverridesAdmin() {
                         {!upcomingItems.length ? <div className="adminEmpty">Nu există anulări viitoare. Apasă „Nou”.</div> : null}
                     </div>
 
+                    <PaginationControls
+                        page={upcomingPagination.page}
+                        totalPages={upcomingPagination.totalPages}
+                        onNext={upcomingPagination.nextPage}
+                        onPrev={upcomingPagination.prevPage}
+                    />
+
                     <div className="adminHistoryRow">
                         <button type="button" className="adminSmallBtn" onClick={() => setShowHistory((v) => !v)} disabled={!historyItems.length}>
                             {showHistory ? "Ascunde istoricul" : `Arată istoricul (${historyItems.length})`}
@@ -1030,36 +1042,44 @@ export default function ProgramOverridesAdmin() {
                     </div>
 
                     {showHistory ? (
-                        <div className="adminList adminList--history">
-                            {historyItems.map((it) => {
-                                const id = it.id;
-                                return (
-                                    <OverrideCard
-                                        key={id}
-                                        item={it}
-                                        expanded={expandedIds.has(id)}
-                                        draft={
-                                            draftsById[id] || {
-                                                weekKey: it.weekKey,
-                                                affectedProgramIds: it.affectedProgramIds,
-                                                replacements: it.replacements,
-                                                additions: it.additions,
+                        <>
+                            <div className="adminList adminList--history">
+                                {historyPagination.paginatedItems.map((it) => {
+                                    const id = it.id;
+                                    return (
+                                        <OverrideCard
+                                            key={id}
+                                            item={it}
+                                            expanded={expandedIds.has(id)}
+                                            draft={
+                                                draftsById[id] || {
+                                                    weekKey: it.weekKey,
+                                                    affectedProgramIds: it.affectedProgramIds,
+                                                    replacements: it.replacements,
+                                                    additions: it.additions,
+                                                }
                                             }
-                                        }
-                                        saveState={saveStateById[id] || "idle"}
-                                        errorText={errorById[id] || ""}
-                                        eventsList={eventsList}
-                                        onToggleExpand={toggleExpand}
-                                        onToggleAffected={toggleAffected}
-                                        onChangeWeekKey={changeWeekKey}
-                                        onChangeReplacement={changeReplacement}
-                                        onChangeAddition={changeAddition}
-                                        onSave={saveOne}
-                                        onDelete={deleteOne}
-                                    />
-                                );
-                            })}
-                        </div>
+                                            saveState={saveStateById[id] || "idle"}
+                                            errorText={errorById[id] || ""}
+                                            eventsList={eventsList}
+                                            onToggleExpand={toggleExpand}
+                                            onToggleAffected={toggleAffected}
+                                            onChangeWeekKey={changeWeekKey}
+                                            onChangeReplacement={changeReplacement}
+                                            onChangeAddition={changeAddition}
+                                            onSave={saveOne}
+                                            onDelete={deleteOne}
+                                        />
+                                    );
+                                })}
+                            </div>
+                            <PaginationControls
+                                page={historyPagination.page}
+                                totalPages={historyPagination.totalPages}
+                                onNext={historyPagination.nextPage}
+                                onPrev={historyPagination.prevPage}
+                            />
+                        </>
                     ) : null}
                 </div>
             ) : null}

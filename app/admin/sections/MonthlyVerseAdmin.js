@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { doc, collection, onSnapshot, setDoc, deleteDoc } from "firebase/firestore";
 import { db } from "../../lib/Firebase";
+import { usePagination } from "../hooks/usePagination";
+import PaginationControls from "../components/PaginationControls";
 
 function safeStr(v) {
     return String(v ?? "");
@@ -152,20 +154,20 @@ function IconTrash(props) {
 }
 
 function VerseCard({
-                       label,
-                       expanded,
-                       summary,
-                       draft,
-                       dirty,
-                       saveState,
-                       activeLang,
-                       onToggle,
-                       onLangChange,
-                       onChangeField,
-                       onSave,
-                       onDelete,
-                       deleteTitle = "Șterge",
-                   }) {
+    label,
+    expanded,
+    summary,
+    draft,
+    dirty,
+    saveState,
+    activeLang,
+    onToggle,
+    onLangChange,
+    onChangeField,
+    onSave,
+    onDelete,
+    deleteTitle = "Șterge",
+}) {
     const onCardClick = (e) => {
         if (e.target.closest("button, input, textarea, select, label")) return;
         onToggle();
@@ -368,6 +370,8 @@ export default function MonthlyVerseAdmin() {
 
     const CURRENT_REF = useMemo(() => doc(db, "monthly_verse", "current"), []);
 
+    const historyPagination = usePagination(history, 5);
+
     const setTransientState = (setter, value = "saved") => {
         setter(value);
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -428,19 +432,18 @@ export default function MonthlyVerseAdmin() {
                 });
 
                 list.sort((a, b) => b.t - a.t || String(b.id).localeCompare(String(a.id)));
-                const sliced = list.slice(0, 12);
 
-                setHistory(sliced);
+                setHistory(list);
 
                 setHistoryDrafts((prev) => {
                     const next = { ...prev };
-                    const alive = new Set(sliced.map((x) => x.id));
+                    const alive = new Set(list.map((x) => x.id));
 
                     Object.keys(next).forEach((k) => {
                         if (!alive.has(k)) delete next[k];
                     });
 
-                    sliced.forEach((h) => {
+                    list.forEach((h) => {
                         const base = { reference: h.reference, text: h.text };
                         const cur = next[h.id];
 
@@ -457,19 +460,19 @@ export default function MonthlyVerseAdmin() {
                 });
 
                 setExpandedHistoryIds((prev) => {
-                    const alive = new Set(sliced.map((x) => x.id));
+                    const alive = new Set(list.map((x) => x.id));
                     const next = new Set();
                     prev.forEach((id) => alive.has(id) && next.add(id));
                     return next;
                 });
 
                 setHistoryLangById((prev) => {
-                    const alive = new Set(sliced.map((x) => x.id));
+                    const alive = new Set(list.map((x) => x.id));
                     const next = { ...prev };
                     Object.keys(next).forEach((k) => {
                         if (!alive.has(k)) delete next[k];
                     });
-                    sliced.forEach((h) => {
+                    list.forEach((h) => {
                         if (!next[h.id]) next[h.id] = "ro";
                     });
                     return next;
@@ -747,35 +750,43 @@ export default function MonthlyVerseAdmin() {
                     </div>
 
                     {showHistory ? (
-                        <div className="adminList adminList--history">
-                            {history.map((h) => {
-                                const expanded = expandedHistoryIds.has(h.id);
-                                const base = { reference: h.reference, text: h.text };
-                                const draft = historyDrafts[h.id] || base;
-                                const dirty = !verseEqualTrim(draft, base);
-                                const state = savingHistoryById[h.id] || "idle";
-                                const lang = historyLangById[h.id] || "ro";
+                        <>
+                            <div className="adminList adminList--history">
+                                {historyPagination.paginatedItems.map((h) => {
+                                    const expanded = expandedHistoryIds.has(h.id);
+                                    const base = { reference: h.reference, text: h.text };
+                                    const draft = historyDrafts[h.id] || base;
+                                    const dirty = !verseEqualTrim(draft, base);
+                                    const state = savingHistoryById[h.id] || "idle";
+                                    const lang = historyLangById[h.id] || "ro";
 
-                                return (
-                                    <VerseCard
-                                        key={h.id}
-                                        label={h.id}
-                                        expanded={expanded}
-                                        summary={makeSummary(h.reference, h.text)}
-                                        draft={draft}
-                                        dirty={dirty}
-                                        saveState={state}
-                                        activeLang={lang}
-                                        onLangChange={(l) => setHistoryLangById((m) => ({ ...m, [h.id]: l }))}
-                                        onToggle={() => toggleHistory(h.id)}
-                                        onChangeField={(field, l, value) => setHistoryField(h.id, field, l, value)}
-                                        onSave={() => saveHistory(h.id)}
-                                        onDelete={() => deleteHistory(h.id)}
-                                        deleteTitle="Șterge din istoric"
-                                    />
-                                );
-                            })}
-                        </div>
+                                    return (
+                                        <VerseCard
+                                            key={h.id}
+                                            label={h.id}
+                                            expanded={expanded}
+                                            summary={makeSummary(h.reference, h.text)}
+                                            draft={draft}
+                                            dirty={dirty}
+                                            saveState={state}
+                                            activeLang={lang}
+                                            onLangChange={(l) => setHistoryLangById((m) => ({ ...m, [h.id]: l }))}
+                                            onToggle={() => toggleHistory(h.id)}
+                                            onChangeField={(field, l, value) => setHistoryField(h.id, field, l, value)}
+                                            onSave={() => saveHistory(h.id)}
+                                            onDelete={() => deleteHistory(h.id)}
+                                            deleteTitle="Șterge din istoric"
+                                        />
+                                    );
+                                })}
+                            </div>
+                            <PaginationControls
+                                page={historyPagination.page}
+                                totalPages={historyPagination.totalPages}
+                                onNext={historyPagination.nextPage}
+                                onPrev={historyPagination.prevPage}
+                            />
+                        </>
                     ) : null}
                 </div>
             )}

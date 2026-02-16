@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { collection, deleteDoc, doc, getDoc, onSnapshot, serverTimestamp, setDoc } from "firebase/firestore";
 import { db } from "../../lib/Firebase";
+import { usePagination } from "../hooks/usePagination";
+import PaginationControls from "../components/PaginationControls";
 
 const safeStr = (v) => String(v ?? "");
 
@@ -151,7 +153,7 @@ function NewSubscriberCard({ email, setEmail, errorText, saveState, onCancel, on
     );
 }
 
-const PAGE_SIZE = 3;
+const PAGE_SIZE = 5;
 
 export default function NewsletterAdmin() {
     const mountedRef = useRef(true);
@@ -171,7 +173,16 @@ export default function NewsletterAdmin() {
     const [newError, setNewError] = useState("");
     const [newState, setNewState] = useState("idle");
 
-    const [page, setPage] = useState(0);
+    // Pagination Hook
+    const {
+        page,
+        totalPages,
+        paginatedItems,
+        nextPage,
+        prevPage,
+        setPage,
+        totalItems,
+    } = usePagination(items, PAGE_SIZE);
 
     const setTransientState = (id, value = "saved") => {
         setSaveStateById((m) => ({ ...m, [id]: value }));
@@ -244,11 +255,7 @@ export default function NewsletterAdmin() {
         return () => unsub();
     }, []);
 
-    const totalCount = items.length;
-
-    const totalPages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
     const safePage = Math.min(page, totalPages - 1);
-    const paged = items.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE);
 
     const toggleExpand = useCallback((id) => {
         const key = safeStr(id).trim();
@@ -450,7 +457,7 @@ export default function NewsletterAdmin() {
                 <div className="adminActions">
                     <div className="adminCountPill" title="Total abonați">
                         <span className="adminCountDot" aria-hidden="true" />
-                        {totalCount} abonat{totalCount === 1 ? "" : "i"}
+                        {totalItems} abonat{totalItems === 1 ? "" : "i"}
                     </div>
 
                     <button className="adminBtn adminBtn--new" type="button" onClick={startNew} disabled={loading || showNew}>
@@ -481,7 +488,7 @@ export default function NewsletterAdmin() {
 
 
                     <div className="adminList">
-                        {paged.map((it) => (
+                        {paginatedItems.map((it) => (
                             <SubscriberCard
                                 key={it.id}
                                 item={it}
@@ -499,13 +506,12 @@ export default function NewsletterAdmin() {
                         {!items.length && !showNew ? <div className="adminEmpty">{'Nu exist\u0103 abona\u021bi. Apas\u0103 \u201eNou\u201d.'}</div> : null}
                     </div>
 
-                    {totalPages > 1 && (
-                        <div className="adminPagination">
-                            <button type="button" className="adminSmallBtn" onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={safePage === 0}>◂</button>
-                            <span className="adminPaginationInfo">{safePage + 1} / {totalPages}</span>
-                            <button type="button" className="adminSmallBtn" onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))} disabled={safePage >= totalPages - 1}>▸</button>
-                        </div>
-                    )}
+                    <PaginationControls
+                        page={page}
+                        totalPages={totalPages}
+                        onNext={nextPage}
+                        onPrev={prevPage}
+                    />
                 </div>
             ) : null}
         </div>
