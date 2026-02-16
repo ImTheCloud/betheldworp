@@ -1,6 +1,6 @@
 .gal-section {
     position: relative;
-    padding: 140px 24px 160px;
+    padding: 70px 24px 80px;
     display: flex;
     justify-content: center;
     background: linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
@@ -328,8 +328,13 @@
 }
 
 @keyframes galFade {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 .gal-modal {
@@ -341,12 +346,19 @@
     border: 1px solid rgba(10, 42, 67, 0.12);
     box-shadow: 0 40px 140px rgba(10, 42, 67, 0.4);
     position: relative;
-    animation: galEnter 0.4s cubic-bezier(.2,.8,.2,1);
+    animation: galEnter 0.4s cubic-bezier(.2, .8, .2, 1);
 }
 
 @keyframes galEnter {
-    from { opacity: 0; transform: scale(0.96) translateY(20px); }
-    to { opacity: 1; transform: scale(1) translateY(0); }
+    from {
+        opacity: 0;
+        transform: scale(0.96) translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
 }
 
 .gal-modal--video {
@@ -402,7 +414,7 @@
 
 @media (max-width: 900px) {
     .gal-section {
-        padding: 100px 20px 120px;
+        padding: 50px 20px 60px;
     }
 
     .gal-header {
@@ -453,7 +465,7 @@
 
 @media (max-width: 600px) {
     .gal-section {
-        padding: 80px 18px 100px;
+        padding: 40px 18px 50px;
     }
 
     .gal-header {

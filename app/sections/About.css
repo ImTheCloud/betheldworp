@@ -1,6 +1,6 @@
 .about-section {
     position: relative;
-    padding: 140px 24px 160px;
+    padding: 70px 24px 80px;
     display: flex;
     justify-content: center;
     background: linear-gradient(180deg, #fafbfc 0%, #ffffff 100%);
@@ -126,7 +126,7 @@
 
 @media (max-width: 900px) {
     .about-section {
-        padding: 100px 20px 120px;
+        padding: 50px 20px 60px;
     }
 
     .about-header {
@@ -152,7 +152,7 @@
 
 @media (max-width: 600px) {
     .about-section {
-        padding: 80px 18px 100px;
+        padding: 40px 18px 50px;
     }
 
     .about-header {

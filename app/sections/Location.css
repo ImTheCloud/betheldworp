@@ -1,9 +1,9 @@
 .location-section {
     position: relative;
-    padding: 140px 24px 160px;
+    padding: 70px 24px 80px;
     display: flex;
     justify-content: center;
-    background: linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
+    background: #ffffff;
     overflow: hidden;
 }
 
@@ -152,7 +152,7 @@
 
 @media (max-width: 900px) {
     .location-section {
-        padding: 100px 20px 120px;
+        padding: 50px 20px 60px;
     }
 
     .location-header {
@@ -186,7 +186,7 @@
 
 @media (max-width: 600px) {
     .location-section {
-        padding: 80px 18px 100px;
+        padding: 40px 18px 50px;
     }
 
     .location-header {
