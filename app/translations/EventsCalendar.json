@@ -15,7 +15,7 @@
       "Du"
     ],
     "newsletter": "Newsletter",
-    "newsletter_desc": "Abonează-te la newsletter pentru a fi la curent cu noutățile.",
+    "newsletter_desc": "Nu rata niciun moment special! Primește programul săptămânii pe email atunci când organizăm evenimente deosebite.",
     "email_placeholder": "nume@email.com",
     "subscribe": "Abonează-te",
     "sending": "Se trimite...",
@@ -47,7 +47,7 @@
       "Di"
     ],
     "newsletter": "Newsletter",
-    "newsletter_desc": "Abonnez-vous à la newsletter pour rester informé(e) des nouveautés.",
+    "newsletter_desc": "Ne manquez aucun moment fort ! Recevez le programme de la semaine par e-mail lorsqu'un événement spécial est prévu.",
     "email_placeholder": "nom@email.com",
     "subscribe": "S’abonner",
     "sending": "Envoi...",
@@ -79,7 +79,7 @@
       "Zo"
     ],
     "newsletter": "Nieuwsbrief",
-    "newsletter_desc": "Abonneer je op de nieuwsbrief om op de hoogte te blijven van het nieuws.",
+    "newsletter_desc": "Mis geen enkel hoogtepunt! Ontvang het weekprogramma per e-mail wanneer er een speciaal evenement gepland staat.",
     "email_placeholder": "naam@email.com",
     "subscribe": "Abonneren",
     "sending": "Verzenden...",
@@ -111,7 +111,7 @@
       "Sun"
     ],
     "newsletter": "Newsletter",
-    "newsletter_desc": "Subscribe to the newsletter to stay up to date with the latest news.",
+    "newsletter_desc": "Don't miss any highlights! Receive the weekly schedule via email whenever a special event is planned.",
     "email_placeholder": "name@email.com",
     "subscribe": "Subscribe",
     "sending": "Sending...",

@@ -1,7 +1,7 @@
 {
     "ro": {
         "title": "Abonează-te la noutăți",
-        "desc": "Primește programul săptămânal și anunțuri importante direct pe email.",
+        "desc": "Nu rata niciun moment special! Primește programul săptămânii pe email atunci când organizăm evenimente deosebite.",
         "email_placeholder": "Adresa ta de email",
         "subscribe": "Abonează-te",
         "already_subscribed": "Sunt deja abonat",
@@ -14,7 +14,7 @@
     },
     "fr": {
         "title": "Restez informé",
-        "desc": "Recevez le programme hebdomadaire et les annonces importantes par email.",
+        "desc": "Ne manquez aucun moment fort ! Recevez le programme de la semaine par e-mail lorsqu'un événement spécial est prévu.",
         "email_placeholder": "Votre adresse email",
         "subscribe": "S'abonner",
         "already_subscribed": "Déjà abonné",
@@ -27,7 +27,7 @@
     },
     "nl": {
         "title": "Blijf op de hoogte",
-        "desc": "Ontvang het weekprogramma en belangrijke aankondigingen per e-mail.",
+        "desc": "Mis geen enkel hoogtepunt! Ontvang het weekprogramma per e-mail wanneer er een speciaal evenement gepland staat.",
         "email_placeholder": "Uw e-mailadres",
         "subscribe": "Abonneren",
         "already_subscribed": "Al geabonneerd",
@@ -40,7 +40,7 @@
     },
     "en": {
         "title": "Stay updated",
-        "desc": "Receive the weekly program and important announcements via email.",
+        "desc": "Don't miss any highlights! Receive the weekly schedule via email whenever a special event is planned.",
         "email_placeholder": "Your email address",
         "subscribe": "Subscribe",
         "already_subscribed": "Already subscribed",
