@@ -422,7 +422,7 @@ function NewEventCard({ draft, saveState, errorText, activeLang, onLangChange, o
     );
 }
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 10;
 
 export default function EventsAdmin() {
     const mountedRef = useRef(true);
@@ -746,6 +746,7 @@ export default function EventsAdmin() {
                             totalPages={upcomingPagination.totalPages}
                             onNext={upcomingPagination.nextPage}
                             onPrev={upcomingPagination.prevPage}
+                            onPageSet={upcomingPagination.setPage}
                         />
 
                         {showHistory ? (
@@ -772,6 +773,7 @@ export default function EventsAdmin() {
                                     totalPages={historyPagination.totalPages}
                                     onNext={historyPagination.nextPage}
                                     onPrev={historyPagination.prevPage}
+                                    onPageSet={historyPagination.setPage}
                                 />
                             </div>
                         ) : null}

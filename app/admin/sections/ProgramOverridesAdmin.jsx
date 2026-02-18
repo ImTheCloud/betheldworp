@@ -649,8 +649,8 @@ export default function ProgramOverridesAdmin() {
     const upcomingItems = useMemo(() => items.filter((x) => x.upcoming), [items]);
     const historyItems = useMemo(() => items.filter((x) => !x.upcoming), [items]);
 
-    const upcomingPagination = usePagination(upcomingItems, 5);
-    const historyPagination = usePagination(historyItems, 5);
+    const upcomingPagination = usePagination(upcomingItems, 10);
+    const historyPagination = usePagination(historyItems, 10);
 
     const toggleExpand = useCallback((id) => {
         const key = safeStr(id).trim();
@@ -977,6 +977,7 @@ export default function ProgramOverridesAdmin() {
                             totalPages={upcomingPagination.totalPages}
                             onNext={upcomingPagination.nextPage}
                             onPrev={upcomingPagination.prevPage}
+                            onPageSet={upcomingPagination.setPage}
                         />
 
                         {showHistory ? (
@@ -1006,6 +1007,7 @@ export default function ProgramOverridesAdmin() {
                                     totalPages={historyPagination.totalPages}
                                     onNext={historyPagination.nextPage}
                                     onPrev={historyPagination.prevPage}
+                                    onPageSet={historyPagination.setPage}
                                 />
                             </div>
                         ) : null}

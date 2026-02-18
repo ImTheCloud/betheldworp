@@ -176,6 +176,7 @@ export default function NewsletterAdmin() {
     // Pagination Hook
     const {
         page,
+        setPage,
         totalPages,
         paginatedItems,
         nextPage,
@@ -509,6 +510,7 @@ export default function NewsletterAdmin() {
                             totalPages={totalPages}
                             onNext={nextPage}
                             onPrev={prevPage}
+                            onPageSet={setPage}
                         />
                     </div>
                 </div>

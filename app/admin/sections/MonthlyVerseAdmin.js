@@ -788,6 +788,7 @@ export default function MonthlyVerseAdmin() {
                                     totalPages={historyPagination.totalPages}
                                     onNext={historyPagination.nextPage}
                                     onPrev={historyPagination.prevPage}
+                                    onPageSet={historyPagination.setPage}
                                 />
                             </>
                         ) : null}
