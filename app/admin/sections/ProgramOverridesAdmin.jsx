@@ -985,7 +985,7 @@ export default function ProgramOverridesAdmin() {
                                         onChangeWeekKey={changeWeekKey}
                                         onChangeReplacement={changeReplacement}
                                         onChangeAddition={changeAddition}
-                                        onSave={() => saveOne(it.id)}
+                                        onSave={onSave}
                                         onDelete={onDelete}
                                     />
                                 ))}
@@ -1007,7 +1007,7 @@ export default function ProgramOverridesAdmin() {
                                         onChangeWeekKey={changeWeekKey}
                                         onChangeReplacement={changeReplacement}
                                         onChangeAddition={changeAddition}
-                                        onSave={() => saveOne(it.id)}
+                                        onSave={onSave}
                                         onDelete={onDelete}
                                     />
                                 ))}
