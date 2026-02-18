@@ -1,22 +1,25 @@
-/* StatsAdmin.css - Refined for Full Screen */
+/* StatsAdmin.css - Refined for Full Screen Fixed Layout */
 
 .statsPage {
     width: 100%;
-    max-width: 1600px;
-    /* Limit huge screens slightly but fill most */
-    margin: 0 auto;
-    display: grid;
-    gap: 32px;
+    height: 100%;
+    /* Fill the adminContent area totally */
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    overflow: hidden;
+    /* Prevent page scroll */
 }
 
+/* Header Section (Title + Controls) */
 .statsTop {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 20px;
     flex-wrap: wrap;
-    margin-bottom: 0px;
-    /* Handled by grid gap */
+    flex-shrink: 0;
+    /* Don't shrink header */
 }
 
 /* Revert statsSelect to match the new clean look */
@@ -39,15 +42,21 @@
     background-size: 5px 5px, 5px 5px;
     background-repeat: no-repeat;
     min-width: 200px;
+    transition: all 0.2s ease;
 }
 
 .statsSelect:hover {
     border-color: #0a2a43;
 }
 
+/* Main Content Layout - Flex Column to fill space */
 .statsLayout {
-    display: grid;
-    gap: 24px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-height: 0;
+    /* Crucial for flex nested scrolling */
 }
 
 .statsTabs {
@@ -56,6 +65,7 @@
     gap: 12px;
     border-bottom: 1px solid rgba(10, 42, 67, 0.08);
     padding-bottom: 1px;
+    flex-shrink: 0;
 }
 
 .statsTab {
@@ -80,21 +90,26 @@
     border-bottom-color: #0a2a43;
 }
 
-/* Main Card for the Chart */
+/* Main Card for the Chart - Expand to fill remaining height */
 .statsCard {
     background: #fff;
     border: 1px solid rgba(10, 42, 67, 0.08);
-    /* Minimal border */
     border-radius: 16px;
-    padding: 32px;
-    /* Clean white box */
+    padding: 24px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    /* Crucial */
+    overflow: hidden;
 }
 
 .statsCardTop {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 32px;
+    margin-bottom: 24px;
+    flex-shrink: 0;
 }
 
 .statsCardTitle {
@@ -105,28 +120,34 @@
 }
 
 .statsDonutWrap {
+    flex: 1;
     display: grid;
     /* Two columns: Chart | Legend */
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 400px 1fr;
     gap: 48px;
-    align-items: center;
+    align-items: stretch;
+    min-height: 0;
+    /* Crucial */
+    overflow: hidden;
 }
 
 .statsDonut {
     display: grid;
     place-items: center;
-    /* Make the chart area smaller as requested */
     width: 100%;
-    max-width: 320px;
-    margin: 0 auto;
+    height: 100%;
+    max-height: 100%;
+    overflow: hidden;
 }
 
 .statsDonutSvg {
     width: 100%;
     height: auto;
-    aspect-ratio: 1/1;
-    max-height: 320px;
+    max-height: 100%;
+    max-width: 320px;
+    /* Don't let it get huge */
     display: block;
+    aspect-ratio: 1/1;
 }
 
 .statsDonutBg {
@@ -162,18 +183,20 @@
     text-transform: uppercase;
 }
 
-/* Legend Side */
+/* Legend Side - Scrollable */
 .statsLegend {
-    /* No border for legend container, just flow */
-    display: grid;
-    gap: 20px;
-    align-content: start;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
     height: 100%;
+    min-height: 0;
+    overflow: hidden;
 }
 
 .statsSearch {
     display: grid;
     gap: 8px;
+    flex-shrink: 0;
 }
 
 .statsSearchLabel {
@@ -187,7 +210,7 @@
     width: 100%;
     border: 1px solid rgba(10, 42, 67, 0.15);
     border-radius: 8px;
-    padding: 12px;
+    padding: 10px;
     font-weight: 600;
     color: #0a2a43;
     outline: none;
@@ -205,6 +228,9 @@
     gap: 16px;
     padding-bottom: 12px;
     border-bottom: 2px solid rgba(10, 42, 67, 0.06);
+    flex-shrink: 0;
+    margin-right: 6px;
+    /* Offset for scrollbar alignment */
 }
 
 .statsLegendHeadCell {
@@ -214,20 +240,30 @@
     text-transform: uppercase;
 }
 
+/* THE MAGIC SCROLL AREA */
 .statsLegendScroll {
-    max-height: 400px;
+    flex: 1;
     overflow-y: auto;
-    padding-right: 12px;
+    padding-right: 6px;
+    min-height: 0;
 }
 
-/* Scrollbar specific for legend */
+/* Scrollbar styling */
 .statsLegendScroll::-webkit-scrollbar {
     width: 6px;
+}
+
+.statsLegendScroll::-webkit-scrollbar-track {
+    background: transparent;
 }
 
 .statsLegendScroll::-webkit-scrollbar-thumb {
     background: rgba(10, 42, 67, 0.1);
     border-radius: 4px;
+}
+
+.statsLegendScroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(10, 42, 67, 0.2);
 }
 
 .statsLegendRow {
@@ -246,7 +282,7 @@
 }
 
 .statsLegendName {
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 600;
     color: #0a2a43;
     white-space: nowrap;
@@ -259,13 +295,13 @@
 }
 
 .statsLegendCount {
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 800;
     color: #0a2a43;
 }
 
 .statsLegendPct {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     color: rgba(10, 42, 67, 0.5);
 }
@@ -281,15 +317,37 @@
 @media (max-width: 1100px) {
     .statsDonutWrap {
         grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
         gap: 32px;
     }
 
     .statsDonut {
-        max-width: 320px;
+        max-height: 250px;
+    }
+
+    .statsLegendHead,
+    .statsLegendRow {
+        grid-template-columns: 16px 1fr 80px 60px;
     }
 }
 
 @media (max-width: 600px) {
+    .statsPage {
+        height: auto;
+        overflow: visible;
+        display: block;
+    }
+
+    .statsLayout {
+        display: grid;
+        height: auto;
+    }
+
+    .statsCard {
+        height: auto;
+        flex: none;
+    }
+
     .statsTop {
         flex-direction: column;
         align-items: stretch;
@@ -316,9 +374,14 @@
         padding: 20px;
     }
 
+    .statsLegendScroll {
+        max-height: 400px;
+        /* Revert to max-height for mobile scroll */
+    }
+
     .statsLegendHead,
     .statsLegendRow {
-        grid-template-columns: 16px 1fr 60px 50px;
+        grid-template-columns: 16px 1fr 60px 40px;
         gap: 8px;
         font-size: 13px;
     }

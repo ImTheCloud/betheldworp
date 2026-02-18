@@ -173,7 +173,7 @@ function hsl(i) {
     return `hsl(${hue} 70% 45%)`;
 }
 
-function DonutWithLegend({ title, rows, total, search, onSearch, centerLabel }) {
+function DonutWithLegend({ title, rows, total, search, onSearch, centerLabel, nameLabel }) {
     const base = rows.filter((r) => (Number(r.count) || 0) > 0);
 
     const q = s(search).trim().toLowerCase();
@@ -297,7 +297,7 @@ function DonutWithLegend({ title, rows, total, search, onSearch, centerLabel }) 
                     </label>
 
                     <div className="statsLegendHead">
-                        <div className="statsLegendHeadCell">Name</div>
+                        <div className="statsLegendHeadCell">{nameLabel || "Name"}</div>
                         <div className="statsLegendHeadCell statsRight">Visits</div>
                         <div className="statsLegendHeadCell statsRight">100%</div>
                     </div>
@@ -513,6 +513,13 @@ export default function StatsAdmin() {
         { id: "devices", label: "Devices" },
     ];
 
+    const nameLabel = useMemo(() => {
+        if (mode === "countries") return "Country";
+        if (mode === "cities") return "City";
+        if (mode === "languages") return "Language";
+        return "Device";
+    }, [mode]);
+
     const centerLabel = source === "bots" ? "bots" : source === "unique" ? "visitors" : "visits";
 
     return (
@@ -581,6 +588,7 @@ export default function StatsAdmin() {
                         search={search}
                         onSearch={setSearch}
                         centerLabel={centerLabel}
+                        nameLabel={nameLabel}
                     />
                 </div>
             )}
