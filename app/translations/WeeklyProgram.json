@@ -27,8 +27,8 @@
     "act_sun_pm": "Serviciu Divin (Seara)",
     "week_label": "Săptămâna {n}",
     "see_event": "Vezi detalii ↗",
-    "clickable_hint_one": "1 modificare · apasă pe cardul evidențiat pentru a vedea mai multe detalii.",
-    "clickable_hint_many": "{n} modificări · apasă pe cardurile evidențiate pentru a vedea mai multe detalii."
+    "clickable_hint_one": "Există 1 modificare această săptămână · apasă pe cardul evidențiat pentru detalii.",
+    "clickable_hint_many": "Există {n} modificări această săptămână · apasă pe cardurile evidențiate pentru detalii."
   },
   "fr": {
     "title": "Programme hebdomadaire",
@@ -58,8 +58,8 @@
     "act_sun_pm": "Culte (soir)",
     "week_label": "Semaine {n}",
     "see_event": "Voir détails ↗",
-    "clickable_hint_one": "1 modification · cliquez sur la carte en surbrillance pour voir plus de détails.",
-    "clickable_hint_many": "{n} modifications · cliquez sur les cartes en surbrillance pour voir plus de détails."
+    "clickable_hint_one": "Il y a 1 modification cette semaine · cliquez sur la carte en surbrillance pour voir les détails.",
+    "clickable_hint_many": "Il y a {n} modifications cette semaine · cliquez sur les cartes en surbrillance pour voir les détails."
   },
   "nl": {
     "title": "Weekprogramma",
@@ -89,8 +89,8 @@
     "act_sun_pm": "Eredienst (avond)",
     "week_label": "Week {n}",
     "see_event": "Details bekijken ↗",
-    "clickable_hint_one": "1 wijziging · klik op de gemarkeerde kaart om meer details te zien.",
-    "clickable_hint_many": "{n} wijzigingen · klik op de gemarkeerde kaarten om meer details te zien."
+    "clickable_hint_one": "Er is 1 wijziging deze week · klik op de gemarkeerde kaart om de details te zien.",
+    "clickable_hint_many": "Er zijn {n} wijzigingen deze week · klik op de gemarkeerde kaarten om de details te zien."
   },
   "en": {
     "title": "Weekly program",
@@ -120,7 +120,7 @@
     "act_sun_pm": "Service (evening)",
     "week_label": "Week {n}",
     "see_event": "See details ↗",
-    "clickable_hint_one": "1 change · click the highlighted card to see more details.",
-    "clickable_hint_many": "{n} changes · click the highlighted cards to see more details."
+    "clickable_hint_one": "There is 1 change this week · click the highlighted card to see details.",
+    "clickable_hint_many": "There are {n} changes this week · click the highlighted cards to see details."
   }
 }

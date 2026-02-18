@@ -245,7 +245,6 @@ export default function Program() {
                     <div className="program-weekNav">
                         <button type="button" className="program-weekNavBtn" onClick={goPrev} aria-label="Previous week">‹</button>
                         <div className="program-navText">
-                            <div className="program-weekNum">{weekInfo.weekLabel}</div>
                             <div className="program-subtitle">{weekInfo.rangeLong}</div>
                         </div>
                         <button type="button" className="program-weekNavBtn" onClick={goNext} aria-label="Next week">›</button>
