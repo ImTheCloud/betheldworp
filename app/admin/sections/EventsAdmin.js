@@ -5,6 +5,7 @@ import { collection, deleteDoc, doc, onSnapshot, setDoc } from "firebase/firesto
 import { db } from "../../lib/Firebase";
 import { usePagination } from "../hooks/usePagination";
 import PaginationControls from "../components/PaginationControls";
+import ImagePicker from "../components/ImagePicker";
 
 function safeStr(v) {
     return String(v ?? "");
@@ -246,10 +247,9 @@ function EventCard({ item, expanded, draft, saveState, errorText, activeLang, on
 
                     <label className="adminLabel">
                         Image
-                        <input
-                            className="adminInput"
+                        <ImagePicker
                             value={safeStr(draft?.image)}
-                            onChange={(e) => onChangeField(id, "image", null, e.target.value)}
+                            onChange={(val) => onChangeField(id, "image", null, val)}
                         />
                     </label>
 
@@ -372,10 +372,9 @@ function NewEventCard({ draft, saveState, errorText, activeLang, onLangChange, o
 
             <label className="adminLabel">
                 Image
-                <input
-                    className="adminInput"
+                <ImagePicker
                     value={safeStr(draft?.image)}
-                    onChange={(e) => onChangeField("image", null, e.target.value)}
+                    onChange={(val) => onChangeField("image", null, val)}
                 />
             </label>
 
