@@ -424,4 +424,21 @@
         font-size: 15px;
         margin-bottom: 12px;
     }
+
+    .program-cardTop {
+        gap: 4px;
+    }
+
+    .program-day {
+        font-size: 10px;
+    }
+
+    .program-statusPill {
+        font-size: 8.5px;
+        padding: 2px 5px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 65%;
+    }
 }
