@@ -447,8 +447,8 @@ export default function NewsletterAdmin() {
     };
 
     return (
-        <div className="adminCard">
-            <div className="adminTop">
+        <div className="adminFullPage">
+            <div className="adminFullTop">
                 <h2 className="adminTitle">Newsletter</h2>
 
                 <div className="adminActions">
@@ -466,25 +466,27 @@ export default function NewsletterAdmin() {
                 </div>
             </div>
 
-            {loading ? <div className="adminSkeleton" /> : null}
+            {loading ? <div className="adminSkeleton" style={{ margin: "0 24px" }} /> : null}
 
             {!loading ? (
-                <div className="adminForm adminForm--edit">
+                <div className="adminFullContent">
                     {globalError ? <div className="adminAlert">{globalError}</div> : null}
 
                     {showNew ? (
-                        <NewSubscriberCard
-                            email={newEmail}
-                            setEmail={setNewEmail}
-                            errorText={newError}
-                            saveState={newState}
-                            onCancel={cancelNew}
-                            onSave={saveNew}
-                        />
+                        <div style={{ padding: "0 4px" }}>
+                            <NewSubscriberCard
+                                email={newEmail}
+                                setEmail={setNewEmail}
+                                errorText={newError}
+                                saveState={newState}
+                                onCancel={cancelNew}
+                                onSave={saveNew}
+                            />
+                        </div>
                     ) : null}
 
 
-                    <div className="adminList">
+                    <div className="adminFullList">
                         {paginatedItems.map((it) => (
                             <SubscriberCard
                                 key={it.id}
@@ -501,14 +503,14 @@ export default function NewsletterAdmin() {
                         ))}
 
                         {!items.length && !showNew ? <div className="adminEmpty">No subscribers. Click “New”.</div> : null}
-                    </div>
 
-                    <PaginationControls
-                        page={page}
-                        totalPages={totalPages}
-                        onNext={nextPage}
-                        onPrev={prevPage}
-                    />
+                        <PaginationControls
+                            page={page}
+                            totalPages={totalPages}
+                            onNext={nextPage}
+                            onPrev={prevPage}
+                        />
+                    </div>
                 </div>
             ) : null}
         </div>

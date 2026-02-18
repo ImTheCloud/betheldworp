@@ -523,46 +523,11 @@ export default function StatsAdmin() {
     const centerLabel = source === "bots" ? "bots" : source === "unique" ? "visitors" : "visits";
 
     return (
-        <div className="statsPage">
-            <div className="statsTop">
+        <div className="adminFullPage">
+            <div className="adminFullTop">
                 <h2 className="adminTitle">Statistics</h2>
 
-                <div className="statsTopRight">
-                    <select
-                        className="statsSelect"
-                        value={source}
-                        onChange={(e) => {
-                            setSource(e.target.value);
-                            setSearch("");
-                        }}
-                        aria-label="Select source"
-                    >
-                        <option value="visits">{HUMAN_ICON} Human Visits</option>
-                        <option value="unique">{HUMAN_ICON} Unique Visitors</option>
-                        <option value="bots">{BOT_ICON} Detected Bots</option>
-                    </select>
-
-                    <select
-                        className="statsSelect"
-                        value={rangeMode}
-                        onChange={(e) => setRangeMode(e.target.value)}
-                        aria-label="Select range"
-                    >
-                        <option value="all">{`All time (${siteStartLabel})`}</option>
-                        <option value="today">Today</option>
-                        <option value="7">Last 7 days</option>
-                        <option value="30">Last 30 days</option>
-                        <option value="90">Last 90 days</option>
-                    </select>
-                </div>
-            </div>
-
-            {loading ? (
-                <div className="adminSkeleton" />
-            ) : (
-                <div className="statsLayout">
-                    {error ? <div className="adminAlert">{error}</div> : null}
-
+                <div className="adminActions" style={{ flexWrap: "wrap", justifyContent: "flex-end", flex: 1 }}>
                     <div className="statsTabs" role="tablist" aria-label="Charts">
                         {modeTabs.map((t) => (
                             <button
@@ -580,6 +545,43 @@ export default function StatsAdmin() {
                             </button>
                         ))}
                     </div>
+
+                    <div className="statsControls">
+                        <select
+                            className="statsSelect"
+                            value={source}
+                            onChange={(e) => {
+                                setSource(e.target.value);
+                                setSearch("");
+                            }}
+                            aria-label="Select source"
+                        >
+                            <option value="visits">Human Visits</option>
+                            <option value="unique">Unique Visitors</option>
+                            <option value="bots">Detected Bots</option>
+                        </select>
+
+                        <select
+                            className="statsSelect"
+                            value={rangeMode}
+                            onChange={(e) => setRangeMode(e.target.value)}
+                            aria-label="Select range"
+                        >
+                            <option value="all">{`All time`}</option>
+                            <option value="today">Today</option>
+                            <option value="7">Last 7 days</option>
+                            <option value="30">Last 30 days</option>
+                            <option value="90">Last 90 days</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            {loading ? (
+                <div className="adminSkeleton" style={{ margin: "0 24px" }} />
+            ) : (
+                <div className="adminFullContent">
+                    {error ? <div className="adminAlert">{error}</div> : null}
 
                     <DonutWithLegend
                         title={donutTitle}

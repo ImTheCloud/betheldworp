@@ -898,8 +898,8 @@ export default function ProgramOverridesAdmin() {
     };
 
     return (
-        <div className="adminCard">
-            <div className="adminTop">
+        <div className="adminFullPage">
+            <div className="adminFullTop">
                 <h2 className="adminTitle">Program Overrides</h2>
 
                 <div className="adminActions">
@@ -912,8 +912,9 @@ export default function ProgramOverridesAdmin() {
                         <span className="adminBtnIcon" aria-hidden="true">
                             <IconPlus />
                         </span>
-                        New
+                        New Override
                     </button>
+
                     {historyItems.length > 0 && (
                         <button
                             className="adminSmallBtn"
@@ -927,27 +928,30 @@ export default function ProgramOverridesAdmin() {
             </div>
 
             {loading ? (
-                <div className="adminSkeleton" />
+                <div className="adminSkeleton" style={{ margin: "0 24px" }} />
             ) : (
-                <div className="adminForm adminForm--edit">
+                <div className="adminFullContent">
                     {globalError ? <div className="adminAlert">{globalError}</div> : null}
 
                     {showNew ? (
-                        <NewOverrideCard
-                            draft={newDraft}
-                            saveState={newState}
-                            errorText={newError}
-                            eventsList={eventsList}
-                            onToggleAffected={toggleAffected}
-                            onChangeWeekKey={changeWeekKey}
-                            onChangeReplacement={changeReplacement}
-                            onChangeAddition={changeAddition}
-                            onCancel={cancelNew}
-                            onSave={saveNew}
-                        />
+                        <div style={{ padding: "0 4px" }}>
+                            <NewOverrideCard
+                                draft={newDraft}
+                                saveState={newState}
+                                errorText={newError}
+                                eventsList={eventsList}
+                                weekKeyForCard={newDraft.weekKey}
+                                onToggleAffected={toggleAffected}
+                                onChangeWeekKey={changeWeekKey}
+                                onChangeReplacement={changeReplacement}
+                                onChangeAddition={changeAddition}
+                                onCancel={cancelNew}
+                                onSave={saveNew}
+                            />
+                        </div>
                     ) : null}
 
-                    <div className="adminList">
+                    <div className="adminFullList">
                         {upcomingPagination.paginatedItems.map((it) => (
                             <OverrideCard
                                 key={it.id}
@@ -957,52 +961,55 @@ export default function ProgramOverridesAdmin() {
                                 saveState={saveStateById[it.id] || "idle"}
                                 errorText={errorById[it.id] || ""}
                                 eventsList={eventsList}
+                                weekKeyForCard={safeStr(draftsById[it.id]?.weekKey ?? it.weekKey)}
                                 onToggleExpand={toggleExpand}
                                 onToggleAffected={toggleAffected}
                                 onChangeWeekKey={changeWeekKey}
                                 onChangeReplacement={changeReplacement}
                                 onChangeAddition={changeAddition}
-                                onSave={onSave}
+                                onSave={() => saveOne(it.id)}
                                 onDelete={onDelete}
                             />
                         ))}
-                    </div>
-                    <PaginationControls
-                        page={upcomingPagination.page}
-                        totalPages={upcomingPagination.totalPages}
-                        onNext={upcomingPagination.nextPage}
-                        onPrev={upcomingPagination.prevPage}
-                    />
 
-                    {showHistory ? (
-                        <div className="adminList adminList--history">
-                            <h3 className="adminSubtitle">History</h3>
-                            {historyPagination.paginatedItems.map((it) => (
-                                <OverrideCard
-                                    key={it.id}
-                                    item={it}
-                                    expanded={expandedIds.has(it.id)}
-                                    draft={draftsById[it.id]}
-                                    saveState={saveStateById[it.id] || "idle"}
-                                    errorText={errorById[it.id] || ""}
-                                    eventsList={eventsList}
-                                    onToggleExpand={toggleExpand}
-                                    onToggleAffected={toggleAffected}
-                                    onChangeWeekKey={changeWeekKey}
-                                    onChangeReplacement={changeReplacement}
-                                    onChangeAddition={changeAddition}
-                                    onSave={onSave}
-                                    onDelete={onDelete}
+                        <PaginationControls
+                            page={upcomingPagination.page}
+                            totalPages={upcomingPagination.totalPages}
+                            onNext={upcomingPagination.nextPage}
+                            onPrev={upcomingPagination.prevPage}
+                        />
+
+                        {showHistory ? (
+                            <div className="adminList adminList--history" style={{ marginTop: 32 }}>
+                                <h3 className="adminSubtitle">History</h3>
+                                {historyPagination.paginatedItems.map((it) => (
+                                    <OverrideCard
+                                        key={it.id}
+                                        item={it}
+                                        expanded={expandedIds.has(it.id)}
+                                        draft={draftsById[it.id]}
+                                        saveState={saveStateById[it.id] || "idle"}
+                                        errorText={errorById[it.id] || ""}
+                                        eventsList={eventsList}
+                                        weekKeyForCard={safeStr(draftsById[it.id]?.weekKey ?? it.weekKey)}
+                                        onToggleExpand={toggleExpand}
+                                        onToggleAffected={toggleAffected}
+                                        onChangeWeekKey={changeWeekKey}
+                                        onChangeReplacement={changeReplacement}
+                                        onChangeAddition={changeAddition}
+                                        onSave={() => saveOne(it.id)}
+                                        onDelete={onDelete}
+                                    />
+                                ))}
+                                <PaginationControls
+                                    page={historyPagination.page}
+                                    totalPages={historyPagination.totalPages}
+                                    onNext={historyPagination.nextPage}
+                                    onPrev={historyPagination.prevPage}
                                 />
-                            ))}
-                            <PaginationControls
-                                page={historyPagination.page}
-                                totalPages={historyPagination.totalPages}
-                                onNext={historyPagination.nextPage}
-                                onPrev={historyPagination.prevPage}
-                            />
-                        </div>
-                    ) : null}
+                            </div>
+                        ) : null}
+                    </div>
                 </div>
             )}
         </div>

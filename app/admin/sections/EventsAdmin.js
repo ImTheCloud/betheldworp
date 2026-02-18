@@ -673,8 +673,8 @@ export default function EventsAdmin() {
     };
 
     return (
-        <div className="adminCard">
-            <div className="adminTop">
+        <div className="adminFullPage">
+            <div className="adminFullTop">
                 <h2 className="adminTitle">Events</h2>
 
                 <div className="adminActions">
@@ -703,25 +703,27 @@ export default function EventsAdmin() {
             </div>
 
             {loading ? (
-                <div className="adminSkeleton" />
+                <div className="adminSkeleton" style={{ margin: "0 24px" }} />
             ) : (
-                <div className="adminForm adminForm--edit">
+                <div className="adminFullContent">
                     {globalError ? <div className="adminAlert">{globalError}</div> : null}
 
                     {showNew ? (
-                        <NewEventCard
-                            draft={newDraft}
-                            saveState={newState}
-                            errorText={newError}
-                            activeLang={newLang}
-                            onLangChange={setNewLang}
-                            onChangeField={changeNewField}
-                            onCancel={cancelNew}
-                            onSave={saveNew}
-                        />
+                        <div style={{ padding: "0 4px" }}>
+                            <NewEventCard
+                                draft={newDraft}
+                                saveState={newState}
+                                errorText={newError}
+                                activeLang={newLang}
+                                onLangChange={setNewLang}
+                                onChangeField={changeNewField}
+                                onCancel={cancelNew}
+                                onSave={saveNew}
+                            />
+                        </div>
                     ) : null}
 
-                    <div className="adminList">
+                    <div className="adminFullList">
                         {upcomingPagination.paginatedItems.map((it) => (
                             <EventCard
                                 key={it.id}
@@ -738,41 +740,42 @@ export default function EventsAdmin() {
                                 onDelete={deleteOne}
                             />
                         ))}
-                    </div>
-                    <PaginationControls
-                        page={upcomingPagination.page}
-                        totalPages={upcomingPagination.totalPages}
-                        onNext={upcomingPagination.nextPage}
-                        onPrev={upcomingPagination.prevPage}
-                    />
 
-                    {showHistory ? (
-                        <div className="adminList adminList--history">
-                            <h3 className="adminSubtitle">History</h3>
-                            {historyPagination.paginatedItems.map((it) => (
-                                <EventCard
-                                    key={it.id}
-                                    item={it}
-                                    expanded={expandedIds.has(it.id)}
-                                    draft={draftsById[it.id]}
-                                    saveState={saveStateById[it.id] || "idle"}
-                                    errorText={errorById[it.id] || ""}
-                                    activeLang={activeLangById[it.id]}
-                                    onLangChange={(id, l) => setActiveLangById((m) => ({ ...m, [id]: l }))}
-                                    onToggle={toggleExpand}
-                                    onChangeField={changeField}
-                                    onSave={saveOne}
-                                    onDelete={deleteOne}
+                        <PaginationControls
+                            page={upcomingPagination.page}
+                            totalPages={upcomingPagination.totalPages}
+                            onNext={upcomingPagination.nextPage}
+                            onPrev={upcomingPagination.prevPage}
+                        />
+
+                        {showHistory ? (
+                            <div className="adminList adminList--history" style={{ marginTop: 32 }}>
+                                <h3 className="adminSubtitle">History</h3>
+                                {historyPagination.paginatedItems.map((it) => (
+                                    <EventCard
+                                        key={it.id}
+                                        item={it}
+                                        expanded={expandedIds.has(it.id)}
+                                        draft={draftsById[it.id]}
+                                        saveState={saveStateById[it.id] || "idle"}
+                                        errorText={errorById[it.id] || ""}
+                                        activeLang={activeLangById[it.id]}
+                                        onLangChange={(id, l) => setActiveLangById((m) => ({ ...m, [id]: l }))}
+                                        onToggle={toggleExpand}
+                                        onChangeField={changeField}
+                                        onSave={saveOne}
+                                        onDelete={deleteOne}
+                                    />
+                                ))}
+                                <PaginationControls
+                                    page={historyPagination.page}
+                                    totalPages={historyPagination.totalPages}
+                                    onNext={historyPagination.nextPage}
+                                    onPrev={historyPagination.prevPage}
                                 />
-                            ))}
-                            <PaginationControls
-                                page={historyPagination.page}
-                                totalPages={historyPagination.totalPages}
-                                onNext={historyPagination.nextPage}
-                                onPrev={historyPagination.prevPage}
-                            />
-                        </div>
-                    ) : null}
+                            </div>
+                        ) : null}
+                    </div>
                 </div>
             )}
         </div>
