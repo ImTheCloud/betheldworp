@@ -454,9 +454,14 @@
     box-shadow: 0 4px 12px rgba(10, 42, 67, 0.05);
 }
 
+.adminList--history .adminAnnCard {
+    opacity: 0.75;
+    /* removed background color as requested */
+}
+
 .adminAnnCard.is-active {
-    /* No special border for active items as requested */
-    border-color: rgba(10, 42, 67, 0.04);
+    /* Same border for active items as requested */
+    border-color: rgba(10, 42, 67, 0.12);
     box-shadow: none;
 }
 

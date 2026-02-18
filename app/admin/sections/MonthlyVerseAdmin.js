@@ -688,7 +688,10 @@ export default function MonthlyVerseAdmin() {
     return (
         <div className="adminFullPage">
             <div className="adminFullTop">
-                <h2 className="adminTitle">Monthly Verse</h2>
+                <h2 className="adminTitle">
+                    Monthly Verse{' '}
+                    {showHistory && <span className="adminTitleBadge">History</span>}
+                </h2>
 
                 <div className="adminActions">
                     <button
@@ -739,65 +742,61 @@ export default function MonthlyVerseAdmin() {
                     ) : null}
 
                     <div className="adminFullList">
-                        <VerseCard
-                            label="Current"
-                            expanded={expandedCurrent}
-                            summary={currentSummary}
-                            draft={currentDraft}
-                            dirty={currentDirty}
-                            saveState={saveCurrentState}
-                            activeLang={currentLang}
-                            onLangChange={setCurrentLang}
-                            onToggle={() => setExpandedCurrent((v) => !v)}
-                            onChangeField={(field, lang, value) => {
-                                const l = safeStr(lang).trim() || "ro";
-                                setCurrentDraft((s) => ({
-                                    ...s,
-                                    [field]: { ...(s[field] || emptyLangMap()), [l]: value },
-                                }));
-                                if (error) setError("");
-                                if (saveCurrentState !== "idle") setSaveCurrentState("idle");
-                            }}
-                            onSave={saveCurrent}
-                            onDelete={deleteCurrent}
-                            deleteTitle="Delete current verse"
-                        />
+                        {!showHistory ? (
+                            <VerseCard
+                                label="Current"
+                                expanded={expandedCurrent}
+                                summary={currentSummary}
+                                draft={currentDraft}
+                                dirty={currentDirty}
+                                saveState={saveCurrentState}
+                                activeLang={currentLang}
+                                onLangChange={setCurrentLang}
+                                onToggle={() => setExpandedCurrent((v) => !v)}
+                                onChangeField={(field, lang, value) => {
+                                    const l = safeStr(lang).trim() || "ro";
+                                    setCurrentDraft((s) => ({
+                                        ...s,
+                                        [field]: { ...(s[field] || emptyLangMap()), [l]: value },
+                                    }));
+                                    if (error) setError("");
+                                    if (saveCurrentState !== "idle") setSaveCurrentState("idle");
+                                }}
+                                onSave={saveCurrent}
+                                onDelete={deleteCurrent}
+                                deleteTitle="Delete current verse"
+                            />
+                        ) : (
+                            <div className="adminList adminList--history">
+                                {historyPagination.paginatedItems.map((h) => {
+                                    const expanded = expandedHistoryIds.has(h.id);
+                                    const base = { reference: h.reference, text: h.text };
+                                    const draft = historyDrafts[h.id] || base;
+                                    const dirty = !verseEqualTrim(draft, base);
+                                    const state = savingHistoryById[h.id] || "idle";
+                                    const lang = historyLangById[h.id] || "ro";
 
-                        <div style={{ paddingBottom: 16 }} />
-
-                        {showHistory ? (
-                            <>
-                                <div className="adminList adminList--history">
-                                    {historyPagination.paginatedItems.map((h) => {
-                                        const expanded = expandedHistoryIds.has(h.id);
-                                        const base = { reference: h.reference, text: h.text };
-                                        const draft = historyDrafts[h.id] || base;
-                                        const dirty = !verseEqualTrim(draft, base);
-                                        const state = savingHistoryById[h.id] || "idle";
-                                        const lang = historyLangById[h.id] || "ro";
-
-                                        return (
-                                            <VerseCard
-                                                key={h.id}
-                                                label={h.id}
-                                                expanded={expanded}
-                                                summary={makeSummary(h.reference, h.text)}
-                                                draft={draft}
-                                                dirty={dirty}
-                                                saveState={state}
-                                                activeLang={lang}
-                                                onLangChange={(l) => setHistoryLangById((m) => ({ ...m, [h.id]: l }))}
-                                                onToggle={() => toggleHistory(h.id)}
-                                                onChangeField={(field, l, value) => setHistoryField(h.id, field, l, value)}
-                                                onSave={() => saveHistory(h.id)}
-                                                onDelete={() => deleteHistory(h.id)}
-                                                deleteTitle="Delete from history"
-                                            />
-                                        );
-                                    })}
-                                </div>
-                            </>
-                        ) : null}
+                                    return (
+                                        <VerseCard
+                                            key={h.id}
+                                            label={h.id}
+                                            expanded={expanded}
+                                            summary={makeSummary(h.reference, h.text)}
+                                            draft={draft}
+                                            dirty={dirty}
+                                            saveState={state}
+                                            activeLang={lang}
+                                            onLangChange={(l) => setHistoryLangById((m) => ({ ...m, [h.id]: l }))}
+                                            onToggle={() => toggleHistory(h.id)}
+                                            onChangeField={(field, l, value) => setHistoryField(h.id, field, l, value)}
+                                            onSave={() => saveHistory(h.id)}
+                                            onDelete={() => deleteHistory(h.id)}
+                                            deleteTitle="Delete from history"
+                                        />
+                                    );
+                                })}
+                            </div>
+                        )}
                     </div>
 
                     <div className="adminPaginationFooter">
@@ -809,9 +808,7 @@ export default function MonthlyVerseAdmin() {
                                 onPrev={historyPagination.prevPage}
                                 onPageSet={historyPagination.setPage}
                             />
-                        ) : (
-                            <div style={{ padding: 20 }} /> /* Spacer if no pagination needed when history hidden */
-                        )}
+                        ) : null}
                     </div>
                 </div>
             )}
