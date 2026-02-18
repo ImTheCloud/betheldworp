@@ -153,7 +153,7 @@ function NewSubscriberCard({ email, setEmail, errorText, saveState, onCancel, on
     );
 }
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 10;
 
 export default function NewsletterAdmin() {
     const mountedRef = useRef(true);
@@ -504,7 +504,9 @@ export default function NewsletterAdmin() {
                         ))}
 
                         {!items.length && !showNew ? <div className="adminEmpty">No subscribers. Click “New”.</div> : null}
+                    </div>
 
+                    <div className="adminPaginationFooter">
                         <PaginationControls
                             page={page}
                             totalPages={totalPages}

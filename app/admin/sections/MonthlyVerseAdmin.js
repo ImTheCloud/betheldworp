@@ -370,7 +370,7 @@ export default function MonthlyVerseAdmin() {
 
     const CURRENT_REF = useMemo(() => doc(db, "monthly_verse", "current"), []);
 
-    const historyPagination = usePagination(history, 5);
+    const historyPagination = usePagination(history, 10);
 
     const setTransientState = (setter, value = "saved") => {
         setter(value);
@@ -783,15 +783,22 @@ export default function MonthlyVerseAdmin() {
                                         );
                                     })}
                                 </div>
-                                <PaginationControls
-                                    page={historyPagination.page}
-                                    totalPages={historyPagination.totalPages}
-                                    onNext={historyPagination.nextPage}
-                                    onPrev={historyPagination.prevPage}
-                                    onPageSet={historyPagination.setPage}
-                                />
                             </>
                         ) : null}
+                    </div>
+
+                    <div className="adminPaginationFooter">
+                        {showHistory ? (
+                            <PaginationControls
+                                page={historyPagination.page}
+                                totalPages={historyPagination.totalPages}
+                                onNext={historyPagination.nextPage}
+                                onPrev={historyPagination.prevPage}
+                                onPageSet={historyPagination.setPage}
+                            />
+                        ) : (
+                            <div style={{ padding: 20 }} /> /* Spacer if no pagination needed when history hidden */
+                        )}
                     </div>
                 </div>
             )}

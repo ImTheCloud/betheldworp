@@ -972,14 +972,6 @@ export default function ProgramOverridesAdmin() {
                             />
                         ))}
 
-                        <PaginationControls
-                            page={upcomingPagination.page}
-                            totalPages={upcomingPagination.totalPages}
-                            onNext={upcomingPagination.nextPage}
-                            onPrev={upcomingPagination.prevPage}
-                            onPageSet={upcomingPagination.setPage}
-                        />
-
                         {showHistory ? (
                             <div className="adminList adminList--history" style={{ marginTop: 32 }}>
                                 <h3 className="adminSubtitle">History</h3>
@@ -1011,6 +1003,16 @@ export default function ProgramOverridesAdmin() {
                                 />
                             </div>
                         ) : null}
+                    </div>
+
+                    <div className="adminPaginationFooter">
+                        <PaginationControls
+                            page={upcomingPagination.page}
+                            totalPages={upcomingPagination.totalPages}
+                            onNext={upcomingPagination.nextPage}
+                            onPrev={upcomingPagination.prevPage}
+                            onPageSet={upcomingPagination.setPage}
+                        />
                     </div>
                 </div>
             )}

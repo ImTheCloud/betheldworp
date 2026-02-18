@@ -440,7 +440,8 @@
 
 .adminAnnCard {
     border-radius: 12px;
-    border: 1px solid rgba(10, 42, 67, 0.04);
+    border: 1px solid rgba(10, 42, 67, 0.12);
+    /* Very light border as requested */
     background: #fff;
     padding: 16px;
     transition: all 0.15s ease;
@@ -449,7 +450,7 @@
 }
 
 .adminAnnCard:hover {
-    border-color: rgba(10, 42, 67, 0.15);
+    border-color: rgba(10, 42, 67, 0.25);
     box-shadow: 0 4px 12px rgba(10, 42, 67, 0.05);
 }
 
