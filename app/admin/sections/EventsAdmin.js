@@ -51,10 +51,8 @@ function cleanEvent(draft) {
         image: safeStr(draft.image).trim(),
         title: normalizeLangMap(draft.title),
         description: normalizeLangMap(draft.description),
-        location: normalizeLangMap(draft.location),
-        address: normalizeLangMap(draft.address),
-        buttonText: normalizeLangMap(draft.buttonText),
-        buttonLink: safeStr(draft.buttonLink).trim(),
+        place: safeStr(draft.place).trim(),
+        address: safeStr(draft.address).trim(),
     };
 }
 
@@ -71,10 +69,8 @@ function normalizeEvent(data) {
         image: safeStr(d.image).trim(),
         title: normalizeLangMap(d.title),
         description: normalizeLangMap(d.description),
-        location: normalizeLangMap(d.location),
-        address: normalizeLangMap(d.address),
-        buttonText: normalizeLangMap(d.buttonText),
-        buttonLink: safeStr(d.buttonLink).trim(),
+        place: safeStr(d.place).trim(),
+        address: safeStr(d.address).trim(),
     };
 }
 
@@ -190,34 +186,6 @@ function EventCard({ item, expanded, draft, saveState, errorText, activeLang, on
                         ))}
                     </div>
 
-                    <div className="adminGrid2">
-                        <label className="adminLabel">
-                            Date (YYYY-MM-DD or DD.MM.YYYY)
-                            <input
-                                className="adminInput"
-                                value={safeStr(draft?.dateEvent)}
-                                onChange={(e) => onChangeField(id, "dateEvent", null, e.target.value)}
-                            />
-                        </label>
-                        <label className="adminLabel">
-                            Time (HH:MM or text)
-                            <input
-                                className="adminInput"
-                                value={safeStr(draft?.time)}
-                                onChange={(e) => onChangeField(id, "time", null, e.target.value)}
-                            />
-                        </label>
-                    </div>
-
-                    <label className="adminLabel">
-                        Image (URL)
-                        <input
-                            className="adminInput"
-                            value={safeStr(draft?.image)}
-                            onChange={(e) => onChangeField(id, "image", null, e.target.value)}
-                        />
-                    </label>
-
                     <label className="adminLabel">
                         Title ({langKey.toUpperCase()})
                         <input
@@ -239,41 +207,51 @@ function EventCard({ item, expanded, draft, saveState, errorText, activeLang, on
 
                     <div className="adminGrid2">
                         <label className="adminLabel">
-                            Location ({langKey.toUpperCase()})
+                            Date
                             <input
+                                type="date"
                                 className="adminInput"
-                                value={safeStr(draft?.location?.[langKey])}
-                                onChange={(e) => onChangeField(id, "location", langKey, e.target.value)}
+                                value={safeStr(draft?.dateEvent)}
+                                onChange={(e) => onChangeField(id, "dateEvent", null, e.target.value)}
                             />
                         </label>
                         <label className="adminLabel">
-                            Address ({langKey.toUpperCase()})
+                            Time
                             <input
                                 className="adminInput"
-                                value={safeStr(draft?.address?.[langKey])}
-                                onChange={(e) => onChangeField(id, "address", langKey, e.target.value)}
+                                value={safeStr(draft?.time)}
+                                onChange={(e) => onChangeField(id, "time", null, e.target.value)}
                             />
                         </label>
                     </div>
 
                     <div className="adminGrid2">
                         <label className="adminLabel">
-                            Button Title ({langKey.toUpperCase()})
+                            Location
                             <input
                                 className="adminInput"
-                                value={safeStr(draft?.buttonText?.[langKey])}
-                                onChange={(e) => onChangeField(id, "buttonText", langKey, e.target.value)}
+                                value={safeStr(draft?.place)}
+                                onChange={(e) => onChangeField(id, "place", null, e.target.value)}
                             />
                         </label>
                         <label className="adminLabel">
-                            Button Link (URL)
+                            Address
                             <input
                                 className="adminInput"
-                                value={safeStr(draft?.buttonLink)}
-                                onChange={(e) => onChangeField(id, "buttonLink", null, e.target.value)}
+                                value={safeStr(draft?.address)}
+                                onChange={(e) => onChangeField(id, "address", null, e.target.value)}
                             />
                         </label>
                     </div>
+
+                    <label className="adminLabel">
+                        Image
+                        <input
+                            className="adminInput"
+                            value={safeStr(draft?.image)}
+                            onChange={(e) => onChangeField(id, "image", null, e.target.value)}
+                        />
+                    </label>
 
                     <div className="adminMsgActions">
                         <button
@@ -334,34 +312,6 @@ function NewEventCard({ draft, saveState, errorText, activeLang, onLangChange, o
                 ))}
             </div>
 
-            <div className="adminGrid2">
-                <label className="adminLabel">
-                    Date (YYYY-MM-DD or DD.MM.YYYY)
-                    <input
-                        className="adminInput"
-                        value={safeStr(draft?.dateEvent)}
-                        onChange={(e) => onChangeField("dateEvent", null, e.target.value)}
-                    />
-                </label>
-                <label className="adminLabel">
-                    Time (HH:MM or text)
-                    <input
-                        className="adminInput"
-                        value={safeStr(draft?.time)}
-                        onChange={(e) => onChangeField("time", null, e.target.value)}
-                    />
-                </label>
-            </div>
-
-            <label className="adminLabel">
-                Image (URL)
-                <input
-                    className="adminInput"
-                    value={safeStr(draft?.image)}
-                    onChange={(e) => onChangeField("image", null, e.target.value)}
-                />
-            </label>
-
             <label className="adminLabel">
                 Title ({langKey.toUpperCase()})
                 <input
@@ -383,41 +333,51 @@ function NewEventCard({ draft, saveState, errorText, activeLang, onLangChange, o
 
             <div className="adminGrid2">
                 <label className="adminLabel">
-                    Location ({langKey.toUpperCase()})
+                    Date
                     <input
+                        type="date"
                         className="adminInput"
-                        value={safeStr(draft?.location?.[langKey])}
-                        onChange={(e) => onChangeField("location", langKey, e.target.value)}
+                        value={safeStr(draft?.dateEvent)}
+                        onChange={(e) => onChangeField("dateEvent", null, e.target.value)}
                     />
                 </label>
                 <label className="adminLabel">
-                    Address ({langKey.toUpperCase()})
+                    Time
                     <input
                         className="adminInput"
-                        value={safeStr(draft?.address?.[langKey])}
-                        onChange={(e) => onChangeField("address", langKey, e.target.value)}
+                        value={safeStr(draft?.time)}
+                        onChange={(e) => onChangeField("time", null, e.target.value)}
                     />
                 </label>
             </div>
 
             <div className="adminGrid2">
                 <label className="adminLabel">
-                    Button Title ({langKey.toUpperCase()})
+                    Location
                     <input
                         className="adminInput"
-                        value={safeStr(draft?.buttonText?.[langKey])}
-                        onChange={(e) => onChangeField("buttonText", langKey, e.target.value)}
+                        value={safeStr(draft?.place)}
+                        onChange={(e) => onChangeField("place", null, e.target.value)}
                     />
                 </label>
                 <label className="adminLabel">
-                    Button Link (URL)
+                    Address
                     <input
                         className="adminInput"
-                        value={safeStr(draft?.buttonLink)}
-                        onChange={(e) => onChangeField("buttonLink", null, e.target.value)}
+                        value={safeStr(draft?.address)}
+                        onChange={(e) => onChangeField("address", null, e.target.value)}
                     />
                 </label>
             </div>
+
+            <label className="adminLabel">
+                Image
+                <input
+                    className="adminInput"
+                    value={safeStr(draft?.image)}
+                    onChange={(e) => onChangeField("image", null, e.target.value)}
+                />
+            </label>
 
             <div className="adminMsgActions">
                 <button type="button" className="adminDeleteBtn" onClick={onCancel} disabled={saveState === "saving"}>
@@ -449,7 +409,15 @@ export default function EventsAdmin() {
     const [activeLangById, setActiveLangById] = useState({});
 
     const [showNew, setShowNew] = useState(false);
-    const [newDraft, setNewDraft] = useState(() => cleanEvent({}));
+    const [newDraft, setNewDraft] = useState(() => cleanEvent({
+        place: "",
+        address: "",
+        image: "",
+        time: "",
+        dateEvent: "",
+        title: emptyLangMap(),
+        description: emptyLangMap(),
+    }));
     const [newError, setNewError] = useState("");
     const [newState, setNewState] = useState("idle");
     const [newLang, setNewLang] = useState("ro");
@@ -636,6 +604,7 @@ export default function EventsAdmin() {
         const draft = draftsById[key];
         if (!draft) return;
 
+        // Validations
         const d = cleanEvent(draft);
         if (!d.dateEvent) {
             setErrorById((m) => ({ ...m, [key]: "Fill in date." }));
@@ -646,14 +615,44 @@ export default function EventsAdmin() {
             return;
         }
 
+        const original = items.find((x) => x.id === key);
+        if (!original) return;
+
+        // Check if date changed
+        const dateChanged = original.dateEvent !== d.dateEvent;
+
+        if (dateChanged) {
+            const ok = window.confirm(
+                "Changing the date will create a NEW event for the new date and keep the original event unchanged.\n\nContinue?"
+            );
+            if (!ok) return;
+        }
+
         setSaveStateById((m) => ({ ...m, [key]: "saving" }));
         setErrorById((m) => ({ ...m, [key]: "" }));
 
         try {
-            await setDoc(doc(db, "events", key), d, { merge: true });
+            if (dateChanged) {
+                // Create new event
+                const ref = doc(collection(db, "events"));
+                await setDoc(ref, d);
 
-            if (!mountedRef.current) return;
-            setTransientState(key, "saved");
+                if (!mountedRef.current) return;
+
+                // Revert the original item's draft to match the original item (since we didn't modify it)
+                // This prevents confusion in the UI
+                setDraftsById((prev) => ({ ...prev, [key]: normalizeEvent(original) }));
+
+                // Show success message but keep "saving" state briefly to show something happened
+                setTransientState(key, "saved");
+                alert("New event created successfully!");
+            } else {
+                // Normal update
+                await setDoc(doc(db, "events", key), d, { merge: true });
+
+                if (!mountedRef.current) return;
+                setTransientState(key, "saved");
+            }
         } catch (err) {
             console.error(err);
             if (!mountedRef.current) return;
