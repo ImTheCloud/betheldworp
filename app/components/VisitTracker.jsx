@@ -4,6 +4,32 @@ import { useEffect } from "react";
 
 const VID_KEY = "bethel_vid";
 
+// ── Known bot User-Agent signatures ──────────────────────────────────────────
+const BOT_PATTERNS = [
+    /bot/i, /crawl/i, /spider/i, /slurp/i, /search/i,
+    /googlebot/i, /bingbot/i, /yandex/i, /baidu/i, /duckduck/i,
+    /ahrefs/i, /semrush/i, /moz\.com/i, /rogerbot/i, /dotbot/i,
+    /facebookexternalhit/i, /twitterbot/i, /linkedinbot/i,
+    /whatsapp/i, /telegrambot/i, /applebot/i, /petalbot/i,
+    /bytespider/i, /gptbot/i, /claude-web/i, /anthropic/i,
+    /ccbot/i, /dataforseo/i, /serpstat/i, /majestic/i,
+    /screaming.?frog/i, /sitebulb/i, /archive\.org/i,
+    /wget/i, /curl/i, /python-requests/i, /axios/i, /node-fetch/i,
+    /go-http-client/i, /java\//i, /okhttp/i, /libwww/i,
+    /headlesschrome/i, /phantomjs/i, /selenium/i, /puppeteer/i,
+];
+
+function isBotUserAgent() {
+    try {
+        const ua = navigator?.userAgent || "";
+        if (!ua) return false;
+        return BOT_PATTERNS.some((p) => p.test(ua));
+    } catch {
+        return false;
+    }
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
 function pad2(n) {
     return String(n).padStart(2, "0");
 }
@@ -95,7 +121,7 @@ function safeStorageGet(key) {
 function safeStorageSet(key, value) {
     try {
         localStorage.setItem(key, value);
-    } catch {}
+    } catch { }
 }
 
 function readJsonSafe(key) {
@@ -120,7 +146,7 @@ function getOrCreateVisitorIdSafe() {
         if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
             id = crypto.randomUUID();
         }
-    } catch {}
+    } catch { }
 
     if (!id) id = `${Date.now()}_${Math.random().toString(16).slice(2)}`;
 
@@ -185,9 +211,119 @@ async function getGeoClientSideRobust(ms = 900) {
     return { country: "Unknown", city: "Unknown" };
 }
 
+// ── Bot tracking ──────────────────────────────────────────────────────────────
+async function trackBot(db, setDoc, doc) {
+    try {
+        const visitorId = getOrCreateVisitorIdSafe();
+        const botDoneKey = `bethel_bot_done_${visitorId}`;
+        if (safeStorageGet(botDoneKey) === "1") return;
+
+        const day = getBrusselsDayKeySafe();
+        const timeHM = getBrusselsTimeHMSafe();
+        const language = getBrowserLanguageSafe();
+        const dt = deviceTypeSafe();
+
+        let userAgent = "unknown";
+        try { userAgent = String(navigator.userAgent || "").slice(0, 200); } catch { }
+
+        const geo = await getGeoClientSideRobust(900);
+
+        const botRef = doc(db, "bot_visits", visitorId);
+        await setDoc(botRef, {
+            visitorId,
+            day,
+            timeHM,
+            deviceType: dt,
+            language,
+            country: geo.country,
+            city: geo.city,
+            userAgent,
+        });
+
+        safeStorageSet(botDoneKey, "1");
+    } catch { }
+}
+
+// ── Human tracking (unchanged logic) ─────────────────────────────────────────
+async function trackHuman(db, setDoc, doc, cancelled) {
+    const day = getBrusselsDayKeySafe();
+    const timeHM = getBrusselsTimeHMSafe();
+    const visitorId = getOrCreateVisitorIdSafe();
+    const language = getBrowserLanguageSafe();
+    const dt = deviceTypeSafe();
+
+    const globalDoneKey = `bethel_global_done_${visitorId}`;
+
+    if (!cancelled() && safeStorageGet(globalDoneKey) !== "1") {
+        const geo = await getGeoClientSideRobust(900);
+
+        const globalRef = doc(db, "visits_global", visitorId);
+        const globalPayload = {
+            visitorId,
+            firstDay: day,
+            firstTimeHM: timeHM,
+            deviceType: dt,
+            language,
+            country: geo.country,
+            city: geo.city,
+        };
+
+        try {
+            await setDoc(globalRef, globalPayload);
+            safeStorageSet(globalDoneKey, "1");
+        } catch { }
+    }
+
+    const doneKey = `bethel_visit_done_${day}`;
+    if (!cancelled() && safeStorageGet(doneKey) === "1") return;
+
+    const payloadKey = `bethel_visit_payload_${day}`;
+    const saved = readJsonSafe(payloadKey);
+
+    let payload = null;
+
+    if (saved && saved.visitorId === visitorId && saved.day === day) {
+        payload = {
+            visitorId,
+            day,
+            timeHM: saved.timeHM || timeHM,
+            deviceType: saved.deviceType || dt,
+            language: saved.language || language,
+            country: saved.country || "Unknown",
+            city: saved.city || "Unknown",
+        };
+    } else {
+        const geo = await getGeoClientSideRobust(900);
+
+        payload = {
+            visitorId,
+            day,
+            timeHM,
+            deviceType: dt,
+            language,
+            country: geo.country,
+            city: geo.city,
+        };
+
+        safeStorageSet(payloadKey, JSON.stringify(payload));
+    }
+
+    if (cancelled()) return;
+
+    const visitorRef = doc(db, "visits", `day_${day}`, "visitors", visitorId);
+
+    try {
+        await setDoc(visitorRef, payload);
+    } catch { }
+
+    safeStorageSet(doneKey, "1");
+}
+
+// ── Component ─────────────────────────────────────────────────────────────────
 export default function VisitTracker() {
     useEffect(() => {
-        let cancelled = false;
+        let isCancelled = false;
+        const cancelled = () => isCancelled;
 
         (async () => {
             try {
@@ -196,84 +332,18 @@ export default function VisitTracker() {
                     import("../lib/Firebase"),
                 ]);
 
-                if (cancelled || !db) return;
+                if (isCancelled || !db) return;
 
-                const day = getBrusselsDayKeySafe();
-                const timeHM = getBrusselsTimeHMSafe();
-                const visitorId = getOrCreateVisitorIdSafe();
-                const language = getBrowserLanguageSafe();
-                const dt = deviceTypeSafe();
-
-                const globalDoneKey = `bethel_global_done_${visitorId}`;
-
-                if (!cancelled && safeStorageGet(globalDoneKey) !== "1") {
-                    const geo = await getGeoClientSideRobust(900);
-
-                    const globalRef = doc(db, "visits_global", visitorId);
-                    const globalPayload = {
-                        visitorId,
-                        firstDay: day,
-                        firstTimeHM: timeHM,
-                        deviceType: dt,
-                        language,
-                        country: geo.country,
-                        city: geo.city,
-                    };
-
-                    try {
-                        await setDoc(globalRef, globalPayload);
-                        safeStorageSet(globalDoneKey, "1");
-                    } catch {}
-                }
-
-                const doneKey = `bethel_visit_done_${day}`;
-                if (!cancelled && safeStorageGet(doneKey) === "1") return;
-
-                const payloadKey = `bethel_visit_payload_${day}`;
-                const saved = readJsonSafe(payloadKey);
-
-                let payload = null;
-
-                if (saved && saved.visitorId === visitorId && saved.day === day) {
-                    payload = {
-                        visitorId,
-                        day,
-                        timeHM: saved.timeHM || timeHM,
-                        deviceType: saved.deviceType || dt,
-                        language: saved.language || language,
-                        country: saved.country || "Unknown",
-                        city: saved.city || "Unknown",
-                    };
+                if (isBotUserAgent()) {
+                    await trackBot(db, setDoc, doc);
                 } else {
-                    const geo = await getGeoClientSideRobust(900);
-
-                    payload = {
-                        visitorId,
-                        day,
-                        timeHM,
-                        deviceType: dt,
-                        language,
-                        country: geo.country,
-                        city: geo.city,
-                    };
-
-                    safeStorageSet(payloadKey, JSON.stringify(payload));
+                    await trackHuman(db, setDoc, doc, cancelled);
                 }
-
-                if (cancelled) return;
-
-                const visitorRef = doc(db, "visits", `day_${day}`, "visitors", visitorId);
-
-                try {
-                    await setDoc(visitorRef, payload);
-                } catch {}
-
-                safeStorageSet(doneKey, "1");
-            } catch {}
+            } catch { }
         })();
 
         return () => {
-            cancelled = true;
+            isCancelled = true;
         };
     }, []);
 

@@ -7,6 +7,40 @@
     flex-wrap: wrap;
 }
 
+.statsBotBanner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 10px 16px;
+    border-radius: 14px;
+    background: rgba(10, 42, 67, 0.04);
+    border: 1px solid rgba(10, 42, 67, 0.10);
+    font-size: 13px;
+    font-weight: 700;
+    color: #0a2a43;
+}
+
+.statsBotBannerSep {
+    opacity: 0.35;
+    font-size: 16px;
+}
+
+.statsBotBannerItem {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.statsBotBannerItem--human {
+    color: #065f46;
+}
+
+.statsBotBannerItem--bot {
+    color: #92400e;
+}
+
 
 .statsTopRight {
     display: flex;
@@ -30,8 +64,8 @@
     -webkit-appearance: none;
     -moz-appearance: none;
     background-image:
-            linear-gradient(45deg, transparent 50%, rgba(10, 42, 67, 0.75) 50%),
-            linear-gradient(135deg, rgba(10, 42, 67, 0.75) 50%, transparent 50%);
+        linear-gradient(45deg, transparent 50%, rgba(10, 42, 67, 0.75) 50%),
+        linear-gradient(135deg, rgba(10, 42, 67, 0.75) 50%, transparent 50%);
     background-position: calc(100% - 20px) 50%, calc(100% - 14px) 50%;
     background-size: 6px 6px, 6px 6px;
     background-repeat: no-repeat;
@@ -229,6 +263,7 @@
     white-space: normal;
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     word-break: break-word;
 }

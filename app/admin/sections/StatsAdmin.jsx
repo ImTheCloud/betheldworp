@@ -5,6 +5,9 @@ import { useEffect, useMemo, useState } from "react";
 import { collection, collectionGroup, getDocs } from "firebase/firestore";
 import { db } from "../../lib/Firebase";
 
+const BOT_ICON = "🤖";
+const HUMAN_ICON = "👤";
+
 const SITE_START_KEY = "2025-12-21";
 
 function s(v) {
@@ -339,6 +342,7 @@ export default function StatsAdmin() {
 
     const [allDailyVisits, setAllDailyVisits] = useState([]);
     const [allUniqueVisitors, setAllUniqueVisitors] = useState([]);
+    const [allBotVisits, setAllBotVisits] = useState([]);
 
     useEffect(() => {
         let alive = true;
@@ -348,9 +352,10 @@ export default function StatsAdmin() {
                 setLoading(true);
                 setError("");
 
-                const [dailySnap, globalSnap] = await Promise.all([
+                const [dailySnap, globalSnap, botSnap] = await Promise.all([
                     getDocs(collectionGroup(db, "visitors")),
                     getDocs(collection(db, "visits_global")),
+                    getDocs(collection(db, "bot_visits")),
                 ]);
 
                 const daily = [];
@@ -378,9 +383,23 @@ export default function StatsAdmin() {
                     });
                 });
 
+                const bots = [];
+                botSnap.forEach((docSnap) => {
+                    const d = docSnap.data() || {};
+                    bots.push({
+                        day: normalizeDayKey(d.day),
+                        country: clamp(d.country, 60),
+                        city: clamp(d.city, 60),
+                        language: normalizeLang(d.language),
+                        deviceType: normalizeDevice(d.deviceType),
+                        userAgent: clamp(d.userAgent, 200),
+                    });
+                });
+
                 if (!alive) return;
                 setAllDailyVisits(daily);
                 setAllUniqueVisitors(unique);
+                setAllBotVisits(bots);
                 setLoading(false);
             } catch (e) {
                 if (!alive) return;
@@ -403,7 +422,7 @@ export default function StatsAdmin() {
         return new Set(buildLastNDaysKeys(n, todayKey));
     }, [rangeMode, todayKey]);
 
-    const raw = source === "unique" ? allUniqueVisitors : allDailyVisits;
+    const raw = source === "bots" ? allBotVisits : source === "unique" ? allUniqueVisitors : allDailyVisits;
 
     const scoped = useMemo(() => {
         if (!rangeKeys) return raw;
@@ -479,7 +498,7 @@ export default function StatsAdmin() {
     }, [agg, mode]);
 
     const donutTitle = useMemo(() => {
-        const prefix = source === "unique" ? "Vizitatori unici" : "Vizite";
+        const prefix = source === "bots" ? `${BOT_ICON} Boți` : source === "unique" ? "Vizitatori unici" : "Vizite";
         if (mode === "countries") return `${prefix} • Distribuție pe țări`;
         if (mode === "cities") return `${prefix} • Distribuție pe orașe`;
         if (mode === "languages") return `${prefix} • Distribuție pe limbi`;
@@ -493,7 +512,8 @@ export default function StatsAdmin() {
         { id: "devices", label: "Dispozitive" },
     ];
 
-    const centerLabel = source === "unique" ? "vizitatori" : "vizite";
+    const centerLabel = source === "bots" ? "boți" : source === "unique" ? "vizitatori" : "vizite";
+
 
     return (
         <div className="adminCard">
@@ -510,8 +530,9 @@ export default function StatsAdmin() {
                         }}
                         aria-label="Selectează sursa"
                     >
-                        <option value="visits">Vizite (toate)</option>
-                        <option value="unique">Vizitatori unici</option>
+                        <option value="visits">{HUMAN_ICON} Vizite umane</option>
+                        <option value="unique">{HUMAN_ICON} Vizitatori unici</option>
+                        <option value="bots">{BOT_ICON} Boți detectați</option>
                     </select>
 
                     <select
