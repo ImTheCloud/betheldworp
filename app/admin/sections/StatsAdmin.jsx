@@ -32,10 +32,10 @@ function normalizeDevice(v) {
 
 function languageDisplayName(code) {
     const c = s(code).trim().toLowerCase();
-    if (!c || c === "unknown") return "Necunoscut";
+    if (!c || c === "unknown") return "Unknown";
 
     try {
-        const dn = new Intl.DisplayNames(["ro"], { type: "language" });
+        const dn = new Intl.DisplayNames(["en"], { type: "language" });
         const name = dn.of(c);
         if (name) return name.charAt(0).toUpperCase() + name.slice(1);
     } catch {
@@ -43,27 +43,28 @@ function languageDisplayName(code) {
     }
 
     const map = {
-        ro: "Română",
-        fr: "Franceză",
-        en: "Engleză",
-        nl: "Neerlandeză",
-        de: "Germană",
-        es: "Spaniolă",
-        it: "Italiană",
-        pt: "Portugheză",
-        ar: "Arabă",
-        tr: "Turcă",
-        ru: "Rusă",
-        pl: "Poloneză",
+        ro: "Romanian",
+        fr: "French",
+        en: "English",
+        nl: "Dutch",
+        de: "German",
+        es: "Spanish",
+        it: "Italian",
+        pt: "Portuguese",
+        ar: "Arabic",
+        tr: "Turkish",
+        ru: "Russian",
+        pl: "Polish",
     };
 
     return map[c] || c.toUpperCase();
 }
 
-function formatRoDateFromKey(key) {
+function formatEnDateFromKey(key) {
     const [yy, mm, dd] = s(key).split("-").map(Number);
     if (!yy || !mm || !dd) return s(key);
-    return `${String(dd).padStart(2, "0")}.${String(mm).padStart(2, "0")}.${yy}`;
+    // Format: DD/MM/YYYY
+    return `${String(dd).padStart(2, "0")}/${String(mm).padStart(2, "0")}/${yy}`;
 }
 
 function sanitizeKey(v) {
@@ -188,7 +189,7 @@ function DonutWithLegend({ title, rows, total, search, onSearch, centerLabel }) 
 
         const top = base.slice(0, topN);
         const others = base.slice(topN).reduce((a, r) => a + (Number(r.count) || 0), 0);
-        const slicesLocal = others > 0 ? [...top, { key: "__others__", label: "Altele", count: others }] : top;
+        const slicesLocal = others > 0 ? [...top, { key: "__others__", label: "Others", count: others }] : top;
 
         if (others > 0) colorMap.__others__ = hsl(top.length);
 
@@ -240,7 +241,7 @@ function DonutWithLegend({ title, rows, total, search, onSearch, centerLabel }) 
 
             <div className="statsDonutWrap">
                 <div className="statsDonut">
-                    <svg viewBox="0 0 120 120" className="statsDonutSvg" role="img" aria-label="Grafic circular">
+                    <svg viewBox="0 0 120 120" className="statsDonutSvg" role="img" aria-label="Donut Chart">
                         <circle cx="60" cy="60" r="46" className="statsDonutBg" />
 
                         {isSingleSlice ? (
@@ -279,25 +280,25 @@ function DonutWithLegend({ title, rows, total, search, onSearch, centerLabel }) 
                             {total || 0}
                         </text>
                         <text x="60" y="74" textAnchor="middle" className="statsDonutCenterSmall">
-                            {centerLabel || "vizite"}
+                            {centerLabel || "visits"}
                         </text>
                     </svg>
                 </div>
 
                 <div className="statsLegend">
                     <label className="statsSearch">
-                        <span className="statsSearchLabel">Caută</span>
+                        <span className="statsSearchLabel">Search</span>
                         <input
                             className="statsSearchInput"
                             value={search}
                             onChange={(e) => onSearch(e.target.value)}
-                            placeholder="caută…"
+                            placeholder="search..."
                         />
                     </label>
 
                     <div className="statsLegendHead">
-                        <div className="statsLegendHeadCell">Nume</div>
-                        <div className="statsLegendHeadCell statsRight">Vizite</div>
+                        <div className="statsLegendHeadCell">Name</div>
+                        <div className="statsLegendHeadCell statsRight">Visits</div>
                         <div className="statsLegendHeadCell statsRight">100%</div>
                     </div>
 
@@ -320,7 +321,7 @@ function DonutWithLegend({ title, rows, total, search, onSearch, centerLabel }) 
                             })}
                         </div>
                     ) : (
-                        <div className="statsEmpty">Nu există rezultate.</div>
+                        <div className="statsEmpty">No results found.</div>
                     )}
                 </div>
             </div>
@@ -338,7 +339,7 @@ export default function StatsAdmin() {
     const [search, setSearch] = useState("");
 
     const todayKey = useMemo(() => brusselsDayKey(), []);
-    const siteStartLabel = useMemo(() => formatRoDateFromKey(SITE_START_KEY), []);
+    const siteStartLabel = useMemo(() => formatEnDateFromKey(SITE_START_KEY), []);
 
     const [allDailyVisits, setAllDailyVisits] = useState([]);
     const [allUniqueVisitors, setAllUniqueVisitors] = useState([]);
@@ -404,7 +405,7 @@ export default function StatsAdmin() {
             } catch (e) {
                 if (!alive) return;
                 console.error(e);
-                setError("Nu am putut încărca vizitele.");
+                setError("Could not load visits.");
                 setLoading(false);
             }
         })();
@@ -498,27 +499,26 @@ export default function StatsAdmin() {
     }, [agg, mode]);
 
     const donutTitle = useMemo(() => {
-        const prefix = source === "bots" ? `${BOT_ICON} Boți` : source === "unique" ? "Vizitatori unici" : "Vizite";
-        if (mode === "countries") return `${prefix} • Distribuție pe țări`;
-        if (mode === "cities") return `${prefix} • Distribuție pe orașe`;
-        if (mode === "languages") return `${prefix} • Distribuție pe limbi`;
-        return `${prefix} • Distribuție pe dispozitive`;
+        const prefix = source === "bots" ? `${BOT_ICON} Bots` : source === "unique" ? "Unique Visitors" : "Visits";
+        if (mode === "countries") return `${prefix} • Distribution by Country`;
+        if (mode === "cities") return `${prefix} • Distribution by City`;
+        if (mode === "languages") return `${prefix} • Distribution by Language`;
+        return `${prefix} • Distribution by Device`;
     }, [mode, source]);
 
     const modeTabs = [
-        { id: "cities", label: "Orașe" },
-        { id: "countries", label: "Țări" },
-        { id: "languages", label: "Limbi" },
-        { id: "devices", label: "Dispozitive" },
+        { id: "cities", label: "Cities" },
+        { id: "countries", label: "Countries" },
+        { id: "languages", label: "Languages" },
+        { id: "devices", label: "Devices" },
     ];
 
-    const centerLabel = source === "bots" ? "boți" : source === "unique" ? "vizitatori" : "vizite";
-
+    const centerLabel = source === "bots" ? "bots" : source === "unique" ? "visitors" : "visits";
 
     return (
         <div className="adminCard">
             <div className="statsTop">
-                <h2 className="adminTitle">Statistici</h2>
+                <h2 className="adminTitle">Statistics</h2>
 
                 <div className="statsTopRight">
                     <select
@@ -528,24 +528,24 @@ export default function StatsAdmin() {
                             setSource(e.target.value);
                             setSearch("");
                         }}
-                        aria-label="Selectează sursa"
+                        aria-label="Select source"
                     >
-                        <option value="visits">{HUMAN_ICON} Vizite umane</option>
-                        <option value="unique">{HUMAN_ICON} Vizitatori unici</option>
-                        <option value="bots">{BOT_ICON} Boți detectați</option>
+                        <option value="visits">{HUMAN_ICON} Human Visits</option>
+                        <option value="unique">{HUMAN_ICON} Unique Visitors</option>
+                        <option value="bots">{BOT_ICON} Detected Bots</option>
                     </select>
 
                     <select
                         className="statsSelect"
                         value={rangeMode}
                         onChange={(e) => setRangeMode(e.target.value)}
-                        aria-label="Selectează perioada"
+                        aria-label="Select range"
                     >
-                        <option value="all">{`De la început (${siteStartLabel})`}</option>
-                        <option value="today">Azi</option>
-                        <option value="7">Ultimele 7 zile</option>
-                        <option value="30">Ultimele 30 zile</option>
-                        <option value="90">Ultimele 90 zile</option>
+                        <option value="all">{`All time (${siteStartLabel})`}</option>
+                        <option value="today">Today</option>
+                        <option value="7">Last 7 days</option>
+                        <option value="30">Last 30 days</option>
+                        <option value="90">Last 90 days</option>
                     </select>
                 </div>
             </div>
@@ -556,7 +556,7 @@ export default function StatsAdmin() {
                 <div className="statsLayout">
                     {error ? <div className="adminAlert">{error}</div> : null}
 
-                    <div className="statsTabs" role="tablist" aria-label="Grafice">
+                    <div className="statsTabs" role="tablist" aria-label="Charts">
                         {modeTabs.map((t) => (
                             <button
                                 key={t.id}

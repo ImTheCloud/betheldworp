@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { doc, onSnapshot } from "firebase/firestore";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { db } from "../lib/Firebase";
+import Link from "next/link";
 
 import MonthlyVerseAdmin from "./sections/MonthlyVerseAdmin";
 import ProgramOverridesAdmin from "./sections/ProgramOverridesAdmin";
@@ -19,16 +20,16 @@ function isValidEmail(value) {
 function mapAuthError(code) {
     switch (code) {
         case "auth/invalid-email":
-            return "Email invalid.";
+            return "Invalid email.";
         case "auth/user-not-found":
         case "auth/wrong-password":
-            return "Email sau parolă greșită.";
+            return "Wrong email or password.";
         case "auth/too-many-requests":
-            return "Prea multe încercări. Încearcă din nou mai târziu.";
+            return "Too many attempts. Try again later.";
         case "auth/network-request-failed":
-            return "Problemă de rețea. Verifică internetul.";
+            return "Network error. Check your connection.";
         default:
-            return "Autentificare eșuată. Încearcă din nou.";
+            return "Authentication failed. Try again.";
     }
 }
 
@@ -49,6 +50,16 @@ function IconLogout(props) {
                 strokeLinecap="round"
                 strokeLinejoin="round"
             />
+        </svg>
+    );
+}
+
+function IconExternal(props) {
+    return (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M15 3h6v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M10 14L21 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
     );
 }
@@ -120,11 +131,11 @@ export default function Admin() {
         const pass = String(password || "");
 
         if (!cleanEmail || !pass) {
-            setAuthError("Completează email-ul și parola.");
+            setAuthError("Please enter email and password.");
             return;
         }
         if (!isValidEmail(cleanEmail)) {
-            setAuthError("Email invalid.");
+            setAuthError("Invalid email.");
             return;
         }
 
@@ -146,7 +157,7 @@ export default function Admin() {
             await signOut(auth);
         } catch (err) {
             console.error(err);
-            setAuthError("Nu am putut face delogarea.");
+            setAuthError("Could not logout.");
         }
     };
 
@@ -162,16 +173,19 @@ export default function Admin() {
                     </div>
 
                     <div className="adminHeaderCenter">
-                        <div className="adminHeaderTitle">Administrare Bethel</div>
+                        <div className="adminHeaderTitle">Bethel Admin</div>
                     </div>
 
-                    {user ? (
-                        <button className="adminIconBtn" onClick={logout} aria-label="Deconectare" title="Deconectare">
-                            <IconLogout />
-                        </button>
-                    ) : (
-                        <div className="adminHeaderRightSpacer" />
-                    )}
+                    <div className="adminHeaderRight">
+                        <Link href="/" className="adminIconBtn" aria-label="Go to Website" title="Go to Website" target="_blank">
+                            <IconExternal />
+                        </Link>
+                        {user && (
+                            <button className="adminIconBtn" onClick={logout} aria-label="Logout" title="Logout">
+                                <IconLogout />
+                            </button>
+                        )}
+                    </div>
                 </header>
 
                 {busy ? (
@@ -180,7 +194,7 @@ export default function Admin() {
                     </div>
                 ) : !user ? (
                     <div className="adminCard adminCard--login">
-                        <h2 className="adminTitle">Autentificare</h2>
+                        <h2 className="adminTitle">Login</h2>
 
                         {authError ? <div className="adminAlert">{authError}</div> : null}
 
@@ -200,7 +214,7 @@ export default function Admin() {
                             </label>
 
                             <label className="adminLabel">
-                                Parolă
+                                Password
                                 <input
                                     className="adminInput"
                                     type="password"
@@ -214,14 +228,14 @@ export default function Admin() {
                             </label>
 
                             <button className="adminBtn" type="submit" disabled={loggingIn}>
-                                {loggingIn ? "Se conectează…" : "Conectează-te"}
+                                {loggingIn ? "Logging in..." : "Login"}
                             </button>
                         </form>
                     </div>
                 ) : !isAdmin ? (
                     <div className="adminCard adminCard--center">
-                        <h2 className="adminTitle">Acces refuzat</h2>
-                        <div className="adminMuted">Nu ai permisiuni pentru a accesa această secțiune.</div>
+                        <h2 className="adminTitle">Access Denied</h2>
+                        <div className="adminMuted">You do not have permission to access this section.</div>
                     </div>
                 ) : (
                     <div className="adminStack">

@@ -10,14 +10,14 @@ import PaginationControls from "../components/PaginationControls";
 const safeObj = (v) => (v && typeof v === "object" && !Array.isArray(v) ? v : {});
 
 const AFFECT_OPTIONS = [
-    { id: "mon", label: "Lun" },
-    { id: "tue", label: "Mar" },
-    { id: "wed", label: "Mie" },
-    { id: "thu", label: "Joi" },
-    { id: "fri", label: "Vin" },
-    { id: "sat", label: "Sâm" },
-    { id: "sun_am", label: "Dum AM" },
-    { id: "sun_pm", label: "Dum PM" },
+    { id: "mon", label: "Mon" },
+    { id: "tue", label: "Tue" },
+    { id: "wed", label: "Wed" },
+    { id: "thu", label: "Thu" },
+    { id: "fri", label: "Fri" },
+    { id: "sat", label: "Sat" },
+    { id: "sun_am", label: "Sun AM" },
+    { id: "sun_pm", label: "Sun PM" },
 ];
 
 // Days offset from Monday (ISO week start) for each program slot
@@ -199,7 +199,7 @@ function OverrideCard({ item, expanded, draft, saveState, errorText, eventsList,
     };
 
     const summaryParts = [];
-    if (affectedSet.size > 0) summaryParts.push(`${affectedSet.size} anulări`);
+    if (affectedSet.size > 0) summaryParts.push(`${affectedSet.size} cancellations`);
     if (additionsCount > 0) summaryParts.push(`${additionsCount} extra`);
 
     return (
@@ -222,7 +222,7 @@ function OverrideCard({ item, expanded, draft, saveState, errorText, eventsList,
                         e.stopPropagation();
                         onToggleExpand(id);
                     }}
-                    aria-label={expanded ? "Ascunde detalii" : "Afișează detalii"}
+                    aria-label={expanded ? "Hide details" : "Show details"}
                 >
                     <IconChevronDown
                         style={{
@@ -238,7 +238,7 @@ function OverrideCard({ item, expanded, draft, saveState, errorText, eventsList,
                     {errorText ? <div className="adminAlert">{errorText}</div> : null}
 
                     <label className="adminLabel">
-                        Săptămână
+                        Week
                         <input
                             className="adminInput"
                             type="week"
@@ -247,13 +247,13 @@ function OverrideCard({ item, expanded, draft, saveState, errorText, eventsList,
                         />
                     </label>
 
-                    {/* ── Section: Anulări (Cancellations) ── */}
+                    {/* ── Section: Cancellations ── */}
                     <div className="overrideSection overrideSection--cancel">
                         <div className="overrideSectionHeader">
                             <span className="overrideSectionIcon overrideSectionIcon--cancel">✕</span>
-                            <span className="overrideSectionTitle">Anulări</span>
+                            <span className="overrideSectionTitle">Cancellations</span>
                         </div>
-                        <div className="adminAffectGrid" aria-label="Crêneaux anulate">
+                        <div className="adminAffectGrid" aria-label="Cancelled slots">
                             {AFFECT_OPTIONS.map((opt) => {
                                 const on = affectedSet.has(opt.id);
                                 return (
@@ -289,7 +289,7 @@ function OverrideCard({ item, expanded, draft, saveState, errorText, eventsList,
                                             onChangeReplacement(id, opt.id, e.target.value);
                                         }}
                                     >
-                                        <option value="">— Doar anulat —</option>
+                                        <option value="">— Cancelled only —</option>
                                         {filtered.map((ev) => (
                                             <option key={ev.id} value={ev.id}>{ev.label}</option>
                                         ))}
@@ -299,11 +299,11 @@ function OverrideCard({ item, expanded, draft, saveState, errorText, eventsList,
                         })}
                     </div>
 
-                    {/* ── Section: Eveniment Extra (Additions) ── */}
+                    {/* ── Section: Extra Event ── */}
                     <div className="overrideSection overrideSection--extra">
                         <div className="overrideSectionHeader">
                             <span className="overrideSectionIcon overrideSectionIcon--extra">+</span>
-                            <span className="overrideSectionTitle">Eveniment Extra</span>
+                            <span className="overrideSectionTitle">Extra Event</span>
                         </div>
                         {AFFECT_OPTIONS.map((opt) => {
                             const slotDate = dateForSlot(weekKeyValue, opt.id);
@@ -322,7 +322,7 @@ function OverrideCard({ item, expanded, draft, saveState, errorText, eventsList,
                                             onChangeAddition(id, opt.id, e.target.value);
                                         }}
                                     >
-                                        <option value="">— Niciun extra —</option>
+                                        <option value="">— No extra —</option>
                                         {filtered.map((ev) => (
                                             <option key={ev.id} value={ev.id}>{ev.label}</option>
                                         ))}
@@ -343,7 +343,7 @@ function OverrideCard({ item, expanded, draft, saveState, errorText, eventsList,
                             disabled={saveState === "saving"}
                         >
                             <IconTrash />
-                            Șterge
+                            Delete
                         </button>
 
                         <button
@@ -355,7 +355,7 @@ function OverrideCard({ item, expanded, draft, saveState, errorText, eventsList,
                             }}
                             disabled={saveState === "saving"}
                         >
-                            {saveState === "saving" ? "Se salvează…" : saveState === "saved" ? "Salvat ✓" : "Salvează"}
+                            {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved ✓" : "Save"}
                         </button>
                     </div>
                 </>
@@ -373,24 +373,24 @@ function NewOverrideCard({ draft, saveState, errorText, eventsList, weekKeyForCa
     return (
         <div className="adminAnnCard is-active">
             <div className="adminAnnHeader">
-                <div className="adminAnnIdChip">Nou</div>
+                <div className="adminAnnIdChip">New</div>
                 <div style={{ flex: 1 }} />
             </div>
 
             {errorText ? <div className="adminAlert">{errorText}</div> : null}
 
             <label className="adminLabel">
-                Săptămână
+                Week
                 <input className="adminInput" type="week" value={weekKeyValue} onChange={(e) => onChangeWeekKey("__new__", e.target.value)} />
             </label>
 
-            {/* ── Section: Anulări ── */}
+            {/* ── Section: Cancellations ── */}
             <div className="overrideSection overrideSection--cancel">
                 <div className="overrideSectionHeader">
                     <span className="overrideSectionIcon overrideSectionIcon--cancel">✕</span>
-                    <span className="overrideSectionTitle">Anulări</span>
+                    <span className="overrideSectionTitle">Cancellations</span>
                 </div>
-                <div className="adminAffectGrid" aria-label="Crêneaux anulate">
+                <div className="adminAffectGrid" aria-label="Cancelled slots">
                     {AFFECT_OPTIONS.map((opt) => {
                         const on = affectedSet.has(opt.id);
                         return (
@@ -425,7 +425,7 @@ function NewOverrideCard({ draft, saveState, errorText, eventsList, weekKeyForCa
                                     onChangeReplacement("__new__", opt.id, e.target.value);
                                 }}
                             >
-                                <option value="">— Doar anulat —</option>
+                                <option value="">— Cancelled only —</option>
                                 {filtered.map((ev) => (
                                     <option key={ev.id} value={ev.id}>{ev.label}</option>
                                 ))}
@@ -435,11 +435,11 @@ function NewOverrideCard({ draft, saveState, errorText, eventsList, weekKeyForCa
                 })}
             </div>
 
-            {/* ── Section: Eveniment Extra ── */}
+            {/* ── Section: Extra Event ── */}
             <div className="overrideSection overrideSection--extra">
                 <div className="overrideSectionHeader">
                     <span className="overrideSectionIcon overrideSectionIcon--extra">+</span>
-                    <span className="overrideSectionTitle">Eveniment Extra</span>
+                    <span className="overrideSectionTitle">Extra Event</span>
                 </div>
                 {AFFECT_OPTIONS.map((opt) => {
                     const slotDate = dateForSlot(weekKeyValue, opt.id);
@@ -458,7 +458,7 @@ function NewOverrideCard({ draft, saveState, errorText, eventsList, weekKeyForCa
                                     onChangeAddition("__new__", opt.id, e.target.value);
                                 }}
                             >
-                                <option value="">— Niciun extra —</option>
+                                <option value="">— No extra —</option>
                                 {filtered.map((ev) => (
                                     <option key={ev.id} value={ev.id}>{ev.label}</option>
                                 ))}
@@ -470,11 +470,11 @@ function NewOverrideCard({ draft, saveState, errorText, eventsList, weekKeyForCa
 
             <div className="adminMsgActions">
                 <button type="button" className="adminDeleteBtn" onClick={onCancel} disabled={saveState === "saving"}>
-                    Anulează
+                    Cancel
                 </button>
 
                 <button type="button" className="adminMsgSaveBtn" onClick={onSave} disabled={saveState === "saving"}>
-                    {saveState === "saving" ? "Se salvează…" : saveState === "saved" ? "Salvat ✓" : "Salvează"}
+                    {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved ✓" : "Save"}
                 </button>
             </div>
         </div>
@@ -639,7 +639,7 @@ export default function ProgramOverridesAdmin() {
                 console.error(err);
                 if (!mountedRef.current) return;
                 setLoading(false);
-                setGlobalError("Nu am putut încărca modificările programului.");
+                setGlobalError("Could not load program overrides.");
             }
         );
 
@@ -801,72 +801,50 @@ export default function ProgramOverridesAdmin() {
     };
 
     const saveNew = async () => {
-        const wk = normalizeWeekKey(newDraft?.weekKey);
-        const affected = safeArr(newDraft?.affectedProgramIds).map((x) => safeStr(x).trim()).filter(Boolean);
-        const replacements = safeObj(newDraft?.replacements);
-        const additions = safeObj(newDraft?.additions);
-        const hasAdditions = Object.keys(additions).some((k) => !!additions[k]);
-
-        if (!wk) {
-            setNewError("Selectează o săptămână validă.");
+        const weekKey = safeStr(newDraft?.weekKey).trim().toUpperCase();
+        if (!isValidWeekKey(weekKey)) {
+            setNewError("Invalid week (YYYY-Www).");
             return;
         }
-        if (!affected.length && !hasAdditions) {
-            setNewError("Selectează cel puțin un crêneau anulat.");
-            return;
-        }
-
         setNewError("");
         setNewState("saving");
 
         try {
-            const finalId = await ensureUniqueId(wk);
-            await setDoc(doc(db, "program_overrides", finalId), { weekKey: wk, affectedProgramIds: affected, replacements, additions }, { merge: true });
+            const id = await ensureUniqueId(weekKey);
+            const data = {
+                weekKey,
+                affectedProgramIds: safeArr(newDraft.affectedProgramIds),
+                replacements: safeObj(newDraft.replacements),
+                additions: safeObj(newDraft.additions),
+            };
+
+            await setDoc(doc(db, "program_overrides", id), data, { merge: true });
 
             if (!mountedRef.current) return;
             setNewState("saved");
             setTimeout(() => {
                 if (!mountedRef.current) return;
                 setShowNew(false);
-                setExpandedIds((prev) => {
-                    const next = new Set(prev);
-                    next.add(finalId);
-                    return next;
-                });
                 setNewState("idle");
             }, 900);
         } catch (err) {
             console.error(err);
             if (!mountedRef.current) return;
             setNewState("error");
-            setNewError("Nu am putut salva modificarea.");
+            setNewError("Could not save new override.");
         }
     };
 
-    const saveOne = async (id) => {
+    const onSave = async (id) => {
         const key = safeStr(id).trim();
         if (!key) return;
 
-        const base = items.find((x) => x.id === key);
-        const draft = draftsById[key] || {
-            weekKey: base?.weekKey || "",
-            affectedProgramIds: base?.affectedProgramIds || [],
-            replacements: base?.replacements || {},
-            additions: base?.additions || {},
-        };
+        const draft = draftsById[key];
+        if (!draft) return; // nothing to save
 
-        const wk = normalizeWeekKey(draft.weekKey);
-        const affected = safeArr(draft.affectedProgramIds).map((x) => safeStr(x).trim()).filter(Boolean);
-        const replacements = safeObj(draft.replacements);
-        const additions = safeObj(draft.additions);
-        const hasAdditions = Object.keys(additions).some((k) => !!additions[k]);
-
-        if (!wk) {
-            setErrorById((m) => ({ ...m, [key]: "Selectează o săptămână validă." }));
-            return;
-        }
-        if (!affected.length && !hasAdditions) {
-            setErrorById((m) => ({ ...m, [key]: "Selectează cel puțin un crêneau anulat." }));
+        const weekKey = safeStr(draft.weekKey).trim().toUpperCase();
+        if (!isValidWeekKey(weekKey)) {
+            setErrorById((m) => ({ ...m, [key]: "Invalid week (YYYY-Www)." }));
             return;
         }
 
@@ -874,55 +852,32 @@ export default function ProgramOverridesAdmin() {
         setSaveStateById((m) => ({ ...m, [key]: "saving" }));
 
         try {
-            const desiredId = wk;
+            const data = {
+                weekKey,
+                affectedProgramIds: safeArr(draft.affectedProgramIds),
+                replacements: safeObj(draft.replacements),
+                additions: safeObj(draft.additions),
+            };
 
-            if (desiredId && desiredId !== key) {
-                const ok = window.confirm(
-                    `Ai schimbat săptămâna.\n\nAsta va crea un nou document (${desiredId}) cu aceleași date și îl va păstra pe cel vechi.\n\nContinui?`
-                );
-                if (!ok) {
-                    setSaveStateById((m) => ({ ...m, [key]: "idle" }));
-                    return;
-                }
-            }
-
-            const targetId = desiredId && desiredId !== key ? await ensureUniqueId(desiredId) : key;
-
-            await setDoc(doc(db, "program_overrides", targetId), { weekKey: wk, affectedProgramIds: affected, replacements, additions }, { merge: true });
+            // If ID changed (weekKey match), we might need to handle rename, but here ID is document ID, typically YYYY-Www
+            // If the document ID is different from weekKey, we might want to migrate, but for now we just update the doc with new fields.
+            await setDoc(doc(db, "program_overrides", key), data, { merge: true });
 
             if (!mountedRef.current) return;
-
-            if (targetId !== key) {
-                const baseCur = items.find((x) => x.id === key);
-                if (baseCur) {
-                    setDraftsById((prev) => ({
-                        ...prev,
-                        [key]: { weekKey: baseCur.weekKey, affectedProgramIds: safeArr(baseCur.affectedProgramIds) },
-                    }));
-                }
-                setSaveStateById((m) => ({ ...m, [key]: "idle" }));
-                setExpandedIds((prev) => {
-                    const next = new Set(prev);
-                    next.add(targetId);
-                    return next;
-                });
-                setTransientState(targetId, "saved");
-            } else {
-                setTransientState(key, "saved");
-            }
+            setTransientState(key, "saved");
         } catch (err) {
             console.error(err);
             if (!mountedRef.current) return;
             setSaveStateById((m) => ({ ...m, [key]: "error" }));
-            setErrorById((m) => ({ ...m, [key]: "Nu am putut salva. Încearcă din nou." }));
+            setErrorById((m) => ({ ...m, [key]: "Could not save override." }));
         }
     };
 
-    const deleteOne = async (id) => {
+    const onDelete = async (id) => {
         const key = safeStr(id).trim();
         if (!key) return;
 
-        const ok = window.confirm("Ștergi definitiv această anulare?");
+        const ok = window.confirm(`Delete program override for ${key}?`);
         if (!ok) return;
 
         setGlobalError("");
@@ -933,51 +888,47 @@ export default function ProgramOverridesAdmin() {
             await deleteDoc(doc(db, "program_overrides", key));
 
             if (!mountedRef.current) return;
-            setDraftsById((prev) => {
-                const next = { ...prev };
-                delete next[key];
-                return next;
-            });
-            setExpandedIds((prev) => {
-                const next = new Set(prev);
-                next.delete(key);
-                return next;
-            });
-            setSaveStateById((prev) => {
-                const next = { ...prev };
-                delete next[key];
-                return next;
-            });
-            setErrorById((prev) => {
-                const next = { ...prev };
-                delete next[key];
-                return next;
-            });
+            // State cleanup happens via snapshot listener
         } catch (err) {
             console.error(err);
             if (!mountedRef.current) return;
             setSaveStateById((m) => ({ ...m, [key]: "error" }));
-            setErrorById((m) => ({ ...m, [key]: "Nu am putut șterge." }));
+            setErrorById((m) => ({ ...m, [key]: "Could not delete override." }));
         }
     };
 
     return (
         <div className="adminCard">
             <div className="adminTop">
-                <h2 className="adminTitle">Modificări program</h2>
+                <h2 className="adminTitle">Program Overrides</h2>
+
                 <div className="adminActions">
-                    <button className="adminBtn adminBtn--new" type="button" onClick={startNew} disabled={loading || showNew}>
+                    <button
+                        className="adminBtn adminBtn--new"
+                        type="button"
+                        onClick={startNew}
+                        disabled={loading || showNew}
+                    >
                         <span className="adminBtnIcon" aria-hidden="true">
                             <IconPlus />
                         </span>
-                        Nou
+                        New
                     </button>
+                    {historyItems.length > 0 && (
+                        <button
+                            className="adminSmallBtn"
+                            type="button"
+                            onClick={() => setShowHistory(!showHistory)}
+                        >
+                            {showHistory ? "Hide history" : "History"}
+                        </button>
+                    )}
                 </div>
             </div>
 
-            {loading ? <div className="adminSkeleton" /> : null}
-
-            {!loading ? (
+            {loading ? (
+                <div className="adminSkeleton" />
+            ) : (
                 <div className="adminForm adminForm--edit">
                     {globalError ? <div className="adminAlert">{globalError}</div> : null}
 
@@ -997,37 +948,25 @@ export default function ProgramOverridesAdmin() {
                     ) : null}
 
                     <div className="adminList">
-                        {upcomingPagination.paginatedItems.map((it) => {
-                            const id = it.id;
-                            return (
-                                <OverrideCard
-                                    key={id}
-                                    item={it}
-                                    expanded={expandedIds.has(id)}
-                                    draft={
-                                        draftsById[id] || {
-                                            weekKey: it.weekKey,
-                                            affectedProgramIds: it.affectedProgramIds,
-                                            replacements: it.replacements,
-                                            additions: it.additions,
-                                        }
-                                    }
-                                    saveState={saveStateById[id] || "idle"}
-                                    errorText={errorById[id] || ""}
-                                    eventsList={eventsList}
-                                    onToggleExpand={toggleExpand}
-                                    onToggleAffected={toggleAffected}
-                                    onChangeWeekKey={changeWeekKey}
-                                    onChangeReplacement={changeReplacement}
-                                    onChangeAddition={changeAddition}
-                                    onSave={saveOne}
-                                    onDelete={deleteOne}
-                                />
-                            );
-                        })}
-                        {!upcomingItems.length ? <div className="adminEmpty">Nu există anulări viitoare. Apasă „Nou”.</div> : null}
+                        {upcomingPagination.paginatedItems.map((it) => (
+                            <OverrideCard
+                                key={it.id}
+                                item={it}
+                                expanded={expandedIds.has(it.id)}
+                                draft={draftsById[it.id]}
+                                saveState={saveStateById[it.id] || "idle"}
+                                errorText={errorById[it.id] || ""}
+                                eventsList={eventsList}
+                                onToggleExpand={toggleExpand}
+                                onToggleAffected={toggleAffected}
+                                onChangeWeekKey={changeWeekKey}
+                                onChangeReplacement={changeReplacement}
+                                onChangeAddition={changeAddition}
+                                onSave={onSave}
+                                onDelete={onDelete}
+                            />
+                        ))}
                     </div>
-
                     <PaginationControls
                         page={upcomingPagination.page}
                         totalPages={upcomingPagination.totalPages}
@@ -1035,54 +974,37 @@ export default function ProgramOverridesAdmin() {
                         onPrev={upcomingPagination.prevPage}
                     />
 
-                    <div className="adminHistoryRow">
-                        <button type="button" className="adminSmallBtn" onClick={() => setShowHistory((v) => !v)} disabled={!historyItems.length}>
-                            {showHistory ? "Ascunde istoricul" : `Arată istoricul (${historyItems.length})`}
-                        </button>
-                    </div>
-
                     {showHistory ? (
-                        <>
-                            <div className="adminList adminList--history">
-                                {historyPagination.paginatedItems.map((it) => {
-                                    const id = it.id;
-                                    return (
-                                        <OverrideCard
-                                            key={id}
-                                            item={it}
-                                            expanded={expandedIds.has(id)}
-                                            draft={
-                                                draftsById[id] || {
-                                                    weekKey: it.weekKey,
-                                                    affectedProgramIds: it.affectedProgramIds,
-                                                    replacements: it.replacements,
-                                                    additions: it.additions,
-                                                }
-                                            }
-                                            saveState={saveStateById[id] || "idle"}
-                                            errorText={errorById[id] || ""}
-                                            eventsList={eventsList}
-                                            onToggleExpand={toggleExpand}
-                                            onToggleAffected={toggleAffected}
-                                            onChangeWeekKey={changeWeekKey}
-                                            onChangeReplacement={changeReplacement}
-                                            onChangeAddition={changeAddition}
-                                            onSave={saveOne}
-                                            onDelete={deleteOne}
-                                        />
-                                    );
-                                })}
-                            </div>
+                        <div className="adminList adminList--history">
+                            <h3 className="adminSubtitle">History</h3>
+                            {historyPagination.paginatedItems.map((it) => (
+                                <OverrideCard
+                                    key={it.id}
+                                    item={it}
+                                    expanded={expandedIds.has(it.id)}
+                                    draft={draftsById[it.id]}
+                                    saveState={saveStateById[it.id] || "idle"}
+                                    errorText={errorById[it.id] || ""}
+                                    eventsList={eventsList}
+                                    onToggleExpand={toggleExpand}
+                                    onToggleAffected={toggleAffected}
+                                    onChangeWeekKey={changeWeekKey}
+                                    onChangeReplacement={changeReplacement}
+                                    onChangeAddition={changeAddition}
+                                    onSave={onSave}
+                                    onDelete={onDelete}
+                                />
+                            ))}
                             <PaginationControls
                                 page={historyPagination.page}
                                 totalPages={historyPagination.totalPages}
                                 onNext={historyPagination.nextPage}
                                 onPrev={historyPagination.prevPage}
                             />
-                        </>
+                        </div>
                     ) : null}
                 </div>
-            ) : null}
+            )}
         </div>
     );
 }

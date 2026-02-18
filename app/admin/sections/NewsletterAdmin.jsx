@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { collection, deleteDoc, doc, getDoc, onSnapshot, serverTimestamp, setDoc } from "firebase/firestore";
 import { db } from "../../lib/Firebase";
 import { usePagination } from "../hooks/usePagination";
@@ -74,7 +74,7 @@ function SubscriberCard({ item, expanded, draftEmail, saveState, errorText, onTo
                         e.stopPropagation();
                         onToggle(id);
                     }}
-                    aria-label={expanded ? "Ascunde detalii" : "Afișează detalii"}
+                    aria-label={expanded ? "Hide details" : "Show details"}
                 >
                     <IconChevronDown
                         style={{
@@ -105,7 +105,7 @@ function SubscriberCard({ item, expanded, draftEmail, saveState, errorText, onTo
                             disabled={saveState === "saving"}
                         >
                             <IconTrash />
-                            Șterge
+                            Delete
                         </button>
 
                         <button
@@ -117,7 +117,7 @@ function SubscriberCard({ item, expanded, draftEmail, saveState, errorText, onTo
                             }}
                             disabled={!dirty || saveState === "saving"}
                         >
-                            {saveState === "saving" ? "Se salvează…" : saveState === "saved" ? "Salvat ✓" : "Salvează"}
+                            {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved ✓" : "Save"}
                         </button>
                     </div>
                 </>
@@ -130,7 +130,7 @@ function NewSubscriberCard({ email, setEmail, errorText, saveState, onCancel, on
     return (
         <div className="adminAnnCard is-active">
             <div className="adminAnnHeader">
-                <div className="adminAnnIdChip">Nou abonat</div>
+                <div className="adminAnnIdChip">New Subscriber</div>
             </div>
 
             {errorText ? <div className="adminAlert">{errorText}</div> : null}
@@ -142,11 +142,11 @@ function NewSubscriberCard({ email, setEmail, errorText, saveState, onCancel, on
 
             <div className="adminMsgActions">
                 <button type="button" className="adminDeleteBtn" onClick={onCancel} disabled={saveState === "saving"}>
-                    Anulează
+                    Cancel
                 </button>
 
                 <button type="button" className="adminMsgSaveBtn" onClick={onSave} disabled={saveState === "saving"}>
-                    {saveState === "saving" ? "Se salvează…" : saveState === "saved" ? "Salvat ✓" : "Salvează"}
+                    {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved ✓" : "Save"}
                 </button>
             </div>
         </div>
@@ -180,7 +180,6 @@ export default function NewsletterAdmin() {
         paginatedItems,
         nextPage,
         prevPage,
-        setPage,
         totalItems,
     } = usePagination(items, PAGE_SIZE);
 
@@ -248,14 +247,12 @@ export default function NewsletterAdmin() {
                 console.error(err);
                 if (!mountedRef.current) return;
                 setLoading(false);
-                setGlobalError("Nu am putut încărca newsletter-ul.");
+                setGlobalError("Could not load newsletter.");
             }
         );
 
         return () => unsub();
     }, []);
-
-    const safePage = Math.min(page, totalPages - 1);
 
     const toggleExpand = useCallback((id) => {
         const key = safeStr(id).trim();
@@ -285,7 +282,7 @@ export default function NewsletterAdmin() {
         const clean = safeStr(newEmail).trim().toLowerCase();
 
         if (!clean || !isValidEmail(clean)) {
-            setNewError("Email invalid.");
+            setNewError("Invalid email.");
             return;
         }
 
@@ -324,7 +321,7 @@ export default function NewsletterAdmin() {
             console.error(err);
             if (!mountedRef.current) return;
             setNewState("error");
-            setNewError("Nu am putut salva email-ul.");
+            setNewError("Could not save email.");
         }
     };
 
@@ -345,7 +342,7 @@ export default function NewsletterAdmin() {
         const clean = curDraft.toLowerCase();
 
         if (!clean || !isValidEmail(clean)) {
-            setErrorById((m) => ({ ...m, [key]: "Email invalid." }));
+            setErrorById((m) => ({ ...m, [key]: "Invalid email." }));
             return;
         }
 
@@ -355,7 +352,7 @@ export default function NewsletterAdmin() {
         try {
             if (clean !== key.toLowerCase()) {
                 const ok = window.confirm(
-                    `Ai schimbat email-ul.\n\nAsta va crea/actualiza doc-ul: ${clean}\nși va șterge doc-ul vechi: ${key}\n\nContinui?`
+                    `You changed the email.\n\nThis will create/update: ${clean}\nand delete the old one: ${key}\n\nContinue?`
                 );
                 if (!ok) {
                     setSaveStateById((m) => ({ ...m, [key]: "idle" }));
@@ -402,7 +399,7 @@ export default function NewsletterAdmin() {
             console.error(err);
             if (!mountedRef.current) return;
             setSaveStateById((m) => ({ ...m, [key]: "error" }));
-            setErrorById((m) => ({ ...m, [key]: "Nu am putut salva email-ul." }));
+            setErrorById((m) => ({ ...m, [key]: "Could not save email." }));
         }
     };
 
@@ -410,7 +407,7 @@ export default function NewsletterAdmin() {
         const key = safeStr(id).trim();
         if (!key) return;
 
-        const ok = window.confirm(`Ștergi ${key} din newsletter?`);
+        const ok = window.confirm(`Delete ${key} from newsletter?`);
         if (!ok) return;
 
         setGlobalError("");
@@ -445,7 +442,7 @@ export default function NewsletterAdmin() {
             console.error(err);
             if (!mountedRef.current) return;
             setSaveStateById((m) => ({ ...m, [key]: "error" }));
-            setErrorById((m) => ({ ...m, [key]: "Nu am putut șterge email-ul." }));
+            setErrorById((m) => ({ ...m, [key]: "Could not delete email." }));
         }
     };
 
@@ -455,16 +452,16 @@ export default function NewsletterAdmin() {
                 <h2 className="adminTitle">Newsletter</h2>
 
                 <div className="adminActions">
-                    <div className="adminCountPill" title="Total abonați">
+                    <div className="adminCountPill" title="Total subscribers">
                         <span className="adminCountDot" aria-hidden="true" />
-                        {totalItems} abonat{totalItems === 1 ? "" : "i"}
+                        {totalItems} subscriber{totalItems === 1 ? "" : "s"}
                     </div>
 
                     <button className="adminBtn adminBtn--new" type="button" onClick={startNew} disabled={loading || showNew}>
                         <span className="adminBtnIcon" aria-hidden="true">
                             <IconPlus />
                         </span>
-                        Nou
+                        New
                     </button>
                 </div>
             </div>
@@ -503,7 +500,7 @@ export default function NewsletterAdmin() {
                             />
                         ))}
 
-                        {!items.length && !showNew ? <div className="adminEmpty">{'Nu exist\u0103 abona\u021bi. Apas\u0103 \u201eNou\u201d.'}</div> : null}
+                        {!items.length && !showNew ? <div className="adminEmpty">No subscribers. Click “New”.</div> : null}
                     </div>
 
                     <PaginationControls

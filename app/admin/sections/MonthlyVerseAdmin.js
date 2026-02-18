@@ -166,7 +166,7 @@ function VerseCard({
     onChangeField,
     onSave,
     onDelete,
-    deleteTitle = "Șterge",
+    deleteTitle = "Delete",
 }) {
     const onCardClick = (e) => {
         if (e.target.closest("button, input, textarea, select, label")) return;
@@ -189,7 +189,7 @@ function VerseCard({
                         e.stopPropagation();
                         onToggle();
                     }}
-                    aria-label={expanded ? "Ascunde detalii" : "Afișează detalii"}
+                    aria-label={expanded ? "Hide details" : "Show details"}
                 >
                     <IconChevronDown
                         style={{
@@ -219,7 +219,7 @@ function VerseCard({
                     </div>
 
                     <label className="adminLabel">
-                        Referință ({langKey.toUpperCase()})
+                        Reference ({langKey.toUpperCase()})
                         <input
                             className="adminInput"
                             value={safeStr(draft?.reference?.[langKey])}
@@ -250,7 +250,7 @@ function VerseCard({
                             title={deleteTitle}
                         >
                             <IconTrash />
-                            Șterge
+                            Delete
                         </button>
 
                         <button
@@ -262,7 +262,7 @@ function VerseCard({
                             }}
                             disabled={!dirty || saveState === "saving"}
                         >
-                            {saveState === "saving" ? "Se salvează…" : saveState === "saved" ? "Salvat ✓" : "Salvează"}
+                            {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved ✓" : "Save"}
                         </button>
                     </div>
                 </>
@@ -277,7 +277,7 @@ function NewVerseCard({ newDraft, setNewDraft, newError, newState, activeLang, o
     return (
         <div className="adminAnnCard is-active">
             <div className="adminAnnHeader">
-                <div className="adminAnnIdChip">Nou verset</div>
+                <div className="adminAnnIdChip">New Verse</div>
             </div>
 
             {newError ? <div className="adminAlert">{newError}</div> : null}
@@ -299,7 +299,7 @@ function NewVerseCard({ newDraft, setNewDraft, newError, newState, activeLang, o
             </div>
 
             <label className="adminLabel">
-                Referință ({langKey.toUpperCase()})
+                Reference ({langKey.toUpperCase()})
                 <input
                     className="adminInput"
                     value={safeStr(newDraft?.reference?.[langKey])}
@@ -331,11 +331,11 @@ function NewVerseCard({ newDraft, setNewDraft, newError, newState, activeLang, o
 
             <div className="adminMsgActions">
                 <button type="button" className="adminDeleteBtn" onClick={onCancel} disabled={newState === "saving"}>
-                    Anulează
+                    Cancel
                 </button>
 
                 <button type="button" className="adminMsgSaveBtn" onClick={onSave} disabled={newState === "saving"}>
-                    {newState === "saving" ? "Se salvează…" : newState === "saved" ? "Salvat ✓" : "Salvează"}
+                    {newState === "saving" ? "Saving…" : newState === "saved" ? "Saved ✓" : "Save"}
                 </button>
             </div>
         </div>
@@ -405,7 +405,7 @@ export default function MonthlyVerseAdmin() {
                 console.error(err);
                 if (!mountedRef.current) return;
                 setLoading(false);
-                setError("Nu am putut încărca versetul.");
+                setError("Could not load verse.");
             }
         );
 
@@ -491,7 +491,7 @@ export default function MonthlyVerseAdmin() {
     const saveCurrent = async () => {
         setError("");
         if (!isVerseValidAllLangs(currentDraft)) {
-            setError("Completează referința și textul pentru toate cele 4 limbi.");
+            setError("Fill in reference and text for all 4 languages.");
             return;
         }
 
@@ -508,12 +508,12 @@ export default function MonthlyVerseAdmin() {
             console.error(err);
             if (!mountedRef.current) return;
             setSaveCurrentState("error");
-            setError("Salvarea a eșuat.");
+            setError("Saving failed.");
         }
     };
 
     const deleteCurrent = async () => {
-        const ok = window.confirm("Ștergi versetul curent?");
+        const ok = window.confirm("Delete current verse?");
         if (!ok) return;
 
         setError("");
@@ -530,7 +530,7 @@ export default function MonthlyVerseAdmin() {
             console.error(err);
             if (!mountedRef.current) return;
             setSaveCurrentState("error");
-            setError("Nu am putut șterge versetul curent.");
+            setError("Could not delete current verse.");
         }
     };
 
@@ -544,7 +544,7 @@ export default function MonthlyVerseAdmin() {
 
     const saveNew = async () => {
         if (!isVerseValidAllLangs(newDraft)) {
-            setNewError("Completează referința și textul pentru toate cele 4 limbi.");
+            setNewError("Fill in reference and text for all 4 languages.");
             return;
         }
 
@@ -570,7 +570,7 @@ export default function MonthlyVerseAdmin() {
             console.error(err);
             if (!mountedRef.current) return;
             setNewState("error");
-            setNewError("Nu am putut salva versetul nou.");
+            setNewError("Could not save new verse.");
         }
     };
 
@@ -609,7 +609,7 @@ export default function MonthlyVerseAdmin() {
         const draft = historyDrafts[key] || (base ? { reference: base.reference, text: base.text } : { reference: emptyLangMap(), text: emptyLangMap() });
 
         if (!isVerseValidAllLangs(draft)) {
-            setError("Completează referința și textul pentru toate cele 4 limbi.");
+            setError("Fill in reference and text for all 4 languages.");
             return;
         }
 
@@ -629,7 +629,7 @@ export default function MonthlyVerseAdmin() {
             console.error(err);
             if (!mountedRef.current) return;
             setSavingHistoryById((m) => ({ ...m, [key]: "error" }));
-            setError("Nu am putut salva versetul din istoric.");
+            setError("Could not save history verse.");
         }
     };
 
@@ -637,7 +637,7 @@ export default function MonthlyVerseAdmin() {
         const key = safeStr(id).trim();
         if (!key) return;
 
-        const ok = window.confirm("Ștergi definitiv acest verset din istoric?");
+        const ok = window.confirm("Permanently delete this verse from history?");
         if (!ok) return;
 
         setError("");
@@ -671,14 +671,14 @@ export default function MonthlyVerseAdmin() {
             console.error(err);
             if (!mountedRef.current) return;
             setSavingHistoryById((m) => ({ ...m, [key]: "error" }));
-            setError("Nu am putut șterge versetul din istoric.");
+            setError("Could not delete history verse.");
         }
     };
 
     return (
         <div className="adminCard">
             <div className="adminTop">
-                <h2 className="adminTitle">Versetul lunii</h2>
+                <h2 className="adminTitle">Monthly Verse</h2>
 
                 <div className="adminActions">
                     <button
@@ -690,7 +690,7 @@ export default function MonthlyVerseAdmin() {
                         <span className="adminBtnIcon" aria-hidden="true">
                             <IconPlus />
                         </span>
-                        Nou
+                        New
                     </button>
                 </div>
             </div>
@@ -715,7 +715,7 @@ export default function MonthlyVerseAdmin() {
                     ) : null}
 
                     <VerseCard
-                        label="Curent"
+                        label="Current"
                         expanded={expandedCurrent}
                         summary={currentSummary}
                         draft={currentDraft}
@@ -735,7 +735,7 @@ export default function MonthlyVerseAdmin() {
                         }}
                         onSave={saveCurrent}
                         onDelete={deleteCurrent}
-                        deleteTitle="Șterge versetul curent"
+                        deleteTitle="Delete current verse"
                     />
 
                     <div className="adminHistoryRow">
@@ -745,7 +745,7 @@ export default function MonthlyVerseAdmin() {
                             onClick={() => setShowHistory((v) => !v)}
                             disabled={!history.length}
                         >
-                            {showHistory ? "Ascunde istoricul" : `Arată istoricul (${history.length})`}
+                            {showHistory ? "Hide history" : `Show history (${history.length})`}
                         </button>
                     </div>
 
@@ -775,7 +775,7 @@ export default function MonthlyVerseAdmin() {
                                             onChangeField={(field, l, value) => setHistoryField(h.id, field, l, value)}
                                             onSave={() => saveHistory(h.id)}
                                             onDelete={() => deleteHistory(h.id)}
-                                            deleteTitle="Șterge din istoric"
+                                            deleteTitle="Delete from history"
                                         />
                                     );
                                 })}
