@@ -516,7 +516,7 @@ export default function StatsAdmin() {
     const centerLabel = source === "bots" ? "bots" : source === "unique" ? "visitors" : "visits";
 
     return (
-        <div className="adminCard">
+        <div className="statsPage">
             <div className="statsTop">
                 <h2 className="adminTitle">Statistics</h2>
 
