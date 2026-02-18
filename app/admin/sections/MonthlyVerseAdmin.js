@@ -114,6 +114,16 @@ function makeSummary(referenceMap, textMap, max = 60) {
     return t.length <= max ? t : t.slice(0, max) + "…";
 }
 
+
+function IconHistory(props) {
+    return (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
+            <path d="M12 8v4l3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M3.05 11a9 9 0 1 1 .5 9m-.5-9v-5.5h-5.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+    );
+}
+
 function IconChevronDown(props) {
     return (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
@@ -692,6 +702,18 @@ export default function MonthlyVerseAdmin() {
                         </span>
                         New
                     </button>
+
+                    <button
+                        className="adminBtn adminBtn--new"
+                        type="button"
+                        onClick={() => setShowHistory((v) => !v)}
+                        disabled={!history.length}
+                    >
+                        <span className="adminBtnIcon" aria-hidden="true">
+                            <IconHistory />
+                        </span>
+                        {showHistory ? "Hide history" : "History"}
+                    </button>
                 </div>
             </div>
 
@@ -741,16 +763,7 @@ export default function MonthlyVerseAdmin() {
                             deleteTitle="Delete current verse"
                         />
 
-                        <div className="adminHistoryRow" style={{ marginTop: 24, marginBottom: 16 }}>
-                            <button
-                                type="button"
-                                className="adminSmallBtn"
-                                onClick={() => setShowHistory((v) => !v)}
-                                disabled={!history.length}
-                            >
-                                {showHistory ? "Hide history" : `Show history (${history.length})`}
-                            </button>
-                        </div>
+                        <div style={{ paddingBottom: 16 }} />
 
                         {showHistory ? (
                             <>

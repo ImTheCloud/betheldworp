@@ -799,7 +799,25 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
-    padding-bottom: 24px;
+    padding-bottom: 0;
+    /* Removed padding to reduce gap */
+}
+
+/* ── Sticky/Fixed Pagination Footer ── */
+.adminPaginationFooter {
+    flex-shrink: 0;
+    padding-top: 12px;
+    /* Reduced padding */
+    margin-top: auto;
+    border-top: none;
+    display: flex;
+    justify-content: center;
+    background: transparent;
+}
+
+.adminPaginationFooter .adminPagination {
+    margin-top: 0;
+    padding-top: 0;
 }
 
 /* Scrollbar for the list */

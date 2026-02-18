@@ -51,20 +51,61 @@ function IconChevronDown(props) {
     );
 }
 
+function IconCopy(props) {
+    return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+    );
+}
+
 function SubscriberCard({ item, expanded, draftEmail, saveState, errorText, onToggle, onChange, onSave, onDelete }) {
     const id = safeStr(item?.id).trim();
     const draft = safeStr(draftEmail).trim();
     const dirty = draft.toLowerCase() !== id.toLowerCase();
+    const [copied, setCopied] = useState(false);
 
     const onCardClick = (e) => {
         if (e.target.closest("button, input, textarea, select, label")) return;
         onToggle(id);
     };
 
+    const copyEmail = (e) => {
+        e.stopPropagation();
+        if (!id) return;
+        navigator.clipboard.writeText(id).then(() => {
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        });
+    };
+
     return (
         <div className="adminAnnCard" onClick={onCardClick}>
             <div className="adminAnnHeader">
-                <div className="adminAnnIdChip">{id}</div>
+                <div className="adminAnnIdChip" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    {id}
+                    <button
+                        type="button"
+                        onClick={copyEmail}
+                        className="adminSmallBtn"
+                        style={{
+                            border: "none",
+                            padding: 2,
+                            background: "transparent",
+                            color: copied ? "#10b981" : "inherit",
+                            minWidth: 20,
+                            height: 20
+                        }}
+                        title="Copy email"
+                    >
+                        {copied ? (
+                            <span style={{ fontSize: 12, fontWeight: 800 }}>✓</span>
+                        ) : (
+                            <IconCopy style={{ opacity: 0.6 }} />
+                        )}
+                    </button>
+                </div>
                 <div style={{ flex: 1 }} />
 
                 <button
