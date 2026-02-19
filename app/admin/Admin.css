@@ -64,7 +64,8 @@
     /* Remove shadow */
     display: flex;
     flex-direction: column;
-    padding: 24px;
+    padding: 24px 0;
+    /* Reduced horizontal padding */
     height: 100%;
     overflow-y: auto;
     z-index: 10;
@@ -74,8 +75,9 @@
 .adminSidebarHeader {
     display: flex;
     align-items: center;
-    gap: 14px;
-    margin-bottom: 32px;
+    gap: 12px;
+    margin-bottom: 24px;
+    /* Reduced margin */
     padding-left: 24px;
     padding-right: 24px;
 }
@@ -102,7 +104,8 @@
 .adminSidebarNav {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 2px;
+    /* Tighter gap */
     flex: 1;
     overflow-y: auto;
 }
@@ -111,7 +114,8 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px 24px;
+    padding: 10px 24px;
+    /* Adjusted padding */
     border-radius: 0;
     border: none;
     border-left: 3px solid transparent;
@@ -162,13 +166,21 @@
     display: flex;
     flex-direction: column;
     gap: 4px;
-    padding-left: 12px;
-    padding-right: 12px;
+    padding-left: 24px;
+    /* Match link padding */
+    padding-right: 24px;
 }
 
 .adminSidebarLink--sub {
     font-size: 13px;
     padding: 8px 12px;
+    /* Reduced padding for sub-links, maybe keep inconsistent or align? Let's check context. */
+    /* Wait, line 171 had 8px 12px. Let's keep it but inside the footer wrapper which now has padding. */
+    /* Actually footer has padding 24px. So 12px padding inside link adds up. This might be too much indent. */
+    /* Original footer had padding 12px. Links had 12px. Total 24px indent. */
+    /* New footer has padding 24px. If links have 12px, total 36px? */
+    /* Let's adjust sub link padding to 8px 0 to align text with main links (24px). */
+    padding: 8px 0;
 }
 
 /* ── Content Area ── */
