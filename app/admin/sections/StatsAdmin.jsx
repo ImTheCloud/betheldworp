@@ -336,6 +336,7 @@ export default function StatsAdmin() {
     const [rangeMode, setRangeMode] = useState("today");
     const [source, setSource] = useState("visits");
     const [mode, setMode] = useState("cities");
+    const [sortBy, setSortBy] = useState("desc");
     const [search, setSearch] = useState("");
 
     const todayKey = useMemo(() => brusselsDayKey(), []);
@@ -455,7 +456,13 @@ export default function StatsAdmin() {
 
     const rowsForMode = useMemo(() => {
         const sortRows = (rows) => {
-            rows.sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+            rows.sort((a, b) => {
+                if (sortBy === "desc") return b.count - a.count || a.label.localeCompare(b.label);
+                if (sortBy === "asc") return a.count - b.count || a.label.localeCompare(b.label);
+                if (sortBy === "az") return a.label.localeCompare(b.label);
+                if (sortBy === "za") return b.label.localeCompare(a.label);
+                return 0;
+            });
             return rows;
         };
 
@@ -496,7 +503,7 @@ export default function StatsAdmin() {
                 count: Number(agg.byDevice[k]) || 0,
             }))
         );
-    }, [agg, mode]);
+    }, [agg, mode, sortBy]);
 
     const donutTitle = useMemo(() => {
         const prefix = source === "bots" ? `${BOT_ICON} Bots` : source === "unique" ? "Unique Visitors" : "Visits";
@@ -527,53 +534,61 @@ export default function StatsAdmin() {
             <div className="adminFullTop">
                 <h2 className="adminTitle">Statistics</h2>
 
-                <div className="adminActions" style={{ flexWrap: "wrap", justifyContent: "flex-end", flex: 1 }}>
-                    <div className="statsTabs" role="tablist" aria-label="Charts">
+                <div className="statsActions">
+                    <select
+                        className="statsSelect"
+                        value={mode}
+                        onChange={(e) => {
+                            setMode(e.target.value);
+                            setSearch("");
+                        }}
+                        aria-label="Select category"
+                    >
                         {modeTabs.map((t) => (
-                            <button
-                                key={t.id}
-                                type="button"
-                                className={`statsTab ${mode === t.id ? "is-active" : ""}`}
-                                onClick={() => {
-                                    setMode(t.id);
-                                    setSearch("");
-                                }}
-                                role="tab"
-                                aria-selected={mode === t.id}
-                            >
+                            <option key={t.id} value={t.id}>
                                 {t.label}
-                            </button>
+                            </option>
                         ))}
-                    </div>
+                    </select>
 
-                    <div className="statsControls">
-                        <select
-                            className="statsSelect"
-                            value={source}
-                            onChange={(e) => {
-                                setSource(e.target.value);
-                                setSearch("");
-                            }}
-                            aria-label="Select source"
-                        >
-                            <option value="visits">Human Visits</option>
-                            <option value="unique">Unique Visitors</option>
-                            <option value="bots">Detected Bots</option>
-                        </select>
+                    <select
+                        className="statsSelect"
+                        value={source}
+                        onChange={(e) => {
+                            setSource(e.target.value);
+                            setSearch("");
+                        }}
+                        aria-label="Select source"
+                    >
+                        <option value="visits">Human Visits</option>
+                        <option value="unique">Unique Visitors</option>
+                        <option value="bots">Detected Bots</option>
+                    </select>
 
-                        <select
-                            className="statsSelect"
-                            value={rangeMode}
-                            onChange={(e) => setRangeMode(e.target.value)}
-                            aria-label="Select range"
-                        >
-                            <option value="all">{`All time`}</option>
-                            <option value="today">Today</option>
-                            <option value="7">Last 7 days</option>
-                            <option value="30">Last 30 days</option>
-                            <option value="90">Last 90 days</option>
-                        </select>
-                    </div>
+                    <select
+                        className="statsSelect"
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value)}
+                        aria-label="Sort by"
+                    >
+                        <option value="desc">Highest first</option>
+                        <option value="asc">Lowest first</option>
+                        <option value="az">A to Z</option>
+                        <option value="za">Z to A</option>
+                    </select>
+
+                    <select
+                        className="statsSelect"
+                        value={rangeMode}
+                        onChange={(e) => setRangeMode(e.target.value)}
+                        aria-label="Select range"
+                    >
+                        <option value="all">{`All time`}</option>
+                        <option value="today">Today</option>
+                        <option value="7">Last 7 days</option>
+                        <option value="30">Last 30 days</option>
+                        <option value="90">Last 90 days</option>
+                    </select>
                 </div>
             </div>
 

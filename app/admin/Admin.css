@@ -10,7 +10,6 @@
     background: #f3f4f6;
     /* Fallback */
     color: #0a2a43;
-    padding: 0;
     /* Remove padding */
     margin: 0;
 }
@@ -971,9 +970,6 @@
 
     .adminMobileHeader {
         display: flex;
-        position: sticky;
-        top: 0;
-        z-index: 20;
     }
 
     .adminSidebarWrap {
@@ -1016,6 +1012,51 @@
 
     .adminGrid2 {
         grid-template-columns: 1fr;
+    }
+
+    /* Stack the Full Page Header on Mobile */
+    .adminFullTop {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+        padding: 16px;
+    }
+
+    .adminFullTop .adminActions {
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+        gap: 12px;
+    }
+
+    /* Ensure specific children of actions also adapt */
+    .adminFullTop .adminActions>* {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* If there are flex containers inside actions (like tabs), let them scroll or wrap */
+    .statsTabs {
+        /* From StatsAdmin.css but might need override here or there */
+        overflow-x: auto;
+        max-width: 100%;
+        margin-right: 0 !important;
+        /* Remove margin if it causes issues */
+        justify-content: flex-start;
+    }
+
+    .statsControls {
+        /* Container for selects */
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+    }
+
+    .adminFullTop .statsSelect {
+        width: 100%;
+        margin-left: 0 !important;
+        /* Remove margin if set */
     }
 }
 
