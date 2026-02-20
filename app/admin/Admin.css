@@ -1023,16 +1023,20 @@
     }
 
     .adminFullTop .adminActions {
-        flex-direction: column;
-        align-items: stretch;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
         width: 100%;
-        gap: 12px;
+        gap: 10px;
     }
 
     /* Ensure specific children of actions also adapt */
     .adminFullTop .adminActions>* {
-        width: 100%;
+        width: auto;
+        flex: 1;
         justify-content: center;
+        padding: 8px 12px;
+        font-size: 13px;
     }
 
     /* If there are flex containers inside actions (like tabs), let them scroll or wrap */
