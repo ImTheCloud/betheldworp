@@ -536,7 +536,7 @@ export default function StatsAdmin() {
 
                 <div className="statsActions">
                     <select
-                        className="statsSelect"
+                        className="adminSelect"
                         value={mode}
                         onChange={(e) => {
                             setMode(e.target.value);
@@ -552,7 +552,7 @@ export default function StatsAdmin() {
                     </select>
 
                     <select
-                        className="statsSelect"
+                        className="adminSelect"
                         value={source}
                         onChange={(e) => {
                             setSource(e.target.value);
@@ -566,7 +566,7 @@ export default function StatsAdmin() {
                     </select>
 
                     <select
-                        className="statsSelect"
+                        className="adminSelect"
                         value={sortBy}
                         onChange={(e) => setSortBy(e.target.value)}
                         aria-label="Sort by"
@@ -578,7 +578,7 @@ export default function StatsAdmin() {
                     </select>
 
                     <select
-                        className="statsSelect"
+                        className="adminSelect"
                         value={rangeMode}
                         onChange={(e) => setRangeMode(e.target.value)}
                         aria-label="Select range"

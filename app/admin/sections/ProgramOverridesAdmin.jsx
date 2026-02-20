@@ -338,7 +338,7 @@ function OverrideCard({ item, expanded, draft, saveState, errorText, eventsList,
                                     <div className="overrideSlotRow" key={`${id}-repl-${opt.id}`}>
                                         <span className="overrideSlotDay">{opt.label}</span>
                                         <select
-                                            className="adminInput"
+                                            className="adminSelect"
                                             value={safeStr(replacements[opt.id])}
                                             onChange={(e) => {
                                                 e.stopPropagation();
@@ -373,7 +373,7 @@ function OverrideCard({ item, expanded, draft, saveState, errorText, eventsList,
                                 <div className="overrideSlotRow" key={`${id}-add-${opt.id}`}>
                                     <span className="overrideSlotDay">{opt.label}</span>
                                     <select
-                                        className="adminInput"
+                                        className="adminSelect"
                                         value={safeStr(additions[opt.id])}
                                         onChange={(e) => {
                                             e.stopPropagation();
@@ -492,7 +492,7 @@ function NewOverrideCard({ draft, saveState, errorText, eventsList, weekKeyForCa
                             <div className="overrideSlotRow" key={`new-repl-${opt.id}`}>
                                 <span className="overrideSlotDay">{opt.label}</span>
                                 <select
-                                    className="adminInput"
+                                    className="adminSelect"
                                     value={safeStr(replacements[opt.id])}
                                     onChange={(e) => {
                                         e.stopPropagation();
@@ -527,7 +527,7 @@ function NewOverrideCard({ draft, saveState, errorText, eventsList, weekKeyForCa
                         <div className="overrideSlotRow" key={`new-add-${opt.id}`}>
                             <span className="overrideSlotDay">{opt.label}</span>
                             <select
-                                className="adminInput"
+                                className="adminSelect"
                                 value={safeStr(additions[opt.id])}
                                 onChange={(e) => {
                                     e.stopPropagation();

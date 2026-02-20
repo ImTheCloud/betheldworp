@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useMemo } from "react";
 import { collection, deleteDoc, doc, getDoc, onSnapshot, serverTimestamp, setDoc } from "firebase/firestore";
 import { db } from "../../lib/Firebase";
 import { usePagination } from "../hooks/usePagination";
@@ -83,28 +83,30 @@ function SubscriberCard({ item, expanded, draftEmail, saveState, errorText, onTo
     return (
         <div className="adminAnnCard" onClick={onCardClick}>
             <div className="adminAnnHeader">
-                <div className="adminAnnIdChip" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    {id}
-                    <button
-                        type="button"
-                        onClick={copyEmail}
-                        className="adminSmallBtn"
-                        style={{
-                            border: "none",
-                            padding: 2,
-                            background: "transparent",
-                            color: copied ? "#10b981" : "inherit",
-                            minWidth: 20,
-                            height: 20
-                        }}
-                        title="Copy email"
-                    >
-                        {copied ? (
-                            <span style={{ fontSize: 12, fontWeight: 800 }}>✓</span>
-                        ) : (
-                            <IconCopy style={{ opacity: 0.6 }} />
-                        )}
-                    </button>
+                <div className="adminAnnIdChip" style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        {id}
+                        <button
+                            type="button"
+                            onClick={copyEmail}
+                            className="adminSmallBtn"
+                            style={{
+                                border: "none",
+                                padding: 2,
+                                background: "transparent",
+                                color: copied ? "#10b981" : "inherit",
+                                minWidth: 20,
+                                height: 20
+                            }}
+                            title="Copy email"
+                        >
+                            {copied ? (
+                                <span style={{ fontSize: 12, fontWeight: 800 }}>✓</span>
+                            ) : (
+                                <IconCopy style={{ opacity: 0.6 }} />
+                            )}
+                        </button>
+                    </div>
                 </div>
                 <div style={{ flex: 1 }} />
 
@@ -129,6 +131,12 @@ function SubscriberCard({ item, expanded, draftEmail, saveState, errorText, onTo
             {expanded ? (
                 <>
                     {errorText ? <div className="adminAlert">{errorText}</div> : null}
+
+                    {item?.createdAt ? (
+                        <div style={{ color: "rgba(10, 42, 67, 0.6)", fontWeight: 500, fontSize: 13, marginBottom: 12 }}>
+                            Subscribed on: {item.createdAt}
+                        </div>
+                    ) : null}
 
                     <label className="adminLabel">
                         Email
@@ -208,11 +216,25 @@ export default function NewsletterAdmin() {
     const [saveStateById, setSaveStateById] = useState({});
     const [errorById, setErrorById] = useState({});
     const [expandedIds, setExpandedIds] = useState(() => new Set());
+    const [sortBy, setSortBy] = useState("date-desc");
 
     const [showNew, setShowNew] = useState(false);
     const [newEmail, setNewEmail] = useState("");
     const [newError, setNewError] = useState("");
     const [newState, setNewState] = useState("idle");
+
+    // Sorting logic
+    const sortedItems = useMemo(() => {
+        const arr = [...items];
+        arr.sort((a, b) => {
+            if (sortBy === "az") return a.id.localeCompare(b.id);
+            if (sortBy === "za") return b.id.localeCompare(a.id);
+            if (sortBy === "date-desc") return (b.createdAtMs || 0) - (a.createdAtMs || 0);
+            if (sortBy === "date-asc") return (a.createdAtMs || 0) - (b.createdAtMs || 0);
+            return 0;
+        });
+        return arr;
+    }, [items, sortBy]);
 
     // Pagination Hook
     const {
@@ -223,7 +245,7 @@ export default function NewsletterAdmin() {
         nextPage,
         prevPage,
         totalItems,
-    } = usePagination(items, PAGE_SIZE);
+    } = usePagination(sortedItems, PAGE_SIZE);
 
     const setTransientState = (id, value = "saved") => {
         setSaveStateById((m) => ({ ...m, [id]: value }));
@@ -252,10 +274,27 @@ export default function NewsletterAdmin() {
                 if (!mountedRef.current) return;
 
                 const list = snap.docs
-                    .map((d) => ({ id: safeStr(d.id).trim() }))
+                    .map((d) => {
+                        const data = d.data() || {};
+                        let createdAtText = "";
+                        let createdAtMs = 0;
+                        if (data.createdAt) {
+                            try {
+                                const dObj = data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt);
+                                createdAtText = dObj.toLocaleDateString("en-US", { year: 'numeric', month: 'long', day: 'numeric' });
+                                createdAtMs = dObj.getTime();
+                            } catch (e) {
+                                // Default to empty string on parse error
+                            }
+                        }
+                        return {
+                            id: safeStr(d.id).trim(),
+                            createdAt: createdAtText,
+                            createdAtMs
+                        };
+                    })
                     .filter((x) => x.id);
 
-                list.sort((a, b) => safeStr(a.id).localeCompare(safeStr(b.id)));
                 setItems(list);
 
                 setDraftsById((prev) => {
@@ -491,13 +530,25 @@ export default function NewsletterAdmin() {
     return (
         <div className="adminFullPage">
             <div className="adminFullTop">
-                <h2 className="adminTitle">Newsletter</h2>
-
-                <div className="adminActions">
-                    <div className="adminCountPill" title="Total subscribers">
-                        <span className="adminCountDot" aria-hidden="true" />
+                <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", height: 40 }}>
+                    <h2 className="adminTitle" style={{ margin: 0, lineHeight: 1 }}>Newsletter</h2>
+                    <span style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "rgba(10, 42, 67, 0.6)", fontWeight: 600, height: "100%" }}>
+                        <span className="adminCountDot" aria-hidden="true" style={{ width: 6, height: 6, opacity: 0.3 }} />
                         {totalItems} subscriber{totalItems === 1 ? "" : "s"}
-                    </div>
+                    </span>
+                </div>
+                <div className="adminActions">
+                    <select
+                        className="adminSelect"
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value)}
+                        aria-label="Sort subscribers"
+                    >
+                        <option value="date-desc">Newest first</option>
+                        <option value="date-asc">Oldest first</option>
+                        <option value="az">Alphabetical (A-Z)</option>
+                        <option value="za">Alphabetical (Z-A)</option>
+                    </select>
 
                     <button className="adminBtn adminBtn--new" type="button" onClick={startNew} disabled={loading || showNew}>
                         <span className="adminBtnIcon" aria-hidden="true">

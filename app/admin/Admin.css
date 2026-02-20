@@ -301,17 +301,19 @@
 .adminBtn {
     border: none;
     border-radius: 8px;
-    /* Tighter radius */
-    padding: 10px 18px;
+    padding: 0 16px;
+    /* Adjust if using explicit height */
+    height: 40px;
+    box-sizing: border-box;
     font-weight: 700;
     cursor: pointer;
     background: #0a2a43;
-    /* Solid primary color */
     color: #fff;
     box-shadow: 0 2px 4px rgba(10, 42, 67, 0.1);
     transition: all 0.15s ease;
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
     font-size: 14px;
 }
@@ -775,8 +777,8 @@
 }
 
 /* Enhanced Inputs for Full Layout Headers */
-.adminFullTop .adminInput,
-.adminFullTop .adminSelect {
+/* Enhanced Inputs for Full Layout Headers */
+.adminFullTop .adminInput {
     padding: 12px 16px;
     font-size: 15px;
     border-radius: 10px;
@@ -786,8 +788,7 @@
     min-width: 200px;
 }
 
-.adminFullTop .adminInput:focus,
-.adminFullTop .adminSelect:focus {
+.adminFullTop .adminInput:focus {
     background: #fff;
     border-color: #0a2a43;
     box-shadow: 0 0 0 3px rgba(10, 42, 67, 0.1);
@@ -831,6 +832,35 @@
 .adminInputWrapper:focus-within {
     border-color: #0a2a43;
     box-shadow: 0 0 0 3px rgba(10, 42, 67, 0.05);
+}
+
+.adminSelect {
+    background: #fff;
+    color: #0a2a43;
+    border: 1px solid rgba(10, 42, 67, 0.2);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    /* Minimal shadow */
+    border-radius: 8px;
+    /* Matching the 8px from buttons */
+    height: 40px;
+    box-sizing: border-box;
+    padding: 0 32px 0 16px;
+    font-weight: 700;
+    font-size: 14px;
+    outline: none;
+    appearance: none;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 12 12' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M2.5 4.5L6 8L9.5 4.5' stroke='%230a2a43' stroke-opacity='0.6' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-position: right 12px center;
+    background-size: 14px;
+    background-repeat: no-repeat;
+    transition: all 0.2s ease;
+}
+
+.adminSelect:hover {
+    border-color: #0a2a43;
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(10, 42, 67, 0.1);
 }
 
 .adminInputWrapper .adminInput {
@@ -1023,19 +1053,27 @@
     }
 
     .adminFullTop .adminActions {
-        flex-direction: row;
-        flex-wrap: wrap;
-        align-items: center;
-        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
         gap: 10px;
+        width: 100%;
+        padding-bottom: 0;
+        overflow: visible;
+        align-items: center;
     }
 
-    /* Ensure specific children of actions also adapt */
-    .adminFullTop .adminActions>* {
-        width: auto;
-        flex: 1;
+    /* Override previous column stack explicitly to handle specific children beautifully */
+    .adminFullTop .adminActions .adminSelect {
+        width: 100%;
+        min-width: 0;
+        margin: 0;
+    }
+
+    .adminFullTop .adminActions .adminBtn,
+    .adminFullTop .adminActions .adminCountBadge {
+        width: 100%;
         justify-content: center;
-        padding: 8px 12px;
+        padding: 10px 12px;
         font-size: 13px;
     }
 
