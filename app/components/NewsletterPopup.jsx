@@ -19,6 +19,31 @@ export default function NewsletterPopup() {
     const [email, setEmail] = useState("");
     const [status, setStatus] = useState("idle"); // idle, sending, success, error
     const [errorMsg, setErrorMsg] = useState("");
+    const [progress, setProgress] = useState(100);
+
+    useEffect(() => {
+        if (!isVisible || status === "success" || status === "sending" || email.length > 0) {
+            setProgress(100);
+            return;
+        }
+
+        const duration = 30000; // 30 seconds
+        const interval = 50; // update every 50ms for smooth UI
+        let elapsed = 0;
+
+        const timer = setInterval(() => {
+            elapsed += interval;
+            const remaining = Math.max(0, 100 - (elapsed / duration) * 100);
+            setProgress(remaining);
+
+            if (remaining <= 0) {
+                clearInterval(timer);
+                setIsVisible(false);
+            }
+        }, interval);
+
+        return () => clearInterval(timer);
+    }, [isVisible, status, email]);
 
     useEffect(() => {
         // Check if user has already subscribed or dismissed
@@ -82,6 +107,14 @@ export default function NewsletterPopup() {
     return (
         <div className="nl-popup-overlay">
             <div className="nl-popup-card">
+                {isVisible && email.length === 0 && status === "idle" && (
+                    <div className="nl-popup-progress-container">
+                        <div
+                            className="nl-popup-progress-bar"
+                            style={{ width: `${progress}%` }}
+                        />
+                    </div>
+                )}
                 <button
                     className="nl-popup-close"
                     onClick={() => handleClose(true)}

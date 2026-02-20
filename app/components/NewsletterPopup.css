@@ -33,6 +33,22 @@
     overflow: hidden;
 }
 
+.nl-popup-progress-container {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: rgba(10, 42, 67, 0.05);
+    z-index: 10;
+}
+
+.nl-popup-progress-bar {
+    height: 100%;
+    background: #0a2a43;
+    transition: width 0.05s linear;
+}
+
 .nl-popup-card::before {
     content: '';
     position: absolute;
