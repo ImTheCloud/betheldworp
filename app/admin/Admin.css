@@ -844,12 +844,11 @@
     background-position: right 12px center;
     background-size: 14px;
     background-repeat: no-repeat;
-    transition: all 0.2s ease;
 }
 
 .adminSelect:hover {
     border-color: #0a2a43;
-    background: #fff;
+    background-color: #fff;
     box-shadow: 0 2px 4px rgba(10, 42, 67, 0.1);
 }
 

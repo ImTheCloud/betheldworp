@@ -236,10 +236,6 @@ function OverrideCard({ item, expanded, draft, saveState, errorText, eventsList,
         onToggleExpand(id);
     };
 
-    const summaryParts = [];
-    if (affectedSet.size > 0) summaryParts.push(`${affectedSet.size} cancellations`);
-    if (additionsCount > 0) summaryParts.push(`${additionsCount} extra`);
-
     return (
         <div className={`adminAnnCard${item?.upcoming ? " is-active" : ""}`}>
             <div className="adminAnnHeader" onClick={onCardClick} style={{ cursor: "pointer" }}>
@@ -247,11 +243,7 @@ function OverrideCard({ item, expanded, draft, saveState, errorText, eventsList,
                     {shortId(weekKeyValue || id)}
                 </div>
 
-                {!expanded ? (
-                    <div className="adminSummary">{summaryParts.join(" · ") || "—"}</div>
-                ) : (
-                    <div style={{ flex: 1 }} />
-                )}
+                <div style={{ flex: 1 }} />
 
                 <button
                     type="button"
