@@ -170,41 +170,6 @@ function EventCard({ item, expanded, draft, saveState, errorText, activeLang, on
                 <>
                     {errorText ? <div className="adminAlert">{errorText}</div> : null}
 
-                    <div className="adminAffectGrid">
-                        {LANGS.map((l) => (
-                            <button
-                                key={l.key}
-                                type="button"
-                                className={`adminAffectChip ${langKey === l.key ? "is-on" : ""}`.trim()}
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onLangChange(id, l.key);
-                                }}
-                            >
-                                {l.label}
-                            </button>
-                        ))}
-                    </div>
-
-                    <label className="adminLabel">
-                        Title ({langKey.toUpperCase()})
-                        <input
-                            className="adminInput"
-                            value={safeStr(draft?.title?.[langKey])}
-                            onChange={(e) => onChangeField(id, "title", langKey, e.target.value)}
-                        />
-                    </label>
-
-                    <label className="adminLabel">
-                        Description ({langKey.toUpperCase()})
-                        <textarea
-                            className="adminTextarea"
-                            value={safeStr(draft?.description?.[langKey])}
-                            onChange={(e) => onChangeField(id, "description", langKey, e.target.value)}
-                            rows={3}
-                        />
-                    </label>
-
                     <div className="adminGrid2">
                         <label className="adminLabel">
                             Date
@@ -224,6 +189,41 @@ function EventCard({ item, expanded, draft, saveState, errorText, activeLang, on
                             />
                         </label>
                     </div>
+
+                    <label className="adminLabel">
+                        Title ({langKey.toUpperCase()})
+                        <input
+                            className="adminInput"
+                            value={safeStr(draft?.title?.[langKey])}
+                            onChange={(e) => onChangeField(id, "title", langKey, e.target.value)}
+                        />
+                    </label>
+
+                    <div className="adminAffectGrid">
+                        {LANGS.map((l) => (
+                            <button
+                                key={l.key}
+                                type="button"
+                                className={`adminAffectChip ${langKey === l.key ? "is-on" : ""}`.trim()}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onLangChange(id, l.key);
+                                }}
+                            >
+                                {l.label}
+                            </button>
+                        ))}
+                    </div>
+
+                    <label className="adminLabel">
+                        Description ({langKey.toUpperCase()})
+                        <textarea
+                            className="adminTextarea"
+                            value={safeStr(draft?.description?.[langKey])}
+                            onChange={(e) => onChangeField(id, "description", langKey, e.target.value)}
+                            rows={3}
+                        />
+                    </label>
 
                     <div className="adminGrid2">
                         <label className="adminLabel">
@@ -295,41 +295,6 @@ function NewEventCard({ draft, saveState, errorText, activeLang, onLangChange, o
 
             {errorText ? <div className="adminAlert">{errorText}</div> : null}
 
-            <div className="adminAffectGrid">
-                {LANGS.map((l) => (
-                    <button
-                        key={l.key}
-                        type="button"
-                        className={`adminAffectChip ${langKey === l.key ? "is-on" : ""}`.trim()}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onLangChange(l.key);
-                        }}
-                    >
-                        {l.label}
-                    </button>
-                ))}
-            </div>
-
-            <label className="adminLabel">
-                Title ({langKey.toUpperCase()})
-                <input
-                    className="adminInput"
-                    value={safeStr(draft?.title?.[langKey])}
-                    onChange={(e) => onChangeField("title", langKey, e.target.value)}
-                />
-            </label>
-
-            <label className="adminLabel">
-                Description ({langKey.toUpperCase()})
-                <textarea
-                    className="adminTextarea"
-                    value={safeStr(draft?.description?.[langKey])}
-                    onChange={(e) => onChangeField("description", langKey, e.target.value)}
-                    rows={3}
-                />
-            </label>
-
             <div className="adminGrid2">
                 <label className="adminLabel">
                     Date
@@ -349,6 +314,41 @@ function NewEventCard({ draft, saveState, errorText, activeLang, onLangChange, o
                     />
                 </label>
             </div>
+
+            <label className="adminLabel">
+                Title ({langKey.toUpperCase()})
+                <input
+                    className="adminInput"
+                    value={safeStr(draft?.title?.[langKey])}
+                    onChange={(e) => onChangeField("title", langKey, e.target.value)}
+                />
+            </label>
+
+            <div className="adminAffectGrid">
+                {LANGS.map((l) => (
+                    <button
+                        key={l.key}
+                        type="button"
+                        className={`adminAffectChip ${langKey === l.key ? "is-on" : ""}`.trim()}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onLangChange(l.key);
+                        }}
+                    >
+                        {l.label}
+                    </button>
+                ))}
+            </div>
+
+            <label className="adminLabel">
+                Description ({langKey.toUpperCase()})
+                <textarea
+                    className="adminTextarea"
+                    value={safeStr(draft?.description?.[langKey])}
+                    onChange={(e) => onChangeField("description", langKey, e.target.value)}
+                    rows={3}
+                />
+            </label>
 
             <div className="adminGrid2">
                 <label className="adminLabel">
