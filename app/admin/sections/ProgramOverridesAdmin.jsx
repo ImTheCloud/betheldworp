@@ -499,7 +499,7 @@ function NewOverrideCard({ draft, saveState, errorText, eventsList, weekKeyForCa
                                             onChangeReplacement("__new__", opt.id, e.target.value);
                                         }}
                                     >
-                                        <option value="">Cancelled only</option>
+                                        <option value="">Cancelled</option>
                                         {filtered.map((ev) => (
                                             <option key={ev.id} value={ev.id}>{ev.label}</option>
                                         ))}
