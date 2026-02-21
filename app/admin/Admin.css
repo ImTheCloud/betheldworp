@@ -173,12 +173,6 @@
 .adminSidebarLink--sub {
     font-size: 13px;
     padding: 8px 12px;
-    /* Reduced padding for sub-links, maybe keep inconsistent or align? Let's check context. */
-    /* Wait, line 171 had 8px 12px. Let's keep it but inside the footer wrapper which now has padding. */
-    /* Actually footer has padding 24px. So 12px padding inside link adds up. This might be too much indent. */
-    /* Original footer had padding 12px. Links had 12px. Total 24px indent. */
-    /* New footer has padding 24px. If links have 12px, total 36px? */
-    /* Let's adjust sub link padding to 8px 0 to align text with main links (24px). */
     padding: 8px 0;
 }
 
@@ -197,7 +191,7 @@
     /* Generous padding */
 }
 
-/* Hide scrollbar for cleaner look but keep functionality */
+/* Hide scrollbar for cleaner ook but keep functionality */
 .adminContent::-webkit-scrollbar {
     width: 8px;
 }
@@ -215,18 +209,14 @@
     background: rgba(10, 42, 67, 0.2);
 }
 
-/* ── Reused Admin Components (kept from original, tweaked for new context) ── */
 
 .adminCard {
     background: #fff;
     border: 1px solid rgba(10, 42, 67, 0.06);
     border-radius: 16px;
-    /* Slightly reduced radius */
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
-    /* Subtle standard shadow */
     padding: 24px;
     min-width: 0;
-    /* Allow expanding */
     width: 100%;
 }
 
@@ -863,6 +853,59 @@
     box-shadow: 0 2px 4px rgba(10, 42, 67, 0.1);
 }
 
+.adminInputWrapper--week {
+    position: relative;
+    padding: 0;
+    justify-content: space-between;
+}
+
+/* Base style for native inputs, reset so they don't look weird behind */
+.adminInput--weekNative {
+    padding-left: 12px;
+    padding-right: 12px;
+    width: 100%;
+    color: transparent;
+    /* Hide text */
+    background: transparent;
+    cursor: pointer;
+    position: relative;
+    z-index: 2;
+}
+
+.adminInput--weekNative::-webkit-calendar-picker-indicator {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    background-position: right 12px center;
+    background-size: 16px;
+    background-repeat: no-repeat;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+    filter: invert(13%) sepia(26%) saturate(3082%) hue-rotate(185deg) brightness(97%) contrast(92%);
+    /* approximates #0a2a43 */
+}
+
+.adminInput--weekNative::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+}
+
+/* The custom overlay text */
+.adminInput--weekCustom {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding-left: 12px;
+    pointer-events: none;
+    /* Let clicks pass through to input */
+    z-index: 1;
+}
+
 .adminInputWrapper .adminInput {
     border: none;
     box-shadow: none;
@@ -877,12 +920,9 @@
 }
 
 .overrideDateRange {
-    font-size: 13px;
-    color: rgba(10, 42, 67, 0.5);
-    font-weight: 500;
-    padding-left: 8px;
-    border-left: 1px solid rgba(10, 42, 67, 0.1);
-    height: 20px;
+    font-size: 14px;
+    color: #0a2a43;
+    font-weight: 600;
     display: flex;
     align-items: center;
 }
@@ -1108,23 +1148,42 @@
     }
 }
 
-.overrideSlotRow {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px;
-    background: #fff;
-    border: 1px solid rgba(10, 42, 67, 0.06);
-    border-radius: 8px;
-    margin-top: 8px;
+.overrideSelectGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-top: 12px;
 }
 
-.overrideSlotDay {
+@media (max-width: 1200px) {
+    .overrideSelectGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.overrideSelectCol {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: #fff;
+    border: 1px solid rgba(10, 42, 67, 0.08);
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.overrideSelectCol .overrideSlotDay {
+    min-width: auto;
     font-weight: 800;
-    font-size: 12px;
-    color: #0a2a43;
-    min-width: 100px;
+    font-size: 11px;
+    color: rgba(10, 42, 67, 0.6);
     text-transform: uppercase;
+}
+
+.overrideSelectCol .adminSelect {
+    width: 100%;
+    padding: 8px 10px;
+    font-size: 13px;
+    border-radius: 6px;
 }
 
 /* Override existing affects grid within cards */
@@ -1154,4 +1213,87 @@
 .adminAffectChip.is-on {
     background: #0a2a43;
     box-shadow: 0 4px 10px rgba(10, 42, 67, 0.15);
+}
+
+/* ── Program Overrides Mobile Responsive ── */
+@media (max-width: 768px) {
+    .adminInputWrapper {
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+        padding: 0;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .adminInputWrapper .adminInput {
+        width: 100%;
+        padding: 12px;
+        border-bottom: 1px solid rgba(10, 42, 67, 0.1);
+        border-radius: 0;
+        /* Removing border radius because it is handled by wrapper */
+    }
+
+    .adminInputWrapper--week {
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .adminInputWrapper--week .adminInput {
+        padding: 16px 12px;
+    }
+
+    .overrideDateRange {
+        border-left: none;
+        padding: 0;
+        justify-content: flex-start;
+        background: transparent;
+        height: auto;
+        font-size: 14px;
+    }
+
+    .adminAnnCard {
+        width: 100%;
+        min-width: 0;
+        overflow: hidden;
+        padding: 12px;
+    }
+
+    .adminContent,
+    .adminFullContent {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .adminAffectChip {
+        padding: 8px 4px;
+        font-size: 11px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 0;
+    }
+
+    .overrideSection {
+        padding: 12px;
+        width: 100%;
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    .adminLabel {
+        width: 100%;
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    .adminAffectGrid {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .adminList {
+        width: 100%;
+        min-width: 0;
+    }
 }
