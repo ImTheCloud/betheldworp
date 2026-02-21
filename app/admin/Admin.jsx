@@ -152,6 +152,24 @@ export default function Admin() {
         }
     };
 
+    const touchStartX = useRef(null);
+
+    const handleTouchStart = (e) => {
+        touchStartX.current = e.touches[0].clientX;
+    };
+
+    const handleTouchEnd = (e) => {
+        if (touchStartX.current === null) return;
+        const touchEndX = e.changedTouches[0].clientX;
+        const deltaX = touchEndX - touchStartX.current;
+
+        // If swiping right from the left edge (e.g. within 50px of the edge)
+        if (!sidebarOpen && touchStartX.current < 50 && deltaX > 70) {
+            setSidebarOpen(true);
+        }
+        touchStartX.current = null;
+    };
+
     return (
         <div className="adminPage">
             {busy ? (
@@ -211,7 +229,11 @@ export default function Admin() {
                     </div>
                 </div>
             ) : (
-                <div className={`adminLayout ${sidebarOpen ? "sidebar-open" : ""}`}>
+                <div
+                    className={`adminLayout ${sidebarOpen ? "sidebar-open" : ""}`}
+                    onTouchStart={handleTouchStart}
+                    onTouchEnd={handleTouchEnd}
+                >
                     {/* Mobile Header / Hamburger */}
                     <div className="adminMobileHeader">
                         <button
