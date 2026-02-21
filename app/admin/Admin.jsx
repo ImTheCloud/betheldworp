@@ -163,9 +163,16 @@ export default function Admin() {
         const touchEndX = e.changedTouches[0].clientX;
         const deltaX = touchEndX - touchStartX.current;
 
-        // If swiping right from the left edge (e.g. within 50px of the edge)
-        if (!sidebarOpen && touchStartX.current < 50 && deltaX > 70) {
-            setSidebarOpen(true);
+        if (!sidebarOpen) {
+            // Open: Swipe right from the left edge (e.g. within 50px of the edge)
+            if (touchStartX.current < 50 && deltaX > 70) {
+                setSidebarOpen(true);
+            }
+        } else {
+            // Close: Swipe left
+            if (deltaX < -70) {
+                setSidebarOpen(false);
+            }
         }
         touchStartX.current = null;
     };
