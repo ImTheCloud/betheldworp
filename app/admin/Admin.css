@@ -483,6 +483,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 12px;
+    min-width: 0;
 }
 
 .adminAnnIdChip {
@@ -501,15 +502,12 @@
     font-size: 14px;
     color: #0a2a43;
     font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-@media (max-width: 768px) {
-    .adminSummary {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-}
+/* Default truncation applied above */
 
 .adminSmallBtn {
     background: transparent;
@@ -523,6 +521,7 @@
     transition: all 0.15s ease;
     display: grid;
     place-items: center;
+    flex-shrink: 0;
 }
 
 .adminSmallBtn:hover {
