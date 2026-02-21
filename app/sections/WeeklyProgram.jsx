@@ -164,12 +164,6 @@ export default function Program() {
     const goNext = () => setWeekOffset((o) => o + 1);
     const goToday = () => setWeekOffset(0);
 
-    const currentDayIndex = useMemo(() => {
-        if (weekOffset !== 0) return -1; // no "today" highlight for other weeks
-        const { yy, mm, dd } = getBrusselsYMD(new Date());
-        const d = new Date(Date.UTC(yy, mm - 1, dd, 12, 0, 0));
-        return (d.getUTCDay() + 6) % 7;
-    }, [weekOffset]);
 
     const dayIdToIndex = { mon: 0, tue: 1, wed: 2, thu: 3, fri: 4, sat: 5, sun_am: 6, sun_pm: 6 };
 
@@ -273,13 +267,10 @@ export default function Program() {
                         const replacementEvent = replacementEventId ? eventsMap.get(replacementEventId) : null;
                         const isReplaced = isCancelled && !!replacementEvent;
 
-                        const itemDayIdx = dayIdToIndex[id];
-                        const isToday = itemDayIdx === currentDayIndex;
 
                         let statusClass = "program-card--normal";
                         if (isReplaced) statusClass = "program-card--replaced";
                         else if (isCancelled) statusClass = "program-card--cancelled";
-                        else if (isToday) statusClass = "program-card--today";
 
                         const dm = safeStr(dateMetaById?.[id]?.dm || "");
                         const full = safeStr(dateMetaById?.[id]?.full || "");
@@ -302,14 +293,13 @@ export default function Program() {
                                 >
                                     <div className="program-cardInnerFlat">
                                         <div className="program-cardTop">
-                                            <div className={`program-day ${isToday && !isCancelled ? "program-day--today" : ""}`}>{item?.day}</div>
+                                            <div className="program-day">{item?.day}</div>
                                             {isReplaced && <div className="program-statusPill program-statusPill--replaced">{t("status_replaced")}</div>}
                                             {isCancelled && !isReplaced && <div className="program-statusPill program-statusPill--cancelled">{t("status_cancelled")}</div>}
-                                            {isToday && !isCancelled && <div className="program-statusPill program-statusPill--today">{t("status_today")}</div>}
                                         </div>
                                         <div className="program-activity">{displayTitle}</div>
                                         <div className="program-bottomRow">
-                                            {timeLabel && <div className={`program-timeLine ${isCancelled && !isReplaced ? "program-timeLine--cancelled" : ""} ${isReplaced ? "program-timeLine--replaced" : ""} ${isToday && !isCancelled ? "program-timeLine--today" : ""}`}>{timeLabel}</div>}
+                                            {timeLabel && <div className={`program-timeLine ${isCancelled && !isReplaced ? "program-timeLine--cancelled" : ""} ${isReplaced ? "program-timeLine--replaced" : ""}`}>{timeLabel}</div>}
                                             {dm && <div className="program-dateFixed" title={full}>{dm}</div>}
                                         </div>
                                     </div>

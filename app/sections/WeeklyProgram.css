@@ -171,9 +171,6 @@
     margin: 0;
 }
 
-.program-day--today {
-    color: #065f46;
-}
 
 .program-statusPill {
     font-size: 10px;
@@ -191,11 +188,6 @@
 }
 
 
-.program-statusPill--today {
-    background: rgba(5, 150, 105, 0.18);
-    border: 1px solid rgba(5, 150, 105, 0.28);
-    color: #065f46;
-}
 
 .program-activity {
     font-size: 16px;
@@ -227,10 +219,6 @@
     border-radius: 8px;
 }
 
-.program-timeLine--today {
-    color: #064e3b;
-    background: rgba(5, 150, 105, 0.18);
-}
 
 .program-dateFixed {
     margin-left: auto;
@@ -257,11 +245,6 @@
     border: 1px solid rgba(10, 42, 67, 0.14);
 }
 
-.program-card--today {
-    background: #f6fdfb;
-    border-color: rgba(5, 150, 105, 0.38);
-    box-shadow: 0 8px 22px rgba(5, 150, 105, 0.10);
-}
 
 .program-card--replaced {
     background: #fffbf0;
