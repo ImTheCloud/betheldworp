@@ -27,7 +27,7 @@ export default function NewsletterPopup() {
             return;
         }
 
-        const duration = 30000; // 30 seconds
+        const duration = 60000; // 60 seconds
         const interval = 50; // update every 50ms for smooth UI
         let elapsed = 0;
 
