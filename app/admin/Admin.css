@@ -526,9 +526,9 @@
 }
 
 .adminSmallBtn:hover {
-    background: #0a2a43;
-    color: #fff;
-    border-color: #0a2a43;
+    background: transparent;
+    color: rgba(10, 42, 67, 0.5);
+    border-color: rgba(10, 42, 67, 0.1);
 }
 
 .adminMsgActions {

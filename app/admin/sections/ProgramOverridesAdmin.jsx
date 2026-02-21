@@ -232,7 +232,7 @@ function OverrideCard({ item, expanded, draft, saveState, errorText, eventsList,
     const additionsCount = Object.values(additions).filter(Boolean).length;
 
     const onCardClick = (e) => {
-        if (e.target.closest("button, input, textarea, select, label")) return;
+        if (e.target.closest("input, textarea, select, label")) return;
         onToggleExpand(id);
     };
 
