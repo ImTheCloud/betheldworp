@@ -148,7 +148,6 @@ function EventCard({ item, expanded, draft, saveState, errorText, activeLang, on
             <div className="adminAnnHeader">
                 <div className="adminAnnIdChip">{date || "No date"}</div>
                 <div className="adminSummary">{title || "No title"}</div>
-                <div style={{ flex: 1 }} />
                 <button
                     type="button"
                     className="adminSmallBtn"

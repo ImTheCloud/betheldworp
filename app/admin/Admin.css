@@ -492,16 +492,23 @@
     font-size: 12px;
     padding: 6px 12px;
     border-radius: 8px;
+    flex-shrink: 0;
 }
 
 .adminSummary {
     flex: 1;
+    min-width: 0;
     font-size: 14px;
     color: #0a2a43;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
     font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .adminSummary {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
 }
 
 .adminSmallBtn {
