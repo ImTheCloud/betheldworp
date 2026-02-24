@@ -21,7 +21,7 @@
 
 .gal-content {
     width: 100%;
-    max-width: 1000px;
+    max-width: 1100px;
     position: relative;
 }
 
@@ -465,7 +465,7 @@
 
 @media (max-width: 600px) {
     .gal-section {
-        padding: 40px 18px 50px;
+        padding: 40px 18px 40px;
     }
 
     .gal-header {

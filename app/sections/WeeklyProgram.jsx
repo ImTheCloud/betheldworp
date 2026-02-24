@@ -328,13 +328,6 @@ export default function Program() {
                         );
                     })}
                 </div>
-
-                <div className="program-verse-highlight">
-                    <div className="program-verse-content">
-                        <p className="program-verse-text">{t("verse_text")}</p>
-                        <p className="program-verse-ref">{t("verse_ref")}</p>
-                    </div>
-                </div>
             </div>
         </section>
     );
