@@ -6,6 +6,7 @@ import { collection, deleteDoc, doc, getDoc, onSnapshot, setDoc } from "firebase
 import { db } from "../../lib/Firebase";
 import { usePagination } from "../hooks/usePagination";
 import PaginationControls from "../components/PaginationControls";
+import ConfirmModal from "../components/ConfirmModal";
 
 const safeObj = (v) => (v && typeof v === "object" && !Array.isArray(v) ? v : {});
 
@@ -595,6 +596,8 @@ export default function ProgramOverridesAdmin() {
     const [newError, setNewError] = useState("");
     const [newState, setNewState] = useState("idle");
 
+    const [modal, setModal] = useState({ isOpen: false, title: "", message: "", onConfirm: () => { } });
+
     // ── Events list for the dropdown ──
     const [eventsList, setEventsList] = useState([]);
 
@@ -962,24 +965,27 @@ export default function ProgramOverridesAdmin() {
         const key = safeStr(id).trim();
         if (!key) return;
 
-        const ok = window.confirm(`Delete program override for ${key}?`);
-        if (!ok) return;
+        setModal({
+            isOpen: true,
+            title: "Delete Override",
+            message: `Are you sure you want to delete the program override for ${key}?`,
+            onConfirm: async () => {
+                setModal({ isOpen: false });
+                setGlobalError("");
+                setErrorById((m) => ({ ...m, [key]: "" }));
+                setSaveStateById((m) => ({ ...m, [key]: "saving" }));
 
-        setGlobalError("");
-        setErrorById((m) => ({ ...m, [key]: "" }));
-        setSaveStateById((m) => ({ ...m, [key]: "saving" }));
-
-        try {
-            await deleteDoc(doc(db, "program_overrides", key));
-
-            if (!mountedRef.current) return;
-            // State cleanup happens via snapshot listener
-        } catch (err) {
-            console.error(err);
-            if (!mountedRef.current) return;
-            setSaveStateById((m) => ({ ...m, [key]: "error" }));
-            setErrorById((m) => ({ ...m, [key]: "Could not delete override." }));
-        }
+                try {
+                    await deleteDoc(doc(db, "program_overrides", key));
+                    if (!mountedRef.current) return;
+                } catch (err) {
+                    console.error(err);
+                    if (!mountedRef.current) return;
+                    setSaveStateById((m) => ({ ...m, [key]: "error" }));
+                    setErrorById((m) => ({ ...m, [key]: "Could not delete override." }));
+                }
+            }
+        });
     };
 
     return (
@@ -1110,6 +1116,13 @@ export default function ProgramOverridesAdmin() {
                             />
                         )}
                     </div>
+                    <ConfirmModal
+                        isOpen={modal.isOpen}
+                        title={modal.title}
+                        message={modal.message}
+                        onConfirm={modal.onConfirm}
+                        onCancel={() => setModal({ ...modal, isOpen: false })}
+                    />
                 </div>
             )}
         </div>

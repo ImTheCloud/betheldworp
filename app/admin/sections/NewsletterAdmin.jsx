@@ -5,6 +5,7 @@ import { collection, deleteDoc, doc, getDoc, onSnapshot, serverTimestamp, setDoc
 import { db } from "../../lib/Firebase";
 import { usePagination } from "../hooks/usePagination";
 import PaginationControls from "../components/PaginationControls";
+import ConfirmModal from "../components/ConfirmModal";
 
 const safeStr = (v) => String(v ?? "");
 
@@ -223,6 +224,8 @@ export default function NewsletterAdmin() {
     const [newError, setNewError] = useState("");
     const [newState, setNewState] = useState("idle");
 
+    const [modal, setModal] = useState({ isOpen: false, title: "", message: "", onConfirm: () => { } });
+
     // Sorting logic
     const sortedItems = useMemo(() => {
         const arr = [...items];
@@ -432,15 +435,32 @@ export default function NewsletterAdmin() {
 
         try {
             if (clean !== key.toLowerCase()) {
-                const ok = window.confirm(
-                    `You changed the email.\n\nThis will create/update: ${clean}\nand delete the old one: ${key}\n\nContinue?`
-                );
-                if (!ok) {
-                    setSaveStateById((m) => ({ ...m, [key]: "idle" }));
-                    return;
-                }
+                setModal({
+                    isOpen: true,
+                    title: "Change Email",
+                    message: `You changed the email. This will create/update: ${clean} and delete the old one: ${key}. Continue?`,
+                    onConfirm: () => {
+                        setModal({ isOpen: false });
+                        executeSaveOne(id, clean, key);
+                    }
+                });
+                return;
             }
 
+            executeSaveOne(id, clean, key);
+        } catch (err) {
+            console.error(err);
+            if (!mountedRef.current) return;
+            setSaveStateById((m) => ({ ...m, [key]: "error" }));
+            setErrorById((m) => ({ ...m, [key]: "Could not save email." }));
+        }
+    };
+
+    const executeSaveOne = async (id, clean, key) => {
+        setSaveStateById((m) => ({ ...m, [key]: "saving" }));
+        setErrorById((m) => ({ ...m, [key]: "" }));
+
+        try {
             const oldRef = doc(db, "newsletter", key);
             const oldSnap = await getDoc(oldRef);
             const oldData = oldSnap.exists() ? oldSnap.data() || {} : {};
@@ -488,43 +508,48 @@ export default function NewsletterAdmin() {
         const key = safeStr(id).trim();
         if (!key) return;
 
-        const ok = window.confirm(`Delete ${key} from newsletter?`);
-        if (!ok) return;
+        setModal({
+            isOpen: true,
+            title: "Delete Subscriber",
+            message: `Are you sure you want to delete ${key} from the newsletter list?`,
+            onConfirm: async () => {
+                setModal({ isOpen: false });
+                setGlobalError("");
+                setErrorById((m) => ({ ...m, [key]: "" }));
+                setSaveStateById((m) => ({ ...m, [key]: "saving" }));
 
-        setGlobalError("");
-        setErrorById((m) => ({ ...m, [key]: "" }));
-        setSaveStateById((m) => ({ ...m, [key]: "saving" }));
+                try {
+                    await deleteDoc(doc(db, "newsletter", key));
 
-        try {
-            await deleteDoc(doc(db, "newsletter", key));
-
-            if (!mountedRef.current) return;
-            setDraftsById((prev) => {
-                const next = { ...prev };
-                delete next[key];
-                return next;
-            });
-            setExpandedIds((prev) => {
-                const next = new Set(prev);
-                next.delete(key);
-                return next;
-            });
-            setSaveStateById((prev) => {
-                const next = { ...prev };
-                delete next[key];
-                return next;
-            });
-            setErrorById((prev) => {
-                const next = { ...prev };
-                delete next[key];
-                return next;
-            });
-        } catch (err) {
-            console.error(err);
-            if (!mountedRef.current) return;
-            setSaveStateById((m) => ({ ...m, [key]: "error" }));
-            setErrorById((m) => ({ ...m, [key]: "Could not delete email." }));
-        }
+                    if (!mountedRef.current) return;
+                    setDraftsById((prev) => {
+                        const next = { ...prev };
+                        delete next[key];
+                        return next;
+                    });
+                    setExpandedIds((prev) => {
+                        const next = new Set(prev);
+                        next.delete(key);
+                        return next;
+                    });
+                    setSaveStateById((prev) => {
+                        const next = { ...prev };
+                        delete next[key];
+                        return next;
+                    });
+                    setErrorById((prev) => {
+                        const next = { ...prev };
+                        delete next[key];
+                        return next;
+                    });
+                } catch (err) {
+                    console.error(err);
+                    if (!mountedRef.current) return;
+                    setSaveStateById((m) => ({ ...m, [key]: "error" }));
+                    setErrorById((m) => ({ ...m, [key]: "Could not delete email." }));
+                }
+            }
+        });
     };
 
     return (
@@ -607,6 +632,14 @@ export default function NewsletterAdmin() {
                             onPageSet={setPage}
                         />
                     </div>
+
+                    <ConfirmModal
+                        isOpen={modal.isOpen}
+                        title={modal.title}
+                        message={modal.message}
+                        onConfirm={modal.onConfirm}
+                        onCancel={() => setModal({ ...modal, isOpen: false })}
+                    />
                 </div>
             ) : null}
         </div>

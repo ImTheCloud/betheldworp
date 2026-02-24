@@ -5,6 +5,7 @@ import { doc, collection, onSnapshot, setDoc, deleteDoc } from "firebase/firesto
 import { db } from "../../lib/Firebase";
 import { usePagination } from "../hooks/usePagination";
 import PaginationControls from "../components/PaginationControls";
+import ConfirmModal from "../components/ConfirmModal";
 
 function safeStr(v) {
     return String(v ?? "");
@@ -371,6 +372,8 @@ export default function MonthlyVerseAdmin() {
     const [newError, setNewError] = useState("");
     const [newLang, setNewLang] = useState("ro");
 
+    const [modal, setModal] = useState({ isOpen: false, title: "", message: "", onConfirm: () => { } });
+
     const [showHistory, setShowHistory] = useState(false);
     const [history, setHistory] = useState([]);
     const [expandedHistoryIds, setExpandedHistoryIds] = useState(() => new Set());
@@ -523,25 +526,30 @@ export default function MonthlyVerseAdmin() {
     };
 
     const deleteCurrent = async () => {
-        const ok = window.confirm("Delete current verse?");
-        if (!ok) return;
+        setModal({
+            isOpen: true,
+            title: "Delete Current Verse",
+            message: "Are you sure you want to delete the current verse? This will remove it from the home page.",
+            onConfirm: async () => {
+                setModal({ isOpen: false });
+                setError("");
+                setSaveCurrentState("saving");
+                try {
+                    await deleteDoc(CURRENT_REF);
 
-        setError("");
-        setSaveCurrentState("saving");
-        try {
-            await deleteDoc(CURRENT_REF);
-
-            if (!mountedRef.current) return;
-            const empty = { reference: emptyLangMap(), text: emptyLangMap() };
-            setCurrent(empty);
-            setCurrentDraft(empty);
-            setTransientState(setSaveCurrentState, "saved");
-        } catch (err) {
-            console.error(err);
-            if (!mountedRef.current) return;
-            setSaveCurrentState("error");
-            setError("Could not delete current verse.");
-        }
+                    if (!mountedRef.current) return;
+                    const empty = { reference: emptyLangMap(), text: emptyLangMap() };
+                    setCurrent(empty);
+                    setCurrentDraft(empty);
+                    setTransientState(setSaveCurrentState, "saved");
+                } catch (err) {
+                    console.error(err);
+                    if (!mountedRef.current) return;
+                    setSaveCurrentState("error");
+                    setError("Could not delete current verse.");
+                }
+            }
+        });
     };
 
     const cancelNew = () => {
@@ -647,42 +655,47 @@ export default function MonthlyVerseAdmin() {
         const key = safeStr(id).trim();
         if (!key) return;
 
-        const ok = window.confirm("Permanently delete this verse from history?");
-        if (!ok) return;
+        setModal({
+            isOpen: true,
+            title: "Delete History Verse",
+            message: "Permanently delete this verse from history? This action cannot be undone.",
+            onConfirm: async () => {
+                setModal({ isOpen: false });
+                setError("");
+                setSavingHistoryById((m) => ({ ...m, [key]: "saving" }));
 
-        setError("");
-        setSavingHistoryById((m) => ({ ...m, [key]: "saving" }));
+                try {
+                    await deleteDoc(doc(db, "monthly_verse", key));
 
-        try {
-            await deleteDoc(doc(db, "monthly_verse", key));
-
-            if (!mountedRef.current) return;
-            setHistoryDrafts((prev) => {
-                const next = { ...prev };
-                delete next[key];
-                return next;
-            });
-            setExpandedHistoryIds((prev) => {
-                const next = new Set(prev);
-                next.delete(key);
-                return next;
-            });
-            setSavingHistoryById((m) => {
-                const next = { ...m };
-                delete next[key];
-                return next;
-            });
-            setHistoryLangById((prev) => {
-                const next = { ...prev };
-                delete next[key];
-                return next;
-            });
-        } catch (err) {
-            console.error(err);
-            if (!mountedRef.current) return;
-            setSavingHistoryById((m) => ({ ...m, [key]: "error" }));
-            setError("Could not delete history verse.");
-        }
+                    if (!mountedRef.current) return;
+                    setHistoryDrafts((prev) => {
+                        const next = { ...prev };
+                        delete next[key];
+                        return next;
+                    });
+                    setExpandedHistoryIds((prev) => {
+                        const next = new Set(prev);
+                        next.delete(key);
+                        return next;
+                    });
+                    setSavingHistoryById((m) => {
+                        const next = { ...m };
+                        delete next[key];
+                        return next;
+                    });
+                    setHistoryLangById((prev) => {
+                        const next = { ...prev };
+                        delete next[key];
+                        return next;
+                    });
+                } catch (err) {
+                    console.error(err);
+                    if (!mountedRef.current) return;
+                    setSavingHistoryById((m) => ({ ...m, [key]: "error" }));
+                    setError("Could not delete history verse.");
+                }
+            }
+        });
     };
 
     return (
@@ -810,6 +823,14 @@ export default function MonthlyVerseAdmin() {
                             />
                         ) : null}
                     </div>
+
+                    <ConfirmModal
+                        isOpen={modal.isOpen}
+                        title={modal.title}
+                        message={modal.message}
+                        onConfirm={modal.onConfirm}
+                        onCancel={() => setModal({ ...modal, isOpen: false })}
+                    />
                 </div>
             )}
         </div>

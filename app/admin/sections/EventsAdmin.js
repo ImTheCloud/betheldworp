@@ -6,6 +6,7 @@ import { db } from "../../lib/Firebase";
 import { usePagination } from "../hooks/usePagination";
 import PaginationControls from "../components/PaginationControls";
 import ImagePicker from "../components/ImagePicker";
+import ConfirmModal from "../components/ConfirmModal";
 
 function safeStr(v) {
     return String(v ?? "");
@@ -420,6 +421,8 @@ export default function EventsAdmin() {
     const [newState, setNewState] = useState("idle");
     const [newLang, setNewLang] = useState("ro");
 
+    const [modal, setModal] = useState({ isOpen: false, title: "", message: "", onConfirm: () => { } });
+
     const [showHistory, setShowHistory] = useState(false);
 
     const upcomingItems = items.filter((x) => x.upcoming);
@@ -620,11 +623,24 @@ export default function EventsAdmin() {
         const dateChanged = original.dateEvent !== d.dateEvent;
 
         if (dateChanged) {
-            const ok = window.confirm(
-                "Changing the date will create a NEW event for the new date and keep the original event unchanged.\n\nContinue?"
-            );
-            if (!ok) return;
+            setModal({
+                isOpen: true,
+                title: "Change Date?",
+                message: "Changing the date will create a NEW event for the new date and keep the original event unchanged. Continue?",
+                onConfirm: () => {
+                    setModal({ isOpen: false });
+                    executeSaveOne(id, draft, original, true);
+                }
+            });
+            return;
         }
+
+        executeSaveOne(id, draft, original, false);
+    };
+
+    const executeSaveOne = async (id, draft, original, dateChanged) => {
+        const key = safeStr(id);
+        const d = cleanEvent(draft);
 
         setSaveStateById((m) => ({ ...m, [key]: "saving" }));
         setErrorById((m) => ({ ...m, [key]: "" }));
@@ -663,20 +679,25 @@ export default function EventsAdmin() {
         const key = safeStr(id);
         if (!key) return;
 
-        const ok = window.confirm("Delete this event?");
-        if (!ok) return;
+        setModal({
+            isOpen: true,
+            title: "Delete Event",
+            message: "Are you sure you want to delete this event? This action cannot be undone.",
+            onConfirm: async () => {
+                setModal({ isOpen: false });
+                setSaveStateById((m) => ({ ...m, [key]: "saving" }));
+                setErrorById((m) => ({ ...m, [key]: "" }));
 
-        setSaveStateById((m) => ({ ...m, [key]: "saving" }));
-        setErrorById((m) => ({ ...m, [key]: "" }));
-
-        try {
-            await deleteDoc(doc(db, "events", key));
-        } catch (err) {
-            console.error(err);
-            if (!mountedRef.current) return;
-            setSaveStateById((m) => ({ ...m, [key]: "error" }));
-            setErrorById((m) => ({ ...m, [key]: "Could not delete event." }));
-        }
+                try {
+                    await deleteDoc(doc(db, "events", key));
+                } catch (err) {
+                    console.error(err);
+                    if (!mountedRef.current) return;
+                    setSaveStateById((m) => ({ ...m, [key]: "error" }));
+                    setErrorById((m) => ({ ...m, [key]: "Could not delete event." }));
+                }
+            }
+        });
     };
 
     return (
@@ -797,9 +818,16 @@ export default function EventsAdmin() {
                             />
                         )}
                     </div>
+
+                    <ConfirmModal
+                        isOpen={modal.isOpen}
+                        title={modal.title}
+                        message={modal.message}
+                        onConfirm={modal.onConfirm}
+                        onCancel={() => setModal({ ...modal, isOpen: false })}
+                    />
                 </div>
-            )
-            }
-        </div >
+            )}
+        </div>
     );
 }
