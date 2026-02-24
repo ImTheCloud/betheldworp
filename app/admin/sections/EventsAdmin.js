@@ -82,6 +82,30 @@ function eventEqual(a, b) {
     return JSON.stringify(ca) === JSON.stringify(cb);
 }
 
+/** Converts YYYY-MM-DD to the ISO week key, e.g. "2026-W09" */
+function dateToWeekKey(dateStr) {
+    if (!dateStr) return null;
+    const d = new Date(`${dateStr}T12:00:00Z`);
+    if (isNaN(d)) return null;
+    // Find Thursday of the current week (ISO week is defined by its Thursday)
+    const day = d.getUTCDay() || 7; // Mon=1 ... Sun=7
+    const thursday = new Date(d);
+    thursday.setUTCDate(d.getUTCDate() + (4 - day));
+    const year = thursday.getUTCFullYear();
+    const jan1 = new Date(Date.UTC(year, 0, 1));
+    const week = Math.ceil(((thursday - jan1) / 86400000 + 1) / 7);
+    return `${year}-W${String(week).padStart(2, "0")}`;
+}
+
+function IconOverride(props) {
+    return (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
+            <path d="M8 6H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M18 2l4 4-9 9H9v-4L18 2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+    );
+}
+
 function IconPlus(props) {
     return (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
@@ -131,7 +155,7 @@ function IconChevronDown(props) {
     );
 }
 
-function EventCard({ item, expanded, draft, saveState, errorText, activeLang, onToggle, onLangChange, onChangeField, onSave, onDelete }) {
+function EventCard({ item, expanded, draft, saveState, errorText, activeLang, onToggle, onLangChange, onChangeField, onSave, onDelete, onOverrideWeek }) {
     const id = safeStr(item?.id);
     const dirty = !eventEqual(draft, item);
     const langKey = activeLang || "ro";
@@ -279,6 +303,21 @@ function EventCard({ item, expanded, draft, saveState, errorText, activeLang, on
                             {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved ✓" : "Save"}
                         </button>
                     </div>
+
+                    {onOverrideWeek && date && (
+                        <button
+                            type="button"
+                            className="adminOverrideLink"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                const wk = dateToWeekKey(date);
+                                if (wk) onOverrideWeek(id, wk, id, date, dirty);
+                            }}
+                        >
+                            <IconOverride />
+                            Override program for week {dateToWeekKey(date)}
+                        </button>
+                    )}
                 </>
             ) : null}
         </div>
@@ -393,7 +432,7 @@ function NewEventCard({ draft, saveState, errorText, activeLang, onLangChange, o
 
 const PAGE_SIZE = 10;
 
-export default function EventsAdmin() {
+export default function EventsAdmin({ onCreateOverride }) {
     const mountedRef = useRef(true);
     const timeoutRef = useRef(null);
 
@@ -700,6 +739,28 @@ export default function EventsAdmin() {
         });
     };
 
+    const requestOverride = (eventId, weekKey, _unused, dateStr, dirty) => {
+        const hasDirty = dirty;
+        setModal({
+            isOpen: true,
+            title: "Override Week",
+            variant: "primary",
+            confirmText: "Continue →",
+            message: hasDirty
+                ? "Unsaved changes to this event will be saved automatically before continuing.\n\nGo to Program Overrides for this event's week?"
+                : "Go to Program Overrides for this event's week?",
+            onConfirm: async () => {
+                setModal({ isOpen: false });
+                if (hasDirty) {
+                    await saveOne(eventId);
+                }
+                if (onCreateOverride) {
+                    onCreateOverride({ weekKey, eventId, dateStr });
+                }
+            },
+        });
+    };
+
     return (
         <div className="adminFullPage">
             <div className="adminFullTop">
@@ -774,6 +835,7 @@ export default function EventsAdmin() {
                                         onChangeField={changeField}
                                         onSave={saveOne}
                                         onDelete={deleteOne}
+                                        onOverrideWeek={requestOverride}
                                     />
                                 ))}
                             </>
@@ -823,6 +885,8 @@ export default function EventsAdmin() {
                         isOpen={modal.isOpen}
                         title={modal.title}
                         message={modal.message}
+                        confirmText={modal.confirmText}
+                        variant={modal.variant}
                         onConfirm={modal.onConfirm}
                         onCancel={() => setModal({ ...modal, isOpen: false })}
                     />

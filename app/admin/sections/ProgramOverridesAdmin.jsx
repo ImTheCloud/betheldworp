@@ -557,7 +557,17 @@ function pickByLang(value) {
     return "";
 }
 
-export default function ProgramOverridesAdmin() {
+/** Maps a YYYY-MM-DD date string to the affected AFFECT_OPTIONS slot IDs */
+function dateToSlotIds(dateStr) {
+    if (!dateStr) return [];
+    const d = new Date(`${dateStr}T12:00:00Z`);
+    if (isNaN(d)) return [];
+    const day = d.getUTCDay(); // 0=Sun, 1=Mon ... 6=Sat
+    const map = { 0: ["sun_am", "sun_pm"], 1: ["mon"], 2: ["tue"], 3: ["wed"], 4: ["thu"], 5: ["fri"], 6: ["sat"] };
+    return map[day] ?? [];
+}
+
+export default function ProgramOverridesAdmin({ initialOverride, onConsumed }) {
     const mountedRef = useRef(true);
     const timeoutRef = useRef(null);
 
@@ -636,6 +646,68 @@ export default function ProgramOverridesAdmin() {
             if (timeoutRef.current) clearTimeout(timeoutRef.current);
         };
     }, []);
+
+    // ── Consume the pre-filled override context from EventsAdmin shortcut ──
+    useEffect(() => {
+        // Wait until data is loaded so items is populated for the "already exists" check
+        if (!initialOverride || loading) return;
+        const { weekKey, eventId, dateStr } = initialOverride;
+        const normalized = safeStr(weekKey).trim().toUpperCase();
+        if (!normalized) return;
+
+        // Compute affected day slots from the event date (same logic for both branches)
+        const affectedSlots = dateToSlotIds(dateStr);
+
+        const existing = items.find((it) => it.weekKey === normalized);
+        if (existing) {
+            // Expand the card and switch to the right history view
+            setExpandedIds((prev) => new Set([...prev, existing.id]));
+            setShowHistory(!existing.upcoming);
+
+            // Merge the event into the existing override draft
+            if (eventId && affectedSlots.length > 0) {
+                setDraftsById((prev) => {
+                    const base = prev[existing.id] || {
+                        weekKey: existing.weekKey,
+                        affectedProgramIds: safeArr(existing.affectedProgramIds),
+                        replacements: safeObj(existing.replacements),
+                        additions: safeObj(existing.additions),
+                    };
+                    // Merge the new affected slots into the existing ones
+                    const mergedAffected = [...new Set([...safeArr(base.affectedProgramIds), ...affectedSlots])];
+                    // Set the event as the replacement for each affected slot
+                    const mergedReplacements = { ...safeObj(base.replacements) };
+                    affectedSlots.forEach((slot) => { mergedReplacements[slot] = eventId; });
+                    return {
+                        ...prev,
+                        [existing.id]: {
+                            ...base,
+                            affectedProgramIds: mergedAffected,
+                            replacements: mergedReplacements,
+                        },
+                    };
+                });
+            }
+        } else {
+            // Build replacements object: map each affected slot to the event ID
+            const replacements = {};
+            affectedSlots.forEach((slot) => {
+                if (eventId) replacements[slot] = eventId;
+            });
+            // Pre-fill the new override draft with everything
+            setNewDraft({
+                weekKey: normalized,
+                affectedProgramIds: affectedSlots,
+                replacements,
+                additions: {},
+            });
+            setShowNew(true);
+        }
+        if (onConsumed) onConsumed();
+        // Re-run when loading resolves, since items won't exist until then
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [initialOverride, loading]);
+
 
     useEffect(() => {
         setLoading(true);

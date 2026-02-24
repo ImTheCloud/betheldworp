@@ -50,6 +50,13 @@ export default function Admin() {
 
     const [activeTab, setActiveTab] = useState("stats");
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [pendingOverride, setPendingOverride] = useState(null);
+
+    const navigateToOverride = ({ weekKey, eventId, dateStr }) => {
+        setPendingOverride({ weekKey, eventId, dateStr });
+        setActiveTab("overrides");
+        setSidebarOpen(false);
+    };
 
     useEffect(() => {
         mountedRef.current = true;
@@ -144,9 +151,14 @@ export default function Admin() {
             case "verse":
                 return <MonthlyVerseAdmin />;
             case "overrides":
-                return <ProgramOverridesAdmin />;
+                return (
+                    <ProgramOverridesAdmin
+                        initialOverride={pendingOverride}
+                        onConsumed={() => setPendingOverride(null)}
+                    />
+                );
             case "events":
-                return <EventsAdmin />;
+                return <EventsAdmin onCreateOverride={navigateToOverride} />;
             default:
                 return <StatsAdmin />;
         }
