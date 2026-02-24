@@ -1,6 +1,6 @@
 .program-section {
     position: relative;
-    padding: 50px 24px 30px;
+    padding: 40px 24px 20px;
     display: flex;
     justify-content: center;
     background: #ffffff;
@@ -11,7 +11,7 @@
 
 .program-content {
     width: 100%;
-    max-width: 1100px;
+    max-width: 900px;
     position: relative;
 }
 

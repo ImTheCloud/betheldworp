@@ -1,6 +1,6 @@
 .gal-section {
     position: relative;
-    padding: 70px 24px 80px;
+    padding: 50px 24px 60px;
     display: flex;
     justify-content: center;
     background: #ffffff;
@@ -21,7 +21,7 @@
 
 .gal-content {
     width: 100%;
-    max-width: 1100px;
+    max-width: 900px;
     position: relative;
 }
 

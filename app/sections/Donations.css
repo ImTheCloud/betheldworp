@@ -1,6 +1,6 @@
 .don-section {
     position: relative;
-    padding: 70px 24px 120px;
+    padding: 50px 24px 80px;
     display: flex;
     justify-content: center;
     background: #ffffff;
@@ -21,7 +21,7 @@
 
 .don-content {
     width: 100%;
-    max-width: 1100px;
+    max-width: 900px;
     position: relative;
 }
 
