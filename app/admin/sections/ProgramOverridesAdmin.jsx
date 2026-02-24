@@ -266,19 +266,12 @@ function OverrideCard({ item, expanded, draft, saveState, errorText, eventsList,
 
                     <label className="adminLabel">
                         Week
-                        <div className="adminInputWrapper adminInputWrapper--week">
-                            <input
-                                className="adminInput adminInput--weekNative"
-                                type="week"
-                                value={weekKeyValue}
-                                onChange={(e) => onChangeWeekKey(id, e.target.value)}
-                            />
-                            <div className="adminInput--weekCustom">
-                                <span className="overrideDateRange">
-                                    {formatWeekRange(weekKeyValue)}
-                                </span>
-                            </div>
-                        </div>
+                        <input
+                            className="adminInput"
+                            type="week"
+                            value={weekKeyValue}
+                            onChange={(e) => onChangeWeekKey(id, e.target.value)}
+                        />
                     </label>
 
                     {/* ── Section: Cancellations ── */}
@@ -432,19 +425,12 @@ function NewOverrideCard({ draft, saveState, errorText, eventsList, weekKeyForCa
 
             <label className="adminLabel">
                 Week
-                <div className="adminInputWrapper adminInputWrapper--week">
-                    <input
-                        className="adminInput adminInput--weekNative"
-                        type="week"
-                        value={weekKeyValue}
-                        onChange={(e) => onChangeWeekKey("__new__", e.target.value)}
-                    />
-                    <div className="adminInput--weekCustom">
-                        <span className="overrideDateRange">
-                            {formatWeekRange(weekKeyValue)}
-                        </span>
-                    </div>
-                </div>
+                <input
+                    className="adminInput"
+                    type="week"
+                    value={weekKeyValue}
+                    onChange={(e) => onChangeWeekKey("__new__", e.target.value)}
+                />
             </label>
 
             {/* ── Section: Cancellations ── */}

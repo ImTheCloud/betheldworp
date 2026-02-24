@@ -283,6 +283,33 @@
     color: #0a2a43;
 }
 
+/* ── Standardized Date/Time/Week Inputs ── */
+.adminInput[type="date"],
+.adminInput[type="time"],
+.adminInput[type="week"] {
+    position: relative;
+    cursor: text;
+    /* Ensure height matches text inputs exactly */
+    height: 40px;
+    box-sizing: border-box;
+}
+
+.adminInput[type="date"]::-webkit-calendar-picker-indicator,
+.adminInput[type="time"]::-webkit-calendar-picker-indicator,
+.adminInput[type="week"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+    /* Approximates the #0a2a43 theme color */
+    filter: invert(13%) sepia(26%) saturate(3082%) hue-rotate(185deg) brightness(97%) contrast(92%);
+}
+
+.adminInput[type="date"]::-webkit-calendar-picker-indicator:hover,
+.adminInput[type="time"]::-webkit-calendar-picker-indicator:hover,
+.adminInput[type="week"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+}
+
 .adminInput:focus,
 .adminTextarea:focus {
     border-color: #0a2a43;
@@ -880,70 +907,48 @@
     box-shadow: 0 2px 4px rgba(10, 42, 67, 0.1);
 }
 
-.adminInputWrapper--week {
-    position: relative;
-    padding: 0;
-    justify-content: space-between;
+/* Unified styling for date, time, and week inputs */
+.adminInput[type="date"],
+.adminInput[type="time"],
+.adminInput[type="week"] {
+    background: #fff;
+    color: #0a2a43;
+    border: 1px solid rgba(10, 42, 67, 0.2);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    border-radius: 8px;
+    height: 40px;
+    box-sizing: border-box;
+    padding: 0 16px;
+    font-weight: 700;
+    font-size: 14px;
+    outline: none;
+    appearance: none;
+    cursor: pointer;
+    width: auto;
+    min-width: 150px;
 }
 
-/* Base style for native inputs, reset so they don't look weird behind */
-.adminInput--weekNative {
-    padding-left: 12px;
-    padding-right: 12px;
-    width: 100%;
-    color: transparent;
-    /* Hide text */
-    background: transparent;
-    cursor: pointer;
-    position: relative;
-    z-index: 2;
+.adminInput[type="date"]:hover,
+.adminInput[type="time"]:hover,
+.adminInput[type="week"]:hover {
+    border-color: #0a2a43;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(10, 42, 67, 0.1);
 }
 
-.adminInput--weekNative::-webkit-calendar-picker-indicator {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    cursor: pointer;
-    background-position: right 12px center;
-    background-size: 16px;
-    background-repeat: no-repeat;
-    opacity: 0.6;
-    transition: opacity 0.2s ease;
+.adminInput[type="date"]::-webkit-calendar-picker-indicator,
+.adminInput[type="time"]::-webkit-calendar-picker-indicator,
+.adminInput[type="week"]::-webkit-calendar-picker-indicator {
     filter: invert(13%) sepia(26%) saturate(3082%) hue-rotate(185deg) brightness(97%) contrast(92%);
     /* approximates #0a2a43 */
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
 }
 
-.adminInput--weekNative::-webkit-calendar-picker-indicator:hover {
+.adminInput[type="date"]::-webkit-calendar-picker-indicator:hover,
+.adminInput[type="time"]::-webkit-calendar-picker-indicator:hover,
+.adminInput[type="week"]::-webkit-calendar-picker-indicator:hover {
     opacity: 1;
-}
-
-/* The custom overlay text */
-.adminInput--weekCustom {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    padding-left: 12px;
-    pointer-events: none;
-    /* Let clicks pass through to input */
-    z-index: 1;
-}
-
-.adminInputWrapper .adminInput {
-    border: none;
-    box-shadow: none;
-    background: transparent;
-    margin: 0;
-    padding: 10px 8px 10px 12px;
-    width: auto;
-}
-
-.adminInputWrapper .adminInput:focus {
-    box-shadow: none;
 }
 
 .overrideDateRange {
@@ -1261,24 +1266,6 @@
         /* Removing border radius because it is handled by wrapper */
     }
 
-    .adminInputWrapper--week {
-        flex-direction: row;
-        align-items: center;
-    }
-
-    .adminInputWrapper--week .adminInput {
-        padding: 16px 12px;
-    }
-
-    .overrideDateRange {
-        border-left: none;
-        padding: 0;
-        justify-content: flex-start;
-        background: transparent;
-        height: auto;
-        font-size: 14px;
-    }
-
     .adminAnnCard {
         width: 100%;
         min-width: 0;
@@ -1324,6 +1311,7 @@
         min-width: 0;
     }
 }
+
 /* ── Custom Confirm Modal ── */
 
 .adminModalOverlay {
@@ -1431,6 +1419,7 @@
         opacity: 0;
         transform: scale(0.95) translateY(10px);
     }
+
     to {
         opacity: 1;
         transform: scale(1) translateY(0);
@@ -1441,6 +1430,7 @@
     .adminConfirmModal {
         border-radius: 16px;
     }
+
     .adminModalFooter {
         padding: 20px;
     }
