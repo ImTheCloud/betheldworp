@@ -130,9 +130,11 @@
     margin-bottom: 0;
 }
 
-.adminSidebarLink:hover {
-    background: rgba(10, 42, 67, 0.04);
-    color: #0a2a43;
+@media (hover: hover) {
+    .adminSidebarLink:hover {
+        background: rgba(10, 42, 67, 0.04);
+        color: #0a2a43;
+    }
 }
 
 .adminSidebarLink.is-active {
@@ -153,8 +155,10 @@
     transition: color 0.15s ease;
 }
 
-.adminSidebarLink:hover .adminSidebarIcon {
-    color: #0a2a43;
+@media (hover: hover) {
+    .adminSidebarLink:hover .adminSidebarIcon {
+        color: #0a2a43;
+    }
 }
 
 .adminSidebarFooter {
@@ -310,10 +314,12 @@
     font-size: 14px;
 }
 
-.adminBtn:hover {
-    background: #164678;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(10, 42, 67, 0.15);
+@media (hover: hover) {
+    .adminBtn:hover {
+        background: #164678;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(10, 42, 67, 0.15);
+    }
 }
 
 .adminBtn:active {
@@ -442,9 +448,11 @@
     text-align: center;
 }
 
-.adminAffectChip:hover {
-    border-color: #0a2a43;
-    color: #0a2a43;
+@media (hover: hover) {
+    .adminAffectChip:hover {
+        border-color: #0a2a43;
+        color: #0a2a43;
+    }
 }
 
 .adminAffectChip.is-on {
@@ -464,9 +472,11 @@
     gap: 12px;
 }
 
-.adminAnnCard:hover {
-    border-color: rgba(10, 42, 67, 0.25);
-    box-shadow: 0 4px 12px rgba(10, 42, 67, 0.05);
+@media (hover: hover) {
+    .adminAnnCard:hover {
+        border-color: rgba(10, 42, 67, 0.25);
+        box-shadow: 0 4px 12px rgba(10, 42, 67, 0.05);
+    }
 }
 
 .adminList--history .adminAnnCard {
@@ -526,10 +536,12 @@
     flex-shrink: 0;
 }
 
-.adminSmallBtn:hover {
-    background: transparent;
-    color: rgba(10, 42, 67, 0.5);
-    border-color: rgba(10, 42, 67, 0.1);
+@media (hover: hover) {
+    .adminSmallBtn:hover {
+        background: transparent;
+        color: rgba(10, 42, 67, 0.5);
+        border-color: rgba(10, 42, 67, 0.1);
+    }
 }
 
 .adminMsgActions {
@@ -555,9 +567,11 @@
     font-size: 13px;
 }
 
-.adminDeleteBtn:hover {
-    background: rgba(220, 38, 38, 0.1);
-    border-color: #b91c1c;
+@media (hover: hover) {
+    .adminDeleteBtn:hover {
+        background: rgba(220, 38, 38, 0.1);
+        border-color: #b91c1c;
+    }
 }
 
 .adminMsgSaveBtn {
@@ -577,9 +591,11 @@
     font-size: 13px;
 }
 
-.adminMsgSaveBtn:hover {
-    background: #164678;
-    transform: translateY(-1px);
+@media (hover: hover) {
+    .adminMsgSaveBtn:hover {
+        background: #164678;
+        transform: translateY(-1px);
+    }
 }
 
 .adminMsgSaveBtn:disabled {
@@ -626,9 +642,11 @@
     transition: all 0.15s ease;
 }
 
-.adminPageBtn:hover {
-    background: rgba(10, 42, 67, 0.06);
-    color: #0a2a43;
+@media (hover: hover) {
+    .adminPageBtn:hover {
+        background: rgba(10, 42, 67, 0.06);
+        color: #0a2a43;
+    }
 }
 
 .adminPageBtn.is-active {
@@ -651,11 +669,13 @@
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-.adminPageNav:hover:not(:disabled) {
-    border-color: #0a2a43;
-    background: #fdfdfd;
-    transform: translateY(-1px);
-    box-shadow: 0 3px 6px rgba(10, 42, 67, 0.1);
+@media (hover: hover) {
+    .adminPageNav:hover:not(:disabled) {
+        border-color: #0a2a43;
+        background: #fdfdfd;
+        transform: translateY(-1px);
+        box-shadow: 0 3px 6px rgba(10, 42, 67, 0.1);
+    }
 }
 
 .adminPageNav:disabled {
