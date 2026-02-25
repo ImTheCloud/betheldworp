@@ -62,7 +62,7 @@ function FAQItem({ question, answer, index, isOpen, onToggle }) {
                                     {intro && <p>{renderInline(intro)}</p>}
                                     <ul className="faq-list">
                                         {rest.map((item, j) => (
-                                            <li key={j}>{renderInline(item.replace(/^- /, ""))}</li>
+                                            <li key={j}><span>{renderInline(item.replace(/^- /, ""))}</span></li>
                                         ))}
                                     </ul>
                                 </div>
@@ -213,6 +213,7 @@ export default function Program() {
         { key: "q3", q: t("faq_q3_title"), a: t("faq_q3_body") },
         { key: "q4", q: t("faq_q4_title"), a: t("faq_q4_body") },
         { key: "q5", q: t("faq_q5_title"), a: t("faq_q5_body") },
+        { key: "q6", q: t("faq_q6_title"), a: t("faq_q6_body") },
     ];
 
     const handleToggle = (index) => {
@@ -437,26 +438,7 @@ export default function Program() {
                     ))}
                 </div>
 
-                <div className="faq-contact-nudge">
-                    <span className="faq-contact-text">{t("faq_contact_nudge")}</span>
-                    <button
-                        type="button"
-                        className="faq-contact-btn"
-                        onClick={openContact}
-                    >
-                        {t("faq_contact_cta")}
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                            <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                    </button>
-                </div>
 
-                <div className="faq-closing">
-                    <div className="faq-closing-inner">
-                        <h3 className="faq-closing-title">{t("faq_closing_title")}</h3>
-                        <p className="faq-closing-body">{t("faq_closing_body")}</p>
-                    </div>
-                </div>
 
             </div>
         </section>
