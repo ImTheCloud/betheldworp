@@ -3,8 +3,8 @@
     top: 0;
     left: 0;
     right: 0;
-    height: 74px;
-    padding: 0 32px;
+    height: 82px;
+    padding: 0 44px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -43,7 +43,7 @@
 }
 
 .logo-text {
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 900;
     letter-spacing: 0.16em;
     text-transform: uppercase;
@@ -60,7 +60,7 @@
     background: none;
     border: none;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 800;
     color: rgba(10, 42, 67, 0.92);
     padding-bottom: 3px;
@@ -540,7 +540,7 @@
     }
 
     .logo-text {
-        font-size: 12px;
+        font-size: 14px;
         letter-spacing: 0.14em;
     }
 
@@ -549,7 +549,7 @@
     }
 
     .nav .navLink {
-        font-size: 13px;
+        font-size: 15px;
     }
 
     .mnav-overlay {

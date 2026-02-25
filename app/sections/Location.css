@@ -1,9 +1,9 @@
 .location-section {
     position: relative;
-    padding: 50px 24px 70px;
+    padding: 70px 24px 100px;
     display: flex;
     justify-content: center;
-    background: rgba(10, 42, 67, 0.015);
+    background: #ffffff;
     overflow: hidden;
 }
 
@@ -21,7 +21,7 @@
 
 .location-content {
     width: 100%;
-    max-width: 900px;
+    max-width: 1100px;
     position: relative;
 }
 

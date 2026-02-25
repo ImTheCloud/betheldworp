@@ -3,7 +3,6 @@ import Hero from "./sections/Hero";
 import About from "./sections/About";
 import Program from "./sections/WeeklyProgram";
 import Location from "./sections/Location";
-import FAQ from "./sections/FAQ";
 import Footer from "./components/Footer";
 import ContactWidget from "./components/ContactWidget";
 import Events from "./sections/EventsCalendar";
@@ -26,10 +25,6 @@ export default function Home() {
 
                 <section id="program">
                     <Program />
-                </section>
-
-                <section id="faq">
-                    <FAQ />
                 </section>
 
                 <section id="evenimente">

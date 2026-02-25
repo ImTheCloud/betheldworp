@@ -1,6 +1,6 @@
 .about-section {
     position: relative;
-    padding: 50px 24px 60px;
+    padding: 70px 24px 80px;
     display: flex;
     justify-content: center;
     background: #ffffff;
@@ -19,9 +19,21 @@
     pointer-events: none;
 }
 
+.about-texture {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    opacity: 0.15;
+    background-image: radial-gradient(#0a2a43 1px, transparent 1px);
+    background-size: 24px 24px;
+    pointer-events: none;
+}
+
 .about-content {
     width: 100%;
-    max-width: 900px;
+    max-width: 1100px;
     position: relative;
 }
 

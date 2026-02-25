@@ -12,6 +12,75 @@ const safeArr = (v) => (Array.isArray(v) ? v : []);
 const safeStr = (v) => String(v ?? "");
 const safeObj = (v) => (v && typeof v === "object" && !Array.isArray(v) ? v : {});
 
+function ChevronIcon({ open }) {
+    return (
+        <svg
+            className={`faq-chevron${open ? " faq-chevron--open" : ""}`}
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            aria-hidden="true"
+        >
+            <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+    );
+}
+
+function renderInline(text) {
+    if (!text.includes("**")) return text;
+    const parts = text.split(/\*\*(.*?)\*\*/g);
+    return parts.map((part, i) =>
+        i % 2 === 1 ? <strong key={i}>{part}</strong> : part
+    );
+}
+
+function FAQItem({ question, answer, index, isOpen, onToggle }) {
+    const num = String(index + 1).padStart(2, "0");
+    return (
+        <div className={`faq-item${isOpen ? " faq-item--open" : ""}`}>
+            <button
+                className="faq-question"
+                onClick={() => onToggle(index)}
+                aria-expanded={isOpen}
+            >
+                <span className="faq-q-number">{num}</span>
+                <span className="faq-q-text">{question}</span>
+                <ChevronIcon open={isOpen} />
+            </button>
+
+            <div className="faq-answer-wrap">
+                <div className="faq-answer">
+                    {answer.split("\n\n").map((block, i) => {
+                        const trimmed = block.trim();
+                        if (!trimmed) return null;
+
+                        if (trimmed.includes("\n- ")) {
+                            const [intro, ...rest] = trimmed.split("\n- ");
+                            return (
+                                <div key={i} className="faq-block">
+                                    {intro && <p>{renderInline(intro)}</p>}
+                                    <ul className="faq-list">
+                                        {rest.map((item, j) => (
+                                            <li key={j}>{renderInline(item.replace(/^- /, ""))}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            );
+                        }
+
+                        return (
+                            <p key={i} className="faq-block">
+                                {renderInline(trimmed)}
+                            </p>
+                        );
+                    })}
+                </div>
+            </div>
+        </div>
+    );
+}
+
 function capFirst(s) {
     const x = safeStr(s);
     if (!x) return "";
@@ -135,6 +204,26 @@ function formatBrusselsDDMMYYYY(dateObj) {
 export default function Program() {
     const { lang } = useLang();
     const t = useMemo(() => makeT(tr, lang), [lang]);
+
+    const [openIndex, setOpenIndex] = useState(null);
+
+    const faqQuestions = [
+        { key: "q1", q: t("faq_q1_title"), a: t("faq_q1_body") },
+        { key: "q2", q: t("faq_q2_title"), a: t("faq_q2_body") },
+        { key: "q3", q: t("faq_q3_title"), a: t("faq_q3_body") },
+        { key: "q4", q: t("faq_q4_title"), a: t("faq_q4_body") },
+        { key: "q5", q: t("faq_q5_title"), a: t("faq_q5_body") },
+    ];
+
+    const handleToggle = (index) => {
+        setOpenIndex(openIndex === index ? null : index);
+    };
+
+    const openContact = () => {
+        if (typeof window !== "undefined") {
+            window.dispatchEvent(new Event("bethel:open-contact"));
+        }
+    };
 
     const LOCAL_PROGRAM_ITEMS = useMemo(() => [
         { day: t("day_mon"), id: "mon", times: ["20:00-21:30"], title: t("act_mon") },
@@ -328,6 +417,47 @@ export default function Program() {
                         );
                     })}
                 </div>
+
+                {/* FAQ Accordion Section */}
+                <div className="faq-header">
+                    <h2 className="faq-title">{t("faq_section_title")}</h2>
+                    <p className="faq-intro">{t("faq_section_intro")}</p>
+                </div>
+
+                <div className="faq-list-wrap">
+                    {faqQuestions.map((item, i) => (
+                        <FAQItem
+                            key={item.key}
+                            index={i}
+                            question={item.q}
+                            answer={item.a}
+                            isOpen={openIndex === i}
+                            onToggle={handleToggle}
+                        />
+                    ))}
+                </div>
+
+                <div className="faq-contact-nudge">
+                    <span className="faq-contact-text">{t("faq_contact_nudge")}</span>
+                    <button
+                        type="button"
+                        className="faq-contact-btn"
+                        onClick={openContact}
+                    >
+                        {t("faq_contact_cta")}
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div className="faq-closing">
+                    <div className="faq-closing-inner">
+                        <h3 className="faq-closing-title">{t("faq_closing_title")}</h3>
+                        <p className="faq-closing-body">{t("faq_closing_body")}</p>
+                    </div>
+                </div>
+
             </div>
         </section>
     );
