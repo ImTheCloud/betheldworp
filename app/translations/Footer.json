@@ -6,7 +6,8 @@
     "call_aria": "Sună responsabilul bisericii: {phone}",
     "responsible": "Responsabil",
     "developer": "Developer",
-    "email_dev_aria": "Trimite un email dezvoltatorului site-ului"
+    "email_dev_aria": "Trimite un email dezvoltatorului site-ului",
+    "email": "Email"
   },
   "fr": {
     "logo_alt": "Bethel",
@@ -15,7 +16,8 @@
     "call_aria": "Appeler le responsable de l’église : {phone}",
     "responsible": "Responsable",
     "developer": "Développeur",
-    "email_dev_aria": "Envoyer un email au développeur du site"
+    "email_dev_aria": "Envoyer un email au développeur du site",
+    "email": "Email"
   },
   "nl": {
     "logo_alt": "Bethel",
@@ -24,7 +26,8 @@
     "call_aria": "Bel de verantwoordelijke van de kerk: {phone}",
     "responsible": "Verantwoordelijke",
     "developer": "Developer",
-    "email_dev_aria": "Stuur een e-mail naar de developer"
+    "email_dev_aria": "Stuur een e-mail naar de developer",
+    "email": "E-mail"
   },
   "en": {
     "logo_alt": "Bethel",
@@ -33,6 +36,7 @@
     "call_aria": "Call the church contact person: {phone}",
     "responsible": "Responsible",
     "developer": "Developer",
-    "email_dev_aria": "Email the website developer"
+    "email_dev_aria": "Email the website developer",
+    "email": "Email"
   }
 }

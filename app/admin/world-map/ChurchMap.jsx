@@ -414,7 +414,7 @@ export default function ChurchMap() {
                                             </svg>
                                         </div>
                                         <div className="churchListItemContent">
-                                            <h3>{church.name}</h3>
+                                            <h3>{church.name}{church.city ? ` - ${church.city}` : ''}</h3>
                                             <p>{church.street} {church.number}</p>
                                         </div>
                                         {dist != null && (
@@ -450,10 +450,6 @@ export default function ChurchMap() {
                     </button>
                 )}
 
-                {/* Credits */}
-                <div className="sidebarCredits">
-                    <span>Made by Biserica Bethel Dworp</span>
-                </div>
             </aside>
 
             {/* Map */}
@@ -481,7 +477,7 @@ export default function ChurchMap() {
                                         </svg>
                                     </div>
                                     {hoveredMarker === church.id && selectedChurch?.id !== church.id && (
-                                        <div className="markerTooltip">{church.name}</div>
+                                        <div className="markerTooltip">{church.name}{church.city ? ` - ${church.city}` : ''}</div>
                                     )}
                                 </div>
                             </AdvancedMarker>
@@ -515,34 +511,43 @@ export default function ChurchMap() {
                             </button>
 
                             <div className="churchDetailsContent" style={{ paddingTop: "32px" }}>
-                                <h2 className="churchDetailsTitle">{selectedChurch.name}</h2>
+                                <h2 className="churchDetailsTitle">{selectedChurch.name}{selectedChurch.city ? ` - ${selectedChurch.city}` : ''}</h2>
                                 <p className="churchDetailsAddress">{selectedChurch.street} {selectedChurch.number}</p>
 
 
                                 <div className="churchDetailsInfoList">
                                     {selectedChurch.phone && (
                                         <div className="churchDetailsInfoItem">
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                                <rect width="24" height="24" rx="5" fill="#10B981" />
+                                                <g transform="translate(4.5, 4.5) scale(0.625)" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none">
+                                                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                                                </g>
                                             </svg>
                                             <a href={`tel:${selectedChurch.phone}`}>{selectedChurch.phone}</a>
                                         </div>
                                     )}
                                     {selectedChurch.email && (
                                         <div className="churchDetailsInfoItem">
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                                                <polyline points="22,6 12,13 2,6"></polyline>
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                                <rect width="24" height="24" rx="5" fill="#3B82F6" />
+                                                <g transform="translate(4.5, 4.5) scale(0.625)" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none">
+                                                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                                                    <polyline points="22,6 12,13 2,6" />
+                                                </g>
                                             </svg>
                                             <a href={`mailto:${selectedChurch.email}`}>{selectedChurch.email}</a>
                                         </div>
                                     )}
                                     {selectedChurch.website && (
                                         <div className="churchDetailsInfoItem">
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                <circle cx="12" cy="12" r="10"></circle>
-                                                <line x1="2" y1="12" x2="22" y2="12"></line>
-                                                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                                <rect width="24" height="24" rx="5" fill="#8B5CF6" />
+                                                <g transform="translate(4.5, 4.5) scale(0.625)" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none">
+                                                    <circle cx="12" cy="12" r="10" />
+                                                    <line x1="2" y1="12" x2="22" y2="12" />
+                                                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                                                </g>
                                             </svg>
                                             <a href={selectedChurch.website} target="_blank" rel="noopener noreferrer">
                                                 {selectedChurch.website.replace(/^https?:\/\//, '')}
@@ -551,7 +556,7 @@ export default function ChurchMap() {
                                     )}
                                     {selectedChurch.youtube && (
                                         <div className="churchDetailsInfoItem youtubeItem">
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="#FF0000">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="#FF0000">
                                                 <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
                                             </svg>
                                             <a href={selectedChurch.youtube} target="_blank" rel="noopener noreferrer">
@@ -561,7 +566,7 @@ export default function ChurchMap() {
                                     )}
                                     {selectedChurch.facebook && (
                                         <div className="churchDetailsInfoItem facebookItem">
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="#1877F2">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="#1877F2">
                                                 <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                                             </svg>
                                             <a href={selectedChurch.facebook} target="_blank" rel="noopener noreferrer">
@@ -571,9 +576,9 @@ export default function ChurchMap() {
                                     )}
                                     {selectedChurch.instagram && (
                                         <div className="churchDetailsInfoItem instagramItem">
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="url(#ig-grad)">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                                                 <defs>
-                                                    <linearGradient id="ig-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+                                                    <linearGradient id="ig-grad-new" x1="0%" y1="100%" x2="100%" y2="0%">
                                                         <stop offset="0%" stopColor="#f09433" />
                                                         <stop offset="25%" stopColor="#e6683c" />
                                                         <stop offset="50%" stopColor="#dc2743" />
@@ -581,7 +586,12 @@ export default function ChurchMap() {
                                                         <stop offset="100%" stopColor="#bc1888" />
                                                     </linearGradient>
                                                 </defs>
-                                                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 1.366.062 2.633.344 3.608 1.319.975.975 1.257 2.242 1.319 3.608.058 1.266.07 1.646.07 4.85s-.012 3.584-.07 4.85c-.062 1.366-.344 2.633-1.319 3.608-.975.975-2.242 1.257-3.608 1.319-1.266.058-1.646.07-4.85.07s-3.584-.012-4.85-.07c-1.366-.062-2.633-.344-3.608-1.319-.975-.975-1.257-2.242-1.319-3.608-.058-1.266-.07-1.646-.07-4.85s.012-3.584.07-4.85c.062-1.366.344-2.633 1.319-3.608.975-.975 2.242-1.257 3.608-1.319 1.266-.058 1.646-.07 4.85-.07M12 0C8.741 0 8.333.014 7.053.072 5.775.132 4.636.388 3.58 1.444 2.525 2.5 2.27 3.639 2.21 4.917 2.152 6.197 2.138 6.605 2.138 9.864s.014 3.667.072 4.947c.06 1.278.315 2.417 1.37 3.473 1.056 1.056 2.195 1.31 3.473 1.37 1.28.058 1.688.072 4.947.072s3.667-.014 4.947-.072c1.278-.06 2.417-.315 3.473-1.37 1.056-1.056 1.31-2.195 1.37-3.473.058-1.28.072-1.688.072-4.947s-.014-3.667-.072-4.947c-.06-1.278-.315-2.417-1.37-3.473C14.636.388 13.497.132 12.217.072 10.937.014 10.529 0 7.27 0h4.73zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0-2.88 0 1.44 1.44 0 0 0 2.88 0z" />
+                                                <rect width="24" height="24" rx="5" fill="url(#ig-grad-new)" />
+                                                <g transform="translate(4.5, 4.5) scale(0.625)" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none">
+                                                    <rect x="2" y="2" width="20" height="20" rx="5" />
+                                                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                                                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+                                                </g>
                                             </svg>
                                             <a href={selectedChurch.instagram} target="_blank" rel="noopener noreferrer">
                                                 Instagram

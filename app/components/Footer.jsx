@@ -47,6 +47,15 @@ export default function Footer() {
                             <span className="footer-label">{t("developer")}:</span>
                             <span className="footer-value">{devEmail}</span>
                         </a>
+
+                        <a
+                            className="footer-mail"
+                            href="mailto:info@betheldworp.be"
+                            aria-label="Email info@betheldworp.be"
+                        >
+                            <span className="footer-label">{t("email")}:</span>
+                            <span className="footer-value">info@betheldworp.be</span>
+                        </a>
                     </div>
                 </div>
             </div>
