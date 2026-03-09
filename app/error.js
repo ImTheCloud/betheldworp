@@ -61,7 +61,7 @@ export default function Error({ reset }) {
                     </div>
                 </div>
 
-                <div style={{ marginTop: 16 }}>
+                <div style={{ marginTop: 16, display: "flex", gap: "12px", flexWrap: "wrap" }}>
                     <button
                         onClick={() => reset()}
                         style={{
@@ -74,10 +74,32 @@ export default function Error({ reset }) {
                             fontWeight: 900,
                             fontSize: 14,
                             boxShadow: "0 10px 20px rgba(31, 102, 255, 0.18)",
+                            flex: 1,
+                            minWidth: "120px",
                         }}
                     >
                         Recharger
                     </button>
+                    <a
+                        href="/"
+                        style={{
+                            cursor: "pointer",
+                            padding: "12px 16px",
+                            borderRadius: 14,
+                            border: "1px solid rgba(15, 23, 42, 0.15)",
+                            background: "transparent",
+                            color: "#0f172a",
+                            fontWeight: 900,
+                            fontSize: 14,
+                            textDecoration: "none",
+                            textAlign: "center",
+                            flex: 1,
+                            display: "block",
+                            minWidth: "120px",
+                        }}
+                    >
+                        Retour à l'accueil
+                    </a>
                 </div>
 
                 <div style={{ marginTop: 12, fontSize: 12, color: "#64748b", lineHeight: 1.5 }}>
