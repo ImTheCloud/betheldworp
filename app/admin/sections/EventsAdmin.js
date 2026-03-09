@@ -160,16 +160,11 @@ function EventCard({ item, expanded, draft, saveState, errorText, activeLang, on
     const dirty = !eventEqual(draft, item);
     const langKey = activeLang || "ro";
 
-    const onCardClick = (e) => {
-        if (e.target.closest("button, input, textarea, select, label")) return;
-        onToggle(id);
-    };
-
     const title = pickFallback(draft?.title);
     const date = safeStr(draft?.dateEvent);
 
     return (
-        <div className={`adminAnnCard${item?.upcoming ? " is-active" : ""}`} onClick={onCardClick}>
+        <div className={`adminAnnCard${item?.upcoming ? " is-active" : ""}`}>
             <div className="adminAnnHeader">
                 <div className="adminAnnIdChip">{date || "No date"}</div>
                 <div className="adminSummary">{title || "No title"}</div>

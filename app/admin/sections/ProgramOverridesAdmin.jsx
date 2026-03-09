@@ -232,14 +232,9 @@ function OverrideCard({ item, expanded, draft, saveState, errorText, eventsList,
     const additions = safeObj(draft?.additions ?? item?.additions);
     const additionsCount = Object.values(additions).filter(Boolean).length;
 
-    const onCardClick = (e) => {
-        if (e.target.closest("input, textarea, select, label")) return;
-        onToggleExpand(id);
-    };
-
     return (
         <div className={`adminAnnCard${item?.upcoming ? " is-active" : ""}`}>
-            <div className="adminAnnHeader" onClick={onCardClick} style={{ cursor: "pointer" }}>
+            <div className="adminAnnHeader">
                 <div className="adminAnnIdChip" title={weekKeyValue || id || ""}>
                     {shortId(weekKeyValue || id)}
                 </div>
@@ -250,6 +245,7 @@ function OverrideCard({ item, expanded, draft, saveState, errorText, eventsList,
                     type="button"
                     className="adminSmallBtn"
                     aria-label={expanded ? "Hide details" : "Show details"}
+                    onClick={(e) => { e.stopPropagation(); onToggleExpand(id); }}
                 >
                     <IconChevronDown
                         style={{

@@ -3,9 +3,10 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { APIProvider, Map, AdvancedMarker, useMap } from "@vis.gl/react-google-maps";
 import { useSearchParams } from "next/navigation";
+import { collection, onSnapshot } from "firebase/firestore";
+import { db } from "../../lib/Firebase";
 import Link from "next/link";
 import "./WorldMap.css";
-import CHURCHES from "./churches.json";
 
 const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 const MAP_ID = "5b50d76db2afedb8ba67cff4";
@@ -22,17 +23,7 @@ const COUNTRY_FLAGS = {
     USA: "🇺🇸",
 };
 
-const COUNTRY_NAMES_RO = {
-    Belgium: "Belgia",
-    Germany: "Germania",
-    "United Kingdom": "Anglia",
-    France: "Franța",
-    Netherlands: "Țările de Jos",
-    Romania: "România",
-    Italy: "Italia",
-    Spain: "Spania",
-    USA: "SUA",
-};
+
 
 function getBoundsCenter(churches) {
     if (churches.length === 0) return { lat: 0, lng: 0 };
@@ -74,8 +65,7 @@ function formatDistance(km) {
     return `${Math.round(km)} km`;
 }
 
-const DEFAULT_CENTER = getBoundsCenter(CHURCHES);
-const ALL_COUNTRIES = [...new Set(CHURCHES.map((c) => c.country))].sort();
+
 
 function MapController({ selectedChurch, requestedLocation, isInitialLoad }) {
     const map = useMap();
@@ -89,7 +79,7 @@ function MapController({ selectedChurch, requestedLocation, isInitialLoad }) {
             const target = { lat: selectedChurch.lat, lng: selectedChurch.lng };
             const currentZoom = map.getZoom() || 7;
 
-            if (wasSelectedRef.current && prevChurchRef.current?.slug !== selectedChurch.slug) {
+            if (wasSelectedRef.current && prevChurchRef.current?.id !== selectedChurch.id) {
                 // Switching between churches: always smooth pan, no zoom tricks
                 map.panTo(target);
             } else {
@@ -157,6 +147,8 @@ function FilterController({ filteredChurches, activeCountryFilter }) {
 export default function ChurchMap() {
     const searchParams = useSearchParams();
 
+    const [churches, setChurches] = useState([]);
+    const [churchesLoading, setChurchesLoading] = useState(true);
     const [selectedChurch, setSelectedChurch] = useState(null);
     const [searchQuery, setSearchQuery] = useState("");
     const [userLocation, setUserLocation] = useState(null);
@@ -167,6 +159,26 @@ export default function ChurchMap() {
     const [mobileShowMap, setMobileShowMap] = useState(false);
     const [filterOpen, setFilterOpen] = useState(false);
     const filterRef = useRef(null);
+
+    // Load churches from Firestore
+    useEffect(() => {
+        const unsub = onSnapshot(
+            collection(db, "churches"),
+            (snap) => {
+                const list = snap.docs.map((d) => ({ ...d.data(), id: d.id }));
+                setChurches(list);
+                setChurchesLoading(false);
+            },
+            (err) => {
+                console.error("Failed to load churches:", err);
+                setChurchesLoading(false);
+            }
+        );
+        return () => unsub();
+    }, []);
+
+    const DEFAULT_CENTER = useMemo(() => getBoundsCenter(churches), [churches]);
+    const ALL_COUNTRIES = useMemo(() => [...new Set(churches.map((c) => c.country))].sort(), [churches]);
 
     // Close dropdown on outside click
     useEffect(() => {
@@ -181,15 +193,16 @@ export default function ChurchMap() {
 
     // Auto-select church from URL param
     useEffect(() => {
+        if (churchesLoading || churches.length === 0) return;
         const churchSlug = searchParams.get("church");
         if (churchSlug) {
-            const found = CHURCHES.find((c) => c.slug === churchSlug);
+            const found = churches.find((c) => c.id === churchSlug);
             if (found) {
                 setSelectedChurch(found);
                 setIsInitialLoad(false);
             }
         }
-    }, [searchParams]);
+    }, [searchParams, churches, churchesLoading]);
 
     // Auto-locate
     useEffect(() => {
@@ -213,7 +226,7 @@ export default function ChurchMap() {
         setSelectedChurch(church);
         setIsInitialLoad(false);
         const url = new URL(window.location.href);
-        url.searchParams.set("church", church.slug);
+        url.searchParams.set("church", church.id);
         window.history.replaceState({}, "", url.toString());
     }, []);
 
@@ -225,7 +238,7 @@ export default function ChurchMap() {
     }, []);
 
     const handleShare = useCallback(async (church) => {
-        const url = `${window.location.origin}/admin/world-map?church=${church.slug}`;
+        const url = `${window.location.origin}/admin/world-map?church=${church.id}`;
         try {
             await navigator.clipboard.writeText(url);
             setCopied(true);
@@ -248,7 +261,7 @@ export default function ChurchMap() {
 
     // Filter + sort alphabetically by name
     const filteredChurches = useMemo(() => {
-        let result = [...CHURCHES];
+        let result = [...churches];
         if (activeCountryFilter) {
             result = result.filter((c) => c.country === activeCountryFilter);
         }
@@ -263,7 +276,7 @@ export default function ChurchMap() {
         }
         result.sort((a, b) => a.name.localeCompare(b.name));
         return result;
-    }, [searchQuery, activeCountryFilter]);
+    }, [searchQuery, activeCountryFilter, churches]);
 
     // Group by country only, sorted alphabetically
     const groupedChurches = useMemo(() => {
@@ -288,33 +301,34 @@ export default function ChurchMap() {
     const distanceMap = useMemo(() => {
         if (!userLocation) return {};
         const map = {};
-        for (const c of CHURCHES) {
-            map[c.slug] = haversineDistance(userLocation.lat, userLocation.lng, c.lat, c.lng);
+        for (const c of churches) {
+            map[c.id] = haversineDistance(userLocation.lat, userLocation.lng, c.lat, c.lng);
         }
         return map;
-    }, [userLocation]);
+    }, [userLocation, churches]);
 
     const getDirectionsUrl = (church) => {
-        return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(church.address)}&destination_place_id=${encodeURIComponent(church.name)}`;
+        const fullAddress = `${church.street || ""} ${church.number || ""}, ${church.city || ""}, ${church.country || ""}`.trim();
+        return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(fullAddress)}&destination_place_id=${encodeURIComponent(church.name)}`;
     };
 
     const activeFilterLabel = activeCountryFilter
-        ? `${COUNTRY_FLAGS[activeCountryFilter] || "🌍"} ${COUNTRY_NAMES_RO[activeCountryFilter] || activeCountryFilter}`
-        : "Toate țările";
+        ? `${COUNTRY_FLAGS[activeCountryFilter] || "🌍"} ${activeCountryFilter}`
+        : "All countries";
 
     return (
         <div className={`churchMapLayout ${mobileShowMap ? "mapFocused" : ""}`}>
             {/* Sidebar */}
             <aside className="churchMapSidebar">
                 <div className="churchMapSidebarHeader">
-                    <h1 className="churchMapTitle">Harta Mondială</h1>
-                    <p className="churchMapSubtitle">Bisericile Creștine Penticostale Române</p>
+                    <h1 className="churchMapTitle">World Map</h1>
+                    <p className="churchMapSubtitle">Romanian Pentecostal Christian Churches</p>
                     <div className="churchMapMeta">
                         <span className="churchCount">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
                             </svg>
-                            {CHURCHES.length} biserici asociate
+                            {churches.length} associated churches
                         </span>
                     </div>
 
@@ -341,7 +355,7 @@ export default function ChurchMap() {
                                         setFilterOpen(false);
                                     }}
                                 >
-                                    🌍 Toate țările
+                                    🌍 All countries
                                 </button>
                                 {ALL_COUNTRIES.map((country) => (
                                     <button
@@ -352,7 +366,7 @@ export default function ChurchMap() {
                                             setFilterOpen(false);
                                         }}
                                     >
-                                        {COUNTRY_FLAGS[country] || "🌍"} {COUNTRY_NAMES_RO[country] || country}
+                                        {COUNTRY_FLAGS[country] || "🌍"} {country}
                                     </button>
                                 ))}
                             </div>
@@ -366,7 +380,7 @@ export default function ChurchMap() {
                         </svg>
                         <input
                             type="text"
-                            placeholder="Căutare după nume, oraș, țară..."
+                            placeholder="Search by name, city, country..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -378,12 +392,12 @@ export default function ChurchMap() {
                         <div key={country} className="churchCountryGroup">
                             <h2 className="churchCountryHeader">
                                 <span className="countryFlag">{COUNTRY_FLAGS[country] || "🌍"}</span>
-                                {COUNTRY_NAMES_RO[country] || country}
+                                {country}
                                 <span className="countryCount">{churches.length}</span>
                             </h2>
                             {churches.map((church, idx) => {
-                                const isSelected = selectedChurch?.slug === church.slug;
-                                const dist = distanceMap[church.slug];
+                                const isSelected = selectedChurch?.id === church.id;
+                                const dist = distanceMap[church.id];
                                 return (
                                     <button
                                         key={idx}
@@ -400,7 +414,7 @@ export default function ChurchMap() {
                                         </div>
                                         <div className="churchListItemContent">
                                             <h3>{church.name}</h3>
-                                            <p>{church.address}</p>
+                                            <p>{church.street} {church.number}</p>
                                         </div>
                                         {dist != null && (
                                             <span className="churchDistance">{formatDistance(dist)}</span>
@@ -416,9 +430,9 @@ export default function ChurchMap() {
                                 <circle cx="11" cy="11" r="8"></circle>
                                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                             </svg>
-                            <p>Nicio biserică găsită</p>
+                            <p>No church found</p>
                             <button className="resetSearchBtn" onClick={() => { setSearchQuery(""); setActiveCountryFilter(""); }}>
-                                Resetează căutarea
+                                Reset search
                             </button>
                         </div>
                     )}
@@ -437,7 +451,7 @@ export default function ChurchMap() {
 
                 {/* Credits */}
                 <div className="sidebarCredits">
-                    <span>Realizat de Biserica Bethel Dworp</span>
+                    <span>Made by Biserica Bethel Dworp</span>
                 </div>
             </aside>
 
@@ -456,16 +470,16 @@ export default function ChurchMap() {
                                 key={idx}
                                 position={{ lat: church.lat, lng: church.lng }}
                                 onClick={() => selectChurch(church)}
-                                onMouseEnter={() => setHoveredMarker(church.slug)}
+                                onMouseEnter={() => setHoveredMarker(church.id)}
                                 onMouseLeave={() => setHoveredMarker(null)}
                             >
                                 <div className="markerWrapper">
-                                    <div className={`customMarker ${selectedChurch?.slug === church.slug ? "pulse" : ""}`}>
+                                    <div className={`customMarker ${selectedChurch?.id === church.id ? "pulse" : ""}`}>
                                         <svg width="34" height="34" viewBox="0 0 24 24">
                                             <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
                                         </svg>
                                     </div>
-                                    {hoveredMarker === church.slug && selectedChurch?.slug !== church.slug && (
+                                    {hoveredMarker === church.id && selectedChurch?.id !== church.id && (
                                         <div className="markerTooltip">{church.name}</div>
                                     )}
                                 </div>
@@ -501,7 +515,7 @@ export default function ChurchMap() {
 
                             <div className="churchDetailsContent" style={{ paddingTop: "32px" }}>
                                 <h2 className="churchDetailsTitle">{selectedChurch.name}</h2>
-                                <p className="churchDetailsAddress">{selectedChurch.address}</p>
+                                <p className="churchDetailsAddress">{selectedChurch.street} {selectedChurch.number}</p>
 
 
                                 <div className="churchDetailsInfoList">
@@ -544,6 +558,35 @@ export default function ChurchMap() {
                                             </a>
                                         </div>
                                     )}
+                                    {selectedChurch.facebook && (
+                                        <div className="churchDetailsInfoItem facebookItem">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="#1877F2">
+                                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                                            </svg>
+                                            <a href={selectedChurch.facebook} target="_blank" rel="noopener noreferrer">
+                                                Facebook
+                                            </a>
+                                        </div>
+                                    )}
+                                    {selectedChurch.instagram && (
+                                        <div className="churchDetailsInfoItem instagramItem">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="url(#ig-grad)">
+                                                <defs>
+                                                    <linearGradient id="ig-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+                                                        <stop offset="0%" stopColor="#f09433" />
+                                                        <stop offset="25%" stopColor="#e6683c" />
+                                                        <stop offset="50%" stopColor="#dc2743" />
+                                                        <stop offset="75%" stopColor="#cc2366" />
+                                                        <stop offset="100%" stopColor="#bc1888" />
+                                                    </linearGradient>
+                                                </defs>
+                                                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 1.366.062 2.633.344 3.608 1.319.975.975 1.257 2.242 1.319 3.608.058 1.266.07 1.646.07 4.85s-.012 3.584-.07 4.85c-.062 1.366-.344 2.633-1.319 3.608-.975.975-2.242 1.257-3.608 1.319-1.266.058-1.646.07-4.85.07s-3.584-.012-4.85-.07c-1.366-.062-2.633-.344-3.608-1.319-.975-.975-1.257-2.242-1.319-3.608-.058-1.266-.07-1.646-.07-4.85s.012-3.584.07-4.85c.062-1.366.344-2.633 1.319-3.608.975-.975 2.242-1.257 3.608-1.319 1.266-.058 1.646-.07 4.85-.07M12 0C8.741 0 8.333.014 7.053.072 5.775.132 4.636.388 3.58 1.444 2.525 2.5 2.27 3.639 2.21 4.917 2.152 6.197 2.138 6.605 2.138 9.864s.014 3.667.072 4.947c.06 1.278.315 2.417 1.37 3.473 1.056 1.056 2.195 1.31 3.473 1.37 1.28.058 1.688.072 4.947.072s3.667-.014 4.947-.072c1.278-.06 2.417-.315 3.473-1.37 1.056-1.056 1.31-2.195 1.37-3.473.058-1.28.072-1.688.072-4.947s-.014-3.667-.072-4.947c-.06-1.278-.315-2.417-1.37-3.473C14.636.388 13.497.132 12.217.072 10.937.014 10.529 0 7.27 0h4.73zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0-2.88 0 1.44 1.44 0 0 0 2.88 0z" />
+                                            </svg>
+                                            <a href={selectedChurch.instagram} target="_blank" rel="noopener noreferrer">
+                                                Instagram
+                                            </a>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="churchDetailsActions">
@@ -556,7 +599,7 @@ export default function ChurchMap() {
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                             <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
                                         </svg>
-                                        Indicații
+                                        Directions
                                     </a>
                                     <button
                                         className={`churchShareBtn ${copied ? "copied" : ""}`}
@@ -567,7 +610,7 @@ export default function ChurchMap() {
                                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                                     <polyline points="20 6 9 17 4 12"></polyline>
                                                 </svg>
-                                                Copiat!
+                                                Copied!
                                             </>
                                         ) : (
                                             <>

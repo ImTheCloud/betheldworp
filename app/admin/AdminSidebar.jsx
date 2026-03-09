@@ -77,6 +77,15 @@ function IconLogout(props) {
     );
 }
 
+function IconChurch(props) {
+    return (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
+            <path d="M18 10c0-4.42-2.69-8-6-8S6 5.58 6 10c0 5.25 6 12 6 12s6-6.75 6-12z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <circle cx="12" cy="10" r="3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+    );
+}
+
 export default function AdminSidebar({ activeTab, onTabChange, onLogout }) {
     const navItems = [
         { id: "stats", label: "Statistics", icon: IconChart },
@@ -84,6 +93,7 @@ export default function AdminSidebar({ activeTab, onTabChange, onLogout }) {
         { id: "verse", label: "Monthly Verse", icon: IconBook },
         { id: "overrides", label: "Program Overrides", icon: IconEdit },
         { id: "events", label: "Events", icon: IconEvent },
+        { id: "churches", label: "Churches", icon: IconChurch, dividerBefore: true },
     ];
 
     return (
@@ -97,17 +107,21 @@ export default function AdminSidebar({ activeTab, onTabChange, onLogout }) {
                 {navItems.map((item) => {
                     const Icon = item.icon;
                     return (
-                        <button
-                            key={item.id}
-                            type="button"
-                            className={`adminSidebarLink ${activeTab === item.id ? "is-active" : ""}`}
-                            onClick={() => onTabChange(item.id)}
-                        >
-                            <span className="adminSidebarIcon">
-                                <Icon />
-                            </span>
-                            {item.label}
-                        </button>
+                        <span key={item.id} style={{ display: "contents" }}>
+                            {item.dividerBefore && (
+                                <div style={{ height: 1, background: "rgba(10, 42, 67, 0.08)", margin: "8px 0" }} />
+                            )}
+                            <button
+                                type="button"
+                                className={`adminSidebarLink ${activeTab === item.id ? "is-active" : ""}`}
+                                onClick={() => onTabChange(item.id)}
+                            >
+                                <span className="adminSidebarIcon">
+                                    <Icon />
+                                </span>
+                                {item.label}
+                            </button>
+                        </span>
                     );
                 })}
             </nav>

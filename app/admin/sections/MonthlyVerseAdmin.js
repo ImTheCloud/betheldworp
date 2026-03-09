@@ -179,15 +179,11 @@ function VerseCard({
     onDelete,
     deleteTitle = "Delete",
 }) {
-    const onCardClick = (e) => {
-        if (e.target.closest("button, input, textarea, select, label")) return;
-        onToggle();
-    };
 
     const langKey = activeLang || "ro";
 
     return (
-        <div className="adminAnnCard" onClick={onCardClick}>
+        <div className="adminAnnCard">
             <div className="adminAnnHeader">
                 <div className="adminAnnIdChip">{label}</div>
 

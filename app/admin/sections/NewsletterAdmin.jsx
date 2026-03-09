@@ -67,11 +67,6 @@ function SubscriberCard({ item, expanded, draftEmail, saveState, errorText, onTo
     const dirty = draft.toLowerCase() !== id.toLowerCase();
     const [copied, setCopied] = useState(false);
 
-    const onCardClick = (e) => {
-        if (e.target.closest("button, input, textarea, select, label")) return;
-        onToggle(id);
-    };
-
     const copyEmail = (e) => {
         e.stopPropagation();
         if (!id) return;
@@ -82,7 +77,7 @@ function SubscriberCard({ item, expanded, draftEmail, saveState, errorText, onTo
     };
 
     return (
-        <div className="adminAnnCard" onClick={onCardClick}>
+        <div className="adminAnnCard">
             <div className="adminAnnHeader">
                 <div className="adminAnnIdChip" style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
