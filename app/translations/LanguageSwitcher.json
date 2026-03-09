@@ -1,0 +1,30 @@
+{
+    "ro": {
+        "lang_aria": "Selectează limba",
+        "lang_ro": "Română",
+        "lang_fr": "Français",
+        "lang_nl": "Nederlands",
+        "lang_en": "English"
+    },
+    "fr": {
+        "lang_aria": "Choisir la langue",
+        "lang_ro": "Română",
+        "lang_fr": "Français",
+        "lang_nl": "Nederlands",
+        "lang_en": "English"
+    },
+    "nl": {
+        "lang_aria": "Taal kiezen",
+        "lang_ro": "Română",
+        "lang_fr": "Français",
+        "lang_nl": "Nederlands",
+        "lang_en": "English"
+    },
+    "en": {
+        "lang_aria": "Select language",
+        "lang_ro": "Română",
+        "lang_fr": "Français",
+        "lang_nl": "Nederlands",
+        "lang_en": "English"
+    }
+}

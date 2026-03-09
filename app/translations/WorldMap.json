@@ -12,7 +12,10 @@
         "share": "Distribuie",
         "copied": "Copiat!",
         "youAreHere": "Ești aici",
-        "backToHome": "Înapoi Acasă"
+        "backToHome": "Înapoi Acasă",
+        "country_Belgium": "Belgia",
+        "country_Germany": "Germania",
+        "country_Romania": "România"
     },
     "fr": {
         "title": "Églises Chrétiennes Pentecôtistes Roumaines",
@@ -27,7 +30,10 @@
         "share": "Partager",
         "copied": "Copié !",
         "youAreHere": "Vous êtes ici",
-        "backToHome": "Retour à l'Accueil"
+        "backToHome": "Retour à l'Accueil",
+        "country_Belgium": "Belgique",
+        "country_Germany": "Allemagne",
+        "country_Romania": "Roumanie"
     },
     "en": {
         "title": "Romanian Pentecostal Christian Churches",
@@ -42,7 +48,10 @@
         "share": "Share",
         "copied": "Copied!",
         "youAreHere": "You are here",
-        "backToHome": "Back to Home"
+        "backToHome": "Back to Home",
+        "country_Belgium": "Belgium",
+        "country_Germany": "Germany",
+        "country_Romania": "Romania"
     },
     "nl": {
         "title": "Roemeense Christelijke Pinkstergemeenten",
@@ -57,6 +66,9 @@
         "share": "Delen",
         "copied": "Gekopieerd!",
         "youAreHere": "U bent hier",
-        "backToHome": "Terug naar Home"
+        "backToHome": "Terug naar Home",
+        "country_Belgium": "België",
+        "country_Germany": "Duitsland",
+        "country_Romania": "Roemenië"
     }
 }

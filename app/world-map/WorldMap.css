@@ -26,7 +26,7 @@
 }
 
 .churchMapSidebarHeader {
-    padding: 28px 24px 20px;
+    padding: 85px 24px 20px;
     border-bottom: 1px solid #e2e8f0;
     background: #ffffff;
     position: relative;
@@ -34,103 +34,146 @@
 
 .churchMapBackToHomeBtn {
     position: absolute;
-    top: 24px;
-    left: 24px;
+    top: 20px;
+    left: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    z-index: 10;
+}
+
+.churchMapBackIcon {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
-    background: #f8fafc;
-    color: #94a3b8;
-    text-decoration: none;
-    border-radius: 8px;
-    transition: all 0.2s ease;
-    border: 1px solid #e2e8f0;
+    width: 40px;
+    height: 40px;
+    background: #ffffff;
+    color: #475569;
+    border: 1px solid rgba(10, 42, 67, 0.12);
+    border-radius: 50%;
+    box-shadow: 0 10px 30px rgba(6, 24, 50, 0.10);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.churchMapBackToHomeBtn:hover {
-    background: #e2e8f0;
-    color: #0f172a;
-    border-color: #cbd5e1;
+.churchMapBackBrand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.churchMapBackBrand img {
+    height: 30px;
+    width: auto;
+}
+
+.churchMapBackBrand span {
+    font-size: 14px;
+    font-weight: 950;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #0a2a43;
+    white-space: nowrap;
+}
+
+.churchMapBackToHomeBtn:hover .churchMapBackIcon {
+    transform: translateY(-2px);
+    border-color: rgba(19, 75, 123, 0.25);
+    box-shadow: 0 14px 38px rgba(6, 24, 50, 0.14);
+    background: #134b7b;
+    color: #ffffff;
+}
+
+.churchMapBackToHomeBtn:hover .churchMapBackBrand {
+    opacity: 0.8;
 }
 
 /* Language Selector */
 .churchMapLangSelector {
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-    margin-bottom: 20px;
-}
-
-.churchMapLangBtn {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    overflow: hidden;
-    padding: 0;
-    border: 2px solid transparent;
-    cursor: pointer;
-    background: none;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0.6;
-}
-
-.churchMapLangBtn:hover {
-    opacity: 1;
-    transform: scale(1.1);
-}
-
-.churchMapLangBtn.active {
-    opacity: 1;
-    border-color: #134b7b;
-    box-shadow: 0 4px 12px rgba(19, 75, 123, 0.2);
-    transform: scale(1.1);
-}
-
-.churchMapLangBtn img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 10;
 }
 
 .churchMapTitle {
-    font-size: 1.75rem;
-    font-weight: 700;
-    margin: 0 0 2px 0;
+    font-size: 1.85rem;
+    font-weight: 800;
+    margin: 0 0 4px 0;
     color: #0f172a;
     letter-spacing: -0.02em;
 }
 
 .churchMapSubtitle {
-    font-size: 0.85rem;
-    font-weight: 500;
-    color: #64748b;
-    margin: 0 0 10px 0;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #475569;
+    margin: 0 0 14px 0;
+    line-height: 1.3;
+}
+
+.churchMapControls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 24px;
 }
 
 /* Church Count Badge */
 .churchMapMeta {
-    margin-bottom: 14px;
+    margin-bottom: 0;
 }
 
-.churchCount {
+.churchCountBadge {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    background: rgba(19, 75, 123, 0.08);
-    color: #134b7b;
-    font-size: 0.8rem;
-    font-weight: 600;
-    padding: 5px 12px;
-    border-radius: 20px;
+    gap: 12px;
+    padding: 6px 14px;
+    background: #ffffff;
+    border: 1px solid rgba(19, 75, 123, 0.15);
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(6, 24, 50, 0.04);
 }
 
-.churchCount svg {
-    opacity: 0.7;
+.churchCountValue {
+    font-size: 1.15rem;
+    font-weight: 900;
+    color: #134b7b;
+    position: relative;
+    padding-right: 12px;
+}
+
+.churchCountValue::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1px;
+    height: 14px;
+    background: rgba(19, 75, 123, 0.2);
+}
+
+.churchCountType {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.churchCountType::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    background: #22c55e;
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
 }
 
 /* =============================================
@@ -138,7 +181,8 @@
    ============================================= */
 .countryFilterDropdown {
     position: relative;
-    margin-bottom: 14px;
+    flex: 0 0 auto;
+    min-width: 140px;
 }
 
 .countryFilterBtn {
@@ -146,16 +190,17 @@
     align-items: center;
     gap: 8px;
     width: 100%;
-    padding: 10px 14px;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    background: #f8fafc;
+    height: 38px;
+    padding: 0 12px;
+    border: 1px solid rgba(10, 42, 67, 0.12);
+    border-radius: 999px;
+    background: #ffffff;
     color: #475569;
-    font-size: 0.9rem;
-    font-weight: 500;
+    font-size: 0.85rem;
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
-    text-align: left;
+    box-shadow: 0 4px 12px rgba(6, 24, 50, 0.04);
 }
 
 .countryFilterBtn:hover {
@@ -184,15 +229,15 @@
 
 .countryFilterMenu {
     position: absolute;
-    top: calc(100% + 4px);
-    left: 0;
+    top: calc(100% + 6px);
     right: 0;
+    width: 200px;
     background: #ffffff;
-    border: 1px solid #e2e8f0;
+    border: 1px solid rgba(10, 42, 67, 0.12);
     border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 12px 32px rgba(6, 24, 50, 0.18);
     z-index: 100;
-    padding: 4px;
+    padding: 6px;
     max-height: 260px;
     overflow-y: auto;
     animation: dropdownFade 0.15s ease;

@@ -7,6 +7,7 @@ import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../lib/Firebase";
 import Link from "next/link";
 import { useLang } from "../components/LanguageProvider";
+import LanguageSwitcher from "../components/LanguageSwitcher";
 import { makeT } from "../lib/i18n";
 import worldMapTranslations from "../translations/WorldMap.json";
 import "./WorldMap.css";
@@ -164,15 +165,8 @@ export default function ChurchMap() {
     const [filterOpen, setFilterOpen] = useState(false);
     const filterRef = useRef(null);
 
-    const { lang, setLang } = useLang();
+    const { lang } = useLang();
     const t = makeT(worldMapTranslations, lang);
-
-    const LANG_OPTIONS = [
-        { value: "ro", flagImg: "https://flagcdn.com/w40/ro.png" },
-        { value: "fr", flagImg: "https://flagcdn.com/w40/fr.png" },
-        { value: "nl", flagImg: "https://flagcdn.com/w40/nl.png" },
-        { value: "en", flagImg: "https://flagcdn.com/w40/gb.png" }
-    ];
 
     // Load churches from Firestore
     useEffect(() => {
@@ -273,6 +267,14 @@ export default function ChurchMap() {
         return <div className="text-white p-8">Cheia API Google Maps nu este configurată.</div>;
     }
 
+    const getCountryLabel = useCallback((country) => {
+        if (!country) return "";
+        const key = `country_${country}`;
+        const translated = t(key);
+        // If translation is the same as key, it means it's missing, so fallback to original
+        return translated === key ? country : translated;
+    }, [t]);
+
     // Filter + sort alphabetically by name
     const filteredChurches = useMemo(() => {
         let result = [...churches];
@@ -327,8 +329,8 @@ export default function ChurchMap() {
     };
 
     const activeFilterLabel = activeCountryFilter
-        ? `${COUNTRY_FLAGS[activeCountryFilter] || "🌍"} ${activeCountryFilter}`
-        : "All countries";
+        ? `${COUNTRY_FLAGS[activeCountryFilter] || "🌍"} ${getCountryLabel(activeCountryFilter)}`
+        : t("allCountries");
 
     return (
         <div className={`churchMapLayout ${mobileShowMap ? "mapFocused" : ""}`}>
@@ -336,74 +338,74 @@ export default function ChurchMap() {
             <aside className="churchMapSidebar">
                 <div className="churchMapSidebarHeader">
                     <Link href="/" className="churchMapBackToHomeBtn" title={t("backToHome")}>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <line x1="19" y1="12" x2="5" y2="12"></line>
-                            <polyline points="12 19 5 12 12 5"></polyline>
-                        </svg>
+                        <div className="churchMapBackIcon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="19" y1="12" x2="5" y2="12"></line>
+                                <polyline points="12 19 5 12 12 5"></polyline>
+                            </svg>
+                        </div>
+                        <div className="churchMapBackBrand">
+                            <img src="/icon.png" alt="Bethel Logo" />
+                            <span>Bethel Dworp</span>
+                        </div>
                     </Link>
 
                     <div className="churchMapLangSelector">
-                        {LANG_OPTIONS.map((opt) => (
+                        <LanguageSwitcher />
+                    </div>
+
+                    <h1 className="churchMapTitle">{t("subtitle")}</h1>
+                    <p className="churchMapSubtitle">{t("title")}</p>
+                    <div className="churchMapControls">
+                        <div className="churchMapMeta">
+                            <div className="churchCountBadge">
+                                <span className="churchCountValue">{filteredChurches.length}</span>
+                                <span className="churchCountType">
+                                    {activeCountryFilter ? getCountryLabel(activeCountryFilter) : t("associatedChurches")}
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Country Filter Dropdown */}
+                        <div className="countryFilterDropdown" ref={filterRef}>
                             <button
-                                key={opt.value}
-                                className={`churchMapLangBtn ${lang === opt.value ? "active" : ""}`}
-                                onClick={() => setLang(opt.value)}
+                                className={`countryFilterBtn ${activeCountryFilter ? "hasFilter" : ""}`}
+                                onClick={() => setFilterOpen(!filterOpen)}
                             >
-                                <img src={opt.flagImg} alt={opt.value} />
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                                </svg>
+                                <span>{activeFilterLabel}</span>
+                                <svg className={`chevron ${filterOpen ? "open" : ""}`} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
                             </button>
-                        ))}
-                    </div>
-
-                    <h1 className="churchMapTitle">{t("title")}</h1>
-                    <p className="churchMapSubtitle">{t("subtitle")}</p>
-                    <div className="churchMapMeta">
-                        <span className="churchCount">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-                            </svg>
-                            {churches.length} {t("associatedChurches")}
-                        </span>
-                    </div>
-
-                    {/* Country Filter Dropdown */}
-                    <div className="countryFilterDropdown" ref={filterRef}>
-                        <button
-                            className={`countryFilterBtn ${activeCountryFilter ? "hasFilter" : ""}`}
-                            onClick={() => setFilterOpen(!filterOpen)}
-                        >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                            </svg>
-                            <span>{activeFilterLabel}</span>
-                            <svg className={`chevron ${filterOpen ? "open" : ""}`} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <polyline points="6 9 12 15 18 9"></polyline>
-                            </svg>
-                        </button>
-                        {filterOpen && (
-                            <div className="countryFilterMenu">
-                                <button
-                                    className={`countryFilterOption ${!activeCountryFilter ? "active" : ""}`}
-                                    onClick={() => {
-                                        setActiveCountryFilter("");
-                                        setFilterOpen(false);
-                                    }}
-                                >
-                                    🌍 {t("allCountries")}
-                                </button>
-                                {ALL_COUNTRIES.map((country) => (
+                            {filterOpen && (
+                                <div className="countryFilterMenu">
                                     <button
-                                        key={country}
-                                        className={`countryFilterOption ${activeCountryFilter === country ? "active" : ""}`}
+                                        className={`countryFilterOption ${!activeCountryFilter ? "active" : ""}`}
                                         onClick={() => {
-                                            setActiveCountryFilter(country);
+                                            setActiveCountryFilter("");
                                             setFilterOpen(false);
                                         }}
                                     >
-                                        {COUNTRY_FLAGS[country] || "🌍"} {country}
+                                        🌍 {t("allCountries")}
                                     </button>
-                                ))}
-                            </div>
-                        )}
+                                    {ALL_COUNTRIES.map((country) => (
+                                        <button
+                                            key={country}
+                                            className={`countryFilterOption ${activeCountryFilter === country ? "active" : ""}`}
+                                            onClick={() => {
+                                                setActiveCountryFilter(country);
+                                                setFilterOpen(false);
+                                            }}
+                                        >
+                                            {COUNTRY_FLAGS[country] || "🌍"} {getCountryLabel(country)}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     <div className="churchMapSearch">
@@ -425,7 +427,7 @@ export default function ChurchMap() {
                         <div key={country} className="churchCountryGroup">
                             <h2 className="churchCountryHeader">
                                 <span className="countryFlag">{COUNTRY_FLAGS[country] || "🌍"}</span>
-                                {country}
+                                {t(`country_${country}`) === `country_${country}` ? country : t(`country_${country}`)}
                                 <span className="countryCount">{churches.length}</span>
                             </h2>
                             {churches.map((church, idx) => {
