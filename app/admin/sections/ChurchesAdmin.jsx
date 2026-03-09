@@ -244,6 +244,8 @@ export default function ChurchesAdmin() {
     const [expandedIds, setExpandedIds] = useState(() => new Set());
     const [sortBy, setSortBy] = useState("az");
     const [searchQuery, setSearchQuery] = useState("");
+    const [selectedCountry, setSelectedCountry] = useState("");
+    const [selectedCity, setSelectedCity] = useState("");
 
     const [showNew, setShowNew] = useState(false);
     const [newDrafts, setNewDrafts] = useState(emptyChurch());
@@ -254,6 +256,14 @@ export default function ChurchesAdmin() {
 
     const sortedItems = useMemo(() => {
         let arr = [...items];
+
+        if (selectedCountry) {
+            arr = arr.filter(it => safeStr(it.country).toLowerCase() === selectedCountry.toLowerCase());
+        }
+        if (selectedCity) {
+            arr = arr.filter(it => safeStr(it.city).toLowerCase() === selectedCity.toLowerCase());
+        }
+
         if (searchQuery.trim()) {
             const q = searchQuery.toLowerCase();
             arr = arr.filter(it => safeStr(it.name).toLowerCase().includes(q));
@@ -266,9 +276,23 @@ export default function ChurchesAdmin() {
             return 0;
         });
         return arr;
-    }, [items, sortBy, searchQuery]);
+    }, [items, sortBy, searchQuery, selectedCountry, selectedCity]);
 
     const { page, setPage, totalPages, paginatedItems, nextPage, prevPage, totalItems } = usePagination(sortedItems, PAGE_SIZE);
+
+    const uniqueCountries = useMemo(() => {
+        const set = new Set(items.map(it => safeStr(it.country).trim()).filter(Boolean));
+        return Array.from(set).sort((a, b) => a.localeCompare(b));
+    }, [items]);
+
+    const uniqueCities = useMemo(() => {
+        let relevant = items;
+        if (selectedCountry) {
+            relevant = items.filter(it => safeStr(it.country).toLowerCase() === selectedCountry.toLowerCase());
+        }
+        const set = new Set(relevant.map(it => safeStr(it.city).trim()).filter(Boolean));
+        return Array.from(set).sort((a, b) => a.localeCompare(b));
+    }, [items, selectedCountry]);
 
     const setTransientState = (id, value = "saved") => {
         setSaveStateById((m) => ({ ...m, [id]: value }));
@@ -531,7 +555,39 @@ export default function ChurchesAdmin() {
                         {totalItems} church{totalItems === 1 ? "" : "es"}
                     </span>
                 </div>
-                <div className="adminActions">
+                <div className="adminActions" style={{ flexWrap: "wrap", justifyContent: "flex-end", gap: "12px" }}>
+                    <select
+                        className="adminSelect"
+                        value={selectedCountry}
+                        onChange={(e) => {
+                            setSelectedCountry(e.target.value);
+                            setSelectedCity(""); // Reset target city when country changes
+                            setPage(1);
+                        }}
+                        aria-label="Filter by country"
+                    >
+                        <option value="">All Countries</option>
+                        {uniqueCountries.map(c => (
+                            <option key={c} value={c}>{c}</option>
+                        ))}
+                    </select>
+
+                    <select
+                        className="adminSelect"
+                        value={selectedCity}
+                        onChange={(e) => {
+                            setSelectedCity(e.target.value);
+                            setPage(1);
+                        }}
+                        aria-label="Filter by city"
+                        disabled={!uniqueCities.length}
+                    >
+                        <option value="">All Cities</option>
+                        {uniqueCities.map(c => (
+                            <option key={c} value={c}>{c}</option>
+                        ))}
+                    </select>
+
                     <select
                         className="adminSelect"
                         value={sortBy}
