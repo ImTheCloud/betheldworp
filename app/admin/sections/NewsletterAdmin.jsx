@@ -52,6 +52,14 @@ function IconChevronDown(props) {
     );
 }
 
+function IconSearch(props) {
+    return (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
+            <path d="M21 21l-4.35-4.35M19 11a8 8 0 1 1-16 0 8 8 0 0 1 16 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+    );
+}
+
 function IconCopy(props) {
     return (
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
@@ -213,6 +221,7 @@ export default function NewsletterAdmin() {
     const [errorById, setErrorById] = useState({});
     const [expandedIds, setExpandedIds] = useState(() => new Set());
     const [sortBy, setSortBy] = useState("date-desc");
+    const [searchQuery, setSearchQuery] = useState("");
 
     const [showNew, setShowNew] = useState(false);
     const [newEmail, setNewEmail] = useState("");
@@ -223,7 +232,11 @@ export default function NewsletterAdmin() {
 
     // Sorting logic
     const sortedItems = useMemo(() => {
-        const arr = [...items];
+        let arr = [...items];
+        if (searchQuery.trim()) {
+            const q = searchQuery.toLowerCase();
+            arr = arr.filter(it => safeStr(it.id).toLowerCase().includes(q));
+        }
         arr.sort((a, b) => {
             if (sortBy === "az") return a.id.localeCompare(b.id);
             if (sortBy === "za") return b.id.localeCompare(a.id);
@@ -232,7 +245,7 @@ export default function NewsletterAdmin() {
             return 0;
         });
         return arr;
-    }, [items, sortBy]);
+    }, [items, sortBy, searchQuery]);
 
     // Pagination Hook
     const {
@@ -576,6 +589,17 @@ export default function NewsletterAdmin() {
                         </span>
                         New
                     </button>
+                </div>
+
+                <div className="adminSearchWrapper">
+                    <input
+                        type="text"
+                        className="adminSearchInput"
+                        placeholder="Search Email"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                    <IconSearch className="adminSearchIcon" />
                 </div>
             </div>
 

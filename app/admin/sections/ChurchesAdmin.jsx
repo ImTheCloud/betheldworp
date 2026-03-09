@@ -36,6 +36,14 @@ function IconChevronDown(props) {
     );
 }
 
+function IconSearch(props) {
+    return (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
+            <path d="M21 21l-4.35-4.35M19 11a8 8 0 1 1-16 0 8 8 0 0 1 16 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+    );
+}
+
 const COUNTRY_OPTIONS = [
     "Austria", "Belgium", "Bulgaria", "Croatia", "Cyprus", "Czech Republic",
     "Denmark", "Estonia", "Finland", "France", "Germany", "Greece", "Hungary",
@@ -235,6 +243,7 @@ export default function ChurchesAdmin() {
     const [errorById, setErrorById] = useState({});
     const [expandedIds, setExpandedIds] = useState(() => new Set());
     const [sortBy, setSortBy] = useState("az");
+    const [searchQuery, setSearchQuery] = useState("");
 
     const [showNew, setShowNew] = useState(false);
     const [newDrafts, setNewDrafts] = useState(emptyChurch());
@@ -244,7 +253,11 @@ export default function ChurchesAdmin() {
     const [modal, setModal] = useState({ isOpen: false, title: "", message: "", onConfirm: () => { } });
 
     const sortedItems = useMemo(() => {
-        const arr = [...items];
+        let arr = [...items];
+        if (searchQuery.trim()) {
+            const q = searchQuery.toLowerCase();
+            arr = arr.filter(it => safeStr(it.name).toLowerCase().includes(q));
+        }
         arr.sort((a, b) => {
             if (sortBy === "az") return a.name.localeCompare(b.name);
             if (sortBy === "za") return b.name.localeCompare(a.name);
@@ -253,7 +266,7 @@ export default function ChurchesAdmin() {
             return 0;
         });
         return arr;
-    }, [items, sortBy]);
+    }, [items, sortBy, searchQuery]);
 
     const { page, setPage, totalPages, paginatedItems, nextPage, prevPage, totalItems } = usePagination(sortedItems, PAGE_SIZE);
 
@@ -536,65 +549,78 @@ export default function ChurchesAdmin() {
                         New
                     </button>
                 </div>
+
+                <div className="adminSearchWrapper">
+                    <input
+                        type="text"
+                        className="adminSearchInput"
+                        placeholder="Search by Name"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                    <IconSearch className="adminSearchIcon" />
+                </div>
             </div>
 
             {loading ? <div className="adminSkeleton" style={{ margin: "0 24px" }} /> : null}
 
-            {!loading ? (
-                <div className="adminFullContent">
-                    {globalError ? <div className="adminAlert">{globalError}</div> : null}
+            {
+                !loading ? (
+                    <div className="adminFullContent">
+                        {globalError ? <div className="adminAlert">{globalError}</div> : null}
 
-                    {showNew ? (
-                        <div style={{ padding: "0 4px" }}>
-                            <NewChurchCard
-                                drafts={newDrafts}
-                                setDraft={setNewField}
-                                errorText={newError}
-                                saveState={newState}
-                                onCancel={cancelNew}
-                                onSave={saveNew}
+                        {showNew ? (
+                            <div style={{ padding: "0 4px" }}>
+                                <NewChurchCard
+                                    drafts={newDrafts}
+                                    setDraft={setNewField}
+                                    errorText={newError}
+                                    saveState={newState}
+                                    onCancel={cancelNew}
+                                    onSave={saveNew}
+                                />
+                            </div>
+                        ) : null}
+
+                        <div className="adminFullList">
+                            {paginatedItems.map((it) => (
+                                <ChurchCard
+                                    key={it.id}
+                                    item={it}
+                                    expanded={expandedIds.has(it.id)}
+                                    drafts={draftsById[it.id] || it}
+                                    saveState={saveStateById[it.id] || "idle"}
+                                    errorText={errorById[it.id] || ""}
+                                    onToggle={toggleExpand}
+                                    onChange={changeDraft}
+                                    onSave={saveOne}
+                                    onDelete={deleteOne}
+                                />
+                            ))}
+
+                            {!items.length && !showNew ? <div className="adminEmpty">No churches yet. Click "New" to add one.</div> : null}
+                        </div>
+
+                        <div className="adminPaginationFooter">
+                            <PaginationControls
+                                page={page}
+                                totalPages={totalPages}
+                                onNext={nextPage}
+                                onPrev={prevPage}
+                                onPageSet={setPage}
                             />
                         </div>
-                    ) : null}
 
-                    <div className="adminFullList">
-                        {paginatedItems.map((it) => (
-                            <ChurchCard
-                                key={it.id}
-                                item={it}
-                                expanded={expandedIds.has(it.id)}
-                                drafts={draftsById[it.id] || it}
-                                saveState={saveStateById[it.id] || "idle"}
-                                errorText={errorById[it.id] || ""}
-                                onToggle={toggleExpand}
-                                onChange={changeDraft}
-                                onSave={saveOne}
-                                onDelete={deleteOne}
-                            />
-                        ))}
-
-                        {!items.length && !showNew ? <div className="adminEmpty">No churches yet. Click "New" to add one.</div> : null}
-                    </div>
-
-                    <div className="adminPaginationFooter">
-                        <PaginationControls
-                            page={page}
-                            totalPages={totalPages}
-                            onNext={nextPage}
-                            onPrev={prevPage}
-                            onPageSet={setPage}
+                        <ConfirmModal
+                            isOpen={modal.isOpen}
+                            title={modal.title}
+                            message={modal.message}
+                            onConfirm={modal.onConfirm}
+                            onCancel={() => setModal({ ...modal, isOpen: false })}
                         />
                     </div>
-
-                    <ConfirmModal
-                        isOpen={modal.isOpen}
-                        title={modal.title}
-                        message={modal.message}
-                        onConfirm={modal.onConfirm}
-                        onCancel={() => setModal({ ...modal, isOpen: false })}
-                    />
-                </div>
-            ) : null}
-        </div>
+                ) : null
+            }
+        </div >
     );
 }

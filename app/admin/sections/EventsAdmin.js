@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { collection, deleteDoc, doc, onSnapshot, setDoc } from "firebase/firestore";
 import { db } from "../../lib/Firebase";
 import { usePagination } from "../hooks/usePagination";
@@ -19,6 +19,14 @@ function pad2(n) {
 function getTodayId() {
     const now = new Date();
     return `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
+}
+
+function IconSearch(props) {
+    return (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
+            <path d="M21 21l-4.35-4.35M19 11a8 8 0 1 1-16 0 8 8 0 0 1 16 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+    );
 }
 
 const LANGS = [
@@ -440,6 +448,7 @@ export default function EventsAdmin({ onCreateOverride }) {
     const [errorById, setErrorById] = useState({});
     const [expandedIds, setExpandedIds] = useState(() => new Set());
     const [activeLangById, setActiveLangById] = useState({});
+    const [searchQuery, setSearchQuery] = useState("");
 
     const [showNew, setShowNew] = useState(false);
     const [newDraft, setNewDraft] = useState(() => cleanEvent({
@@ -459,8 +468,17 @@ export default function EventsAdmin({ onCreateOverride }) {
 
     const [showHistory, setShowHistory] = useState(false);
 
-    const upcomingItems = items.filter((x) => x.upcoming);
-    const historyItems = items.filter((x) => !x.upcoming);
+    const filteredItems = useMemo(() => {
+        if (!searchQuery.trim()) return items;
+        const q = searchQuery.toLowerCase();
+        return items.filter(it => {
+            const title = pickFallback(it.title).toLowerCase();
+            return title.includes(q) || safeStr(it.id).toLowerCase().includes(q);
+        });
+    }, [items, searchQuery]);
+
+    const upcomingItems = filteredItems.filter((x) => x.upcoming);
+    const historyItems = filteredItems.filter((x) => !x.upcoming);
 
     const upcomingPagination = usePagination(upcomingItems, PAGE_SIZE);
     const historyPagination = usePagination(historyItems, PAGE_SIZE);
@@ -789,6 +807,17 @@ export default function EventsAdmin({ onCreateOverride }) {
                             {showHistory ? "Hide history" : "History"}
                         </button>
                     )}
+                </div>
+
+                <div className="adminSearchWrapper">
+                    <input
+                        type="text"
+                        className="adminSearchInput"
+                        placeholder="Search Events"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                    <IconSearch className="adminSearchIcon" />
                 </div>
             </div>
 

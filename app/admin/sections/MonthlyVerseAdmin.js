@@ -25,6 +25,14 @@ function getArchiveId() {
     return `${getTodayId()}-${pad2(now.getHours())}${pad2(now.getMinutes())}${pad2(now.getSeconds())}`;
 }
 
+function IconSearch(props) {
+    return (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
+            <path d="M21 21l-4.35-4.35M19 11a8 8 0 1 1-16 0 8 8 0 0 1 16 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+    );
+}
+
 function parseDateId(id) {
     const s = safeStr(id).trim();
     const m = s.match(/^(\d{4})-(\d{2})-(\d{2})(?:-|$)/);
@@ -376,10 +384,21 @@ export default function MonthlyVerseAdmin() {
     const [historyDrafts, setHistoryDrafts] = useState({});
     const [savingHistoryById, setSavingHistoryById] = useState({});
     const [historyLangById, setHistoryLangById] = useState({});
+    const [searchQuery, setSearchQuery] = useState("");
 
     const CURRENT_REF = useMemo(() => doc(db, "monthly_verse", "current"), []);
 
-    const historyPagination = usePagination(history, 10);
+    const filteredHistory = useMemo(() => {
+        if (!searchQuery.trim()) return history;
+        const q = searchQuery.toLowerCase();
+        return history.filter(h => {
+            const ref = pickFallback(h.reference).toLowerCase();
+            const txt = pickFallback(h.text).toLowerCase();
+            return String(h.id).toLowerCase().includes(q) || ref.includes(q) || txt.includes(q);
+        });
+    }, [history, searchQuery]);
+
+    const historyPagination = usePagination(filteredHistory, 10);
 
     const setTransientState = (setter, value = "saved") => {
         setter(value);
@@ -715,17 +734,29 @@ export default function MonthlyVerseAdmin() {
                         New
                     </button>
 
-                    <button
-                        className="adminBtn adminBtn--new"
-                        type="button"
-                        onClick={() => setShowHistory((v) => !v)}
-                        disabled={!history.length}
-                    >
-                        <span className="adminBtnIcon" aria-hidden="true">
-                            <IconHistory />
-                        </span>
-                        {showHistory ? "Hide history" : "History"}
-                    </button>
+                    {history.length > 0 && (
+                        <button
+                            className="adminBtn adminBtn--new"
+                            type="button"
+                            onClick={() => setShowHistory(!showHistory)}
+                        >
+                            <span className="adminBtnIcon" aria-hidden="true">
+                                <IconHistory />
+                            </span>
+                            {showHistory ? "Hide history" : "History"}
+                        </button>
+                    )}
+                </div>
+
+                <div className="adminSearchWrapper">
+                    <input
+                        type="text"
+                        className="adminSearchInput"
+                        placeholder="Search History"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                    <IconSearch className="adminSearchIcon" />
                 </div>
             </div>
 
