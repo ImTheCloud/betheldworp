@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { APIProvider, Map, AdvancedMarker, useMap } from "@vis.gl/react-google-maps";
 import { useSearchParams } from "next/navigation";
-import { collection, onSnapshot, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, increment } from "firebase/firestore";
 import { db } from "../lib/Firebase";
 import Link from "next/link";
 import { useLang } from "../components/LanguageProvider";
@@ -14,7 +14,7 @@ import "./WorldMap.css";
 
 const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 const MAP_ID = "5b50d76db2afedb8ba67cff4";
-const DEFAULT_CENTER = { lat: 50.77198, lng: 4.30396 }; // Coordinates roughly near Brussels/Halle
+const BELGIUM_CENTER = { lat: 50.77198, lng: 4.30396 }; // Coordinates roughly near Brussels/Halle
 
 const COUNTRY_FLAGS = {
     Belgium: "🇧🇪",
@@ -129,7 +129,7 @@ function MapController({ selectedChurch, requestedLocation, isInitialLoad }) {
         } else {
             // Deselected: single smooth zoom out back to overview
             if (wasSelectedRef.current) {
-                map.panTo(DEFAULT_CENTER);
+                map.panTo(BELGIUM_CENTER);
                 map.setZoom(8);
                 prevChurchRef.current = null;
                 wasSelectedRef.current = false;
@@ -153,8 +153,8 @@ function FilterController({ filteredChurches, activeCountryFilter }) {
         prevFilterRef.current = activeCountryFilter;
 
         if (!activeCountryFilter) {
-            // Reset to default view
-            map.panTo(DEFAULT_CENTER);
+            // Reset to default view (Belgium)
+            map.panTo(BELGIUM_CENTER);
             map.setZoom(8);
             return;
         }
@@ -189,10 +189,53 @@ export default function ChurchMap() {
     const [hoveredMarker, setHoveredMarker] = useState(null);
     const [copied, setCopied] = useState(false);
     const [mobileShowMap, setMobileShowMap] = useState(false);
+    const [bottomSheetMode, setBottomSheetMode] = useState("collapsed"); // "hidden" | "collapsed" | "expanded"
     const [filterOpen, setFilterOpen] = useState(false);
     const filterRef = useRef(null);
+    const touchStartY = useRef(0);
 
     // Collaboration State
+    const [likedChurches, setLikedChurches] = useState(new Set());
+
+    useEffect(() => {
+        try {
+            const stored = localStorage.getItem("bethel_liked_churches");
+            if (stored) {
+                setLikedChurches(new Set(JSON.parse(stored)));
+            }
+        } catch (e) { }
+    }, []);
+
+    const handleLike = async (churchId) => {
+        const isLiking = !likedChurches.has(churchId);
+        const newLikes = new Set(likedChurches);
+
+        if (isLiking) {
+            newLikes.add(churchId);
+        } else {
+            newLikes.delete(churchId);
+        }
+
+        setLikedChurches(newLikes);
+        try {
+            localStorage.setItem("bethel_liked_churches", JSON.stringify([...newLikes]));
+        } catch (e) { }
+
+        const incrementValue = isLiking ? 1 : -1;
+
+        if (selectedChurch?.id === churchId) {
+            setSelectedChurch(prev => ({ ...prev, likes: Math.max(0, (prev.likes || 0) + incrementValue) }));
+        }
+        setChurches(prev => prev.map(c => c.id === churchId ? { ...c, likes: Math.max(0, (c.likes || 0) + incrementValue) } : c));
+
+        try {
+            const churchRef = doc(db, "churches", churchId);
+            await updateDoc(churchRef, { likes: increment(incrementValue) });
+        } catch (err) {
+            console.error("Failed to update church recommendation:", err);
+        }
+    };
+
     const [showSuggestionModal, setShowSuggestionModal] = useState(false);
     const [suggestionType, setSuggestionType] = useState("new"); // "new" | "edit"
     const [suggestionSuccess, setSuggestionSuccess] = useState(false);
@@ -302,10 +345,7 @@ export default function ChurchMap() {
         return () => unsub();
     }, []);
 
-    const DEFAULT_CENTER = useMemo(() => getBoundsCenter(churches), [churches]);
-    const ALL_COUNTRIES = useMemo(() => [...new Set(churches.map((c) => c.country))].sort(), [churches]);
-
-    // Close dropdown on outside click
+    // Load churches from Firestore
     useEffect(() => {
         function handleClickOutside(e) {
             if (filterRef.current && !filterRef.current.contains(e.target)) {
@@ -350,6 +390,7 @@ export default function ChurchMap() {
     const selectChurch = useCallback((church) => {
         setSelectedChurch(church);
         setIsInitialLoad(false);
+        setBottomSheetMode("hidden"); // Hide the list cleanly on mobile when a church is selected
         const url = new URL(window.location.href);
         url.searchParams.set("church", church.id);
         window.history.replaceState({}, "", url.toString());
@@ -357,6 +398,7 @@ export default function ChurchMap() {
 
     const deselectChurch = useCallback(() => {
         setSelectedChurch(null);
+        setBottomSheetMode("collapsed"); // Show the list if it was hidden
         const url = new URL(window.location.href);
         url.searchParams.delete("church");
         window.history.replaceState({}, "", url.toString());
@@ -380,6 +422,26 @@ export default function ChurchMap() {
         }
     }, []);
 
+    const handleTouchStart = (e) => {
+        touchStartY.current = e.touches[0].clientY;
+    };
+
+    const handleTouchEnd = (e) => {
+        const touchEndY = e.changedTouches[0].clientY;
+        const distance = touchEndY - touchStartY.current;
+
+        // Swipe up
+        if (distance < -40) {
+            if (bottomSheetMode === "hidden") setBottomSheetMode("collapsed");
+            else if (bottomSheetMode === "collapsed") setBottomSheetMode("expanded");
+        }
+        // Swipe down
+        if (distance > 40) {
+            if (bottomSheetMode === "expanded") setBottomSheetMode("collapsed");
+            else if (bottomSheetMode === "collapsed") setBottomSheetMode("hidden");
+        }
+    };
+
     if (!API_KEY) {
         return <div className="text-white p-8">Cheia API Google Maps nu este configurată.</div>;
     }
@@ -391,6 +453,13 @@ export default function ChurchMap() {
         // If translation is the same as key, it means it's missing, so fallback to original
         return translated === key ? country : translated;
     }, [t]);
+
+    const GLOBAL_BOUNDS_CENTER = useMemo(() => getBoundsCenter(churches), [churches]);
+    const ALL_COUNTRIES = useMemo(() => {
+        return [...new Set(churches.map((c) => c.country))].sort((a, b) => {
+            return getCountryLabel(a).localeCompare(getCountryLabel(b), lang);
+        });
+    }, [churches, getCountryLabel, lang]);
 
     // Calculate counts independent of currently selected country, but dependent on search
     const countryCounts = useMemo(() => {
@@ -440,22 +509,22 @@ export default function ChurchMap() {
             }
             groups[church.country].push(church);
         }
-        // Sort country keys
+        // Sort country keys by translated name
         const sorted = {};
         Object.keys(groups)
-            .sort()
+            .sort((a, b) => getCountryLabel(a).localeCompare(getCountryLabel(b), lang))
             .forEach((key) => {
                 sorted[key] = groups[key];
             });
         return sorted;
-    }, [filteredChurches]);
+    }, [filteredChurches, getCountryLabel, lang]);
 
     // Distance map
     const distanceMap = useMemo(() => {
         if (!userLocation) return {};
         const map = {};
         for (const c of churches) {
-            map[c.id] = haversineDistance(userLocation.lat, userLocation.lng, c.lat, c.lng);
+            map[c.id] = haversineDistance(userLocation.lat, userLocation.lng, c.lat, userLocation.lng);
         }
         return map;
     }, [userLocation, churches]);
@@ -465,9 +534,9 @@ export default function ChurchMap() {
         return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(fullAddress)}&destination_place_id=${encodeURIComponent(church.name)}`;
     };
 
-    const activeFilterLabel = activeCountryFilter
-        ? `${COUNTRY_FLAGS[activeCountryFilter] || "🌍"} ${getCountryLabel(activeCountryFilter)} (${countryCounts[activeCountryFilter] || 0})`
-        : `${t("allCountries")} (${countryCounts.all || 0})`;
+    const activeFilterIcon = activeCountryFilter
+        ? COUNTRY_FLAGS[activeCountryFilter] || "🌍"
+        : "🌍";
 
     return (
         <div className={`churchMapLayout ${mobileShowMap ? "mapFocused" : ""}`}>
@@ -493,8 +562,25 @@ export default function ChurchMap() {
 
                     <h1 className="churchMapTitle">{t("subtitle")}</h1>
                     <p className="churchMapSubtitle">{t("title")}</p>
-                    <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center' }}>
-                        <div className="churchMapSearch" style={{ flex: 1, margin: 0 }}>
+                </div>
+
+                <div className="churchMapBottomSheet" data-mode={bottomSheetMode}>
+                    <div
+                        className="bottomSheetDragHandleArea"
+                        onClick={() => {
+                            if (bottomSheetMode === "hidden") setBottomSheetMode("collapsed");
+                            else if (bottomSheetMode === "collapsed") setBottomSheetMode("expanded");
+                            else setBottomSheetMode("collapsed");
+                        }}
+                        onTouchStart={handleTouchStart}
+                        onTouchEnd={handleTouchEnd}
+                    >
+                        <div className="bottomSheetDragHandle"></div>
+                    </div>
+
+                    {/* Search and Country Filter Area */}
+                    <div className="churchMapFilterContainer">
+                        <div className="churchMapSearch">
                             <svg className="churchMapSearchIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <circle cx="11" cy="11" r="8"></circle>
                                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
@@ -507,17 +593,14 @@ export default function ChurchMap() {
                             />
                         </div>
 
-                        {/* Country Filter Dropdown */}
-                        <div className="countryFilterDropdown" ref={filterRef} style={{ margin: 0 }}>
+                        <div className="countryFilterDropdown" ref={filterRef}>
                             <button
                                 className={`countryFilterBtn ${activeCountryFilter ? "hasFilter" : ""}`}
                                 onClick={() => setFilterOpen(!filterOpen)}
+                                title={activeCountryFilter ? getCountryLabel(activeCountryFilter) : t("allCountries")}
                             >
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                                </svg>
-                                <span>{activeFilterLabel}</span>
-                                <svg className={`chevron ${filterOpen ? "open" : ""}`} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>{activeFilterIcon}</span>
+                                <svg className={`chevron ${filterOpen ? "open" : ""}`} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ margin: 0 }}>
                                     <polyline points="6 9 12 15 18 9"></polyline>
                                 </svg>
                             </button>
@@ -529,8 +612,10 @@ export default function ChurchMap() {
                                             setActiveCountryFilter("");
                                             setFilterOpen(false);
                                         }}
+                                        style={{ justifyContent: 'flex-start', padding: '10px 16px' }}
                                     >
-                                        🌍 {t("allCountries")} ({countryCounts.all || 0})
+                                        <span style={{ fontSize: '1.1rem' }}>🌍</span> {t("allCountries")}
+                                        <span style={{ fontSize: '0.85rem', opacity: 0.7, marginLeft: 'auto' }}>({countryCounts.all || 0})</span>
                                     </button>
                                     {ALL_COUNTRIES.map((country) => (
                                         <button
@@ -541,69 +626,88 @@ export default function ChurchMap() {
                                                 setFilterOpen(false);
                                             }}
                                         >
-                                            {COUNTRY_FLAGS[country] || "🌍"} {getCountryLabel(country)} ({countryCounts[country] || 0})
+                                            <span style={{ fontSize: '1.1rem' }}>{COUNTRY_FLAGS[country] || "🌍"}</span> {getCountryLabel(country)}
+                                            <span style={{ fontSize: '0.85rem', opacity: 0.7, marginLeft: 'auto' }}>({countryCounts[country] || 0})</span>
                                         </button>
                                     ))}
                                 </div>
                             )}
                         </div>
                     </div>
-                </div>
 
-                <div className="churchList">
-                    {Object.entries(groupedChurches).map(([country, churches]) => (
-                        <div key={country} className="churchCountryGroup">
-                            <h2 className="churchCountryHeader">
-                                <span className="countryFlag">{COUNTRY_FLAGS[country] || "🌍"}</span>
-                                {t(`country_${country}`) === `country_${country}` ? country : t(`country_${country}`)}
-                                <span className="countryCount">{churches.length}</span>
-                            </h2>
-                            {churches.map((church, idx) => {
-                                const isSelected = selectedChurch?.id === church.id;
-                                const dist = distanceMap[church.id];
-                                return (
-                                    <button
-                                        key={idx}
-                                        className={`churchListItem ${isSelected ? "active" : ""}`}
-                                        onClick={() => {
-                                            selectChurch(church);
-                                            setMobileShowMap(true);
-                                        }}
-                                    >
-                                        <div className="churchListItemIcon">
-                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-                                            </svg>
-                                        </div>
-                                        <div className="churchListItemContent">
-                                            <h3>{church.name}{church.city ? ` - ${church.city}` : ''}</h3>
-                                            <p>{church.street} {church.number}</p>
-                                        </div>
-                                        {dist != null && (
-                                            <span className="churchDistance">{formatDistance(dist)}</span>
-                                        )}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    ))}
-                    {filteredChurches.length === 0 && (
-                        <div className="churchListEmpty">
-                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                                <circle cx="11" cy="11" r="8"></circle>
-                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                            </svg>
-                            <p>{t("noChurchFound")}</p>
-                            <div className="emptyActions">
-                                <button className="resetSearchBtn" onClick={() => { setSearchQuery(""); setActiveCountryFilter(""); }}>
-                                    {t("resetSearch")}
-                                </button>
-                                <button className="suggestNewBtn" onClick={() => openSuggestionModal("new")}>
-                                    ➕ {t("suggestChurch")}
-                                </button>
+                    <div className="churchList">
+                        {churchesLoading ? (
+                            <div className="loaderContainer">
+                                <div className="premiumLoader">
+                                    <div className="loaderRing"></div>
+                                    <div className="loaderRing"></div>
+                                    <div className="loaderLogo">
+                                        <img src="/icon.png" alt="Bethel Logo" />
+                                    </div>
+                                </div>
+                                <span className="loaderText">{t("loadingChurches") || "Încărcare..."}</span>
                             </div>
-                        </div>
-                    )}
+                        ) : (
+                            <>
+                                {Object.entries(groupedChurches).map(([country, items]) => (
+                                    <div key={country} className="churchCountryGroup">
+                                        <h2 className="churchCountryHeader">
+                                            <span className="countryFlag">{COUNTRY_FLAGS[country] || "🌍"}</span>
+                                            {t(`country_${country}`) === `country_${country}` ? country : t(`country_${country}`)}
+                                            <span className="countryCount">{items.length}</span>
+                                        </h2>
+                                        {items.map((church, idx) => {
+                                            const isSelected = selectedChurch?.id === church.id;
+                                            const dist = distanceMap[church.id];
+                                            return (
+                                                <button
+                                                    key={idx}
+                                                    className={`churchListItem ${isSelected ? "active" : ""}`}
+                                                    onClick={() => {
+                                                        selectChurch(church);
+                                                    }}
+                                                >
+                                                    <div className="churchListItemIcon">
+                                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                                            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+                                                        </svg>
+                                                    </div>
+                                                    <div className="churchListItemContent">
+                                                        <h3>{church.name}{church.city ? ` - ${church.city}` : ''}</h3>
+                                                        <p>{church.street} {church.number}</p>
+                                                    </div>
+                                                    {dist != null && (
+                                                        <span className="churchDistance">{formatDistance(dist)}</span>
+                                                    )}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                ))}
+
+                                {filteredChurches.length === 0 && (
+                                    <div className="churchListEmpty">
+                                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                            <circle cx="11" cy="11" r="8"></circle>
+                                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                        </svg>
+                                        <p>{t("noChurchFound")}</p>
+                                        <div className="emptyActions">
+                                            <button className="resetSearchBtn" onClick={() => { setSearchQuery(""); setActiveCountryFilter(""); }}>
+                                                {t("resetSearch")}
+                                            </button>
+                                            <button className="suggestNewBtn" onClick={() => openSuggestionModal("new")}>
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <path d="M12 5v14M5 12h14"></path>
+                                                </svg>
+                                                {t("suggestChurch")}
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </div>
 
                     <div className="churchSidebarFooter">
                         <button className="sidebarSuggestBtn" onClick={() => openSuggestionModal("new")}>
@@ -625,14 +729,13 @@ export default function ChurchMap() {
                         {t("backToList")}
                     </button>
                 )}
-
             </aside>
 
             {/* Map */}
             <div className="churchMapContainer">
                 <APIProvider apiKey={API_KEY}>
                     <Map
-                        defaultCenter={DEFAULT_CENTER}
+                        defaultCenter={BELGIUM_CENTER}
                         defaultZoom={8}
                         mapId={MAP_ID}
                         disableDefaultUI={true}
@@ -687,8 +790,28 @@ export default function ChurchMap() {
                             </button>
 
                             <div className="churchDetailsContent" style={{ paddingTop: "32px" }}>
-                                <h2 className="churchDetailsTitle">{selectedChurch.name}{selectedChurch.city ? ` - ${selectedChurch.city}` : ''}</h2>
-                                <p className="churchDetailsAddress">{selectedChurch.street} {selectedChurch.number}</p>
+                                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "4px", flexWrap: "wrap", paddingRight: "28px" }}>
+                                    <h2 className="churchDetailsTitle" style={{ margin: 0 }}>
+                                        {selectedChurch.name}{selectedChurch.city ? ` - ${selectedChurch.city}` : ''}
+                                    </h2>
+                                    <div className="churchLikeTooltipWrapper">
+                                        <button
+                                            className={`churchLikeBtn ${likedChurches.has(selectedChurch.id) ? "liked" : ""}`}
+                                            onClick={() => handleLike(selectedChurch.id)}
+                                            style={{ cursor: "pointer", margin: 0, padding: "4px 10px" }}
+                                            title={likedChurches.has(selectedChurch.id) ? t("removeRecommendation") : t("recommendChurch")}
+                                        >
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill={likedChurches.has(selectedChurch.id) ? "#ef4444" : "none"} stroke={likedChurches.has(selectedChurch.id) ? "#ef4444" : "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                                            </svg>
+                                            <span className="churchLikeCount">{selectedChurch.likes || 0}</span>
+                                        </button>
+                                        <div className="churchLikeTooltipContent">
+                                            {t("recommendInfo")}
+                                        </div>
+                                    </div>
+                                </div>
+                                <p className="churchDetailsAddress" style={{ marginTop: "4px" }}>{selectedChurch.street} {selectedChurch.number}</p>
 
 
                                 <div className="churchDetailsInfoList">

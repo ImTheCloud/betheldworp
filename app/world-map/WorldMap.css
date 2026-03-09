@@ -177,23 +177,40 @@
 }
 
 /* =============================================
+   SEARCH & FILTER CONTAINER
+   ============================================= */
+.churchMapFilterContainer {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    flex-shrink: 0;
+    padding: 24px 24px 0 24px;
+    /* Default for Web */
+}
+
+@media (max-width: 1024px) {
+    .churchMapFilterContainer {
+        padding: 6px 16px 0 16px;
+        /* High up for Mobile */
+    }
+}
+
+/* =============================================
    COUNTRY FILTER DROPDOWN
    ============================================= */
 .countryFilterDropdown {
     position: relative;
     flex: 0 0 auto;
-    min-width: 140px;
 }
 
 .countryFilterBtn {
     display: flex;
     align-items: center;
-    gap: 8px;
-    width: 100%;
+    gap: 2px;
     height: 38px;
-    padding: 0 12px;
+    padding: 0 6px;
     border: 1px solid rgba(10, 42, 67, 0.12);
-    border-radius: 999px;
+    border-radius: 10px;
     background: #ffffff;
     color: #475569;
     font-size: 0.85rem;
@@ -215,7 +232,7 @@
 }
 
 .countryFilterBtn span {
-    flex: 1;
+    flex: 0 0 auto;
 }
 
 .countryFilterBtn .chevron {
@@ -229,18 +246,27 @@
 
 .countryFilterMenu {
     position: absolute;
-    top: calc(100% + 6px);
+    top: calc(100% + 8px);
     right: 0;
-    width: 200px;
     background: #ffffff;
     border: 1px solid rgba(10, 42, 67, 0.12);
     border-radius: 12px;
     box-shadow: 0 12px 32px rgba(6, 24, 50, 0.18);
     z-index: 100;
-    padding: 6px;
+    padding: 0;
     max-height: 260px;
     overflow-y: auto;
     animation: dropdownFade 0.15s ease;
+}
+
+.countryFilterOption:first-child {
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+.countryFilterOption:last-child {
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
 }
 
 @keyframes dropdownFade {
@@ -267,11 +293,11 @@
 .countryFilterOption {
     display: flex;
     align-items: center;
-    gap: 8px;
     width: 100%;
-    padding: 9px 12px;
+    gap: 8px;
+    padding: 10px 16px;
     border: none;
-    border-radius: 8px;
+    border-radius: 0;
     background: transparent;
     color: #334155;
     font-size: 0.875rem;
@@ -671,9 +697,12 @@
     position: absolute;
     bottom: 32px;
     left: 32px;
-    width: 380px;
+    min-width: 380px;
+    width: max-content;
+    max-width: min(600px, calc(100vw - 64px));
     max-height: calc(100vh - 80px);
     overflow-y: auto;
+    overflow-x: hidden;
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -738,6 +767,7 @@
     color: #0f172a;
     margin: 0 0 6px 0;
     letter-spacing: -0.01em;
+    word-break: break-word;
 }
 
 .churchDetailsAddress {
@@ -745,6 +775,82 @@
     color: #64748b;
     margin: 0 0 16px 0;
     line-height: 1.5;
+    word-break: break-word;
+}
+
+.churchLikeBtn {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    padding: 6px 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    color: #64748b;
+    transition: all 0.2s ease;
+    margin-top: 2px;
+}
+
+.churchLikeBtn:hover:not(:disabled) {
+    background: #fee2e2;
+    border-color: #fca5a5;
+    color: #ef4444;
+}
+
+.churchLikeBtn.liked {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #ef4444;
+    cursor: default;
+}
+
+.churchLikeCount {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+/* Tooltip for the Like button */
+.churchLikeTooltipWrapper {
+    position: relative;
+    display: inline-flex;
+}
+
+.churchLikeTooltipContent {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background: #1e293b;
+    color: white;
+    font-size: 0.75rem;
+    padding: 8px 12px;
+    border-radius: 6px;
+    width: max-content;
+    max-width: 250px;
+    text-align: left;
+    line-height: 1.4;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+    z-index: 100;
+    pointer-events: none;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.churchLikeTooltipContent::after {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    right: 15px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent transparent #1e293b transparent;
+}
+
+.churchLikeTooltipWrapper:hover .churchLikeTooltipContent {
+    opacity: 1;
+    visibility: visible;
+    top: calc(100% + 12px);
 }
 
 /* Schedule Section */
@@ -821,6 +927,8 @@
 .churchDetailsInfoItem a {
     color: #475569;
     text-decoration: none;
+    word-break: break-all;
+    word-wrap: break-word;
     transition: color 0.2s;
     font-weight: 500;
 }
@@ -834,6 +942,7 @@
 .churchDetailsActions {
     display: flex;
     gap: 8px;
+    flex-wrap: wrap;
 }
 
 .churchDetailsDirectionsBtn {
@@ -900,37 +1009,121 @@
 
 @media (max-width: 768px) {
     .churchMapLayout {
-        flex-direction: column;
-    }
-
-    .churchMapSidebar {
-        width: 100%;
-        height: 55vh;
-        border-right: none;
-        border-top: 1px solid #e2e8f0;
-        order: 2;
-        transition: height 0.3s ease;
-        position: relative;
-    }
-
-    .churchMapLayout.mapFocused .churchMapSidebar {
-        height: 0;
-        overflow: hidden;
-        border-top: none;
+        display: block;
     }
 
     .churchMapContainer {
-        height: 45vh;
-        order: 1;
-        transition: height 0.3s ease;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 1;
     }
 
-    .churchMapLayout.mapFocused .churchMapContainer {
+    .churchMapSidebar {
+        width: 100vw;
         height: 100vh;
+        /* Using safe-area-inset for modern notch phones */
+        height: 100dvh;
+        position: fixed;
+        top: 0;
+        left: 0;
+        border: none;
+        background: transparent;
+        pointer-events: none;
+        /* Let touches pass through to map */
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        z-index: 20;
     }
 
     .churchMapSidebarHeader {
-        padding: 16px 16px 14px;
+        pointer-events: auto;
+        /* Catch touches */
+        margin: 16px 16px 0 16px;
+        padding: 16px;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.90);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+        flex-shrink: 0;
+        transition: transform 0.3s ease;
+        position: relative;
+    }
+
+    .churchMapBackToHomeBtn {
+        position: relative;
+        top: 0;
+        left: 0;
+        margin-bottom: 16px;
+    }
+
+    .churchMapLangSelector {
+        top: 16px;
+        right: 16px;
+    }
+
+    .churchMapTitle {
+        font-size: 1.35rem;
+        margin-top: 8px;
+    }
+
+    /* Bottom Sheet Container */
+    .churchMapBottomSheet {
+        pointer-events: auto;
+        background: white;
+        border-radius: 24px 24px 0 0;
+        box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.12);
+        display: flex;
+        flex-direction: column;
+        height: 45vh;
+        /* Default "collapsed" height */
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        transform: translateY(0);
+        /* Open by default */
+        flex-shrink: 0;
+    }
+
+    .churchMapBottomSheet[data-mode="hidden"] {
+        /* Leave a little bit of the drag handle visible at the bottom */
+        transform: translateY(calc(100% - 24px));
+    }
+
+    .churchMapBottomSheet[data-mode="expanded"] {
+        height: 85vh;
+        /* Large view to see more churches */
+    }
+
+    .bottomSheetDragHandleArea {
+        width: 100%;
+        height: 24px;
+        /* Reduced from 34px to move search bar higher */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+
+    .bottomSheetDragHandle {
+        width: 40px;
+        height: 5px;
+        background: #cbd5e1;
+        border-radius: 4px;
+    }
+
+    .churchList {
+        flex: 1;
+        overflow-y: auto;
+        padding-bottom: 20px;
+        touch-action: pan-y;
+        /* Crucial for allowing scroll inside a touch listener container */
+        pointer-events: auto;
     }
 
     .churchMapTitle {
@@ -946,10 +1139,15 @@
     }
 
     .churchDetailsCard {
-        width: calc(100% - 32px);
-        bottom: 16px;
+        width: calc(100vw - 32px);
+        max-width: unset;
+        min-width: unset;
+        bottom: 50px;
+        /* Above drag handle when list is closed */
         left: 16px;
         max-height: 50vh;
+        z-index: 30;
+        /* Guarantee it floats above bottom sheet */
     }
 
     .churchDetailsActions {
@@ -957,44 +1155,19 @@
     }
 
     .mobileBackToList {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        position: fixed;
-        bottom: 24px;
-        left: 50%;
-        transform: translateX(-50%);
-        padding: 12px 24px;
-        background: #134b7b;
-        color: #ffffff;
-        border: none;
-        border-radius: 50px;
-        font-weight: 700;
-        font-size: 0.9rem;
-        cursor: pointer;
-        box-shadow: 0 8px 24px rgba(19, 75, 123, 0.4);
-        z-index: 200;
-        transition: all 0.2s ease;
-    }
-
-    .mobileBackToList:active {
-        transform: translateX(-50%) scale(0.95);
+        display: none !important;
     }
 }
 
 @media (max-width: 480px) {
-    .churchMapSidebar {
-        height: 60vh;
-    }
-
-    .churchMapContainer {
-        height: 40vh;
+    .churchMapBottomSheet {
+        height: 45vh;
     }
 
     .churchDetailsCard {
-        width: calc(100% - 24px);
-        bottom: 12px;
+        width: calc(100vw - 24px);
+        bottom: 46px;
+        /* Just above drag handle */
         left: 12px;
         border-radius: 16px;
     }
@@ -1019,20 +1192,21 @@
 }
 
 .sidebarSuggestBtn {
-    width: 100%;
-    padding: 12px;
-    background: #ffffff;
-    border: 1px dashed rgba(19, 75, 123, 0.3);
-    border-radius: 12px;
-    color: #134b7b;
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    transition: all 0.2s ease;
+    width: 100%;
+    padding: 12px;
+    background: #ffffff;
+    border: 1px solid rgba(19, 75, 123, 0.15);
+    border-radius: 14px;
+    color: #475569;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(6, 24, 50, 0.04);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .sidebarSuggestBtn:hover {
@@ -1081,8 +1255,11 @@
 }
 
 .suggestionModal {
-    width: 100%;
+    width: calc(100% - 32px);
     max-width: 500px;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
     background: #ffffff;
     border-radius: 24px;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
@@ -1118,6 +1295,9 @@
 
 .suggestionForm {
     padding: 24px;
+    overflow-y: auto;
+    max-height: calc(85vh - 76px);
+    /* Header takes roughly 76px */
 }
 
 .suggestionFormGroup {
@@ -1236,6 +1416,71 @@
     text-align: center;
 }
 
+/* Loading Indicator */
+.loaderContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 20px;
+    gap: 20px;
+    color: #475569;
+}
+
+.premiumLoader {
+    position: relative;
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.loaderRing {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border: 3px solid transparent;
+    border-top-color: #134b7b;
+    border-radius: 50%;
+    animation: loader-spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+}
+
+.loaderRing:nth-child(2) {
+    width: 75%;
+    height: 75%;
+    border-top-color: #3b82f6;
+    animation: loader-spin-reverse 1s linear infinite;
+}
+
+.loaderLogo {
+    width: 32px;
+    height: 32px;
+    background: white;
+    border-radius: 8px;
+    padding: 4px;
+    box-shadow: 0 4px 12px rgba(19, 75, 123, 0.15);
+    animation: loader-pulse 1.5s ease-in-out infinite;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+}
+
+.loaderLogo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.loaderText {
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: #1e293b;
+    animation: loader-fade 1.5s ease-in-out infinite;
+}
+
 .emptyActions {
     display: flex;
     flex-direction: column;
@@ -1245,6 +1490,9 @@
 }
 
 .suggestNewBtn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     background: none;
     border: 1px solid #cbd5e1;
     padding: 8px 16px;
@@ -1268,6 +1516,52 @@
     }
 
     to {
+        opacity: 1;
+    }
+}
+
+@keyframes loader-spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes loader-spin-reverse {
+    0% {
+        transform: rotate(360deg);
+    }
+
+    100% {
+        transform: rotate(0deg);
+    }
+}
+
+@keyframes loader-pulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.1);
+        opacity: 0.8;
+    }
+}
+
+@keyframes loader-fade {
+
+    0%,
+    100% {
+        opacity: 0.7;
+    }
+
+    50% {
         opacity: 1;
     }
 }
