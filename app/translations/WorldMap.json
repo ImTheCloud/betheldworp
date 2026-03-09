@@ -1,0 +1,62 @@
+{
+    "ro": {
+        "title": "Biserici Creștine Penticostale Române",
+        "subtitle": "Harta Mondială",
+        "associatedChurches": "biserici asociate",
+        "allCountries": "Toate țările",
+        "searchPlaceholder": "Caută după nume, oraș, țară...",
+        "noChurchFound": "Nu s-a găsit nicio biserică",
+        "resetSearch": "Resetează căutarea",
+        "backToList": "Înapoi la listă",
+        "directions": "Indicații",
+        "share": "Distribuie",
+        "copied": "Copiat!",
+        "youAreHere": "Ești aici",
+        "backToHome": "Înapoi Acasă"
+    },
+    "fr": {
+        "title": "Églises Chrétiennes Pentecôtistes Roumaines",
+        "subtitle": "Carte Mondiale",
+        "associatedChurches": "églises associées",
+        "allCountries": "Tous les pays",
+        "searchPlaceholder": "Rechercher par nom, ville, pays...",
+        "noChurchFound": "Aucune église trouvée",
+        "resetSearch": "Réinitialiser la recherche",
+        "backToList": "Retour à la liste",
+        "directions": "Itinéraire",
+        "share": "Partager",
+        "copied": "Copié !",
+        "youAreHere": "Vous êtes ici",
+        "backToHome": "Retour à l'Accueil"
+    },
+    "en": {
+        "title": "Romanian Pentecostal Christian Churches",
+        "subtitle": "World Map",
+        "associatedChurches": "associated churches",
+        "allCountries": "All countries",
+        "searchPlaceholder": "Search by name, city, country...",
+        "noChurchFound": "No church found",
+        "resetSearch": "Reset search",
+        "backToList": "Back to list",
+        "directions": "Directions",
+        "share": "Share",
+        "copied": "Copied!",
+        "youAreHere": "You are here",
+        "backToHome": "Back to Home"
+    },
+    "nl": {
+        "title": "Roemeense Christelijke Pinkstergemeenten",
+        "subtitle": "Wereldkaart",
+        "associatedChurches": "geassocieerde kerken",
+        "allCountries": "Alle landen",
+        "searchPlaceholder": "Zoek op naam, stad, land...",
+        "noChurchFound": "Geen kerk gevonden",
+        "resetSearch": "Zoekopdracht resetten",
+        "backToList": "Terug naar lijst",
+        "directions": "Route",
+        "share": "Delen",
+        "copied": "Gekopieerd!",
+        "youAreHere": "U bent hier",
+        "backToHome": "Terug naar Home"
+    }
+}

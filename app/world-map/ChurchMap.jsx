@@ -4,8 +4,11 @@ import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { APIProvider, Map, AdvancedMarker, useMap } from "@vis.gl/react-google-maps";
 import { useSearchParams } from "next/navigation";
 import { collection, onSnapshot } from "firebase/firestore";
-import { db } from "../../lib/Firebase";
+import { db } from "../lib/Firebase";
 import Link from "next/link";
+import { useLang } from "../components/LanguageProvider";
+import { makeT } from "../lib/i18n";
+import worldMapTranslations from "../translations/WorldMap.json";
 import "./WorldMap.css";
 
 const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
@@ -161,6 +164,16 @@ export default function ChurchMap() {
     const [filterOpen, setFilterOpen] = useState(false);
     const filterRef = useRef(null);
 
+    const { lang, setLang } = useLang();
+    const t = makeT(worldMapTranslations, lang);
+
+    const LANG_OPTIONS = [
+        { value: "ro", flagImg: "https://flagcdn.com/w40/ro.png" },
+        { value: "fr", flagImg: "https://flagcdn.com/w40/fr.png" },
+        { value: "nl", flagImg: "https://flagcdn.com/w40/nl.png" },
+        { value: "en", flagImg: "https://flagcdn.com/w40/gb.png" }
+    ];
+
     // Load churches from Firestore
     useEffect(() => {
         const unsub = onSnapshot(
@@ -239,7 +252,7 @@ export default function ChurchMap() {
     }, []);
 
     const handleShare = useCallback(async (church) => {
-        const url = `${window.location.origin}/admin/world-map?church=${church.id}`;
+        const url = `${window.location.origin}/world-map?church=${church.id}`;
         try {
             await navigator.clipboard.writeText(url);
             setCopied(true);
@@ -322,14 +335,33 @@ export default function ChurchMap() {
             {/* Sidebar */}
             <aside className="churchMapSidebar">
                 <div className="churchMapSidebarHeader">
-                    <h1 className="churchMapTitle">World Map</h1>
-                    <p className="churchMapSubtitle">Romanian Pentecostal Christian Churches</p>
+                    <Link href="/" className="churchMapBackToHomeBtn" title={t("backToHome")}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="19" y1="12" x2="5" y2="12"></line>
+                            <polyline points="12 19 5 12 12 5"></polyline>
+                        </svg>
+                    </Link>
+
+                    <div className="churchMapLangSelector">
+                        {LANG_OPTIONS.map((opt) => (
+                            <button
+                                key={opt.value}
+                                className={`churchMapLangBtn ${lang === opt.value ? "active" : ""}`}
+                                onClick={() => setLang(opt.value)}
+                            >
+                                <img src={opt.flagImg} alt={opt.value} />
+                            </button>
+                        ))}
+                    </div>
+
+                    <h1 className="churchMapTitle">{t("title")}</h1>
+                    <p className="churchMapSubtitle">{t("subtitle")}</p>
                     <div className="churchMapMeta">
                         <span className="churchCount">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
                             </svg>
-                            {churches.length} associated churches
+                            {churches.length} {t("associatedChurches")}
                         </span>
                     </div>
 
@@ -356,7 +388,7 @@ export default function ChurchMap() {
                                         setFilterOpen(false);
                                     }}
                                 >
-                                    🌍 All countries
+                                    🌍 {t("allCountries")}
                                 </button>
                                 {ALL_COUNTRIES.map((country) => (
                                     <button
@@ -381,7 +413,7 @@ export default function ChurchMap() {
                         </svg>
                         <input
                             type="text"
-                            placeholder="Search by name, city, country..."
+                            placeholder={t("searchPlaceholder")}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -431,9 +463,9 @@ export default function ChurchMap() {
                                 <circle cx="11" cy="11" r="8"></circle>
                                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                             </svg>
-                            <p>No church found</p>
+                            <p>{t("noChurchFound")}</p>
                             <button className="resetSearchBtn" onClick={() => { setSearchQuery(""); setActiveCountryFilter(""); }}>
-                                Reset search
+                                {t("resetSearch")}
                             </button>
                         </div>
                     )}
@@ -446,7 +478,7 @@ export default function ChurchMap() {
                             <line x1="19" y1="12" x2="5" y2="12"></line>
                             <polyline points="12 19 5 12 12 5"></polyline>
                         </svg>
-                        Înapoi la listă
+                        {t("backToList")}
                     </button>
                 )}
 
@@ -484,7 +516,7 @@ export default function ChurchMap() {
                         ))}
 
                         {userLocation && (
-                            <AdvancedMarker position={userLocation} zIndex={1001} title="Ești aici">
+                            <AdvancedMarker position={userLocation} zIndex={1001} title={t("youAreHere")}>
                                 <div className="userLocationDot"></div>
                             </AdvancedMarker>
                         )}
@@ -610,7 +642,7 @@ export default function ChurchMap() {
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                             <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
                                         </svg>
-                                        Directions
+                                        {t("directions")}
                                     </a>
                                     <button
                                         className={`churchShareBtn ${copied ? "copied" : ""}`}
@@ -621,7 +653,7 @@ export default function ChurchMap() {
                                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                                     <polyline points="20 6 9 17 4 12"></polyline>
                                                 </svg>
-                                                Copied!
+                                                {t("copied")}
                                             </>
                                         ) : (
                                             <>
@@ -632,7 +664,7 @@ export default function ChurchMap() {
                                                     <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
                                                     <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
                                                 </svg>
-                                                Distribuie
+                                                {t("share")}
                                             </>
                                         )}
                                     </button>

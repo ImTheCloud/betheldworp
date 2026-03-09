@@ -1,0 +1,22 @@
+{
+    "ro": {
+        "title": "Te afli într-un oraș pe care nu-l cunoști și cauți o biserică penticostală română în apropiere?",
+        "description": "Descoperă pe harta noastră interactivă comunitățile din toată lumea cu care împărtășim aceleași principii de credință.",
+        "cta": "Vezi harta bisericilor"
+    },
+    "fr": {
+        "title": "Vous êtes dans une ville inconnue et cherchez une église pentecôtiste roumaine à proximité ?",
+        "description": "Découvrez sur notre carte interactive les communautés à travers le monde avec lesquelles nous partageons les mêmes principes de foi.",
+        "cta": "Voir la carte des églises"
+    },
+    "en": {
+        "title": "Are you in an unfamiliar city and looking for a Romanian Pentecostal church nearby?",
+        "description": "Explore our interactive map and discover communities across the globe with which we share the same principles of faith.",
+        "cta": "View the churches map"
+    },
+    "nl": {
+        "title": "Bent u in een onbekende stad en op zoek naar een Roemeense Pinkstergemeente in de buurt?",
+        "description": "Ontdek op onze interactieve kaart gemeenschappen over de hele wereld waarmee wij dezelfde geloofsprincipes delen.",
+        "cta": "Bekijk de kerkenkaart"
+    }
+}
