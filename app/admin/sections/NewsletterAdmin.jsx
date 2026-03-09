@@ -86,54 +86,48 @@ function SubscriberCard({ item, expanded, draftEmail, saveState, errorText, onTo
 
     return (
         <div className="adminAnnCard">
-            <div className="adminAnnHeader">
-                <div className="adminAnnIdChip" style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        {id}
-                        <button
-                            type="button"
-                            onClick={copyEmail}
-                            className="adminSmallBtn"
-                            style={{
-                                border: "none",
-                                padding: 2,
-                                background: "transparent",
-                                color: copied ? "#10b981" : "inherit",
-                                minWidth: 20,
-                                height: 20
-                            }}
-                            title="Copy email"
-                        >
-                            {copied ? (
-                                <span style={{ fontSize: 12, fontWeight: 800 }}>✓</span>
-                            ) : (
-                                <IconCopy style={{ opacity: 0.6 }} />
-                            )}
-                        </button>
-                    </div>
-                </div>
-                <div style={{ flex: 1 }} />
-
-                <button
-                    type="button"
-                    className="adminSmallBtn"
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        onToggle(id);
-                    }}
-                    aria-label={expanded ? "Hide details" : "Show details"}
-                >
-                    <IconChevronDown
+            <div className="adminAnnHeader" style={{ cursor: "pointer", justifyContent: "space-between" }} onClick={() => onToggle(id)}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <div className="adminAnnIdChip" style={{ fontWeight: 700 }}>{id}</div>
+                    <button
+                        type="button"
+                        onClick={copyEmail}
+                        className="adminSmallBtn"
                         style={{
-                            transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
-                            transition: "transform 0.2s ease",
+                            border: "none",
+                            padding: 2,
+                            background: "transparent",
+                            color: copied ? "#10b981" : "inherit",
+                            minWidth: 20,
+                            height: 20
                         }}
-                    />
-                </button>
+                        title="Copy email"
+                    >
+                        {copied ? (
+                            <span style={{ fontSize: 12, fontWeight: 800 }}>✓</span>
+                        ) : (
+                            <IconCopy style={{ opacity: 0.6 }} />
+                        )}
+                    </button>
+                </div>
+
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <button
+                        type="button"
+                        className="adminSmallBtn"
+                    >
+                        <IconChevronDown
+                            style={{
+                                transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
+                                transition: "transform 0.2s ease",
+                            }}
+                        />
+                    </button>
+                </div>
             </div>
 
             {expanded ? (
-                <>
+                <div className="adminAnnBody">
                     {errorText ? <div className="adminAlert">{errorText}</div> : null}
 
                     {item?.createdAt ? (
@@ -173,7 +167,7 @@ function SubscriberCard({ item, expanded, draftEmail, saveState, errorText, onTo
                             {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved ✓" : "Save"}
                         </button>
                     </div>
-                </>
+                </div>
             ) : null}
         </div>
     );
@@ -186,21 +180,23 @@ function NewSubscriberCard({ email, setEmail, errorText, saveState, onCancel, on
                 <div className="adminAnnIdChip">New Subscriber</div>
             </div>
 
-            {errorText ? <div className="adminAlert">{errorText}</div> : null}
+            <div className="adminAnnBody">
+                {errorText ? <div className="adminAlert">{errorText}</div> : null}
 
-            <label className="adminLabel">
-                Email
-                <input className="adminInput" value={email} onChange={(e) => setEmail(e.target.value)} />
-            </label>
+                <label className="adminLabel">
+                    Email
+                    <input className="adminInput" value={email} onChange={(e) => setEmail(e.target.value)} />
+                </label>
 
-            <div className="adminMsgActions">
-                <button type="button" className="adminDeleteBtn" onClick={onCancel} disabled={saveState === "saving"}>
-                    Cancel
-                </button>
+                <div className="adminMsgActions">
+                    <button type="button" className="adminDeleteBtn" onClick={onCancel} disabled={saveState === "saving"}>
+                        Cancel
+                    </button>
 
-                <button type="button" className="adminMsgSaveBtn" onClick={onSave} disabled={saveState === "saving"}>
-                    {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved ✓" : "Save"}
-                </button>
+                    <button type="button" className="adminMsgSaveBtn" onClick={onSave} disabled={saveState === "saving"}>
+                        {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved ✓" : "Save"}
+                    </button>
+                </div>
             </div>
         </div>
     );

@@ -173,29 +173,29 @@ function EventCard({ item, expanded, draft, saveState, errorText, activeLang, on
 
     return (
         <div className={`adminAnnCard${item?.upcoming ? " is-active" : ""}`}>
-            <div className="adminAnnHeader">
-                <div className="adminAnnIdChip">{date || "No date"}</div>
-                <div className="adminSummary">{title || "No title"}</div>
-                <button
-                    type="button"
-                    className="adminSmallBtn"
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        onToggle(id);
-                    }}
-                    aria-label={expanded ? "Hide details" : "Show details"}
-                >
-                    <IconChevronDown
-                        style={{
-                            transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
-                            transition: "transform 0.2s ease",
-                        }}
-                    />
-                </button>
+            <div className="adminAnnHeader" style={{ cursor: "pointer", justifyContent: "space-between" }} onClick={() => onToggle(id)}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <div className="adminAnnIdChip">{date || "No date"}</div>
+                    <div className="adminSummary"><strong>{title || "No title"}</strong></div>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <button
+                        type="button"
+                        className="adminSmallBtn"
+                        aria-label={expanded ? "Hide details" : "Show details"}
+                    >
+                        <IconChevronDown
+                            style={{
+                                transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
+                                transition: "transform 0.2s ease",
+                            }}
+                        />
+                    </button>
+                </div>
             </div>
 
             {expanded ? (
-                <>
+                <div className="adminAnnBody">
                     {errorText ? <div className="adminAlert">{errorText}</div> : null}
 
                     <div className="adminGrid2">
@@ -321,7 +321,7 @@ function EventCard({ item, expanded, draft, saveState, errorText, activeLang, on
                             Override program for week {dateToWeekKey(date)}
                         </button>
                     )}
-                </>
+                </div>
             ) : null}
         </div>
     );
@@ -336,98 +336,100 @@ function NewEventCard({ draft, saveState, errorText, activeLang, onLangChange, o
                 <div className="adminAnnIdChip">New Event</div>
             </div>
 
-            {errorText ? <div className="adminAlert">{errorText}</div> : null}
+            <div className="adminAnnBody">
+                {errorText ? <div className="adminAlert">{errorText}</div> : null}
 
-            <div className="adminGrid2">
+                <div className="adminGrid2">
+                    <label className="adminLabel">
+                        Date
+                        <input
+                            type="date"
+                            className="adminInput"
+                            value={safeStr(draft?.dateEvent)}
+                            onChange={(e) => onChangeField("dateEvent", null, e.target.value)}
+                        />
+                    </label>
+                    <label className="adminLabel">
+                        Time
+                        <input
+                            className="adminInput"
+                            value={safeStr(draft?.time)}
+                            onChange={(e) => onChangeField("time", null, e.target.value)}
+                        />
+                    </label>
+                </div>
+
                 <label className="adminLabel">
-                    Date
+                    Title ({langKey.toUpperCase()})
                     <input
-                        type="date"
                         className="adminInput"
-                        value={safeStr(draft?.dateEvent)}
-                        onChange={(e) => onChangeField("dateEvent", null, e.target.value)}
+                        value={safeStr(draft?.title?.[langKey])}
+                        onChange={(e) => onChangeField("title", langKey, e.target.value)}
                     />
                 </label>
+
+                <div className="adminAffectGrid">
+                    {LANGS.map((l) => (
+                        <button
+                            key={l.key}
+                            type="button"
+                            className={`adminAffectChip ${langKey === l.key ? "is-on" : ""}`.trim()}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onLangChange(l.key);
+                            }}
+                        >
+                            {l.label}
+                        </button>
+                    ))}
+                </div>
+
                 <label className="adminLabel">
-                    Time
-                    <input
-                        className="adminInput"
-                        value={safeStr(draft?.time)}
-                        onChange={(e) => onChangeField("time", null, e.target.value)}
+                    Description ({langKey.toUpperCase()})
+                    <textarea
+                        className="adminTextarea"
+                        value={safeStr(draft?.description?.[langKey])}
+                        onChange={(e) => onChangeField("description", langKey, e.target.value)}
+                        rows={3}
                     />
                 </label>
-            </div>
 
-            <label className="adminLabel">
-                Title ({langKey.toUpperCase()})
-                <input
-                    className="adminInput"
-                    value={safeStr(draft?.title?.[langKey])}
-                    onChange={(e) => onChangeField("title", langKey, e.target.value)}
-                />
-            </label>
+                <div className="adminGrid2">
+                    <label className="adminLabel">
+                        Location
+                        <input
+                            className="adminInput"
+                            value={safeStr(draft?.place)}
+                            onChange={(e) => onChangeField("place", null, e.target.value)}
+                        />
+                    </label>
+                    <label className="adminLabel">
+                        Address
+                        <input
+                            className="adminInput"
+                            value={safeStr(draft?.address)}
+                            onChange={(e) => onChangeField("address", null, e.target.value)}
+                        />
+                    </label>
+                </div>
 
-            <div className="adminAffectGrid">
-                {LANGS.map((l) => (
-                    <button
-                        key={l.key}
-                        type="button"
-                        className={`adminAffectChip ${langKey === l.key ? "is-on" : ""}`.trim()}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onLangChange(l.key);
-                        }}
-                    >
-                        {l.label}
+                <label className="adminLabel">
+                    Image
+                    <ImagePicker
+                        value={safeStr(draft?.image)}
+                        onChange={(val) => onChangeField("image", null, val)}
+                    />
+                </label>
+
+                <div className="adminMsgActions">
+                    <button type="button" className="adminDeleteBtn" onClick={onCancel} disabled={saveState === "saving"}>
+                        Cancel
                     </button>
-                ))}
-            </div>
 
-            <label className="adminLabel">
-                Description ({langKey.toUpperCase()})
-                <textarea
-                    className="adminTextarea"
-                    value={safeStr(draft?.description?.[langKey])}
-                    onChange={(e) => onChangeField("description", langKey, e.target.value)}
-                    rows={3}
-                />
-            </label>
-
-            <div className="adminGrid2">
-                <label className="adminLabel">
-                    Location
-                    <input
-                        className="adminInput"
-                        value={safeStr(draft?.place)}
-                        onChange={(e) => onChangeField("place", null, e.target.value)}
-                    />
-                </label>
-                <label className="adminLabel">
-                    Address
-                    <input
-                        className="adminInput"
-                        value={safeStr(draft?.address)}
-                        onChange={(e) => onChangeField("address", null, e.target.value)}
-                    />
-                </label>
-            </div>
-
-            <label className="adminLabel">
-                Image
-                <ImagePicker
-                    value={safeStr(draft?.image)}
-                    onChange={(val) => onChangeField("image", null, val)}
-                />
-            </label>
-
-            <div className="adminMsgActions">
-                <button type="button" className="adminDeleteBtn" onClick={onCancel} disabled={saveState === "saving"}>
-                    Cancel
-                </button>
-
-                <button type="button" className="adminMsgSaveBtn" onClick={onSave} disabled={saveState === "saving"}>
-                    {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved ✓" : "Save"}
-                </button>
+                    <button type="button" className="adminMsgSaveBtn" onClick={onSave} disabled={saveState === "saving"}>
+                        {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved ✓" : "Save"}
+                    </button>
+                </div>
             </div>
         </div>
     );

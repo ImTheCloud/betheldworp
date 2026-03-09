@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { APIProvider, Map, AdvancedMarker, useMap } from "@vis.gl/react-google-maps";
 import { useSearchParams } from "next/navigation";
-import { collection, onSnapshot } from "firebase/firestore";
+import { collection, onSnapshot, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../lib/Firebase";
 import Link from "next/link";
 import { useLang } from "../components/LanguageProvider";
@@ -26,6 +26,33 @@ const COUNTRY_FLAGS = {
     Italy: "🇮🇹",
     Spain: "🇪🇸",
     USA: "🇺🇸",
+    Austria: "🇦🇹",
+    Bulgaria: "🇧🇬",
+    Croatia: "🇭🇷",
+    Cyprus: "🇨🇾",
+    "Czech Republic": "🇨🇿",
+    Denmark: "🇩🇰",
+    Estonia: "🇪🇪",
+    Finland: "🇫🇮",
+    Greece: "🇬🇷",
+    Hungary: "🇭🇺",
+    Ireland: "🇮🇪",
+    Latvia: "🇱🇻",
+    Lithuania: "🇱🇹",
+    Luxembourg: "🇱🇺",
+    Malta: "🇲🇹",
+    Moldova: "🇲🇩",
+    Norway: "🇳🇴",
+    Poland: "🇵🇱",
+    Portugal: "🇵🇹",
+    Slovakia: "🇸🇰",
+    Slovenia: "🇸🇮",
+    Sweden: "🇸🇪",
+    Switzerland: "🇨🇭",
+    Ukraine: "🇺🇦",
+    "United States": "🇺🇸",
+    Canada: "🇨🇦",
+    Australia: "🇦🇺",
 };
 
 
@@ -165,6 +192,96 @@ export default function ChurchMap() {
     const [filterOpen, setFilterOpen] = useState(false);
     const filterRef = useRef(null);
 
+    // Collaboration State
+    const [showSuggestionModal, setShowSuggestionModal] = useState(false);
+    const [suggestionType, setSuggestionType] = useState("new"); // "new" | "edit"
+    const [suggestionSuccess, setSuggestionSuccess] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [formError, setFormError] = useState("");
+    const [suggestionForm, setSuggestionForm] = useState({
+        name: "",
+        city: "",
+        street: "",
+        number: "",
+        phone: "",
+        email: "",
+        website: "",
+        youtube: "",
+        facebook: "",
+        instagram: "",
+        country: "Belgium",
+        notes: ""
+    });
+
+    const SUGGESTION_COUNTRIES = Object.keys(COUNTRY_FLAGS).sort();
+
+    const openSuggestionModal = (type = "new", church = null) => {
+        setSuggestionType(type);
+        if (type === "edit" && church) {
+            setSuggestionForm({
+                name: church.name || "",
+                city: church.city || "",
+                street: church.street || "",
+                number: church.number || "",
+                phone: church.phone || "",
+                email: church.email || "",
+                website: church.website || "",
+                youtube: church.youtube || "",
+                facebook: church.facebook || "",
+                instagram: church.instagram || "",
+                country: church.country || "Belgium",
+                notes: church.notes || ""
+            });
+        } else {
+            setSuggestionForm({
+                name: "",
+                city: "",
+                street: "",
+                number: "",
+                phone: "",
+                email: "",
+                website: "",
+                youtube: "",
+                facebook: "",
+                instagram: "",
+                country: activeCountryFilter || "Belgium",
+                notes: ""
+            });
+        }
+        setShowSuggestionModal(true);
+        setSuggestionSuccess(false);
+        setFormError("");
+    };
+
+    const handleSuggestionSubmit = async (e) => {
+        e.preventDefault();
+        if (!suggestionForm.name || !suggestionForm.city) {
+            setFormError("Nom et Ville sont requis.");
+            return;
+        }
+
+        setIsSubmitting(true);
+        try {
+            await addDoc(collection(db, "church_suggestions"), {
+                type: suggestionType,
+                originalChurchId: suggestionType === "edit" ? selectedChurch?.id : null,
+                status: "pending",
+                data: suggestionForm,
+                createdAt: serverTimestamp()
+            });
+            setSuggestionSuccess(true);
+            setTimeout(() => {
+                setShowSuggestionModal(false);
+                setSuggestionSuccess(false);
+            }, 3000);
+        } catch (err) {
+            console.error(err);
+            setFormError("Erreur lors de l'envoi. Réessayez.");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     const { lang } = useLang();
     const t = makeT(worldMapTranslations, lang);
 
@@ -275,6 +392,26 @@ export default function ChurchMap() {
         return translated === key ? country : translated;
     }, [t]);
 
+    // Calculate counts independent of currently selected country, but dependent on search
+    const countryCounts = useMemo(() => {
+        let result = [...churches];
+        if (searchQuery.trim()) {
+            const q = searchQuery.toLowerCase();
+            result = result.filter(
+                (c) =>
+                    c.name.toLowerCase().includes(q) ||
+                    c.city.toLowerCase().includes(q) ||
+                    c.country.toLowerCase().includes(q)
+            );
+        }
+
+        const counts = { all: result.length };
+        for (const c of result) {
+            counts[c.country] = (counts[c.country] || 0) + 1;
+        }
+        return counts;
+    }, [churches, searchQuery]);
+
     // Filter + sort alphabetically by name
     const filteredChurches = useMemo(() => {
         let result = [...churches];
@@ -329,8 +466,8 @@ export default function ChurchMap() {
     };
 
     const activeFilterLabel = activeCountryFilter
-        ? `${COUNTRY_FLAGS[activeCountryFilter] || "🌍"} ${getCountryLabel(activeCountryFilter)}`
-        : t("allCountries");
+        ? `${COUNTRY_FLAGS[activeCountryFilter] || "🌍"} ${getCountryLabel(activeCountryFilter)} (${countryCounts[activeCountryFilter] || 0})`
+        : `${t("allCountries")} (${countryCounts.all || 0})`;
 
     return (
         <div className={`churchMapLayout ${mobileShowMap ? "mapFocused" : ""}`}>
@@ -356,18 +493,22 @@ export default function ChurchMap() {
 
                     <h1 className="churchMapTitle">{t("subtitle")}</h1>
                     <p className="churchMapSubtitle">{t("title")}</p>
-                    <div className="churchMapControls">
-                        <div className="churchMapMeta">
-                            <div className="churchCountBadge">
-                                <span className="churchCountValue">{filteredChurches.length}</span>
-                                <span className="churchCountType">
-                                    {activeCountryFilter ? getCountryLabel(activeCountryFilter) : t("associatedChurches")}
-                                </span>
-                            </div>
+                    <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center' }}>
+                        <div className="churchMapSearch" style={{ flex: 1, margin: 0 }}>
+                            <svg className="churchMapSearchIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                            <input
+                                type="text"
+                                placeholder={t("searchPlaceholder")}
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
                         </div>
 
                         {/* Country Filter Dropdown */}
-                        <div className="countryFilterDropdown" ref={filterRef}>
+                        <div className="countryFilterDropdown" ref={filterRef} style={{ margin: 0 }}>
                             <button
                                 className={`countryFilterBtn ${activeCountryFilter ? "hasFilter" : ""}`}
                                 onClick={() => setFilterOpen(!filterOpen)}
@@ -389,7 +530,7 @@ export default function ChurchMap() {
                                             setFilterOpen(false);
                                         }}
                                     >
-                                        🌍 {t("allCountries")}
+                                        🌍 {t("allCountries")} ({countryCounts.all || 0})
                                     </button>
                                     {ALL_COUNTRIES.map((country) => (
                                         <button
@@ -400,25 +541,12 @@ export default function ChurchMap() {
                                                 setFilterOpen(false);
                                             }}
                                         >
-                                            {COUNTRY_FLAGS[country] || "🌍"} {getCountryLabel(country)}
+                                            {COUNTRY_FLAGS[country] || "🌍"} {getCountryLabel(country)} ({countryCounts[country] || 0})
                                         </button>
                                     ))}
                                 </div>
                             )}
                         </div>
-                    </div>
-
-                    <div className="churchMapSearch">
-                        <svg className="churchMapSearchIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <circle cx="11" cy="11" r="8"></circle>
-                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                        </svg>
-                        <input
-                            type="text"
-                            placeholder={t("searchPlaceholder")}
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
                     </div>
                 </div>
 
@@ -466,11 +594,25 @@ export default function ChurchMap() {
                                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                             </svg>
                             <p>{t("noChurchFound")}</p>
-                            <button className="resetSearchBtn" onClick={() => { setSearchQuery(""); setActiveCountryFilter(""); }}>
-                                {t("resetSearch")}
-                            </button>
+                            <div className="emptyActions">
+                                <button className="resetSearchBtn" onClick={() => { setSearchQuery(""); setActiveCountryFilter(""); }}>
+                                    {t("resetSearch")}
+                                </button>
+                                <button className="suggestNewBtn" onClick={() => openSuggestionModal("new")}>
+                                    ➕ {t("suggestChurch")}
+                                </button>
+                            </div>
                         </div>
                     )}
+
+                    <div className="churchSidebarFooter">
+                        <button className="sidebarSuggestBtn" onClick={() => openSuggestionModal("new")}>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M12 5v14M5 12h14"></path>
+                            </svg>
+                            {t("suggestChurch")}
+                        </button>
+                    </div>
                 </div>
 
                 {/* Mobile: Back to list */}
@@ -647,28 +789,14 @@ export default function ChurchMap() {
                                         {t("directions")}
                                     </a>
                                     <button
-                                        className={`churchShareBtn ${copied ? "copied" : ""}`}
-                                        onClick={() => handleShare(selectedChurch)}
+                                        className="churchEditSuggestBtn"
+                                        onClick={() => openSuggestionModal("edit", selectedChurch)}
                                     >
-                                        {copied ? (
-                                            <>
-                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                    <polyline points="20 6 9 17 4 12"></polyline>
-                                                </svg>
-                                                {t("copied")}
-                                            </>
-                                        ) : (
-                                            <>
-                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                    <circle cx="18" cy="5" r="3"></circle>
-                                                    <circle cx="6" cy="12" r="3"></circle>
-                                                    <circle cx="18" cy="19" r="3"></circle>
-                                                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                                                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                                                </svg>
-                                                {t("share")}
-                                            </>
-                                        )}
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                            <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                        </svg>
+                                        {t("editChurch")}
                                     </button>
                                 </div>
                             </div>
@@ -676,6 +804,166 @@ export default function ChurchMap() {
                     )}
                 </APIProvider>
             </div>
+
+            {/* Suggestion Modal */}
+            {showSuggestionModal && (
+                <div className="suggestionModalOverlay">
+                    <div className="suggestionModal">
+                        <div className="suggestionModalHeader">
+                            <h3>{suggestionType === "new" ? t("suggestionTitleNew") : t("suggestionTitleEdit")}</h3>
+                            <button className="suggestionModalClose" onClick={() => setShowSuggestionModal(false)}>&times;</button>
+                        </div>
+
+                        {suggestionSuccess ? (
+                            <div className="suggestionSuccess">
+                                <div className="successIcon">✓</div>
+                                <p>{t("suggestionSuccess")}</p>
+                            </div>
+                        ) : (
+                            <form className="suggestionForm" onSubmit={handleSuggestionSubmit}>
+                                {formError && <div className="suggestionError">{formError}</div>}
+
+                                <div className="suggestionFormGroup">
+                                    <label>{t("name")} *</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={suggestionForm.name}
+                                        onChange={(e) => setSuggestionForm({ ...suggestionForm, name: e.target.value })}
+                                    />
+                                </div>
+
+                                <div className="suggestionFormRow">
+                                    <div className="suggestionFormGroup">
+                                        <label>{t("city")} *</label>
+                                        <input
+                                            type="text"
+                                            required
+                                            value={suggestionForm.city}
+                                            onChange={(e) => setSuggestionForm({ ...suggestionForm, city: e.target.value })}
+                                        />
+                                    </div>
+                                    <div className="suggestionFormGroup">
+                                        <label>{t("country")}</label>
+                                        <select
+                                            value={suggestionForm.country}
+                                            onChange={(e) => setSuggestionForm({ ...suggestionForm, country: e.target.value })}
+                                        >
+                                            {SUGGESTION_COUNTRIES.map(c => (
+                                                <option key={c} value={c}>{getCountryLabel(c)}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="suggestionFormRow">
+                                    <div className="suggestionFormGroup" style={{ flex: 3 }}>
+                                        <label>{t("street")}</label>
+                                        <input
+                                            type="text"
+                                            value={suggestionForm.street}
+                                            onChange={(e) => setSuggestionForm({ ...suggestionForm, street: e.target.value })}
+                                        />
+                                    </div>
+                                    <div className="suggestionFormGroup" style={{ flex: 1 }}>
+                                        <label>{t("number")}</label>
+                                        <input
+                                            type="text"
+                                            value={suggestionForm.number}
+                                            onChange={(e) => setSuggestionForm({ ...suggestionForm, number: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="suggestionFormRow">
+                                    <div className="suggestionFormGroup">
+                                        <label>{t("phone")}</label>
+                                        <input
+                                            type="tel"
+                                            value={suggestionForm.phone}
+                                            onChange={(e) => setSuggestionForm({ ...suggestionForm, phone: e.target.value })}
+                                        />
+                                    </div>
+                                    <div className="suggestionFormGroup">
+                                        <label>{t("email")}</label>
+                                        <input
+                                            type="email"
+                                            value={suggestionForm.email}
+                                            onChange={(e) => setSuggestionForm({ ...suggestionForm, email: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="suggestionFormRow">
+                                    <div className="suggestionFormGroup">
+                                        <label>{t("website")}</label>
+                                        <input
+                                            type="url"
+                                            placeholder="https://..."
+                                            value={suggestionForm.website}
+                                            onChange={(e) => setSuggestionForm({ ...suggestionForm, website: e.target.value })}
+                                        />
+                                    </div>
+                                    <div className="suggestionFormGroup">
+                                        <label>{t("youtube")}</label>
+                                        <input
+                                            type="url"
+                                            placeholder="https://youtube.com/..."
+                                            value={suggestionForm.youtube}
+                                            onChange={(e) => setSuggestionForm({ ...suggestionForm, youtube: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="suggestionFormRow">
+                                    <div className="suggestionFormGroup">
+                                        <label>{t("instagram")}</label>
+                                        <input
+                                            type="url"
+                                            placeholder="https://instagram.com/..."
+                                            value={suggestionForm.instagram}
+                                            onChange={(e) => setSuggestionForm({ ...suggestionForm, instagram: e.target.value })}
+                                        />
+                                    </div>
+                                    <div className="suggestionFormGroup">
+                                        <label>{t("facebook")}</label>
+                                        <input
+                                            type="url"
+                                            placeholder="https://facebook.com/..."
+                                            value={suggestionForm.facebook}
+                                            onChange={(e) => setSuggestionForm({ ...suggestionForm, facebook: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="suggestionFormRow">
+                                    <div className="suggestionFormGroup" style={{ flex: 1 }}>
+                                        <label>{t("notes")}</label>
+                                        <textarea
+                                            rows="3"
+                                            value={suggestionForm.notes}
+                                            onChange={(e) => setSuggestionForm({ ...suggestionForm, notes: e.target.value })}
+                                            style={{
+                                                width: "100%", padding: "10px", borderRadius: "8px",
+                                                border: "1px solid #cbd5e1", fontSize: "0.95rem", resize: "vertical"
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="suggestionFormActions">
+                                    <button type="button" className="btnCancel" onClick={() => setShowSuggestionModal(false)}>
+                                        {t("cancel")}
+                                    </button>
+                                    <button type="submit" className="btnSubmit" disabled={isSubmitting}>
+                                        {isSubmitting ? "..." : t("submit")}
+                                    </button>
+                                </div>
+                            </form>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

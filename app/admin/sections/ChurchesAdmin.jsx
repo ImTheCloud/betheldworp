@@ -64,10 +64,11 @@ const FIELDS = [
     { key: "youtube", label: "YouTube", type: "text" },
     { key: "facebook", label: "Facebook", type: "text" },
     { key: "instagram", label: "Instagram", type: "text" },
+    { key: "notes", label: "Notes / Message", type: "textarea" },
 ];
 
 function emptyChurch() {
-    return { name: "", street: "", number: "", city: "", country: "", lat: "", lng: "", phone: "", email: "", website: "", youtube: "", facebook: "", instagram: "" };
+    return { name: "", street: "", number: "", city: "", country: "", lat: "", lng: "", phone: "", email: "", website: "", youtube: "", facebook: "", instagram: "", notes: "" };
 }
 
 const geocodeAddress = async (street, number, city, country) => {
@@ -94,28 +95,25 @@ function ChurchCard({ item, expanded, drafts, saveState, errorText, onToggle, on
 
     return (
         <div className="adminAnnCard">
-            <div className="adminAnnHeader">
-                <div className="adminAnnIdChip" style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <strong>{item.name}</strong>
-                    </div>
-                    <div style={{ fontSize: 12, color: "rgba(10, 42, 67, 0.5)" }}>
-                        {item.city}, {item.country}
-                    </div>
+            <div className="adminAnnHeader" style={{ cursor: "pointer", justifyContent: "space-between" }} onClick={() => onToggle(id)}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <strong>{item.name}</strong>
+                    <span className="adminMuted" style={{ fontSize: "0.8rem", marginLeft: 8 }}>
+                        • {item.city}, {item.country}
+                    </span>
                 </div>
-                <div style={{ flex: 1 }} />
-                <button
-                    type="button"
-                    className="adminSmallBtn"
-                    onClick={(e) => { e.stopPropagation(); onToggle(id); }}
-                    aria-label={expanded ? "Hide details" : "Show details"}
-                >
-                    <IconChevronDown style={{ transform: expanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s ease" }} />
-                </button>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <button
+                        type="button"
+                        className="adminSmallBtn"
+                    >
+                        <IconChevronDown style={{ transform: expanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s ease" }} />
+                    </button>
+                </div>
             </div>
 
             {expanded ? (
-                <>
+                <div className="adminAnnBody">
                     {errorText ? <div className="adminAlert">{errorText}</div> : null}
 
                     {item.createdAt ? (
@@ -125,35 +123,68 @@ function ChurchCard({ item, expanded, drafts, saveState, errorText, onToggle, on
                     ) : null}
 
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 16px" }}>
-                        {FIELDS.map((f) => (
-                            <label key={f.key} className="adminLabel">
-                                {f.label}{f.required ? " *" : ""}
-                                {f.type === "select" ? (
-                                    <select
-                                        className="adminSelect"
-                                        style={{ width: "100%", marginTop: 4 }}
-                                        value={drafts[f.key] ?? ""}
-                                        onChange={(e) => onChange(id, f.key, e.target.value)}
-                                    >
-                                        <option value="">-- Select Country --</option>
-                                        {f.options.map(opt => (
-                                            <option key={opt} value={opt}>{opt}</option>
-                                        ))}
-                                    </select>
-                                ) : (
-                                    <input
-                                        className="adminInput"
-                                        type={f.type}
-                                        value={drafts[f.key] ?? ""}
-                                        onChange={(e) => onChange(id, f.key, e.target.value)}
-                                        step={f.type === "number" ? "any" : undefined}
-                                    />
-                                )}
-                            </label>
-                        ))}
+                        {FIELDS.map((f) => {
+                            if (f.key === "number") return null;
+                            if (f.key === "street") {
+                                return (
+                                    <div key="street-number" style={{ gridColumn: "span 2", display: "flex", gap: "12px" }}>
+                                        <div style={{ flex: 3 }}>
+                                            <label className="adminLabel">Street</label>
+                                            <input
+                                                className="adminInput"
+                                                value={drafts.street ?? ""}
+                                                onChange={(e) => onChange(id, "street", e.target.value)}
+                                            />
+                                        </div>
+                                        <div style={{ flex: 1 }}>
+                                            <label className="adminLabel">Number</label>
+                                            <input
+                                                className="adminInput"
+                                                value={drafts.number ?? ""}
+                                                onChange={(e) => onChange(id, "number", e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
+                                );
+                            }
+                            return (
+                                <label key={f.key} className="adminLabel" style={(f.key === "name" || f.key === "notes") ? { gridColumn: "span 2" } : {}}>
+                                    {f.label}{f.required ? " *" : ""}
+                                    {f.type === "select" ? (
+                                        <select
+                                            className="adminSelect"
+                                            style={{ width: "100%", marginTop: 4 }}
+                                            value={drafts[f.key] ?? ""}
+                                            onChange={(e) => onChange(id, f.key, e.target.value)}
+                                        >
+                                            <option value="">-- Select Country --</option>
+                                            {f.options.map(opt => (
+                                                <option key={opt} value={opt}>{opt}</option>
+                                            ))}
+                                        </select>
+                                    ) : f.type === "textarea" ? (
+                                        <textarea
+                                            className="adminInput"
+                                            rows="3"
+                                            style={{ resize: "vertical", marginTop: 4 }}
+                                            value={drafts[f.key] ?? ""}
+                                            onChange={(e) => onChange(id, f.key, e.target.value)}
+                                        />
+                                    ) : (
+                                        <input
+                                            className="adminInput"
+                                            type={f.type}
+                                            value={drafts[f.key] ?? ""}
+                                            onChange={(e) => onChange(id, f.key, e.target.value)}
+                                            step={f.type === "number" ? "any" : undefined}
+                                        />
+                                    )}
+                                </label>
+                            );
+                        })}
                     </div>
 
-                    <div className="adminMsgActions">
+                    <div className="adminMsgActions" style={{ marginTop: "20px" }}>
                         <button
                             type="button"
                             className="adminDeleteBtn"
@@ -172,7 +203,7 @@ function ChurchCard({ item, expanded, drafts, saveState, errorText, onToggle, on
                             {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved ✓" : "Save"}
                         </button>
                     </div>
-                </>
+                </div>
             ) : null}
         </div>
     );
@@ -185,44 +216,79 @@ function NewChurchCard({ drafts, setDraft, errorText, saveState, onCancel, onSav
                 <div className="adminAnnIdChip">New Church</div>
             </div>
 
-            {errorText ? <div className="adminAlert">{errorText}</div> : null}
+            <div className="adminAnnBody">
+                {errorText ? <div className="adminAlert">{errorText}</div> : null}
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 16px" }}>
-                {FIELDS.map((f) => (
-                    <label key={f.key} className="adminLabel">
-                        {f.label}{f.required ? " *" : ""}
-                        {f.type === "select" ? (
-                            <select
-                                className="adminSelect"
-                                style={{ width: "100%", marginTop: 4 }}
-                                value={drafts[f.key] ?? ""}
-                                onChange={(e) => setDraft(f.key, e.target.value)}
-                            >
-                                <option value="">-- Select Country --</option>
-                                {f.options.map(opt => (
-                                    <option key={opt} value={opt}>{opt}</option>
-                                ))}
-                            </select>
-                        ) : (
-                            <input
-                                className="adminInput"
-                                type={f.type}
-                                value={drafts[f.key] ?? ""}
-                                onChange={(e) => setDraft(f.key, e.target.value)}
-                                step={f.type === "number" ? "any" : undefined}
-                            />
-                        )}
-                    </label>
-                ))}
-            </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 16px" }}>
+                    {FIELDS.map((f) => {
+                        if (f.key === "number") return null;
+                        if (f.key === "street") {
+                            return (
+                                <div key="street-number" style={{ gridColumn: "span 2", display: "flex", gap: "12px" }}>
+                                    <div style={{ flex: 3 }}>
+                                        <label className="adminLabel">Street</label>
+                                        <input
+                                            className="adminInput"
+                                            value={drafts.street ?? ""}
+                                            onChange={(e) => setDraft("street", e.target.value)}
+                                        />
+                                    </div>
+                                    <div style={{ flex: 1 }}>
+                                        <label className="adminLabel">Number</label>
+                                        <input
+                                            className="adminInput"
+                                            value={drafts.number ?? ""}
+                                            onChange={(e) => setDraft("number", e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+                            );
+                        }
+                        return (
+                            <label key={f.key} className="adminLabel" style={(f.key === "name" || f.key === "notes") ? { gridColumn: "span 2" } : {}}>
+                                {f.label}{f.required ? " *" : ""}
+                                {f.type === "select" ? (
+                                    <select
+                                        className="adminSelect"
+                                        style={{ width: "100%", marginTop: 4 }}
+                                        value={drafts[f.key] ?? ""}
+                                        onChange={(e) => setDraft(f.key, e.target.value)}
+                                    >
+                                        <option value="">-- Select Country --</option>
+                                        {f.options.map(opt => (
+                                            <option key={opt} value={opt}>{opt}</option>
+                                        ))}
+                                    </select>
+                                ) : f.type === "textarea" ? (
+                                    <textarea
+                                        className="adminInput"
+                                        rows="3"
+                                        style={{ resize: "vertical", marginTop: 4 }}
+                                        value={drafts[f.key] ?? ""}
+                                        onChange={(e) => setDraft(f.key, e.target.value)}
+                                    />
+                                ) : (
+                                    <input
+                                        className="adminInput"
+                                        type={f.type}
+                                        value={drafts[f.key] ?? ""}
+                                        onChange={(e) => setDraft(f.key, e.target.value)}
+                                        step={f.type === "number" ? "any" : undefined}
+                                    />
+                                )}
+                            </label>
+                        );
+                    })}
+                </div>
 
-            <div className="adminMsgActions">
-                <button type="button" className="adminDeleteBtn" onClick={onCancel} disabled={saveState === "saving"}>
-                    Cancel
-                </button>
-                <button type="button" className="adminMsgSaveBtn" onClick={onSave} disabled={saveState === "saving"}>
-                    {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved ✓" : "Save"}
-                </button>
+                <div className="adminMsgActions" style={{ marginTop: "20px" }}>
+                    <button type="button" className="adminDeleteBtn" onClick={onCancel} disabled={saveState === "saving"}>
+                        Cancel
+                    </button>
+                    <button type="button" className="adminMsgSaveBtn" onClick={onSave} disabled={saveState === "saving"}>
+                        {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved ✓" : "Save"}
+                    </button>
+                </div>
             </div>
         </div>
     );

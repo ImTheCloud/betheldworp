@@ -192,31 +192,28 @@ function VerseCard({
 
     return (
         <div className="adminAnnCard">
-            <div className="adminAnnHeader">
-                <div className="adminAnnIdChip">{label}</div>
-
-                {!expanded ? <div className="adminSummary">{summary}</div> : <div style={{ flex: 1 }} />}
-
-                <button
-                    type="button"
-                    className="adminSmallBtn"
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        onToggle();
-                    }}
-                    aria-label={expanded ? "Hide details" : "Show details"}
-                >
-                    <IconChevronDown
-                        style={{
-                            transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
-                            transition: "transform 0.2s ease",
-                        }}
-                    />
-                </button>
+            <div className="adminAnnHeader" style={{ cursor: "pointer", justifyContent: "space-between" }} onClick={() => onToggle()}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <div className="adminAnnIdChip">{label}</div>
+                    {!expanded && <div className="adminSummary">{summary}</div>}
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <button
+                        type="button"
+                        className="adminSmallBtn"
+                    >
+                        <IconChevronDown
+                            style={{
+                                transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
+                                transition: "transform 0.2s ease",
+                            }}
+                        />
+                    </button>
+                </div>
             </div>
 
             {expanded ? (
-                <>
+                <div className="adminAnnBody">
                     <div className="adminAffectGrid">
                         {LANGS.map((l) => (
                             <button
@@ -280,7 +277,7 @@ function VerseCard({
                             {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved ✓" : "Save"}
                         </button>
                     </div>
-                </>
+                </div>
             ) : null}
         </div>
     );
@@ -295,63 +292,65 @@ function NewVerseCard({ newDraft, setNewDraft, newError, newState, activeLang, o
                 <div className="adminAnnIdChip">New Verse</div>
             </div>
 
-            {newError ? <div className="adminAlert">{newError}</div> : null}
+            <div className="adminAnnBody">
+                {newError ? <div className="adminAlert">{newError}</div> : null}
 
-            <div className="adminAffectGrid">
-                {LANGS.map((l) => (
-                    <button
-                        key={l.key}
-                        type="button"
-                        className={`adminAffectChip ${langKey === l.key ? "is-on" : ""}`.trim()}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onLangChange(l.key);
-                        }}
-                    >
-                        {l.label}
+                <div className="adminAffectGrid">
+                    {LANGS.map((l) => (
+                        <button
+                            key={l.key}
+                            type="button"
+                            className={`adminAffectChip ${langKey === l.key ? "is-on" : ""}`.trim()}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onLangChange(l.key);
+                            }}
+                        >
+                            {l.label}
+                        </button>
+                    ))}
+                </div>
+
+                <label className="adminLabel">
+                    Reference ({langKey.toUpperCase()})
+                    <input
+                        className="adminInput"
+                        value={safeStr(newDraft?.reference?.[langKey])}
+                        onChange={(e) =>
+                            setNewDraft((d) => ({
+                                ...d,
+                                reference: { ...(d.reference || emptyLangMap()), [langKey]: e.target.value },
+                            }))
+                        }
+                        maxLength={80}
+                    />
+                </label>
+
+                <label className="adminLabel">
+                    Text ({langKey.toUpperCase()})
+                    <textarea
+                        className="adminTextarea"
+                        value={safeStr(newDraft?.text?.[langKey])}
+                        onChange={(e) =>
+                            setNewDraft((d) => ({
+                                ...d,
+                                text: { ...(d.text || emptyLangMap()), [langKey]: e.target.value },
+                            }))
+                        }
+                        rows={6}
+                        maxLength={1200}
+                    />
+                </label>
+
+                <div className="adminMsgActions">
+                    <button type="button" className="adminDeleteBtn" onClick={onCancel} disabled={newState === "saving"}>
+                        Cancel
                     </button>
-                ))}
-            </div>
 
-            <label className="adminLabel">
-                Reference ({langKey.toUpperCase()})
-                <input
-                    className="adminInput"
-                    value={safeStr(newDraft?.reference?.[langKey])}
-                    onChange={(e) =>
-                        setNewDraft((d) => ({
-                            ...d,
-                            reference: { ...(d.reference || emptyLangMap()), [langKey]: e.target.value },
-                        }))
-                    }
-                    maxLength={80}
-                />
-            </label>
-
-            <label className="adminLabel">
-                Text ({langKey.toUpperCase()})
-                <textarea
-                    className="adminTextarea"
-                    value={safeStr(newDraft?.text?.[langKey])}
-                    onChange={(e) =>
-                        setNewDraft((d) => ({
-                            ...d,
-                            text: { ...(d.text || emptyLangMap()), [langKey]: e.target.value },
-                        }))
-                    }
-                    rows={6}
-                    maxLength={1200}
-                />
-            </label>
-
-            <div className="adminMsgActions">
-                <button type="button" className="adminDeleteBtn" onClick={onCancel} disabled={newState === "saving"}>
-                    Cancel
-                </button>
-
-                <button type="button" className="adminMsgSaveBtn" onClick={onSave} disabled={newState === "saving"}>
-                    {newState === "saving" ? "Saving…" : newState === "saved" ? "Saved ✓" : "Save"}
-                </button>
+                    <button type="button" className="adminMsgSaveBtn" onClick={onSave} disabled={newState === "saving"}>
+                        {newState === "saving" ? "Saving…" : newState === "saved" ? "Saved ✓" : "Save"}
+                    </button>
+                </div>
             </div>
         </div>
     );

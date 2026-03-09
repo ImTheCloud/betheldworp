@@ -161,6 +161,22 @@
     }
 }
 
+.adminSidebarBadge {
+    background: #ef4444;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 10px;
+    margin-left: auto;
+    min-width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
+}
+
 .adminSidebarFooter {
     border-top: 1px solid rgba(10, 42, 67, 0.08);
     /* Consistent border */
@@ -715,6 +731,60 @@
     text-align: center;
 }
 
+.adminChip {
+    font-size: 10px;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+}
+
+@keyframes adminPulse {
+    0% {
+        transform: scale(0.95);
+        opacity: 0.5;
+    }
+
+    50% {
+        transform: scale(1.1);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(0.95);
+        opacity: 0.5;
+    }
+}
+
+.adminPulseDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #f59e0b;
+    display: inline-block;
+    animation: adminPulse 2s infinite ease-in-out;
+}
+
+.adminChip--success {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.adminChip--warning {
+    background: #fef9c3;
+    color: #854d0e;
+}
+
+.adminChip--danger {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.adminChip--info {
+    background: #e0f2fe;
+    color: #075985;
+}
+
 @media (hover: hover) {
     .adminAffectChip:hover {
         border-color: #0a2a43;
@@ -763,6 +833,12 @@
     justify-content: space-between;
     gap: 12px;
     min-width: 0;
+}
+
+.adminAnnBody {
+    border-top: 1px solid rgba(10, 42, 67, 0.06);
+    padding-top: 12px;
+    margin-top: 4px;
 }
 
 .adminAnnIdChip {

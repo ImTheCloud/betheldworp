@@ -1,6 +1,9 @@
 "use client";
 
 import "./Admin.css";
+import { useEffect, useState } from "react";
+import { collection, onSnapshot, query, where } from "firebase/firestore";
+import { db } from "../lib/Firebase";
 import Link from "next/link";
 
 function IconChart(props) {
@@ -80,13 +83,31 @@ function IconLogout(props) {
 function IconChurch(props) {
     return (
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
-            <path d="M18 10c0-4.42-2.69-8-6-8S6 5.58 6 10c0 5.25 6 12 6 12s6-6.75 6-12z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            <circle cx="12" cy="10" r="3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+    );
+}
+
+function IconBell(props) {
+    return (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
     );
 }
 
 export default function AdminSidebar({ activeTab, onTabChange, onLogout }) {
+    const [pendingCount, setPendingCount] = useState(0);
+
+    useEffect(() => {
+        const q = query(collection(db, "church_suggestions"), where("status", "==", "pending"));
+        const unsub = onSnapshot(q, (snap) => {
+            setPendingCount(snap.size);
+        });
+        return () => unsub();
+    }, []);
+
     const navItems = [
         { id: "stats", label: "Statistics", icon: IconChart },
         { id: "newsletter", label: "Newsletter", icon: IconMail },
@@ -94,6 +115,7 @@ export default function AdminSidebar({ activeTab, onTabChange, onLogout }) {
         { id: "overrides", label: "Program Overrides", icon: IconEdit },
         { id: "events", label: "Events", icon: IconEvent },
         { id: "churches", label: "Churches", icon: IconChurch, dividerBefore: true },
+        { id: "suggestions", label: "Suggestions", icon: IconBell, badge: pendingCount > 0 ? pendingCount : null },
     ];
 
     return (
@@ -120,6 +142,9 @@ export default function AdminSidebar({ activeTab, onTabChange, onLogout }) {
                                     <Icon />
                                 </span>
                                 {item.label}
+                                {item.badge && (
+                                    <span className="adminSidebarBadge">{item.badge}</span>
+                                )}
                             </button>
                         </span>
                     );

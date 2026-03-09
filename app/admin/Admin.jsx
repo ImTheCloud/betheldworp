@@ -12,6 +12,7 @@ import EventsAdmin from "./sections/EventsAdmin";
 import StatsAdmin from "./sections/StatsAdmin";
 import NewsletterAdmin from "./sections/NewsletterAdmin";
 import ChurchesAdmin from "./sections/ChurchesAdmin";
+import ChurchSuggestionsAdmin from "./sections/ChurchSuggestionsAdmin";
 import AdminSidebar from "./AdminSidebar";
 
 function isValidEmail(value) {
@@ -162,6 +163,8 @@ export default function Admin() {
                 return <EventsAdmin onCreateOverride={navigateToOverride} />;
             case "churches":
                 return <ChurchesAdmin />;
+            case "suggestions":
+                return <ChurchSuggestionsAdmin />;
             default:
                 return <StatsAdmin />;
         }
