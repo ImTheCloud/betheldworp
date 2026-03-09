@@ -181,6 +181,57 @@ function hsl(i) {
     return `hsl(${hue} 70% 45%)`;
 }
 
+function getDayLetter(dateKey) {
+    const [y, m, d] = s(dateKey).split("-").map(Number);
+    if (!y || !m || !d) return "";
+    const dt = new Date(y, m - 1, d);
+    return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][dt.getDay()] || "";
+}
+
+function BarChart({ rows, title }) {
+    if (!rows || rows.length === 0) {
+        return (
+            <div className="statsBarChartWrap">
+                <div className="statsBarChartTitle">{title}</div>
+                <div className="statsBarChart">
+                    <div className="statsBarEmpty">No data available</div>
+                </div>
+            </div>
+        );
+    }
+
+    const maxVal = Math.max(...rows.map((r) => r.count));
+
+    return (
+        <div className="statsBarChartWrap">
+            <div className="statsBarChartTitle">{title}</div>
+            <div className="statsBarChartScroll">
+                <div className="statsBarChart">
+                    {rows.map((d) => {
+                        const heightPct = maxVal > 0 ? (d.count / maxVal) * 100 : 0;
+
+                        return (
+                            <div key={d.day} className="statsBarCol">
+                                <div className="statsBarTooltip">
+                                    {formatEnDateFromKey(d.day)}: {d.count}
+                                </div>
+                                {d.count > 0 && (
+                                    <div className="statsBarValue">{d.count}</div>
+                                )}
+                                <div className="statsBarFill" style={{ height: `${heightPct}%` }}></div>
+                                <div className="statsBarLabel">
+                                    <span>{formatEnDateFromKey(d.day).slice(0, 5)}</span>
+                                    <span className="statsBarDayLetter">{getDayLetter(d.day)}</span>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        </div>
+    );
+}
+
 function DonutWithLegend({ title, rows, total, search, centerLabel, nameLabel }) {
     const base = rows.filter((r) => (Number(r.count) || 0) > 0);
 
@@ -331,7 +382,7 @@ export default function StatsAdmin() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
-    const [rangeMode, setRangeMode] = useState("today");
+    const [rangeMode, setRangeMode] = useState("7");
     const [source, setSource] = useState("visits");
     const [mode, setMode] = useState("cities");
     const [sortBy, setSortBy] = useState("desc");
@@ -436,6 +487,11 @@ export default function StatsAdmin() {
         const byCity = {};
         const byLang = {};
         const byDevice = {};
+        const byDay = {};
+
+        if (rangeKeys) {
+            rangeKeys.forEach(k => { byDay[k] = 0; });
+        }
 
         scoped.forEach((r) => {
             const c = sanitizeKey(r.country);
@@ -447,10 +503,20 @@ export default function StatsAdmin() {
             byCity[ci] = (byCity[ci] || 0) + 1;
             byLang[lg] = (byLang[lg] || 0) + 1;
             byDevice[dv] = (byDevice[dv] || 0) + 1;
+
+            if (r.day && r.day !== "0000-00-00") {
+                byDay[r.day] = (byDay[r.day] || 0) + 1;
+            }
         });
 
-        return { byCountry, byCity, byLang, byDevice };
-    }, [scoped]);
+        const timeline = Object.keys(byDay).map(k => ({
+            day: k,
+            count: byDay[k]
+        }));
+        timeline.sort((a, b) => a.day.localeCompare(b.day));
+
+        return { byCountry, byCity, byLang, byDevice, timeline };
+    }, [scoped, rangeKeys]);
 
     const rowsForMode = useMemo(() => {
         const sortRows = (rows) => {
@@ -606,6 +672,13 @@ export default function StatsAdmin() {
             ) : (
                 <div className="adminFullContent">
                     {error ? <div className="adminAlert">{error}</div> : null}
+
+                    {rangeMode !== "today" && (
+                        <BarChart
+                            title={`${source === "bots" ? `${BOT_ICON} Bots` : source === "unique" ? "Unique Visitors" : "Visits"} • Timeline`}
+                            rows={agg.timeline}
+                        />
+                    )}
 
                     <DonutWithLegend
                         title={donutTitle}
