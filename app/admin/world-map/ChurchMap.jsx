@@ -10,6 +10,7 @@ import "./WorldMap.css";
 
 const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 const MAP_ID = "5b50d76db2afedb8ba67cff4";
+const DEFAULT_CENTER = { lat: 50.77198, lng: 4.30396 }; // Coordinates roughly near Brussels/Halle
 
 const COUNTRY_FLAGS = {
     Belgium: "🇧🇪",
