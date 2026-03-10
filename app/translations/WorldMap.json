@@ -48,7 +48,8 @@
         "recommendChurch": "Recomandă această biserică",
         "removeRecommendation": "Șterge recomandarea",
         "recommendInfo": "Dacă ai vizitat această biserică și ți-a plăcut, recomand-o și altora!",
-        "loadingChurches": "Se încarcă bisericile..."
+        "loadingChurches": "Se încarcă bisericile...",
+        "infoDisclaimer": "Informațiile pot să se fi schimbat în timp."
     },
     "fr": {
         "title": "Églises Chrétiennes Pentecôtistes Roumaines",
@@ -99,7 +100,8 @@
         "recommendChurch": "Recommander cette église",
         "removeRecommendation": "Retirer la recommandation",
         "recommendInfo": "Si vous avez visité cette église et l'avez appréciée, faites-lo savoir aux autres en la recommandant !",
-        "loadingChurches": "Chargement des églises..."
+        "loadingChurches": "Chargement des églises...",
+        "infoDisclaimer": "Ces informations ont peut-être évolué avec le temps."
     },
     "en": {
         "title": "Romanian Pentecostal Christian Churches",
@@ -150,7 +152,8 @@
         "recommendChurch": "Recommend this church",
         "removeRecommendation": "Remove recommendation",
         "recommendInfo": "If you have visited this church and found it to be a good place, recommend it to others!",
-        "loadingChurches": "Loading churches..."
+        "loadingChurches": "Loading churches...",
+        "infoDisclaimer": "Some details may have changed over time."
     },
     "nl": {
         "title": "Roemeense Christelijke Pinkstergemeenten",
@@ -201,6 +204,7 @@
         "recommendChurch": "Beveel deze kerk aan",
         "removeRecommendation": "Aanbeveling verwijderen",
         "recommendInfo": "Als u deze kerk heeft bezocht en het een goede plek vond, beveel het dan aan bij anderen!",
-        "loadingChurches": "Kerken laden..."
+        "loadingChurches": "Kerken laden...",
+        "infoDisclaimer": "Sommige gegevens kunnen in de loop van de tijd zijn gewijzigd."
     }
 }

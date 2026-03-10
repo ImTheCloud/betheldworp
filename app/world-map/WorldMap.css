@@ -997,6 +997,17 @@
     border-color: #bbf7d0;
 }
 
+.churchDetailsDisclaimer {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin: 12px 0 0 0;
+    font-size: 0.72rem;
+    color: #94a3b8;
+    line-height: 1.4;
+    font-style: italic;
+}
+
 /* =============================================
    MOBILE
    ============================================= */
@@ -1242,8 +1253,8 @@
 
 .suggestionModal {
     width: calc(100% - 32px);
-    max-width: 500px;
-    max-height: 85vh;
+    max-width: 800px;
+    max-height: 78vh;
     display: flex;
     flex-direction: column;
     background: #ffffff;
