@@ -26,76 +26,12 @@
 }
 
 .churchMapSidebarHeader {
-    padding: 85px 24px 20px;
+    padding: 30px 24px 20px;
     border-bottom: 1px solid #e2e8f0;
     background: #ffffff;
     position: relative;
 }
 
-.churchMapBackToHomeBtn {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    text-decoration: none;
-    z-index: 10;
-}
-
-.churchMapBackIcon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    background: #ffffff;
-    color: #475569;
-    border: 1px solid rgba(10, 42, 67, 0.12);
-    border-radius: 50%;
-    box-shadow: 0 10px 30px rgba(6, 24, 50, 0.10);
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.churchMapBackBrand {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.churchMapBackBrand img {
-    height: 30px;
-    width: auto;
-}
-
-.churchMapBackBrand span {
-    font-size: 14px;
-    font-weight: 950;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: #0a2a43;
-    white-space: nowrap;
-}
-
-.churchMapBackToHomeBtn:hover .churchMapBackIcon {
-    transform: translateY(-2px);
-    border-color: rgba(19, 75, 123, 0.25);
-    box-shadow: 0 14px 38px rgba(6, 24, 50, 0.14);
-    background: #134b7b;
-    color: #ffffff;
-}
-
-.churchMapBackToHomeBtn:hover .churchMapBackBrand {
-    opacity: 0.8;
-}
-
-/* Language Selector */
-.churchMapLangSelector {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    z-index: 10;
-}
 
 .churchMapTitle {
     font-size: 1.85rem;
@@ -1056,21 +992,9 @@
         position: relative;
     }
 
-    .churchMapBackToHomeBtn {
-        position: relative;
-        top: 0;
-        left: 0;
-        margin-bottom: 16px;
-    }
-
-    .churchMapLangSelector {
-        top: 16px;
-        right: 16px;
-    }
-
     .churchMapTitle {
         font-size: 1.35rem;
-        margin-top: 8px;
+        margin-top: 0;
     }
 
     /* Bottom Sheet Container */
