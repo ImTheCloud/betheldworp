@@ -114,6 +114,49 @@
 }
 
 /* =============================================
+   BOTTOM SHEET (Common Defaults)
+   ============================================= */
+.churchMapBottomSheet {
+    display: flex;
+    flex-direction: column;
+    background: #ffffff;
+}
+
+@media (min-width: 769px) {
+    .churchMapBottomSheet {
+        flex: 1;
+        min-height: 0;
+        /* Important for flex-child scrolling */
+    }
+}
+
+/* Hide drag handle on desktop completely as it's a mobile-only element now */
+.bottomSheetDragHandleArea {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .bottomSheetDragHandleArea {
+        display: flex;
+        width: 100%;
+        height: 24px;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        flex-shrink: 0;
+        background: #ffffff;
+    }
+}
+
+.bottomSheetDragHandle {
+    width: 40px;
+    height: 4px;
+    background: #e2e8f0;
+    border-radius: 2px;
+    margin: 0 auto;
+}
+
+/* =============================================
    SEARCH & FILTER CONTAINER
    ============================================= */
 .churchMapFilterContainer {
@@ -1070,19 +1113,17 @@
         padding: 3px 10px;
     }
 
-    /* Bottom Sheet Container */
+    /* Bottom Sheet Overrides – Mobile */
     .churchMapBottomSheet {
         pointer-events: auto;
-        background: white;
         border-radius: 24px 24px 0 0;
         box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.12);
-        display: flex;
-        flex-direction: column;
         height: 45vh;
-        /* Default "collapsed" height */
+        /* Fixed height for middle state */
+        flex: none;
+        /* Turn off desktop flex! */
         transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         transform: translateY(0);
-        /* Open by default */
         flex-shrink: 0;
     }
 

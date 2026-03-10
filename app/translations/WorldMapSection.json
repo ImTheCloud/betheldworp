@@ -1,22 +1,46 @@
 {
     "ro": {
-        "title": "Te afli într-un oraș pe care nu-l cunoști și cauți o biserică penticostală română în apropiere?",
+        "tag": "Biserici în lume",
+        "title": "Te afli într-o nouă locație și cauți o biserică penticostală?",
         "description": "Descoperă pe harta noastră interactivă comunitățile din toată lumea cu care împărtășim aceleași principii de credință.",
-        "cta": "Vezi harta bisericilor"
+        "cta": "Vezi harta bisericilor",
+        "statChurches": "Biserici",
+        "statCountries": "Țări",
+        "statCities": "Orașe",
+        "globalConnect": "Conexiune Globală",
+        "realTime": "Actualizări în timp real"
     },
     "fr": {
-        "title": "Vous êtes dans une ville inconnue et cherchez une église pentecôtiste roumaine à proximité ?",
+        "tag": "Églises dans le monde",
+        "title": "Vous êtes dans une nouvelle ville et cherchez une église pentecôtiste ?",
         "description": "Découvrez sur notre carte interactive les communautés à travers le monde avec lesquelles nous partageons les mêmes principes de foi.",
-        "cta": "Voir la carte des églises"
+        "cta": "Voir la carte des églises",
+        "statChurches": "Églises",
+        "statCountries": "Pays",
+        "statCities": "Villes",
+        "globalConnect": "Connexion Globale",
+        "realTime": "Mises à jour en temps réel"
     },
     "en": {
-        "title": "Are you in an unfamiliar city and looking for a Romanian Pentecostal church nearby?",
+        "tag": "Churches Worldwide",
+        "title": "Are you in a new city and looking for a Pentecostal church nearby?",
         "description": "Explore our interactive map and discover communities across the globe with which we share the same principles of faith.",
-        "cta": "View the churches map"
+        "cta": "View the churches map",
+        "statChurches": "Churches",
+        "statCountries": "Countries",
+        "statCities": "Cities",
+        "globalConnect": "Global Connection",
+        "realTime": "Real-time updates"
     },
     "nl": {
-        "title": "Bent u in een onbekende stad en op zoek naar een Roemeense Pinkstergemeente in de buurt?",
+        "tag": "Kerken Wereldwijd",
+        "title": "Bent u in een nieuwe stad en op zoek naar een Pinkstergemeente?",
         "description": "Ontdek op onze interactieve kaart gemeenschappen over de hele wereld waarmee wij dezelfde geloofsprincipes delen.",
-        "cta": "Bekijk de kerkenkaart"
+        "cta": "Bekijk de kerkenkaart",
+        "statChurches": "Kerken",
+        "statCountries": "Landen",
+        "statCities": "Steden",
+        "globalConnect": "Wereldwijde Verbinding",
+        "realTime": "Real-time updates"
     }
 }
