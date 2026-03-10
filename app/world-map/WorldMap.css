@@ -26,10 +26,11 @@
 }
 
 .churchMapSidebarHeader {
-    padding: 30px 24px 20px;
-    border-bottom: 1px solid #e2e8f0;
-    background: #ffffff;
+    padding: 0;
+    border-bottom: none;
+    background: transparent;
     position: relative;
+    display: none;
 }
 
 
@@ -496,7 +497,67 @@
     position: relative;
 }
 
-/* Map Overlay Title - removed */
+/* =============================================
+   MAP OVERLAY TITLE
+   ============================================= */
+.mapOverlayTitle {
+    position: absolute;
+    top: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 50;
+    text-align: center;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    animation: mapTitleFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes mapTitleFadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+.mapOverlaySubtitle {
+    margin: 0;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: rgba(255, 255, 255, 0.9);
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+    background: rgba(10, 30, 60, 0.55);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    padding: 4px 14px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    line-height: 1.4;
+    white-space: nowrap;
+}
+
+.mapOverlayHeading {
+    margin: 0;
+    font-size: clamp(2.4rem, 4vw, 3.8rem);
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    background: linear-gradient(135deg, #0a1e3c 0%, #134b7b 45%, #1a6cb5 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 2px 4px rgba(255, 255, 255, 0.8)) drop-shadow(0 0 24px rgba(255, 255, 255, 0.6));
+    white-space: nowrap;
+}
 
 /* Sidebar Credits */
 .sidebarCredits {
@@ -973,28 +1034,29 @@
         /* Let touches pass through to map */
         display: flex;
         flex-direction: column;
-        justify-content: space-between;
+        justify-content: flex-end;
         z-index: 20;
     }
 
     .churchMapSidebarHeader {
-        pointer-events: auto;
-        /* Catch touches */
-        margin: 16px 16px 0 16px;
-        padding: 16px;
-        border-radius: 20px;
-        background: rgba(255, 255, 255, 0.90);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-        flex-shrink: 0;
-        transition: transform 0.3s ease;
-        position: relative;
+        display: none;
     }
 
-    .churchMapTitle {
-        font-size: 1.35rem;
-        margin-top: 0;
+    /* Map Overlay Title – Mobile */
+    .mapOverlayTitle {
+        top: 36px;
+        gap: 3px;
+    }
+
+    .mapOverlayHeading {
+        font-size: clamp(2rem, 9vw, 3rem);
+        letter-spacing: -0.02em;
+    }
+
+    .mapOverlaySubtitle {
+        font-size: 0.65rem;
+        letter-spacing: 0.14em;
+        padding: 3px 10px;
     }
 
     /* Bottom Sheet Container */

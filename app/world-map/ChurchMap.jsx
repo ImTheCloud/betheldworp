@@ -542,10 +542,7 @@ export default function ChurchMap() {
         <div className={`churchMapLayout ${mobileShowMap ? "mapFocused" : ""}`}>
             {/* Sidebar */}
             <aside className="churchMapSidebar">
-                <div className="churchMapSidebarHeader">
-                    <h1 className="churchMapTitle">{t("subtitle")}</h1>
-                    <p className="churchMapSubtitle">{t("title")}</p>
-                </div>
+                <div className="churchMapSidebarHeader"></div>
 
                 <div className="churchMapBottomSheet" data-mode={bottomSheetMode}>
                     <div
@@ -716,6 +713,12 @@ export default function ChurchMap() {
 
             {/* Map */}
             <div className="churchMapContainer">
+                {/* Map Overlay Title */}
+                <div className="mapOverlayTitle">
+                    <h1 className="mapOverlayHeading">{t("subtitle")}</h1>
+                    <p className="mapOverlaySubtitle">{t("title")}</p>
+                </div>
+
                 <APIProvider apiKey={API_KEY}>
                     <Map
                         defaultCenter={BELGIUM_CENTER}
