@@ -524,7 +524,7 @@ export default function ChurchMap() {
         if (!userLocation) return {};
         const map = {};
         for (const c of churches) {
-            map[c.id] = haversineDistance(userLocation.lat, userLocation.lng, c.lat, userLocation.lng);
+            map[c.id] = haversineDistance(userLocation.lat, userLocation.lng, c.lat, c.lng);
         }
         return map;
     }, [userLocation, churches]);
