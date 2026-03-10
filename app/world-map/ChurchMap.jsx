@@ -941,131 +941,134 @@ export default function ChurchMap() {
                             <form className="suggestionForm" onSubmit={handleSuggestionSubmit}>
                                 {formError && <div className="suggestionError">{formError}</div>}
 
-                                <div className="suggestionFormGroup">
-                                    <label>{t("name")} *</label>
-                                    <input
-                                        type="text"
-                                        required
-                                        value={suggestionForm.name}
-                                        onChange={(e) => setSuggestionForm({ ...suggestionForm, name: e.target.value })}
-                                    />
-                                </div>
-
-                                <div className="suggestionFormRow">
+                                <div className="suggestionFormBody">
                                     <div className="suggestionFormGroup">
-                                        <label>{t("city")} *</label>
+                                        <label>{t("name")} *</label>
                                         <input
                                             type="text"
                                             required
-                                            value={suggestionForm.city}
-                                            onChange={(e) => setSuggestionForm({ ...suggestionForm, city: e.target.value })}
+                                            value={suggestionForm.name}
+                                            onChange={(e) => setSuggestionForm({ ...suggestionForm, name: e.target.value })}
                                         />
                                     </div>
-                                    <div className="suggestionFormGroup">
-                                        <label>{t("country")}</label>
-                                        <select
-                                            value={suggestionForm.country}
-                                            onChange={(e) => setSuggestionForm({ ...suggestionForm, country: e.target.value })}
-                                        >
-                                            {SUGGESTION_COUNTRIES.map(c => (
-                                                <option key={c} value={c}>{getCountryLabel(c)}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                </div>
 
-                                <div className="suggestionFormRow">
-                                    <div className="suggestionFormGroup" style={{ flex: 3 }}>
-                                        <label>{t("street")}</label>
-                                        <input
-                                            type="text"
-                                            value={suggestionForm.street}
-                                            onChange={(e) => setSuggestionForm({ ...suggestionForm, street: e.target.value })}
-                                        />
+                                    <div className="suggestionFormRow">
+                                        <div className="suggestionFormGroup">
+                                            <label>{t("city")} *</label>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={suggestionForm.city}
+                                                onChange={(e) => setSuggestionForm({ ...suggestionForm, city: e.target.value })}
+                                                placeholder={t.cityPlaceholder}
+                                            />
+                                        </div>
+                                        <div className="suggestionFormGroup">
+                                            <label>{t("country")}</label>
+                                            <select
+                                                value={suggestionForm.country}
+                                                onChange={(e) => setSuggestionForm({ ...suggestionForm, country: e.target.value })}
+                                            >
+                                                {SUGGESTION_COUNTRIES.map(c => (
+                                                    <option key={c} value={c}>{getCountryLabel(c)}</option>
+                                                ))}
+                                            </select>
+                                        </div>
                                     </div>
-                                    <div className="suggestionFormGroup" style={{ flex: 1 }}>
-                                        <label>{t("number")}</label>
-                                        <input
-                                            type="text"
-                                            value={suggestionForm.number}
-                                            onChange={(e) => setSuggestionForm({ ...suggestionForm, number: e.target.value })}
-                                        />
-                                    </div>
-                                </div>
 
-                                <div className="suggestionFormRow">
-                                    <div className="suggestionFormGroup">
-                                        <label>{t("phone")}</label>
-                                        <input
-                                            type="tel"
-                                            value={suggestionForm.phone}
-                                            onChange={(e) => setSuggestionForm({ ...suggestionForm, phone: e.target.value })}
-                                        />
+                                    <div className="suggestionFormRow">
+                                        <div className="suggestionFormGroup" style={{ flex: 3 }}>
+                                            <label>{t("street")}</label>
+                                            <input
+                                                type="text"
+                                                value={suggestionForm.street}
+                                                onChange={(e) => setSuggestionForm({ ...suggestionForm, street: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="suggestionFormGroup" style={{ flex: 1 }}>
+                                            <label>{t("number")}</label>
+                                            <input
+                                                type="text"
+                                                value={suggestionForm.number}
+                                                onChange={(e) => setSuggestionForm({ ...suggestionForm, number: e.target.value })}
+                                            />
+                                        </div>
                                     </div>
-                                    <div className="suggestionFormGroup">
-                                        <label>{t("email")}</label>
-                                        <input
-                                            type="email"
-                                            value={suggestionForm.email}
-                                            onChange={(e) => setSuggestionForm({ ...suggestionForm, email: e.target.value })}
-                                        />
-                                    </div>
-                                </div>
 
-                                <div className="suggestionFormRow">
-                                    <div className="suggestionFormGroup">
-                                        <label>{t("website")}</label>
-                                        <input
-                                            type="url"
-                                            placeholder="https://..."
-                                            value={suggestionForm.website}
-                                            onChange={(e) => setSuggestionForm({ ...suggestionForm, website: e.target.value })}
-                                        />
+                                    <div className="suggestionFormRow">
+                                        <div className="suggestionFormGroup">
+                                            <label>{t("phone")}</label>
+                                            <input
+                                                type="tel"
+                                                value={suggestionForm.phone}
+                                                onChange={(e) => setSuggestionForm({ ...suggestionForm, phone: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="suggestionFormGroup">
+                                            <label>{t("email")}</label>
+                                            <input
+                                                type="email"
+                                                value={suggestionForm.email}
+                                                onChange={(e) => setSuggestionForm({ ...suggestionForm, email: e.target.value })}
+                                            />
+                                        </div>
                                     </div>
-                                    <div className="suggestionFormGroup">
-                                        <label>{t("youtube")}</label>
-                                        <input
-                                            type="url"
-                                            placeholder="https://youtube.com/..."
-                                            value={suggestionForm.youtube}
-                                            onChange={(e) => setSuggestionForm({ ...suggestionForm, youtube: e.target.value })}
-                                        />
-                                    </div>
-                                </div>
 
-                                <div className="suggestionFormRow">
-                                    <div className="suggestionFormGroup">
-                                        <label>{t("instagram")}</label>
-                                        <input
-                                            type="url"
-                                            placeholder="https://instagram.com/..."
-                                            value={suggestionForm.instagram}
-                                            onChange={(e) => setSuggestionForm({ ...suggestionForm, instagram: e.target.value })}
-                                        />
+                                    <div className="suggestionFormRow">
+                                        <div className="suggestionFormGroup">
+                                            <label>{t("website")}</label>
+                                            <input
+                                                type="url"
+                                                placeholder="https://..."
+                                                value={suggestionForm.website}
+                                                onChange={(e) => setSuggestionForm({ ...suggestionForm, website: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="suggestionFormGroup">
+                                            <label>{t("youtube")}</label>
+                                            <input
+                                                type="url"
+                                                placeholder="https://youtube.com/..."
+                                                value={suggestionForm.youtube}
+                                                onChange={(e) => setSuggestionForm({ ...suggestionForm, youtube: e.target.value })}
+                                            />
+                                        </div>
                                     </div>
-                                    <div className="suggestionFormGroup">
-                                        <label>{t("facebook")}</label>
-                                        <input
-                                            type="url"
-                                            placeholder="https://facebook.com/..."
-                                            value={suggestionForm.facebook}
-                                            onChange={(e) => setSuggestionForm({ ...suggestionForm, facebook: e.target.value })}
-                                        />
-                                    </div>
-                                </div>
 
-                                <div className="suggestionFormRow">
-                                    <div className="suggestionFormGroup" style={{ flex: 1 }}>
-                                        <label>{t("notes")}</label>
-                                        <textarea
-                                            rows="3"
-                                            value={suggestionForm.notes}
-                                            onChange={(e) => setSuggestionForm({ ...suggestionForm, notes: e.target.value })}
-                                            style={{
-                                                width: "100%", padding: "10px", borderRadius: "8px",
-                                                border: "1px solid #cbd5e1", fontSize: "0.95rem", resize: "vertical"
-                                            }}
-                                        />
+                                    <div className="suggestionFormRow">
+                                        <div className="suggestionFormGroup">
+                                            <label>{t("instagram")}</label>
+                                            <input
+                                                type="url"
+                                                placeholder="https://instagram.com/..."
+                                                value={suggestionForm.instagram}
+                                                onChange={(e) => setSuggestionForm({ ...suggestionForm, instagram: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="suggestionFormGroup">
+                                            <label>{t("facebook")}</label>
+                                            <input
+                                                type="url"
+                                                placeholder="https://facebook.com/..."
+                                                value={suggestionForm.facebook}
+                                                onChange={(e) => setSuggestionForm({ ...suggestionForm, facebook: e.target.value })}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="suggestionFormRow">
+                                        <div className="suggestionFormGroup" style={{ flex: 1 }}>
+                                            <label>{t("notes")}</label>
+                                            <textarea
+                                                rows="3"
+                                                value={suggestionForm.notes}
+                                                onChange={(e) => setSuggestionForm({ ...suggestionForm, notes: e.target.value })}
+                                                style={{
+                                                    width: "100%", padding: "8px 12px", borderRadius: "10px",
+                                                    border: "1px solid #e2e8f0", fontSize: "0.95rem", resize: "vertical",
+                                                    minHeight: "60px"
+                                                }} />
+                                        </div>
                                     </div>
                                 </div>
 
