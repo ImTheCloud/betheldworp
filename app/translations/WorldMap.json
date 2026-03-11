@@ -54,7 +54,8 @@
         "editShort": "Modifică",
         "route": "Traseu",
         "postalCode": "Cod Poștal",
-        "notSpecified": "Nespecificat"
+        "notSpecified": "Nespecificat",
+        "country": "Țară"
     },
     "fr": {
         "title": "Églises Chrétiennes Pentecôtistes Roumaines",
@@ -111,7 +112,8 @@
         "editShort": "Modifier",
         "route": "Itinéraire",
         "postalCode": "Code Postal",
-        "notSpecified": "Non spécifié"
+        "notSpecified": "Non spécifié",
+        "country": "Pays"
     },
     "en": {
         "title": "Romanian Pentecostal Christian Churches",
@@ -168,7 +170,8 @@
         "editShort": "Edit",
         "route": "Route",
         "postalCode": "Postal Code",
-        "notSpecified": "Not specified"
+        "notSpecified": "Not specified",
+        "country": "Country"
     },
     "nl": {
         "title": "Roemeense Christelijke Pinkstergemeenten",
@@ -225,6 +228,7 @@
         "editShort": "Wijzig",
         "route": "Route",
         "postalCode": "Postcode",
-        "notSpecified": "Niet gespecificeerd"
+        "notSpecified": "Niet gespecificeerd",
+        "country": "Land"
     }
 }
