@@ -308,6 +308,7 @@ export default function ChurchMap() {
             await addDoc(collection(db, "church_suggestions"), {
                 type: suggestionType,
                 originalChurchId: suggestionType === "edit" ? selectedChurch?.id : null,
+                originalData: suggestionType === "edit" ? selectedChurch : null,
                 status: "pending",
                 data: suggestionForm,
                 createdAt: serverTimestamp()

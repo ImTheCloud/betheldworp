@@ -208,22 +208,42 @@ export default function ChurchSuggestionsAdmin() {
                                     <div className="adminAnnBody">
                                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px 16px" }}>
                                             {FIELDS.map((f) => {
+                                                const originalValue = s.type === "edit" && s.originalData ? (s.originalData[f.key] ?? "") : "";
+                                                const currentValue = draft[f.key] ?? "";
+                                                const isModified = s.type === "edit" && String(originalValue).trim() !== String(currentValue).trim();
+                                                const modifiedStyle = isModified ? { border: "2px solid #f59e0b", backgroundColor: "#fffbeb" } : {};
+
                                                 if (f.key === "number") return null;
                                                 if (f.key === "street") {
+                                                    const origNum = s.type === "edit" && s.originalData ? (s.originalData.number ?? "") : "";
+                                                    const curNum = draft.number ?? "";
+                                                    const isNumModified = s.type === "edit" && String(origNum).trim() !== String(curNum).trim();
+                                                    const numModifiedStyle = isNumModified ? { border: "2px solid #f59e0b", backgroundColor: "#fffbeb" } : {};
+
                                                     return (
                                                         <div key="street-number" style={{ gridColumn: "span 2", display: "flex", gap: "12px" }}>
                                                             <div style={{ flex: 3 }}>
-                                                                <label className="adminLabel">Street</label>
+                                                                <label className="adminLabel">
+                                                                    Street
+                                                                    {isModified && <span style={{ color: "#d97706", marginLeft: 8, fontSize: "0.80rem", fontWeight: "normal" }}>(Modified)</span>}
+                                                                </label>
+                                                                {isModified && <div style={{ fontSize: "0.75rem", color: "#6b7280", marginBottom: 4, fontWeight: "normal" }}>Original: <s>{originalValue || "empty"}</s></div>}
                                                                 <input
                                                                     className="adminInput"
+                                                                    style={modifiedStyle}
                                                                     value={draft.street ?? ""}
                                                                     onChange={(e) => changeDraft(s.id, "street", e.target.value)}
                                                                 />
                                                             </div>
                                                             <div style={{ flex: 1 }}>
-                                                                <label className="adminLabel">Number</label>
+                                                                <label className="adminLabel">
+                                                                    Number
+                                                                    {isNumModified && <span style={{ color: "#d97706", marginLeft: 8, fontSize: "0.80rem", fontWeight: "normal" }}>(Modified)</span>}
+                                                                </label>
+                                                                {isNumModified && <div style={{ fontSize: "0.75rem", color: "#6b7280", marginBottom: 4, fontWeight: "normal" }}>Original: <s>{origNum || "empty"}</s></div>}
                                                                 <input
                                                                     className="adminInput"
+                                                                    style={numModifiedStyle}
                                                                     value={draft.number ?? ""}
                                                                     onChange={(e) => changeDraft(s.id, "number", e.target.value)}
                                                                 />
@@ -233,11 +253,17 @@ export default function ChurchSuggestionsAdmin() {
                                                 }
                                                 return (
                                                     <label key={f.key} className="adminLabel" style={(f.key === "name" || f.key === "notes") ? { gridColumn: "span 2" } : {}}>
-                                                        {f.label}{f.required ? " *" : ""}
+                                                        <div style={{ display: "flex", alignItems: "center" }}>
+                                                            {f.label}{f.required ? " *" : ""}
+                                                            {isModified && <span style={{ color: "#d97706", marginLeft: 8, fontSize: "0.80rem", fontWeight: "normal" }}>(Modified)</span>}
+                                                        </div>
+
+                                                        {isModified && <div style={{ fontSize: "0.75rem", color: "#6b7280", marginBottom: 4, marginTop: 2, fontWeight: "normal", whiteSpace: "pre-wrap" }}>Original: <s>{originalValue || "empty"}</s></div>}
+
                                                         {f.type === "select" ? (
                                                             <select
                                                                 className="adminSelect"
-                                                                style={{ width: "100%", marginTop: 4 }}
+                                                                style={{ width: "100%", marginTop: 4, ...modifiedStyle }}
                                                                 value={draft[f.key] ?? ""}
                                                                 onChange={(e) => changeDraft(s.id, f.key, e.target.value)}
                                                             >
@@ -250,7 +276,7 @@ export default function ChurchSuggestionsAdmin() {
                                                             <textarea
                                                                 className="adminInput"
                                                                 rows="3"
-                                                                style={{ resize: "vertical", marginTop: 4 }}
+                                                                style={{ resize: "vertical", marginTop: 4, ...modifiedStyle }}
                                                                 value={draft[f.key] ?? ""}
                                                                 onChange={(e) => changeDraft(s.id, f.key, e.target.value)}
                                                             />
@@ -258,6 +284,7 @@ export default function ChurchSuggestionsAdmin() {
                                                             <input
                                                                 className="adminInput"
                                                                 type={f.type}
+                                                                style={{ ...modifiedStyle, marginTop: 4 }}
                                                                 value={draft[f.key] ?? ""}
                                                                 onChange={(e) => changeDraft(s.id, f.key, e.target.value)}
                                                             />
