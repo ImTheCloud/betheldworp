@@ -8,33 +8,63 @@ import { makeT } from "../lib/i18n";
 import tr from "../translations/WorldMapSection.json";
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../lib/Firebase";
-import Globe from "../components/Globe";
 
 // Sub-component for incrementing animation
-const CountUp = ({ end, duration = 2000 }) => {
+const CountUp = ({ end, duration = 2 }) => {
     const [count, setCount] = useState(0);
+    const [isVisible, setIsVisible] = useState(false);
+    const elementRef = React.useRef(null);
 
     useEffect(() => {
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setIsVisible(true);
+                }
+            },
+            { threshold: 0.1 }
+        );
+
+        if (elementRef.current) {
+            observer.observe(elementRef.current);
+        }
+
+        return () => observer.disconnect();
+    }, []);
+
+    useEffect(() => {
+        if (!isVisible) return;
+        
         let startTime = null;
+        const durationMs = duration * 1000;
+        
         const animate = (currentTime) => {
             if (!startTime) startTime = currentTime;
-            const progress = Math.min((currentTime - startTime) / duration, 1);
-            setCount(Math.floor(progress * end));
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / durationMs, 1);
+            
+            // Ease out function for smoother finish
+            const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+            
+            setCount(Math.floor(easeOutQuart * end));
+            
             if (progress < 1) {
                 requestAnimationFrame(animate);
+            } else {
+                setCount(end); // Ensure we land exactly on the final number
             }
         };
         requestAnimationFrame(animate);
-    }, [end, duration]);
+    }, [isVisible, end, duration]);
 
-    return <span>{count}</span>;
+    return <span ref={elementRef}>{count}</span>;
 };
 
 export default function WorldMapSection() {
     const { lang } = useLang();
     const t = useMemo(() => makeT(tr, lang), [lang]);
 
-    const [stats, setStats] = useState({ churches: 0, countries: 0, cities: 0 });
+    const [stats, setStats] = useState({ churches: 0, countries: 0 });
     const [isLoaded, setIsLoaded] = useState(false);
 
     useEffect(() => {
@@ -43,12 +73,10 @@ export default function WorldMapSection() {
             const churchesData = snapshot.docs.map(doc => doc.data());
 
             const uniqueCountries = new Set(churchesData.map(c => c.country).filter(Boolean));
-            const uniqueCities = new Set(churchesData.map(c => c.city).filter(Boolean));
 
             setStats({
                 churches: churchesData.length,
-                countries: uniqueCountries.size,
-                cities: uniqueCities.size
+                countries: uniqueCountries.size
             });
             setIsLoaded(true);
         });
@@ -63,7 +91,30 @@ export default function WorldMapSection() {
 
             <div className="worldmap-container">
                 <div className="worldmap-content">
-                    <div className="worldmap-tag">{t("tag") || "Biserici în lume"}</div>
+                    <div className="worldmap-impact-pill">
+                        <div className="impact-pill-item">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                            </svg>
+                            <span className="impact-pill-value">
+                                {isLoaded ? <CountUp end={stats.churches} duration={2.5} /> : 0}
+                            </span>
+                            <span className="impact-pill-label">{t("statChurches") || "Biserici"}</span>
+                        </div>
+                        <div className="impact-pill-divider"></div>
+                        <div className="impact-pill-item">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="2" y1="12" x2="22" y2="12"></line>
+                                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                            </svg>
+                            <span className="impact-pill-value">
+                                {isLoaded ? <CountUp end={stats.countries} duration={2} /> : 0}
+                            </span>
+                            <span className="impact-pill-label">{t("statCountries") || "Țări"}</span>
+                        </div>
+                    </div>
                     <h2 className="worldmap-title">{t("title")}</h2>
                     <p className="worldmap-description">{t("description")}</p>
 
@@ -75,34 +126,7 @@ export default function WorldMapSection() {
                         </svg>
                     </Link>
 
-                    <div className="worldmap-stats">
-                        <div className="stat-item">
-                            <span className="stat-value">
-                                {isLoaded ? <CountUp end={stats.churches} /> : 0}
-                            </span>
-                            <span className="stat-label">{t("statChurches") || "Churches"}</span>
-                        </div>
-                        <div className="stat-divider"></div>
-                        <div className="stat-item">
-                            <span className="stat-value">
-                                {isLoaded ? <CountUp end={stats.cities} /> : 0}
-                            </span>
-                            <span className="stat-label">{t("statCities") || "Cities"}</span>
-                        </div>
-                        <div className="stat-divider"></div>
-                        <div className="stat-item">
-                            <span className="stat-value">
-                                {isLoaded ? <CountUp end={stats.countries} /> : 0}
-                            </span>
-                            <span className="stat-label">{t("statCountries") || "Countries"}</span>
-                        </div>
-                    </div>
-                </div>
 
-                <div className="worldmap-visual">
-                    <div className="visual-card-3d">
-                        <Globe />
-                    </div>
                 </div>
             </div>
         </section>

@@ -1477,19 +1477,19 @@
 .mobileDetailsBody {
     flex: 1;
     overflow-y: auto;
-    padding: 20px;
-    padding-bottom: 20px; /* Reduced from 80px to move buttons closer */
+    padding: 2.5vh 20px; /* Responsive vertical padding */
+    padding-bottom: 2vh; 
 }
 
 .mobileChurchDetails .churchDetailsAddress {
     font-size: 1rem;
     color: #64748b;
-    margin-bottom: 12px; /* Reduced from 24px */
+    margin-bottom: clamp(8px, 2vh, 16px);
 }
 
 .mobileChurchDetails .churchDetailsInfoList {
-    margin-bottom: 15px; /* Reduced from 30px to bring buttons closer */
-    gap: 28px 24px; /* Increased vertical gap to take more space */
+    margin-bottom: clamp(10px, 3vh, 20px);
+    gap: clamp(12px, 4.5vh, 32px) 20px; /* Fluid gap based on viewport height */
 }
 
 .mobileChurchDetails .churchDetailsDisclaimer {

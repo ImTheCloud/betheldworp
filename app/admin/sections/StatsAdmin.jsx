@@ -158,7 +158,7 @@ function getDayFromSnap(snap, data) {
     if (day !== "0000-00-00") return day;
 
     const path = snap?.ref?.path || "";
-    const m = path.match(/visits\/day_(\d{4}-\d{2}-\d{2}|\d{2}-\d{2}-\d{4})\/visitors\//);
+    const m = path.match(/(?:visits|world_map_visits)\/day_(\d{4}-\d{2}-\d{2}|\d{2}-\d{2}-\d{4})\/(?:visitors|map_visitors)\//);
     if (m?.[1]) return normalizeDayKey(m[1]);
 
     return "0000-00-00";
@@ -336,7 +336,7 @@ function DonutWithLegend({ title, rows, total, search, centerLabel, nameLabel })
 
                         <circle cx="60" cy="60" r="34" className="statsDonutHole" />
                         <text x="60" y="58" textAnchor="middle" className="statsDonutCenterBig">
-                            {total || 0}
+                            {Number(total) || 0}
                         </text>
                         <text x="60" y="74" textAnchor="middle" className="statsDonutCenterSmall">
                             {centerLabel || "visits"}
@@ -383,9 +383,9 @@ export default function StatsAdmin() {
     const [error, setError] = useState("");
 
     const [rangeMode, setRangeMode] = useState("7");
-    const [source, setSource] = useState("visits");
+    const [page, setPage] = useState("lp");
+    const [visitorType, setVisitorType] = useState("human");
     const [mode, setMode] = useState("cities");
-    const [sortBy, setSortBy] = useState("desc");
     const [search, setSearch] = useState("");
 
     const todayKey = useMemo(() => brusselsDayKey(), []);
@@ -393,7 +393,7 @@ export default function StatsAdmin() {
 
     const [allDailyVisits, setAllDailyVisits] = useState([]);
     const [allUniqueVisitors, setAllUniqueVisitors] = useState([]);
-    const [allBotVisits, setAllBotVisits] = useState([]);
+    const [allWorldMapVisits, setAllWorldMapVisits] = useState([]);
 
     useEffect(() => {
         let alive = true;
@@ -403,10 +403,10 @@ export default function StatsAdmin() {
                 setLoading(true);
                 setError("");
 
-                const [dailySnap, globalSnap, botSnap] = await Promise.all([
+                const [dailySnap, globalSnap, worldMapSnap] = await Promise.all([
                     getDocs(collectionGroup(db, "visitors")),
                     getDocs(collection(db, "visits_global")),
-                    getDocs(collection(db, "bot_visits")),
+                    getDocs(collectionGroup(db, "map_visitors")),
                 ]);
 
                 const daily = [];
@@ -434,23 +434,28 @@ export default function StatsAdmin() {
                     });
                 });
 
-                const bots = [];
-                botSnap.forEach((docSnap) => {
+                const worldMap = [];
+                worldMapSnap.forEach((docSnap) => {
                     const d = docSnap.data() || {};
-                    bots.push({
-                        day: normalizeDayKey(d.day),
+                    const day = getDayFromSnap(docSnap, d);
+                    worldMap.push({
+                        day,
                         country: clamp(d.country, 60),
                         city: clamp(d.city, 60),
                         language: normalizeLang(d.language),
                         deviceType: normalizeDevice(d.deviceType),
-                        userAgent: clamp(d.userAgent, 200),
+                        geoStatus: d.geoStatus || "unknown",
+                        preciseLat: d.preciseLat,
+                        preciseLng: d.preciseLng,
+                        timeHM: d.timeHM || "??:??",
+                        visitorId: d.visitorId || docSnap.id
                     });
                 });
 
                 if (!alive) return;
                 setAllDailyVisits(daily);
                 setAllUniqueVisitors(unique);
-                setAllBotVisits(bots);
+                setAllWorldMapVisits(worldMap);
                 setLoading(false);
             } catch (e) {
                 if (!alive) return;
@@ -473,7 +478,29 @@ export default function StatsAdmin() {
         return new Set(buildLastNDaysKeys(n, todayKey));
     }, [rangeMode, todayKey]);
 
-    const raw = source === "bots" ? allBotVisits : source === "unique" ? allUniqueVisitors : allDailyVisits;
+    const raw = useMemo(() => {
+        if (page === "world_map") {
+            if (visitorType === "human") return allWorldMapVisits;
+            if (visitorType === "unique") {
+                // Deduplicate by visitorId to find unique people on the map
+                const uniqueMap = new Map();
+                // We sort by day to make sure the "first" visit is the one we keep
+                const sorted = [...allWorldMapVisits].sort((a, b) => a.day.localeCompare(b.day));
+                sorted.forEach(v => {
+                    if (v.visitorId && !uniqueMap.has(v.visitorId)) {
+                        uniqueMap.set(v.visitorId, v);
+                    }
+                });
+                return Array.from(uniqueMap.values());
+            }
+            return [];
+        } else {
+            // LP
+            if (visitorType === "human") return allDailyVisits;
+            if (visitorType === "unique") return allUniqueVisitors;
+            return [];
+        }
+    }, [page, visitorType, allWorldMapVisits, allDailyVisits, allUniqueVisitors]);
 
     const scoped = useMemo(() => {
         if (!rangeKeys) return raw;
@@ -487,6 +514,7 @@ export default function StatsAdmin() {
         const byCity = {};
         const byLang = {};
         const byDevice = {};
+        const byGeo = {};
         const byDay = {};
 
         if (rangeKeys) {
@@ -498,11 +526,13 @@ export default function StatsAdmin() {
             const ci = makeCityKey(r.country, r.city);
             const lg = normalizeLang(r.language);
             const dv = normalizeDevice(r.deviceType);
+            const g = sanitizeKey(r.geoStatus);
 
             byCountry[c] = (byCountry[c] || 0) + 1;
             byCity[ci] = (byCity[ci] || 0) + 1;
             byLang[lg] = (byLang[lg] || 0) + 1;
             byDevice[dv] = (byDevice[dv] || 0) + 1;
+            byGeo[g] = (byGeo[g] || 0) + 1;
 
             if (r.day && r.day !== "0000-00-00") {
                 byDay[r.day] = (byDay[r.day] || 0) + 1;
@@ -515,18 +545,13 @@ export default function StatsAdmin() {
         }));
         timeline.sort((a, b) => a.day.localeCompare(b.day));
 
-        return { byCountry, byCity, byLang, byDevice, timeline };
+        return { byCountry, byCity, byLang, byDevice, byGeo, timeline };
     }, [scoped, rangeKeys]);
 
     const rowsForMode = useMemo(() => {
         const sortRows = (rows) => {
-            rows.sort((a, b) => {
-                if (sortBy === "desc") return b.count - a.count || a.label.localeCompare(b.label);
-                if (sortBy === "asc") return a.count - b.count || a.label.localeCompare(b.label);
-                if (sortBy === "az") return a.label.localeCompare(b.label);
-                if (sortBy === "za") return b.label.localeCompare(a.label);
-                return 0;
-            });
+            // Always sort descending by default now that sortBy is gone
+            rows.sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
             return rows;
         };
 
@@ -560,6 +585,15 @@ export default function StatsAdmin() {
             );
         }
 
+        if (mode === "geo_status") {
+            return sortRows(
+                Object.keys(agg.byGeo).map((k) => ({
+                    key: k,
+                    label: unsanitizeKey(k),
+                    count: Number(agg.byGeo[k]) || 0,
+                }))
+            );
+        }
         return sortRows(
             Object.keys(agg.byDevice).map((k) => ({
                 key: k,
@@ -567,31 +601,38 @@ export default function StatsAdmin() {
                 count: Number(agg.byDevice[k]) || 0,
             }))
         );
-    }, [agg, mode, sortBy]);
+    }, [agg, mode]);
 
     const donutTitle = useMemo(() => {
-        const prefix = source === "bots" ? `${BOT_ICON} Bots` : source === "unique" ? "Unique Visitors" : "Visits";
+        const prefix = visitorType === "unique" 
+                ? "Real Traffic" 
+                : page === "world_map" 
+                    ? "World Map Visits" 
+                    : "Daily Traffic";
         if (mode === "countries") return `${prefix} • Distribution by Country`;
         if (mode === "cities") return `${prefix} • Distribution by City`;
         if (mode === "languages") return `${prefix} • Distribution by Language`;
+        if (mode === "geo_status") return `${prefix} • Geolocation Status`;
         return `${prefix} • Distribution by Device`;
-    }, [mode, source]);
+    }, [mode, page, visitorType]);
 
     const modeTabs = [
         { id: "cities", label: "Cities" },
         { id: "countries", label: "Countries" },
         { id: "languages", label: "Languages" },
         { id: "devices", label: "Devices" },
+        ...(page === "world_map" && (visitorType === "human" || visitorType === "unique") ? [{ id: "geo_status", label: "Geo Status" }] : []),
     ];
 
     const nameLabel = useMemo(() => {
         if (mode === "countries") return "Country";
         if (mode === "cities") return "City";
         if (mode === "languages") return "Language";
+        if (mode === "geo_status") return "Status";
         return "Device";
     }, [mode]);
 
-    const centerLabel = source === "bots" ? "bots" : source === "unique" ? "visitors" : "visits";
+    const centerLabel = visitorType === "unique" ? "total" : page === "world_map" ? "map" : "visits";
 
     return (
         <div className="adminFullPage">
@@ -617,28 +658,28 @@ export default function StatsAdmin() {
 
                     <select
                         className="adminSelect"
-                        value={source}
+                        value={page}
                         onChange={(e) => {
-                            setSource(e.target.value);
+                            setPage(e.target.value);
                             setSearch("");
                         }}
-                        aria-label="Select source"
+                        aria-label="Select page"
                     >
-                        <option value="visits">Human Visits</option>
-                        <option value="unique">Unique Visitors</option>
-                        <option value="bots">Detected Bots</option>
+                        <option value="lp">Landing Page</option>
+                        <option value="world_map">World Map</option>
                     </select>
 
                     <select
                         className="adminSelect"
-                        value={sortBy}
-                        onChange={(e) => setSortBy(e.target.value)}
-                        aria-label="Sort by"
+                        value={visitorType}
+                        onChange={(e) => {
+                            setVisitorType(e.target.value);
+                            setSearch("");
+                        }}
+                        aria-label="Select visitor type"
                     >
-                        <option value="desc">Highest first</option>
-                        <option value="asc">Lowest first</option>
-                        <option value="az">A to Z</option>
-                        <option value="za">Z to A</option>
+                        <option value="human">Daily Traffic</option>
+                        <option value="unique">Real Traffic</option>
                     </select>
 
                     <select
@@ -673,12 +714,10 @@ export default function StatsAdmin() {
                 <div className="adminFullContent">
                     {error ? <div className="adminAlert">{error}</div> : null}
 
-                    {rangeMode !== "today" && (
-                        <BarChart
-                            title={`${source === "bots" ? `${BOT_ICON} Bots` : source === "unique" ? "Unique Visitors" : "Visits"} • Timeline`}
-                            rows={agg.timeline}
-                        />
-                    )}
+                    <BarChart
+                        title={`${visitorType === "unique" ? "Real Traffic" : "Daily Traffic"} • Timeline`}
+                        rows={agg.timeline}
+                    />
 
                     <DonutWithLegend
                         title={donutTitle}
@@ -688,6 +727,46 @@ export default function StatsAdmin() {
                         centerLabel={centerLabel}
                         nameLabel={nameLabel}
                     />
+
+                    {page === "world_map" && (visitorType === "human" || visitorType === "unique") && agg.byGeo["granted"] > 0 && (
+                        <div className="statsCard" style={{ marginTop: "24px" }}>
+                            <div className="statsCardTop">
+                                <div className="statsCardTitle">Recent Precise Positions (GPS)</div>
+                            </div>
+                            <div className="statsLegendScroll">
+                                <div className="statsLegendHead" style={{ gridTemplateColumns: "110px 1fr 70px" }}>
+                                    <div className="statsLegendHeadCell">Date / Time</div>
+                                    <div className="statsLegendHeadCell">Location (Nearest)</div>
+                                    <div className="statsLegendHeadCell statsRight">Maps</div>
+                                </div>
+                                {scoped
+                                    .filter(v => v.preciseLat)
+                                    .sort((a, b) => b.timestamp - a.timestamp)
+                                    .slice(0, 50)
+                                    .map((v, i) => (
+                                        <div key={i} className="statsLegendRow" style={{ gridTemplateColumns: "110px 1fr 70px" }}>
+                                            <div className="statsLegendName" style={{ fontSize: "12px", color: "rgba(10,42,67,0.6)" }}>
+                                                {v.day.split('-').slice(0,2).join('/')} {v.timeHM}
+                                            </div>
+                                            <div className="statsLegendName" style={{ fontWeight: "500" }}>
+                                                {v.city}, {v.country}
+                                            </div>
+                                            <div className="statsLegendCount statsRight">
+                                                <a
+                                                    href={`https://www.google.com/maps?q=${v.preciseLat},${v.preciseLng}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="adminBtn adminBtnPrimary"
+                                                    style={{ padding: "4px 10px", fontSize: "11px", height: "auto", textDecoration: "none" }}
+                                                >
+                                                    View
+                                                </a>
+                                            </div>
+                                        </div>
+                                    ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
         </div>

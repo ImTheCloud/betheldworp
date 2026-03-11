@@ -25,12 +25,9 @@
     border: 1px solid rgba(10, 42, 67, 0.08);
     border-radius: 16px;
     padding: 24px;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-    /* Crucial */
-    overflow: hidden;
+    margin-bottom: 24px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .statsCardTop {
@@ -49,32 +46,20 @@
 }
 
 .statsDonutWrap {
-    flex: 1;
-    display: grid;
-    /* Two columns: Chart | Legend */
-    grid-template-columns: 400px 1fr;
-    gap: 48px;
-    align-items: stretch;
-    min-height: 0;
-    /* Crucial */
-    overflow: hidden;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 40px;
+    align-items: flex-start;
 }
 
 .statsDonut {
-    display: grid;
-    place-items: center;
-    width: 100%;
-    height: 100%;
-    max-height: 100%;
-    overflow: hidden;
+    width: 280px;
+    flex-shrink: 0;
 }
 
 .statsDonutSvg {
     width: 100%;
     height: auto;
-    max-height: 100%;
-    max-width: 320px;
-    /* Don't let it get huge */
     display: block;
     aspect-ratio: 1/1;
 }
@@ -114,12 +99,11 @@
 
 /* Legend Side - Scrollable */
 .statsLegend {
+    flex: 1;
+    min-width: 300px;
     display: flex;
     flex-direction: column;
     gap: 16px;
-    height: 100%;
-    min-height: 0;
-    overflow: hidden;
 }
 
 .statsSearch {
@@ -169,12 +153,11 @@
     text-transform: uppercase;
 }
 
-/* THE MAGIC SCROLL AREA */
+/* THE MAGIC SCROLL AREA - Use natural height if not too long, or set a reasonable min-height */
 .statsLegendScroll {
-    flex: 1;
     overflow-y: auto;
     padding-right: 6px;
-    min-height: 0;
+    max-height: 600px; 
 }
 
 /* Scrollbar styling */
@@ -242,16 +225,23 @@
     padding: 20px;
 }
 
-/* ── Responsive ── */
-@media (max-width: 1100px) {
-    .statsDonutWrap {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto 1fr;
-        gap: 32px;
-    }
+/* Ensure scrollability of the main container */
+.adminFullContent {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 24px 40px 24px;
+    min-height: 0;
+}
 
+.statsBarChartScroll {
+    overflow-x: auto;
+    padding-bottom: 12px;
+}
+@media (max-width: 1100px) {
     .statsDonut {
-        max-height: 250px;
+        width: 100%;
+        max-width: 250px;
+        margin: 0 auto;
     }
 
     .statsLegendHead,
@@ -261,35 +251,14 @@
 }
 
 @media (max-width: 600px) {
-    .statsPage {
-        height: auto;
-        overflow: visible;
-        display: block;
-    }
-
-    .statsLayout {
-        display: grid;
-        height: auto;
-    }
-
     .statsActions {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 10px;
         width: 100%;
-        padding-bottom: 0;
-        overflow: visible;
-    }
-
-    .statsActions .adminSelect {
-        width: 100%;
-        min-width: 0;
-        margin: 0;
     }
 
     .statsCard {
-        height: auto;
-        flex: none;
         padding: 20px;
     }
 

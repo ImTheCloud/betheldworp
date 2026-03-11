@@ -1,7 +1,9 @@
 .worldmap-section {
-    padding: 100px 24px;
-    background: radial-gradient(circle at top right, #164678 0%, #0a2a43 100%);
     position: relative;
+    padding: 70px 24px 80px;
+    background: #0a2a43;
+    display: flex;
+    justify-content: center;
     overflow: hidden;
     color: #ffffff;
 }
@@ -12,72 +14,88 @@
     left: 0;
     width: 100%;
     height: 100%;
-    opacity: 0.08;
-    background-image:
-        radial-gradient(circle at 2px 2px, rgba(255, 255, 255, 0.15) 1px, transparent 0),
-        linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-    background-size: 40px 40px, 40px 40px, 40px 40px;
-    z-index: 1;
-}
-
-.worldmap-bg-glow {
-    position: absolute;
-    top: -10%;
-    right: -10%;
-    width: 800px;
-    height: 800px;
-    background: radial-gradient(circle, rgba(19, 75, 123, 0.4) 0%, transparent 70%);
-    z-index: 1;
+    opacity: 0.15;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+    background-size: 24px 24px;
     pointer-events: none;
-    filter: blur(60px);
 }
 
 .worldmap-container {
+    width: 100%;
     max-width: 1100px;
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    gap: 60px;
     position: relative;
     z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
 }
 
 .worldmap-content {
-    flex: 1;
-    text-align: left;
+    width: 100%;
 }
 
-.worldmap-tag {
-    display: inline-block;
-    padding: 6px 16px;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 100px;
-    font-size: 0.85rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: #ffd766;
-    /* Gold accent */
+.worldmap-impact-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 24px;
     margin-bottom: 24px;
+    padding: 10px 24px;
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 100px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
 .worldmap-title {
-    font-size: clamp(38px, 6vw, 64px);
+    font-size: clamp(38px, 5.5vw, 64px);
     font-weight: 900;
-    line-height: 1.05;
+    color: #ffffff;
+    letter-spacing: -0.02em;
     margin: 0 0 24px 0;
-    letter-spacing: -0.03em;
+    line-height: 1.1;
 }
 
 .worldmap-description {
-    font-size: clamp(17px, 2.5vw, 20px);
-    line-height: 1.6;
+    font-size: 1.1rem;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0 auto 32px;
+    max-width: 700px;
+}
+
+.impact-pill-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.impact-pill-item svg {
+    color: #ffd766;
     opacity: 0.9;
-    margin: 0 0 44px 0;
-    max-width: 600px;
+}
+
+.impact-pill-value {
+    font-size: 1.4rem;
+    font-weight: 900;
+    color: #ffffff;
+    line-height: 1;
+}
+
+.impact-pill-label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    opacity: 0.6;
+}
+
+.impact-pill-divider {
+    width: 1px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .worldmap-cta {
@@ -86,123 +104,54 @@
     gap: 12px;
     background: #ffffff;
     color: #0a2a43;
-    padding: 18px 36px;
+    padding: 18px 40px;
     border-radius: 16px;
     font-weight: 800;
-    font-size: 1.1rem;
+    font-size: 1.15rem;
     text-decoration: none;
     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35);
+    margin-top: 12px;
 }
 
 .worldmap-cta:hover {
-    transform: translateY(-5px) scale(1.02);
-    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
+    transform: translateY(-4px) scale(1.02);
     background: #ffd766;
-}
-
-.worldmap-stats {
-    display: flex;
-    align-items: center;
-    gap: 32px;
-    margin-top: 56px;
-    padding-top: 32px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.stat-item {
-    display: flex;
-    flex-direction: column;
-}
-
-.stat-value {
-    font-size: 2rem;
-    font-weight: 900;
-    color: #ffffff;
-}
-
-.stat-label {
-    font-size: 0.9rem;
-    opacity: 0.6;
-    font-weight: 600;
-}
-
-.stat-divider {
-    width: 1px;
-    height: 40px;
-    background: rgba(255, 255, 255, 0.1);
-}
-
-/* Visual Section */
-.worldmap-visual {
-    flex: 1;
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 500px;
-}
-
-.visual-card-3d {
-    width: 100%;
-    max-width: 600px;
-    height: 500px;
-    position: relative;
-    z-index: 2;
-    animation: float 6s ease-in-out infinite;
-}
-
-@keyframes float {
-
-    0%,
-    100% {
-        transform: translateY(0);
-    }
-
-    50% {
-        transform: translateY(-20px);
-    }
-}
-
-@media (max-width: 1024px) {
-    .worldmap-container {
-        flex-direction: column;
-        gap: 60px;
-        text-align: center;
-    }
-
-    .worldmap-content {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .worldmap-description {
-        margin: 0 auto 40px;
-    }
-
-    .worldmap-stats {
-        justify-content: center;
-        width: 100%;
-    }
-
-    .worldmap-visual {
-        max-width: 600px;
-        width: 100%;
-    }
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
 }
 
 @media (max-width: 600px) {
     .worldmap-section {
-        padding: 80px 20px;
+        padding: 50px 20px 60px;
     }
 
-    .stat-divider {
-        display: none;
+    .worldmap-title {
+        font-size: 32px;
     }
 
-    .worldmap-stats {
-        flex-direction: column;
+    .worldmap-description {
+        font-size: 1rem;
+        margin-bottom: 24px;
+    }
+
+    .worldmap-impact-pill {
+        width: 100%;
+        justify-content: center;
         gap: 20px;
+        padding: 12px 20px;
+    }
+
+    .impact-pill-value {
+        font-size: 1.2rem;
+    }
+
+    .impact-pill-label {
+        font-size: 0.75rem;
+    }
+
+    .worldmap-cta {
+        width: 100%;
+        justify-content: center;
+        padding: 20px 24px;
     }
 }

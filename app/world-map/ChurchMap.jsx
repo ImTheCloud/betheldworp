@@ -5,6 +5,7 @@ import { APIProvider, Map, AdvancedMarker, useMap } from "@vis.gl/react-google-m
 import { useSearchParams } from "next/navigation";
 import { collection, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, increment } from "firebase/firestore";
 import { db } from "../lib/Firebase";
+import { trackWorldMapVisit } from "@/app/lib/Tracker";
 import Link from "next/link";
 import { useLang } from "../components/LanguageProvider";
 import LanguageSwitcher from "../components/LanguageSwitcher";
@@ -488,21 +489,29 @@ export default function ChurchMap() {
         }
     }, [searchParams, churches, churchesLoading]);
 
+    // Track World Map visit landing
+    useEffect(() => {
+        trackWorldMapVisit("initial");
+    }, []);
+
     // Auto-locate
     useEffect(() => {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
-                    setUserLocation({
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude,
-                    });
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    setUserLocation({ lat, lng });
+                    trackWorldMapVisit("granted", { lat, lng });
                 },
                 (err) => {
                     console.warn("Geolocation denied or unavailable.", err);
+                    trackWorldMapVisit("denied");
                 },
                 { timeout: 5000 }
             );
+        } else {
+            trackWorldMapVisit("denied");
         }
     }, []);
 
@@ -662,8 +671,7 @@ export default function ChurchMap() {
     }, [userLocation, churches]);
 
     const getDirectionsUrl = (church) => {
-        const fullAddress = `${church.street || ""} ${church.number || ""}, ${church.zipCode || ""} ${church.city || ""}, ${church.country || ""}`.trim();
-        return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(fullAddress)}&destination_place_id=${encodeURIComponent(church.name)}`;
+        return `https://www.google.com/maps/dir/?api=1&destination=${church.lat},${church.lng}`;
     };
 
     const activeFilterIcon = activeCountryFilter
