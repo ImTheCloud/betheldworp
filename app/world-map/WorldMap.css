@@ -25,15 +25,6 @@
     box-shadow: 4px 0 24px rgba(0, 0, 0, 0.05);
 }
 
-.churchMapSidebarHeader {
-    padding: 0;
-    border-bottom: none;
-    background: transparent;
-    position: relative;
-    display: none;
-}
-
-
 .churchMapTitle {
     font-size: 1.85rem;
     font-weight: 800;
@@ -161,6 +152,7 @@
    ============================================= */
 .churchMapFilterContainer {
     display: flex;
+    align-items: center;
     gap: 8px;
     margin-bottom: 12px;
     flex-shrink: 0;
@@ -168,10 +160,50 @@
     /* Default for Web */
 }
 
+/* Back Link Button next to Search */
+.churchMapBackLink {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    background: #f1f5f9;
+    border-radius: 10px;
+    color: #64748b;
+    flex-shrink: 0;
+    text-decoration: none;
+    border: 1px solid rgba(10, 42, 67, 0.12);
+    box-shadow: 0 4px 12px rgba(6, 24, 50, 0.04);
+    transition: all 0.2s ease;
+}
+
+.churchMapBackLink:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+    border-color: #cbd5e1;
+}
+
+.churchMapBackLink svg {
+    transition: transform 0.2s ease;
+}
+
+.churchMapBackLink:hover svg {
+    transform: translateX(-2px);
+}
+
 @media (max-width: 1024px) {
     .churchMapFilterContainer {
         padding: 6px 16px 0 16px;
         /* High up for Mobile */
+    }
+
+    .churchMapBackLink {
+        display: none !important;
+    }
+
+    /* Hide filters when a church is selected on mobile to give more space */
+    .churchMapBottomSheet:has(.mobileChurchDetails) .churchMapFilterContainer {
+        display: none;
     }
 }
 
@@ -774,10 +806,22 @@
     }
 }
 
+.churchDetailsHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 20px;
+    border-bottom: 1px solid rgba(19, 75, 123, 0.08);
+}
+
+.churchDetailsHeaderActions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
 .churchDetailsClose {
-    position: absolute;
-    top: 12px;
-    right: 12px;
     width: 32px;
     height: 32px;
     border-radius: 50%;
@@ -789,7 +833,7 @@
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s ease;
-    z-index: 10;
+    flex-shrink: 0;
 }
 
 .churchDetailsClose:hover {
@@ -798,7 +842,7 @@
 }
 
 .churchDetailsContent {
-    padding: 24px;
+    padding: 16px 24px 24px 24px;
 }
 
 .churchDetailsTitle {
@@ -945,18 +989,41 @@
 
 /* Info List */
 .churchDetailsInfoList {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-bottom: 20px;
+    margin-bottom: 24px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px 20px;
 }
 
 .churchDetailsInfoItem {
+    margin-bottom: 0px;
+    font-size: 0.82rem;
+    overflow: hidden;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
+    line-height: 1.2;
     color: #475569;
-    font-size: 0.85rem;
+}
+
+.churchDetailsInfoItem.not-provided {
+    opacity: 0.45;
+    filter: grayscale(1);
+    cursor: default;
+}
+
+.churchDetailsInfoItem.not-provided span {
+    font-style: italic;
+    font-size: 0.75rem;
+}
+
+.churchDetailsInfoItem a {
+    word-break: break-all;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+    color: #334155;
+    text-decoration: none;
 }
 
 .churchDetailsInfoItem svg {
@@ -981,35 +1048,20 @@
 /* Actions Buttons */
 .churchDetailsActions {
     display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 12px;
 }
 
-.churchDetailsDirectionsBtn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
+.churchDetailsActions button,
+.churchDetailsActions a {
     flex: 1;
-    padding: 12px;
-    background: #134b7b;
-    color: #ffffff;
-    text-decoration: none;
-    border-radius: 12px;
-    font-weight: 700;
-    font-size: 0.9rem;
-    transition: all 0.2s ease;
+    min-width: 0;
+    height: 44px;
+    padding: 0 8px;
+    font-size: 0.88rem;
 }
 
-.churchDetailsDirectionsBtn:hover {
-    background: #0a2a43;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 16px rgba(10, 42, 67, 0.2);
-}
 
-.churchDetailsDirectionsBtn:active {
-    transform: translateY(0);
-}
 
 /* Share Button */
 .churchShareBtn {
@@ -1058,6 +1110,11 @@
     display: none;
 }
 
+/* Hide mobile map back link on desktop */
+.mobileMapBackLink {
+    display: none;
+}
+
 @media (max-width: 768px) {
     .churchMapLayout {
         display: block;
@@ -1096,10 +1153,39 @@
         display: none;
     }
 
+    .mobileMapBackLink {
+        position: absolute;
+        top: 20px;
+        left: 16px;
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        background: rgba(255, 255, 255, 0.4);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        color: rgba(15, 23, 42, 0.8);
+        font-size: 0; /* Hide text on mobile */
+        border-radius: 50%;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .mobileMapBackLink:active {
+        background: rgba(255, 255, 255, 0.7);
+        transform: scale(0.95);
+    }
+
     /* Map Overlay Title – Mobile */
     .mapOverlayTitle {
-        top: 36px;
+        top: 20px; /* Reduced from 36px */
         gap: 3px;
+        pointer-events: none; /* Let clicks pass through if needed */
+        margin-left: 12px;
     }
 
     .mapOverlayHeading {
@@ -1168,10 +1254,6 @@
         font-size: 1.35rem;
     }
 
-    .churchMapBackLink {
-        margin-bottom: 10px;
-    }
-
     .churchListItem {
         padding: 10px 16px;
     }
@@ -1223,12 +1305,54 @@
 
 /* Sidebar Footer & Suggest Button */
 .churchSidebarFooter {
-    padding: 16px;
-    background: #f8fafc;
+    padding: 12px 16px;
+    background: #ffffff;
     border-top: 1px solid rgba(19, 75, 123, 0.08);
     position: sticky;
     bottom: 0;
     z-index: 10;
+    box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.03);
+}
+
+.mobileFooterActions {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+}
+
+.mobileFooterActions button,
+.mobileFooterActions a {
+    flex: 1;
+    min-width: 0; /* Allow shrinking */
+    height: 44px;
+    padding: 0 8px;
+    font-size: 0.88rem;
+}
+
+.sidebarDirectionsBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: #ffffff;
+    border: 1px solid #134b7b;
+    border-radius: 12px;
+    color: #134b7b;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.sidebarDirectionsBtn:active {
+    background: rgba(19, 75, 123, 0.05);
+    transform: scale(0.98);
+}
+
+.mobileFooterActions .btnText {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .sidebarSuggestBtn {
@@ -1238,44 +1362,146 @@
     gap: 8px;
     width: 100%;
     padding: 12px;
-    background: #ffffff;
-    border: 1px solid rgba(19, 75, 123, 0.15);
+    background: #134b7b;
+    border: 1px solid #134b7b;
     border-radius: 14px;
-    color: #475569;
+    color: #ffffff;
     font-size: 0.95rem;
     font-weight: 600;
     cursor: pointer;
-    box-shadow: 0 4px 15px rgba(6, 24, 50, 0.04);
+    box-shadow: 0 4px 15px rgba(19, 75, 123, 0.15);
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .sidebarSuggestBtn:hover {
-    background: rgba(19, 75, 123, 0.03);
-    border-color: #134b7b;
+    background: #0d345a;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(19, 75, 123, 0.08);
+    box-shadow: 0 4px 12px rgba(13, 52, 90, 0.2);
 }
 
-/* Edit Button in Details Card */
-.churchEditSuggestBtn {
+.sidebarSuggestBtn.editMode {
+    /* Same as default now, but keeping class for potential logic */
+    background: #134b7b;
+    color: #ffffff;
+    border-color: #134b7b;
+}
+
+.sidebarSuggestBtn.editMode:hover {
+    background: #0d345a;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(13, 52, 90, 0.2);
+}
+
+/* Mobile Details inside Bottom Sheet */
+.mobileChurchDetails {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    animation: slideUpDetails 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mobileChurchDetails.exiting {
+    animation: slideDownDetails 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    pointer-events: none;
+}
+
+@keyframes slideUpDetails {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideDownDetails {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(30px); }
+}
+
+.mobileDetailsHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(19, 75, 123, 0.08);
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    position: sticky;
+    top: 0;
+    z-index: 5;
+}
+
+.mobileDetailsHeaderActions {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 8px 16px;
-    background: rgba(19, 75, 123, 0.05);
-    border: 1px solid rgba(19, 75, 123, 0.1);
-    border-radius: 999px;
-    color: #134b7b;
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
 }
 
-.churchEditSuggestBtn:hover {
-    background: rgba(19, 75, 123, 0.1);
-    border-color: rgba(19, 75, 123, 0.2);
+.mobileDetailsTitleArea {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0; /* Allow shrinking */
 }
+
+.mobileChurchDetails .churchDetailsTitle {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #0f172a;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.mobileDetailsBack {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-right: -8px; /* Push to the very edge of padding */
+}
+
+.mobileDetailsBack:active {
+    background: rgba(0, 0, 0, 0.05);
+    transform: scale(0.9);
+}
+
+.mobileDetailsBody {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    padding-bottom: 20px; /* Reduced from 80px to move buttons closer */
+}
+
+.mobileChurchDetails .churchDetailsAddress {
+    font-size: 1rem;
+    color: #64748b;
+    margin-bottom: 12px; /* Reduced from 24px */
+}
+
+.mobileChurchDetails .churchDetailsInfoList {
+    margin-bottom: 15px; /* Reduced from 30px to bring buttons closer */
+    gap: 28px 24px; /* Increased vertical gap to take more space */
+}
+
+.mobileChurchDetails .churchDetailsDisclaimer {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    line-height: 1.5;
+    background: #f8fafc;
+    padding: 12px;
+    border-radius: 8px;
+}
+
+
 
 /* Suggestion Modal */
 .suggestionModalOverlay {

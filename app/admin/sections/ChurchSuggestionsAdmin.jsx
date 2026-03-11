@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { collection, doc, onSnapshot, updateDoc, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../../lib/Firebase";
 import ConfirmModal from "../components/ConfirmModal";
@@ -40,10 +40,11 @@ const COUNTRY_OPTIONS = [
 
 const FIELDS = [
     { key: "name", label: "Name", type: "text", required: true },
+    { key: "country", label: "Country", type: "select", options: COUNTRY_OPTIONS },
+    { key: "city", label: "City / Locality", type: "text" },
+    { key: "zipCode", label: "Postal Code", type: "text" },
     { key: "street", label: "Street", type: "text" },
     { key: "number", label: "Number", type: "text" },
-    { key: "city", label: "City / Town / Village", type: "text" },
-    { key: "country", label: "Country", type: "select", options: COUNTRY_OPTIONS },
     { key: "phone", label: "Phone", type: "text" },
     { key: "email", label: "Email", type: "text" },
     { key: "website", label: "Website", type: "text" },
@@ -53,8 +54,8 @@ const FIELDS = [
     { key: "notes", label: "Notes / Message", type: "textarea" },
 ];
 
-const geocodeAddress = async (street, number, city, country) => {
-    const query = [`${street || ""} ${number || ""}`.trim(), city, country].map(s => (s || "").trim()).filter(Boolean).join(", ");
+const geocodeAddress = async (street, number, city, zipCode, country) => {
+    const query = [`${street || ""} ${number || ""}`.trim(), zipCode, city, country].map(s => (s || "").trim()).filter(Boolean).join(", ");
     if (!query) return null;
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
     if (!apiKey) return null;
@@ -129,7 +130,8 @@ export default function ChurchSuggestionsAdmin() {
             const { type, originalChurchId } = suggestion;
 
             // 1. Geocode
-            const coords = await geocodeAddress(draft.street, draft.number, draft.city, draft.country);
+            const coords = await geocodeAddress(draft.street, draft.number, draft.city, draft.zipCode, draft.country);
+            // Ensure zipCode is included in draft
             const finalData = { ...draft, ...coords, updatedAt: serverTimestamp() };
 
             if (type === "new") {
@@ -174,7 +176,7 @@ export default function ChurchSuggestionsAdmin() {
                 <h1 className="adminSectionTitle">Church Suggestions</h1>
             </div>
 
-            <div className="adminGrid">
+            <div className="adminList">
                 {suggestions.length === 0 ? (
                     <div className="adminEmptyState">No pending suggestions. All caught up!</div>
                 ) : (
@@ -252,7 +254,7 @@ export default function ChurchSuggestionsAdmin() {
                                                     );
                                                 }
                                                 return (
-                                                    <label key={f.key} className="adminLabel" style={(f.key === "name" || f.key === "notes") ? { gridColumn: "span 2" } : {}}>
+                                                    <label key={f.key} className="adminLabel" style={(f.key === "notes") ? { gridColumn: "span 2" } : {}}>
                                                         <div style={{ display: "flex", alignItems: "center" }}>
                                                             {f.label}{f.required ? " *" : ""}
                                                             {isModified && <span style={{ color: "#d97706", marginLeft: 8, fontSize: "0.80rem", fontWeight: "normal" }}>(Modified)</span>}

@@ -54,10 +54,11 @@ const COUNTRY_OPTIONS = [
 
 const FIELDS = [
     { key: "name", label: "Name", type: "text", required: true },
+    { key: "country", label: "Country", type: "select", options: COUNTRY_OPTIONS },
+    { key: "city", label: "City / Locality", type: "text" },
+    { key: "zipCode", label: "Postal Code", type: "text" },
     { key: "street", label: "Street", type: "text" },
     { key: "number", label: "Number", type: "text" },
-    { key: "city", label: "City / Town / Village", type: "text" },
-    { key: "country", label: "Country", type: "select", options: COUNTRY_OPTIONS },
     { key: "phone", label: "Phone", type: "text" },
     { key: "email", label: "Email", type: "text" },
     { key: "website", label: "Website", type: "text" },
@@ -69,11 +70,11 @@ const FIELDS = [
 ];
 
 function emptyChurch() {
-    return { name: "", street: "", number: "", city: "", country: "", lat: "", lng: "", phone: "", email: "", website: "", youtube: "", facebook: "", instagram: "", notes: "", likes: 0 };
+    return { name: "", street: "", number: "", city: "", country: "", zipCode: "", lat: "", lng: "", phone: "", email: "", website: "", youtube: "", facebook: "", instagram: "", notes: "", likes: 0 };
 }
 
-const geocodeAddress = async (street, number, city, country) => {
-    const query = [`${street || ""} ${number || ""}`.trim(), city, country].map(s => (s || "").trim()).filter(Boolean).join(", ");
+const geocodeAddress = async (street, number, city, zipCode, country) => {
+    const query = [`${street || ""} ${number || ""}`.trim(), zipCode, city, country].map(s => (s || "").trim()).filter(Boolean).join(", ");
     if (!query) return null;
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
     if (!apiKey) return null;
@@ -149,7 +150,7 @@ function ChurchCard({ item, expanded, drafts, saveState, errorText, onToggle, on
                                 );
                             }
                             return (
-                                <label key={f.key} className="adminLabel" style={(f.key === "name" || f.key === "notes") ? { gridColumn: "span 2" } : {}}>
+                                <label key={f.key} className="adminLabel" style={(f.key === "notes") ? { gridColumn: "span 2" } : {}}>
                                     {f.label}{f.required ? " *" : ""}
                                     {f.type === "select" ? (
                                         <select
@@ -246,7 +247,7 @@ function NewChurchCard({ drafts, setDraft, errorText, saveState, onCancel, onSav
                             );
                         }
                         return (
-                            <label key={f.key} className="adminLabel" style={(f.key === "name" || f.key === "notes") ? { gridColumn: "span 2" } : {}}>
+                            <label key={f.key} className="adminLabel" style={(f.key === "notes") ? { gridColumn: "span 2" } : {}}>
                                 {f.label}{f.required ? " *" : ""}
                                 {f.type === "select" ? (
                                     <select
@@ -467,7 +468,7 @@ export default function ChurchesAdmin() {
         let lng = parseFloat(newDrafts.lng);
 
         if (isNaN(lat) || isNaN(lng)) {
-            const coords = await geocodeAddress(newDrafts.street, newDrafts.number, newDrafts.city, newDrafts.country);
+            const coords = await geocodeAddress(newDrafts.street, newDrafts.number, newDrafts.city, newDrafts.zipCode, newDrafts.country);
             if (coords) {
                 lat = coords.lat;
                 lng = coords.lng;
@@ -486,6 +487,7 @@ export default function ChurchesAdmin() {
                 number: (newDrafts.number || "").trim(),
                 city: (newDrafts.city || "").trim(),
                 country: (newDrafts.country || "").trim(),
+                zipCode: (newDrafts.zipCode || "").trim(),
                 lat, lng,
                 phone: newDrafts.phone.trim(),
                 email: newDrafts.email.trim(),
@@ -545,7 +547,7 @@ export default function ChurchesAdmin() {
         );
 
         if (isNaN(lat) || isNaN(lng) || addressChanged) {
-            const coords = await geocodeAddress(draft.street, draft.number, draft.city, draft.country);
+            const coords = await geocodeAddress(draft.street, draft.number, draft.city, draft.zipCode, draft.country);
             if (coords) {
                 lat = coords.lat;
                 lng = coords.lng;
@@ -565,6 +567,7 @@ export default function ChurchesAdmin() {
                 number: (draft.number || "").trim(),
                 city: (draft.city || "").trim(),
                 country: (draft.country || "").trim(),
+                zipCode: (draft.zipCode || "").trim(),
                 lat, lng,
                 phone: (draft.phone || "").trim(),
                 email: (draft.email || "").trim(),

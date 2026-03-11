@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { APIProvider, Map, AdvancedMarker, useMap } from "@vis.gl/react-google-maps";
 import { useSearchParams } from "next/navigation";
 import { collection, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, increment } from "firebase/firestore";
@@ -97,6 +97,113 @@ function formatDistance(km) {
     return `${Math.round(km)} km`;
 }
 
+const ChurchInfoLinks = ({ church, t }) => {
+    if (!church) return null;
+
+    return (
+        <div className="churchDetailsInfoList">
+            <div className={`churchDetailsInfoItem ${!church.phone ? "not-provided" : ""}`}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <rect width="24" height="24" rx="5" fill="#10B981" />
+                    <g transform="translate(4.5, 4.5) scale(0.625)" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none">
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                    </g>
+                </svg>
+                {church.phone ? (
+                    <a href={`tel:${church.phone}`}>{church.phone}</a>
+                ) : (
+                    <span>{t("phone")} {t("notSpecified")}</span>
+                )}
+            </div>
+
+            <div className={`churchDetailsInfoItem ${!church.email ? "not-provided" : ""}`}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <rect width="24" height="24" rx="5" fill="#3B82F6" />
+                    <g transform="translate(4.5, 4.5) scale(0.625)" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                        <polyline points="22,6 12,13 2,6" />
+                    </g>
+                </svg>
+                {church.email ? (
+                    <a href={`mailto:${church.email}`}>{church.email}</a>
+                ) : (
+                    <span>{t("email")} {t("notSpecified")}</span>
+                )}
+            </div>
+
+            <div className={`churchDetailsInfoItem ${!church.website ? "not-provided" : ""}`}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <rect width="24" height="24" rx="5" fill="#8B5CF6" />
+                    <g transform="translate(4.5, 4.5) scale(0.625)" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="2" y1="12" x2="22" y2="12" />
+                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                    </g>
+                </svg>
+                {church.website ? (
+                    <a href={church.website} target="_blank" rel="noopener noreferrer">
+                        {church.website.replace(/^https?:\/\//, '')}
+                    </a>
+                ) : (
+                    <span>{t("website")} {t("notSpecified")}</span>
+                )}
+            </div>
+
+            <div className={`churchDetailsInfoItem youtubeItem ${!church.youtube ? "not-provided" : ""}`}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#FF0000">
+                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+                </svg>
+                {church.youtube ? (
+                    <a href={church.youtube} target="_blank" rel="noopener noreferrer">
+                        YouTube
+                    </a>
+                ) : (
+                    <span>YouTube {t("notSpecified")}</span>
+                )}
+            </div>
+
+            <div className={`churchDetailsInfoItem facebookItem ${!church.facebook ? "not-provided" : ""}`}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#1877F2">
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                </svg>
+                {church.facebook ? (
+                    <a href={church.facebook} target="_blank" rel="noopener noreferrer">
+                        Facebook
+                    </a>
+                ) : (
+                    <span>Facebook {t("notSpecified")}</span>
+                )}
+            </div>
+
+            <div className={`churchDetailsInfoItem instagramItem ${!church.instagram ? "not-provided" : ""}`}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <defs>
+                        <linearGradient id="shared-ig-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+                            <stop offset="0%" stopColor="#f09433" />
+                            <stop offset="25%" stopColor="#e6683c" />
+                            <stop offset="50%" stopColor="#dc2743" />
+                            <stop offset="75%" stopColor="#cc2366" />
+                            <stop offset="100%" stopColor="#bc1888" />
+                        </linearGradient>
+                    </defs>
+                    <rect width="24" height="24" rx="5" fill="url(#shared-ig-grad)" />
+                    <g transform="translate(4.5, 4.5) scale(0.625)" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none">
+                        <rect x="2" y="2" width="20" height="20" rx="5" />
+                        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                        <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+                    </g>
+                </svg>
+                {church.instagram ? (
+                    <a href={church.instagram} target="_blank" rel="noopener noreferrer">
+                        Instagram
+                    </a>
+                ) : (
+                    <span>Instagram {t("notSpecified")}</span>
+                )}
+            </div>
+        </div>
+    );
+};
 
 
 function MapController({ selectedChurch, requestedLocation, isInitialLoad }) {
@@ -193,6 +300,15 @@ export default function ChurchMap() {
     const [filterOpen, setFilterOpen] = useState(false);
     const filterRef = useRef(null);
     const touchStartY = useRef(0);
+    const [isMobile, setIsMobile] = useState(false);
+    const [isExiting, setIsExiting] = useState(false);
+
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+        checkMobile();
+        window.addEventListener("resize", checkMobile);
+        return () => window.removeEventListener("resize", checkMobile);
+    }, []);
 
     // Collaboration State
     const [likedChurches, setLikedChurches] = useState(new Set());
@@ -246,6 +362,7 @@ export default function ChurchMap() {
         city: "",
         street: "",
         number: "",
+        zipCode: "",
         phone: "",
         email: "",
         website: "",
@@ -266,6 +383,7 @@ export default function ChurchMap() {
                 city: church.city || "",
                 street: church.street || "",
                 number: church.number || "",
+                zipCode: church.zipCode || "",
                 phone: church.phone || "",
                 email: church.email || "",
                 website: church.website || "",
@@ -391,19 +509,32 @@ export default function ChurchMap() {
     const selectChurch = useCallback((church) => {
         setSelectedChurch(church);
         setIsInitialLoad(false);
-        setBottomSheetMode("hidden"); // Hide the list cleanly on mobile when a church is selected
+        setBottomSheetMode("collapsed"); // Set to collapsed (medium) mode instead of expanded
         const url = new URL(window.location.href);
         url.searchParams.set("church", church.id);
         window.history.replaceState({}, "", url.toString());
     }, []);
 
     const deselectChurch = useCallback(() => {
-        setSelectedChurch(null);
-        setBottomSheetMode("collapsed"); // Show the list if it was hidden
-        const url = new URL(window.location.href);
-        url.searchParams.delete("church");
-        window.history.replaceState({}, "", url.toString());
-    }, []);
+        if (isMobile && selectedChurch) {
+            setIsExiting(true);
+            // Wait for CSS animation (300ms)
+            setTimeout(() => {
+                setSelectedChurch(null);
+                setIsExiting(false);
+                setBottomSheetMode("collapsed");
+                const url = new URL(window.location.href);
+                url.searchParams.delete("church");
+                window.history.replaceState({}, "", url.toString());
+            }, 250);
+        } else {
+            setSelectedChurch(null);
+            setBottomSheetMode("collapsed");
+            const url = new URL(window.location.href);
+            url.searchParams.delete("church");
+            window.history.replaceState({}, "", url.toString());
+        }
+    }, [isMobile, selectedChurch]);
 
     const handleShare = useCallback(async (church) => {
         const url = `${window.location.origin}/world-map?church=${church.id}`;
@@ -531,7 +662,7 @@ export default function ChurchMap() {
     }, [userLocation, churches]);
 
     const getDirectionsUrl = (church) => {
-        const fullAddress = `${church.street || ""} ${church.number || ""}, ${church.city || ""}, ${church.country || ""}`.trim();
+        const fullAddress = `${church.street || ""} ${church.number || ""}, ${church.zipCode || ""} ${church.city || ""}, ${church.country || ""}`.trim();
         return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(fullAddress)}&destination_place_id=${encodeURIComponent(church.name)}`;
     };
 
@@ -543,8 +674,6 @@ export default function ChurchMap() {
         <div className={`churchMapLayout ${mobileShowMap ? "mapFocused" : ""}`}>
             {/* Sidebar */}
             <aside className="churchMapSidebar">
-                <div className="churchMapSidebarHeader"></div>
-
                 <div className="churchMapBottomSheet" data-mode={bottomSheetMode}>
                     <div
                         className="bottomSheetDragHandleArea"
@@ -561,6 +690,13 @@ export default function ChurchMap() {
 
                     {/* Search and Country Filter Area */}
                     <div className="churchMapFilterContainer">
+                        <Link href="/#harta-mondiala" className="churchMapBackLink" title={t("backToHome")} aria-label={t("backToHome")}>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="19" y1="12" x2="5" y2="12"></line>
+                                <polyline points="12 19 5 12 12 5"></polyline>
+                            </svg>
+                        </Link>
+
                         <div className="churchMapSearch">
                             <svg className="churchMapSearchIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <circle cx="11" cy="11" r="8"></circle>
@@ -635,73 +771,126 @@ export default function ChurchMap() {
                             </div>
                         ) : (
                             <>
-                                {Object.entries(groupedChurches).map(([country, items]) => (
-                                    <div key={country} className="churchCountryGroup">
-                                        <h2 className="churchCountryHeader">
-                                            <span className="countryFlag">{COUNTRY_FLAGS[country] || "🌍"}</span>
-                                            {t(`country_${country}`) === `country_${country}` ? country : t(`country_${country}`)}
-                                            <span className="countryCount">{items.length}</span>
-                                        </h2>
-                                        {items.map((church, idx) => {
-                                            const isSelected = selectedChurch?.id === church.id;
-                                            const dist = distanceMap[church.id];
-                                            return (
-                                                <button
-                                                    key={idx}
-                                                    className={`churchListItem ${isSelected ? "active" : ""}`}
-                                                    onClick={() => {
-                                                        selectChurch(church);
-                                                    }}
-                                                >
-                                                    <div className="churchListItemIcon">
-                                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                                            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+                                {isMobile && (selectedChurch || isExiting) ? (
+                                    <div className={`mobileChurchDetails ${isExiting ? "exiting" : ""}`}>
+                                        <div className="mobileDetailsHeader">
+                                            <h2 className="churchDetailsTitle">
+                                                {selectedChurch.name}{selectedChurch.city ? ` - ${selectedChurch.city}` : ''}
+                                            </h2>
+                                            <div className="mobileDetailsHeaderActions">
+                                                <div className="churchLikeTooltipWrapper">
+                                                    <button
+                                                        className={`churchLikeBtn ${likedChurches.has(selectedChurch.id) ? "liked" : ""}`}
+                                                        onClick={() => handleLike(selectedChurch.id)}
+                                                        title={likedChurches.has(selectedChurch.id) ? t("removeRecommendation") : t("recommendChurch")}
+                                                    >
+                                                        <svg width="18" height="18" viewBox="0 0 24 24" fill={likedChurches.has(selectedChurch.id) ? "#ef4444" : "none"} stroke={likedChurches.has(selectedChurch.id) ? "#ef4444" : "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                                                         </svg>
-                                                    </div>
-                                                    <div className="churchListItemContent">
-                                                        <h3>{church.name}{church.city ? ` - ${church.city}` : ''}</h3>
-                                                        <p>{church.street} {church.number}</p>
-                                                    </div>
-                                                    {dist != null && (
-                                                        <span className="churchDistance">{formatDistance(dist)}</span>
-                                                    )}
+                                                        <span className="churchLikeCount">{selectedChurch.likes || 0}</span>
+                                                    </button>
+                                                </div>
+                                                <button className="mobileDetailsBack" onClick={deselectChurch} aria-label="Close">
+                                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                                                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                                                    </svg>
                                                 </button>
-                                            );
-                                        })}
-                                    </div>
-                                ))}
+                                            </div>
+                                        </div>
 
-                                {filteredChurches.length === 0 && (
-                                    <div className="churchListEmpty">
-                                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                                            <circle cx="11" cy="11" r="8"></circle>
-                                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                        </svg>
-                                        <p>{t("noChurchFound")}</p>
-                                        <div className="emptyActions">
-                                            <button className="resetSearchBtn" onClick={() => { setSearchQuery(""); setActiveCountryFilter(""); }}>
-                                                {t("resetSearch")}
-                                            </button>
-                                            <button className="suggestNewBtn" onClick={() => openSuggestionModal("new")}>
-                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                    <path d="M12 5v14M5 12h14"></path>
-                                                </svg>
-                                                {t("suggestChurch")}
-                                            </button>
+                                        <div className="mobileDetailsBody">
+                                            <p className="churchDetailsAddress">
+                                                {`${selectedChurch.street || ""} ${selectedChurch.number || ""}`.trim()}, {selectedChurch.zipCode ? `${selectedChurch.zipCode} ` : ""}{selectedChurch.city}, {getCountryLabel(selectedChurch.country)}
+                                            </p>
+
+                                            <ChurchInfoLinks church={selectedChurch} t={t} />
+
                                         </div>
                                     </div>
+                                ) : (
+                                    <>
+                                        {Object.entries(groupedChurches).map(([country, items]) => (
+                                            <div key={country} className="churchCountryGroup">
+                                                <h2 className="churchCountryHeader">
+                                                    <span className="countryFlag">{COUNTRY_FLAGS[country] || "🌍"}</span>
+                                                    {t(`country_${country}`) === `country_${country}` ? country : t(`country_${country}`)}
+                                                    <span className="countryCount">{items.length}</span>
+                                                </h2>
+                                                {items.map((church, idx) => {
+                                                    const isSelected = selectedChurch?.id === church.id;
+                                                    const dist = distanceMap[church.id];
+                                                    return (
+                                                        <button
+                                                            key={idx}
+                                                            className={`churchListItem ${isSelected ? "active" : ""}`}
+                                                            onClick={() => {
+                                                                selectChurch(church);
+                                                            }}
+                                                        >
+                                                            <div className="churchListItemIcon">
+                                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                                                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+                                                                </svg>
+                                                            </div>
+                                                            <div className="churchListItemContent">
+                                                                <h3>{church.name}{church.city ? ` - ${church.city}` : ''}</h3>
+                                                                    <p>{`${church.street || ""} ${church.number || ""}`.trim()}, {church.zipCode ? `${church.zipCode} ` : ""}{church.city}, {getCountryLabel(church.country)}</p>
+                                                            </div>
+                                                            {dist != null && (
+                                                                <span className="churchDistance">{formatDistance(dist)}</span>
+                                                            )}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        ))}
+
+                                        {filteredChurches.length === 0 && (
+                                            <div className="churchListEmpty">
+                                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                                    <circle cx="11" cy="11" r="8"></circle>
+                                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                                </svg>
+                                                <p>{t("noChurchFound")}</p>
+                                            </div>
+                                        )}
+                                    </>
                                 )}
                             </>
                         )}
                     </div>
 
                     <div className="churchSidebarFooter">
-                        <button className="sidebarSuggestBtn" onClick={() => openSuggestionModal("new")}>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M12 5v14M5 12h14"></path>
-                            </svg>
-                            {t("suggestChurch")}
-                        </button>
+                        {isMobile && selectedChurch ? (
+                            <div className="mobileFooterActions">
+                                <button className="sidebarSuggestBtn editMode" onClick={() => openSuggestionModal("edit", selectedChurch)}>
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                        <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                    </svg>
+                                    <span className="btnText">{t("editShort")}</span>
+                                </button>
+                                <a 
+                                    href={getDirectionsUrl(selectedChurch)} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer" 
+                                    className="sidebarDirectionsBtn"
+                                >
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
+                                    </svg>
+                                    <span className="btnText">{t("route")}</span>
+                                </a>
+                            </div>
+                        ) : (
+                            <button className="sidebarSuggestBtn" onClick={() => openSuggestionModal("new")}>
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M12 5v14M5 12h14"></path>
+                                </svg>
+                                {t("suggestChurch")}
+                            </button>
+                        )}
                     </div>
                 </div>
 
@@ -719,6 +908,15 @@ export default function ChurchMap() {
 
             {/* Map */}
             <div className="churchMapContainer">
+                {/* Mobile Back Button (Floating on Map) */}
+                <Link href="/#harta-mondiala" className="mobileMapBackLink">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="19" y1="12" x2="5" y2="12"></line>
+                        <polyline points="12 19 5 12 12 5"></polyline>
+                    </svg>
+                    {t("backToHome")}
+                </Link>
+
                 {/* Map Overlay Title */}
                 <div className="mapOverlayTitle">
                     <h1 className="mapOverlayHeading">{t("subtitle")}</h1>
@@ -771,21 +969,14 @@ export default function ChurchMap() {
                         />
                     </Map>
 
-                    {/* Church Details Card */}
-                    {selectedChurch && (
+                    {/* Church Details Card (Desktop Only) */}
+                    {selectedChurch && !isMobile && (
                         <div className="churchDetailsCard">
-                            <button className="churchDetailsClose" onClick={deselectChurch}>
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                                </svg>
-                            </button>
-
-                            <div className="churchDetailsContent" style={{ paddingTop: "32px" }}>
-                                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "4px", flexWrap: "wrap", paddingRight: "28px" }}>
-                                    <h2 className="churchDetailsTitle" style={{ margin: 0 }}>
-                                        {selectedChurch.name}{selectedChurch.city ? ` - ${selectedChurch.city}` : ''}
-                                    </h2>
+                            <div className="churchDetailsHeader">
+                                <h2 className="churchDetailsTitle">
+                                    {selectedChurch.name}{selectedChurch.city ? ` - ${selectedChurch.city}` : ''}
+                                </h2>
+                                <div className="churchDetailsHeaderActions">
                                     <div className="churchLikeTooltipWrapper">
                                         <button
                                             className={`churchLikeBtn ${likedChurches.has(selectedChurch.id) ? "liked" : ""}`}
@@ -802,127 +993,44 @@ export default function ChurchMap() {
                                             {t("recommendInfo")}
                                         </div>
                                     </div>
+                                    <button className="churchDetailsClose" onClick={deselectChurch} aria-label="Close">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                                        </svg>
+                                    </button>
                                 </div>
-                                <p className="churchDetailsAddress" style={{ marginTop: "4px" }}>{selectedChurch.street} {selectedChurch.number}</p>
-
-
-                                <div className="churchDetailsInfoList">
-                                    {selectedChurch.phone && (
-                                        <div className="churchDetailsInfoItem">
-                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                                                <rect width="24" height="24" rx="5" fill="#10B981" />
-                                                <g transform="translate(4.5, 4.5) scale(0.625)" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none">
-                                                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-                                                </g>
-                                            </svg>
-                                            <a href={`tel:${selectedChurch.phone}`}>{selectedChurch.phone}</a>
-                                        </div>
-                                    )}
-                                    {selectedChurch.email && (
-                                        <div className="churchDetailsInfoItem">
-                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                                                <rect width="24" height="24" rx="5" fill="#3B82F6" />
-                                                <g transform="translate(4.5, 4.5) scale(0.625)" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none">
-                                                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-                                                    <polyline points="22,6 12,13 2,6" />
-                                                </g>
-                                            </svg>
-                                            <a href={`mailto:${selectedChurch.email}`}>{selectedChurch.email}</a>
-                                        </div>
-                                    )}
-                                    {selectedChurch.website && (
-                                        <div className="churchDetailsInfoItem">
-                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                                                <rect width="24" height="24" rx="5" fill="#8B5CF6" />
-                                                <g transform="translate(4.5, 4.5) scale(0.625)" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none">
-                                                    <circle cx="12" cy="12" r="10" />
-                                                    <line x1="2" y1="12" x2="22" y2="12" />
-                                                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-                                                </g>
-                                            </svg>
-                                            <a href={selectedChurch.website} target="_blank" rel="noopener noreferrer">
-                                                {selectedChurch.website.replace(/^https?:\/\//, '')}
-                                            </a>
-                                        </div>
-                                    )}
-                                    {selectedChurch.youtube && (
-                                        <div className="churchDetailsInfoItem youtubeItem">
-                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="#FF0000">
-                                                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-                                            </svg>
-                                            <a href={selectedChurch.youtube} target="_blank" rel="noopener noreferrer">
-                                                YouTube
-                                            </a>
-                                        </div>
-                                    )}
-                                    {selectedChurch.facebook && (
-                                        <div className="churchDetailsInfoItem facebookItem">
-                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="#1877F2">
-                                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                                            </svg>
-                                            <a href={selectedChurch.facebook} target="_blank" rel="noopener noreferrer">
-                                                Facebook
-                                            </a>
-                                        </div>
-                                    )}
-                                    {selectedChurch.instagram && (
-                                        <div className="churchDetailsInfoItem instagramItem">
-                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                                                <defs>
-                                                    <linearGradient id="ig-grad-new" x1="0%" y1="100%" x2="100%" y2="0%">
-                                                        <stop offset="0%" stopColor="#f09433" />
-                                                        <stop offset="25%" stopColor="#e6683c" />
-                                                        <stop offset="50%" stopColor="#dc2743" />
-                                                        <stop offset="75%" stopColor="#cc2366" />
-                                                        <stop offset="100%" stopColor="#bc1888" />
-                                                    </linearGradient>
-                                                </defs>
-                                                <rect width="24" height="24" rx="5" fill="url(#ig-grad-new)" />
-                                                <g transform="translate(4.5, 4.5) scale(0.625)" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none">
-                                                    <rect x="2" y="2" width="20" height="20" rx="5" />
-                                                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-                                                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
-                                                </g>
-                                            </svg>
-                                            <a href={selectedChurch.instagram} target="_blank" rel="noopener noreferrer">
-                                                Instagram
-                                            </a>
-                                        </div>
-                                    )}
-                                </div>
+                            </div>
+                            <div className="churchDetailsContent">
+                                <p className="churchDetailsAddress">
+                                    {`${selectedChurch.street || ""} ${selectedChurch.number || ""}`.trim()}, {selectedChurch.zipCode ? `${selectedChurch.zipCode} ` : ""}{selectedChurch.city}, {getCountryLabel(selectedChurch.country)}
+                                </p>
+                                <ChurchInfoLinks church={selectedChurch} t={t} />
 
                                 <div className="churchDetailsActions">
-                                    <a
-                                        href={getDirectionsUrl(selectedChurch)}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="churchDetailsDirectionsBtn"
-                                    >
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                            <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
-                                        </svg>
-                                        {t("directions")}
-                                    </a>
                                     <button
-                                        className="churchEditSuggestBtn"
+                                        className="sidebarSuggestBtn editMode"
                                         onClick={() => openSuggestionModal("edit", selectedChurch)}
                                     >
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                                             <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                                         </svg>
-                                        {t("editChurch")}
+                                        <span className="btnText">{t("editShort")}</span>
                                     </button>
+                                    <a
+                                        href={getDirectionsUrl(selectedChurch)}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="sidebarDirectionsBtn"
+                                    >
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
+                                        </svg>
+                                        <span className="btnText">{t("route")}</span>
+                                    </a>
                                 </div>
 
-                                <p className="churchDetailsDisclaimer">
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <circle cx="12" cy="12" r="10"></circle>
-                                        <line x1="12" y1="8" x2="12" y2="12"></line>
-                                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                                    </svg>
-                                    {t("infoDisclaimer") || "Les informations peuvent avoir évolué. Pensez à vérifier avant votre visite."}
-                                </p>
                             </div>
                         </div>
                     )}
@@ -948,28 +1056,17 @@ export default function ChurchMap() {
                                 {formError && <div className="suggestionError">{formError}</div>}
 
                                 <div className="suggestionFormBody">
-                                    <div className="suggestionFormGroup">
-                                        <label>{t("name")} *</label>
-                                        <input
-                                            type="text"
-                                            required
-                                            value={suggestionForm.name}
-                                            onChange={(e) => setSuggestionForm({ ...suggestionForm, name: e.target.value })}
-                                        />
-                                    </div>
-
                                     <div className="suggestionFormRow">
-                                        <div className="suggestionFormGroup">
-                                            <label>{t("city")} *</label>
+                                        <div className="suggestionFormGroup" style={{ flex: 1 }}>
+                                            <label>{t("name")} *</label>
                                             <input
                                                 type="text"
                                                 required
-                                                value={suggestionForm.city}
-                                                onChange={(e) => setSuggestionForm({ ...suggestionForm, city: e.target.value })}
-                                                placeholder={t.cityPlaceholder}
+                                                value={suggestionForm.name}
+                                                onChange={(e) => setSuggestionForm({ ...suggestionForm, name: e.target.value })}
                                             />
                                         </div>
-                                        <div className="suggestionFormGroup">
+                                        <div className="suggestionFormGroup" style={{ flex: 1 }}>
                                             <label>{t("country")}</label>
                                             <select
                                                 value={suggestionForm.country}
@@ -979,6 +1076,26 @@ export default function ChurchMap() {
                                                     <option key={c} value={c}>{getCountryLabel(c)}</option>
                                                 ))}
                                             </select>
+                                        </div>
+                                    </div>
+
+                                    <div className="suggestionFormRow">
+                                        <div className="suggestionFormGroup" style={{ flex: 1 }}>
+                                            <label>{t("city")} *</label>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={suggestionForm.city}
+                                                onChange={(e) => setSuggestionForm({ ...suggestionForm, city: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="suggestionFormGroup" style={{ flex: 1 }}>
+                                            <label>{t("postalCode")}</label>
+                                            <input
+                                                type="text"
+                                                value={suggestionForm.zipCode}
+                                                onChange={(e) => setSuggestionForm({ ...suggestionForm, zipCode: e.target.value })}
+                                            />
                                         </div>
                                     </div>
 
