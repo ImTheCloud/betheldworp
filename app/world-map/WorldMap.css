@@ -223,8 +223,11 @@
 .countryFilterBtn {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 2px;
     height: 38px;
+    width: 94px; /* Fix width to prevent layout shift */
+    flex-shrink: 0; /* Prevent it from getting squashed */
     padding: 0 6px;
     border: 1px solid rgba(10, 42, 67, 0.12);
     border-radius: 10px;
@@ -338,7 +341,8 @@
    ============================================= */
 .churchMapSearch {
     position: relative;
-    width: 100%;
+    flex: 1;
+    min-width: 0;
 }
 
 .churchMapSearchIcon {
@@ -352,7 +356,7 @@
 
 .churchMapSearch input {
     width: 100%;
-    padding: 11px 12px 11px 40px;
+    padding: 11px 36px 11px 40px;
     border: 1px solid #cbd5e1;
     border-radius: 10px;
     background: #ffffff;
@@ -371,6 +375,32 @@
     font-size: 0.75rem;
     /* Smaller placeholder to prevent cut-off */
     color: #94a3b8;
+}
+
+.churchMapSearchClear {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.churchMapSearchClear:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: #64748b;
+}
+
+.churchMapSearchClear svg {
+    display: block;
 }
 
 /* =============================================
@@ -514,22 +544,6 @@
     color: #134b7b;
 }
 
-/* Distance Badge */
-.churchDistance {
-    flex-shrink: 0;
-    background: #f1f5f9;
-    color: #475569;
-    font-size: 0.72rem;
-    font-weight: 600;
-    padding: 3px 8px;
-    border-radius: 12px;
-    white-space: nowrap;
-}
-
-.churchListItem.active .churchDistance {
-    background: rgba(19, 75, 123, 0.1);
-    color: #134b7b;
-}
 
 /* Empty State */
 .churchListEmpty {
@@ -674,14 +688,12 @@
     position: absolute;
     top: 80px;
     right: 20px;
-    width: 300px;
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(25px);
-    -webkit-backdrop-filter: blur(25px);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    border-radius: 24px;
+    width: 320px;
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: 20px;
     padding: 0;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 15px 45px rgba(0, 0, 0, 0.1);
     z-index: 2005;
     overflow: hidden;
     opacity: 0;
@@ -748,12 +760,18 @@
 }
 
 .mapSettingsLabel span {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: #334155;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1e293b;
 }
 
-/* Theme Toggle Switch */
+.mapSettingsItem.vertical {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+/* /* Theme Toggle Switch */
 .themeToggleSwitch {
     background: #f1f5f9;
     padding: 3px;
@@ -769,49 +787,138 @@
     border-radius: 8px;
     cursor: pointer;
     color: #64748b;
-    transition: all 0.2s;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .themeToggleBtn.active {
-    background: #fff;
+    background: #ffffff;
     color: #2563eb;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-/* Language Selection Grid */
-.langSelectGrid {
+/* Modern Segmented Language Picker - More Compact */
+.langSegmentedControl {
     display: flex;
-    gap: 6px;
+    background: #f1f5f9;
+    padding: 3px;
+    border-radius: 12px;
+    width: 100%;
+    position: relative;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-.langOptionBtn {
-    background: none;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 4px 8px;
+.langSegmentOption {
+    flex: 1;
+    border: none;
+    background: transparent;
+    border-radius: 10px;
+    padding: 7px 2px;
     display: flex;
+    flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: 4px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    z-index: 1;
 }
 
-.langOptionBtn img {
-    width: 16px;
+.langSegmentOption img {
+    width: 18px;
     height: auto;
+    border-radius: 2px;
+    filter: grayscale(0.2);
+    transition: all 0.3s;
 }
 
-.langOptionBtn span {
-    font-size: 0.8rem;
+.langSegmentOption span {
+    font-size: 0.7rem;
     font-weight: 700;
-    color: #475569;
+    color: #64748b;
+    transition: all 0.3s;
 }
 
-.langOptionBtn.active {
-    background: #2563eb;
-    border-color: #2563eb;
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+.langSegmentOption:hover img {
+    filter: grayscale(0);
+}
+
+.langSegmentOption.active {
+    background: #ffffff;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.langSegmentOption.active img {
+    filter: grayscale(0);
+}
+
+.langSegmentOption.active span {
+    color: #2563eb;
+}
+
+/* Dark mode tweaks for picker & toggle */
+.churchMapLayout[data-theme="dark"] .themeToggleSwitch,
+.churchMapLayout[data-theme="dark"] .langSegmentedControl {
+    background: #1e293b;
+}
+
+.churchMapLayout[data-theme="dark"] .themeToggleBtn.active,
+.churchMapLayout[data-theme="dark"] .langSegmentOption.active {
+    background: #334155;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    color: #60a5fa;
+}
+
+.churchMapLayout[data-theme="dark"] .langSegmentOption span,
+.churchMapLayout[data-theme="dark"] .themeToggleBtn {
+    color: #94a3b8;
+}
+
+.churchMapLayout[data-theme="dark"] .langSegmentOption.active span {
+    color: #60a5fa;
+}
+
+/* Contact Button in Settings - Unified with primary brand style */
+.mapSettingsContactBtn {
+    width: 100%;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: #134b7b;
+    border: 1px solid #134b7b;
+    border-radius: 12px;
+    color: #ffffff;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mapSettingsContactBtn:hover {
+    background: #0d345a;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(13, 52, 90, 0.2);
+}
+
+.mapSettingsContactBtn svg {
+    opacity: 0.9;
+}
+
+.churchMapLayout[data-theme="dark"] .mapSettingsContactBtn {
+    background: #1e293b;
+    border-color: #334155;
+    color: #60a5fa;
+    box-shadow: none;
+}
+
+.churchMapLayout[data-theme="dark"] .mapSettingsContactBtn:hover {
+    background: #334155;
+    border-color: #60a5fa;
 }
 
 .langOptionBtn.active span {
@@ -828,9 +935,10 @@
 }
 
 .mapSettingsFooter {
-    padding: 12px 20px;
-    background: rgba(0, 0, 0, 0.02);
+    padding: 16px 20px;
+    background: transparent;
     text-align: center;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .mapSettingsFooter p {
@@ -871,6 +979,17 @@
     background-clip: text;
     filter: drop-shadow(0 2px 4px rgba(255, 255, 255, 0.8)) drop-shadow(0 0 24px rgba(255, 255, 255, 0.6));
     white-space: nowrap;
+    transition: all 0.5s ease;
+}
+
+/* Dark Mode Title Override */
+.churchMapLayout[data-theme="dark"] .mapOverlayHeading {
+    background: none;
+    -webkit-background-clip: initial;
+    background-clip: initial;
+    -webkit-text-fill-color: initial;
+    color: #ffffff;
+    filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.4)) drop-shadow(0 0 30px rgba(255, 255, 255, 0.1));
 }
 
 /* Sidebar Credits */
@@ -936,6 +1055,16 @@
 
 .customMarker svg {
     fill: #134b7b;
+    transition: fill 0.3s ease;
+}
+
+/* Dark Mode Marker Override */
+.churchMapLayout[data-theme="dark"] .customMarker svg {
+    fill: #bae6fd; /* Brighter, clearer blue */
+}
+
+.churchMapLayout[data-theme="dark"] .customMarker.pulse::after {
+    background: rgba(186, 230, 253, 0.6);
 }
 
 @keyframes pulse {
@@ -1067,14 +1196,10 @@
 /* Positioning adjustments for mobile */
 @media (max-width: 768px) {
     .mapRecenterBtn {
-        position: relative; /* Use flexbox flow in sidebar */
-        top: auto;
-        bottom: auto;
-        right: auto;
-        left: auto;
-        align-self: flex-end; /* Align to right */
-        margin-right: 16px;
-        margin-bottom: 20px; /* Space above bottom sheet */
+        position: absolute;
+        bottom: calc(45vh + 12px);
+        right: 16px;
+        margin-bottom: 0;
         width: 36px;
         height: 36px;
         background: rgba(255, 255, 255, 0.4);
@@ -1082,9 +1207,9 @@
         -webkit-backdrop-filter: blur(4px);
         color: rgba(15, 23, 42, 0.8);
         border-radius: 50%;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         border: 1px solid rgba(255, 255, 255, 0.3);
         transition: all 0.2s ease;
+        z-index: 5;
     }
 
     .mapRecenterBtn:active {
@@ -1565,21 +1690,17 @@
     /* Mobile Bottom Sheet */
     .mapSettingsMenu {
         position: fixed;
+        top: auto;
         bottom: 0;
         left: 0;
         right: 0;
-        top: auto;
         width: 100%;
-        height: auto;
-        max-height: 85vh;
         background: #ffffff;
+        border: none;
         border-radius: 32px 32px 0 0;
         transform: translateY(100%);
-        transform-origin: bottom;
-        opacity: 1;
-        visibility: visible;
-        border-top: 1px solid #e2e8f0;
-        padding-bottom: calc(env(safe-area-inset-bottom, 24px) + 16px); /* Increased safe area */
+        transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+        padding-bottom: calc(env(safe-area-inset-bottom, 24px) + 8px); /* Reduced from 16px */
         z-index: 2005; /* High priority */
     }
 
@@ -1604,16 +1725,31 @@
 
     /* Bottom Sheet Overrides – Mobile */
     .churchMapBottomSheet {
-        pointer-events: auto;
-        background: #ffffff;
-        border-radius: 32px 32px 0 0 !important;
-        overflow: hidden;
-        border-top: 1px solid #e2e8f0;
+        position: relative;
+        pointer-events: none; /* Let clicks pass through empty areas */
+        background: none;
+        border: none;
+        border-radius: 0 !important;
+        overflow: visible; /* Allow button to peek out */
         height: 45vh;
         flex: none;
         transition: height 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         transform: translateY(0);
         flex-shrink: 0;
+    }
+
+    .bottomSheetInner {
+        position: relative;
+        z-index: 10;
+        pointer-events: auto;
+        background: #ffffff;
+        border-radius: 32px 32px 0 0;
+        border-top: 1px solid #e2e8f0;
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
     }
 
     .churchMapBottomSheet:has(.mobileChurchDetails) {
@@ -1737,7 +1873,7 @@
 
 @media (max-width: 768px) {
     .churchSidebarFooter {
-        padding-bottom: calc(env(safe-area-inset-bottom, 24px) + 20px);
+        padding-bottom: calc(env(safe-area-inset-bottom, 24px) + 12px);
         padding-top: 16px;
     }
 
@@ -1746,7 +1882,7 @@
         padding-top: 0;
         position: relative; /* Remove sticky to follow content closely */
         box-shadow: none;
-        padding-bottom: calc(env(safe-area-inset-bottom, 24px) + 24px);
+        padding-bottom: calc(env(safe-area-inset-bottom, 24px) + 16px);
     }
 }
 
@@ -1972,10 +2108,23 @@
     animation: slideUp 0.3s ease-out;
 }
 
-.suggestionModalHeader {
-    padding: 16px;
+.suggestionModal {
+    width: 600px;
+    max-width: 95vw;
+    max-height: 90vh;
     background: #ffffff;
-    border-bottom: 1px solid #e2e8f0;
+    border-radius: 28px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.suggestionModalHeader {
+    padding: 16px 24px;
+    background: #ffffff;
+    border-bottom: 1px solid #f1f5f9;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1983,80 +2132,170 @@
 
 .suggestionModalHeader h3 {
     margin: 0;
-    font-size: 1.25rem;
+    font-size: 1.2rem;
     color: #0f172a;
     font-weight: 800;
+    letter-spacing: -0.01em;
 }
 
 .suggestionModalClose {
-    background: none;
+    background: #f1f5f9;
     border: none;
-    font-size: 1.5rem;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
     color: #64748b;
     cursor: pointer;
-    padding: 4px;
-    line-height: 1;
+    transition: all 0.2s;
 }
 
 .suggestionForm {
-    /* Removed flex: 1 to allow form to shrink to its content height */
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    padding: 0;
 }
 
 .suggestionFormBody {
-    flex: 0 1 auto;
-    /* Changed from 1 to avoid forcing growth/gap */
-    padding: 16px;
-    overflow-y: auto;
-}
-
-.suggestionFormActions {
-    padding: 12px 24px;
+    padding: 20px 24px;
     background: #ffffff;
-    border-top: 1px solid #e2e8f0;
+    flex: 1;
+    overflow-y: auto;
+    /* Custom scrollbar for a premium look */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.5) transparent;
+}
+
+.suggestionFormBody::-webkit-scrollbar {
+    width: 6px;
+}
+
+.suggestionFormBody::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.suggestionFormBody::-webkit-scrollbar-thumb {
+    background-color: rgba(148, 163, 184, 0.5);
+    border-radius: 20px;
+}
+
+/* Stepper Design - More Compact */
+.suggestionStepper {
     display: flex;
-    gap: 12px;
-    justify-content: flex-end;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    padding: 0 10px;
 }
 
-.suggestionFormGroup {
-    margin-bottom: 10px;
+.stepItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    position: relative;
+    z-index: 1;
 }
 
+.stepCircle {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #f1f5f9;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.8rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 2px solid #ffffff;
+    box-shadow: 0 0 0 1px #e2e8f0;
+}
+
+.stepItem.active .stepCircle {
+    background: #134b7b;
+    color: #ffffff;
+    box-shadow: 0 0 0 1px #134b7b, 0 4px 10px rgba(19, 75, 123, 0.2);
+}
+
+.stepItem.completed .stepCircle {
+    background: #10b981;
+    color: #ffffff;
+}
+
+.stepItem span {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.stepItem.active span {
+    color: #134b7b;
+}
+
+.stepLine {
+    flex: 1;
+    max-width: 60px;
+    height: 1.5px;
+    background: #f1f5f9;
+    margin: -14px 6px 0 6px;
+    border-radius: 2px;
+}
+
+/* Form Groups - Very Compact */
 .suggestionFormRow {
     display: flex;
     gap: 12px;
-    margin-bottom: 12px;
 }
 
 .suggestionFormRow .suggestionFormGroup {
     flex: 1;
-    margin-bottom: 0;
+}
+
+.suggestionFormGroup {
+    margin-bottom: 12px;
 }
 
 .suggestionFormGroup label {
     display: block;
     font-size: 0.75rem;
     font-weight: 700;
-    color: #475569;
+    color: #64748b;
     margin-bottom: 4px;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.02em;
+}
+
+.inputWithIcon {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.fieldIcon {
+    position: absolute;
+    left: 12px;
+    color: #94a3b8;
+    pointer-events: none;
+    transition: color 0.2s;
 }
 
 .suggestionFormGroup input,
 .suggestionFormGroup select {
     width: 100%;
-    padding: 8px 12px;
-    background: #f1f5f9;
+    padding: 10px 14px;
+    background: #f8fafc;
     border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    font-size: 0.95rem;
-    color: #0f172a;
-    transition: all 0.2s ease;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    color: #1e293b;
+    transition: all 0.2s;
 }
 
 .suggestionFormGroup input:focus,
@@ -2064,37 +2303,119 @@
     background: #ffffff;
     border-color: #134b7b;
     outline: none;
-    box-shadow: 0 0 0 4px rgba(19, 75, 123, 0.1);
+    box-shadow: 0 0 0 3px rgba(19, 75, 123, 0.1);
 }
 
-
-
-.suggestionFormActions button {
-    flex: 1;
-    padding: 10px 14px;
-    border-radius: 10px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.btnCancel {
-    background: #ffffff;
-    color: #64748b;
+.suggestionFormBody textarea.compactTextarea {
+    width: 100%;
+    padding: 12px;
+    background: #f8fafc;
     border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    resize: none;
+    transition: all 0.2s;
+    min-height: 80px;
 }
 
-.btnSubmit {
+/* Step 2 - Compact */
+.step2Header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.premiumIconBox {
+    width: 44px;
+    height: 44px;
+    background: rgba(19, 75, 123, 0.08);
+    color: #134b7b;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px auto;
+}
+
+.step2Header h4 {
+    font-size: 1.15rem;
+    font-weight: 800;
+    margin: 0 0 4px 0;
+}
+
+.step2Header p {
+    font-size: 0.85rem;
+    max-width: 300px;
+}
+
+/* Actions */
+.suggestionFormActions {
+    padding: 16px 24px;
+    background: #ffffff;
+    border-top: 1px solid #f1f5f9;
+}
+
+.suggestionSubmitBtn {
+    width: 100%;
+    height: 48px;
     background: #134b7b;
+    background: linear-gradient(135deg, #134b7b 0%, #1e5c8a 100%);
     color: #ffffff;
     border: none;
+    border-radius: 14px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.suggestionSubmitBtn:hover {
+    transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(19, 75, 123, 0.2);
 }
 
-.btnSubmit:hover {
-    background: #0f3a61;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(19, 75, 123, 0.3);
+.suggestionSubmitBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.step2Actions {
+    display: flex;
+    gap: 8px;
+}
+
+.step2Actions .suggestionSubmitBtn,
+.step2Actions .suggestionSkipBtn {
+    flex: 1;
+}
+
+.suggestionSkipBtn {
+    height: 48px;
+    background: #f1f5f9;
+    color: #475569;
+    border: none;
+    border-radius: 14px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.suggestionSkipBtn:hover {
+    background: #e2e8f0;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Dark Mode Spacing Adjustments */
+.churchMapLayout[data-theme="dark"] .suggestionModalHeader,
+.churchMapLayout[data-theme="dark"] .suggestionFormBody,
+.churchMapLayout[data-theme="dark"] .suggestionFormActions {
+    background: #1a1c1e;
 }
 
 .suggestionSuccess {

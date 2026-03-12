@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import React, { useState, useMemo, useEffect, useCallback, useRef, Suspense } from "react";
 import { APIProvider, Map, AdvancedMarker, useMap } from "@vis.gl/react-google-maps";
 import { useSearchParams } from "next/navigation";
 import { collection, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, increment } from "firebase/firestore";
@@ -348,7 +348,7 @@ function FilterController({ filteredChurches, activeCountryFilter }) {
     return null;
 }
 
-export default function ChurchMap() {
+function ChurchMap() {
     const searchParams = useSearchParams();
 
     const [churches, setChurches] = useState([]);
@@ -427,7 +427,7 @@ export default function ChurchMap() {
 
     const [formError, setFormError] = useState("");
     const [initialFormValues, setInitialFormValues] = useState(null);
-    const [mapTheme, setMapTheme] = useState("dark"); // "light" | "dark"
+    const [mapTheme, setMapTheme] = useState("light"); // "light" | "dark"
     const [showMapSettings, setShowMapSettings] = useState(false);
     const settingsRef = useRef(null);
 
@@ -477,16 +477,23 @@ export default function ChurchMap() {
     const [suggestionForm, setSuggestionForm] = useState({
         name: "",
         city: "",
+        zipCode: "",
         street: "",
         number: "",
-        zipCode: "",
         phone: "",
         email: "",
         website: "",
         youtube: "",
         facebook: "",
         instagram: "",
-        country: "Belgium",
+        country: "Belgium"
+    });
+    const [suggestionStep, setSuggestionStep] = useState(1);
+    const [submitterForm, setSubmitterForm] = useState({
+        firstName: "",
+        lastName: "",
+        phone: "",
+        email: "",
         notes: ""
     });
 
@@ -499,22 +506,22 @@ export default function ChurchMap() {
             data = {
                 name: church.name || "",
                 city: church.city || "",
+                zipCode: church.zipCode || "",
                 street: church.street || "",
                 number: church.number || "",
-                zipCode: church.zipCode || "",
                 phone: church.phone || "",
                 email: church.email || "",
                 website: church.website || "",
                 youtube: church.youtube || "",
                 facebook: church.facebook || "",
                 instagram: church.instagram || "",
-                country: church.country || "Belgium",
-                notes: church.notes || ""
+                country: church.country || "Belgium"
             };
         } else {
             data = {
                 name: "",
                 city: "",
+                zipCode: "",
                 street: "",
                 number: "",
                 phone: "",
@@ -523,12 +530,13 @@ export default function ChurchMap() {
                 youtube: "",
                 facebook: "",
                 instagram: "",
-                country: activeCountryFilter || "Belgium",
-                notes: ""
+                country: activeCountryFilter || "Belgium"
             };
         }
         setSuggestionForm(data);
         setInitialFormValues(data);
+        setSuggestionStep(1);
+        setSubmitterForm({ firstName: "", lastName: "", phone: "", email: "", notes: "" });
         setShowSuggestionModal(true);
         setSuggestionSuccess(false);
         setFormError("");
@@ -539,10 +547,37 @@ export default function ChurchMap() {
         return JSON.stringify(suggestionForm) !== JSON.stringify(initialFormValues);
     }, [suggestionForm, initialFormValues]);
 
+    const validateEmail = (email) => {
+        return String(email)
+            .toLowerCase()
+            .match(
+                /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+            );
+    };
+
     const handleSuggestionSubmit = async (e) => {
-        e.preventDefault();
-        if (!suggestionForm.name || !suggestionForm.city) {
-            setFormError("Nom et Ville sont requis.");
+        if (e) e.preventDefault();
+        
+        if (suggestionStep === 1) {
+            if (!suggestionForm.name || !suggestionForm.city) {
+                setFormError("Nom et Ville sont requis.");
+                return;
+            }
+            if (suggestionType === "edit" && !hasChanges) {
+                setFormError("Aucune modification détectée.");
+                return;
+            }
+            if (suggestionForm.email && !validateEmail(suggestionForm.email)) {
+                setFormError("Format d'email invalide.");
+                return;
+            }
+            setFormError("");
+            setSuggestionStep(2);
+            return;
+        }
+
+        if (submitterForm.email && !validateEmail(submitterForm.email)) {
+            setFormError("Format d'email invalide.");
             return;
         }
 
@@ -553,13 +588,17 @@ export default function ChurchMap() {
                 originalChurchId: suggestionType === "edit" ? selectedChurch?.id : null,
                 originalData: suggestionType === "edit" ? selectedChurch : null,
                 status: "pending",
-                data: suggestionForm,
+                data: {
+                    ...suggestionForm,
+                    submitter: submitterForm
+                },
                 createdAt: serverTimestamp()
             });
             setSuggestionSuccess(true);
             setTimeout(() => {
                 setShowSuggestionModal(false);
                 setSuggestionSuccess(false);
+                setSuggestionStep(1);
             }, 3000);
         } catch (err) {
             console.error(err);
@@ -567,6 +606,43 @@ export default function ChurchMap() {
         } finally {
             setIsSubmitting(false);
         }
+    };
+
+    const handleSkipSubmitter = () => {
+        // Clear submitter data if skipped
+        setSubmitterForm({ name: "", phone: "", email: "" });
+        // Force the final step logic
+        setSuggestionStep(2);
+        // We need to trigger the actual submit now
+        setTimeout(() => {
+            const finalData = {
+                type: suggestionType,
+                originalChurchId: suggestionType === "edit" ? selectedChurch?.id : null,
+                originalData: suggestionType === "edit" ? selectedChurch : null,
+                status: "pending",
+                data: {
+                    ...suggestionForm,
+                    submitter: { name: "", phone: "", email: "" }
+                },
+                createdAt: serverTimestamp()
+            };
+            
+            setIsSubmitting(true);
+            addDoc(collection(db, "church_suggestions"), finalData)
+                .then(() => {
+                    setSuggestionSuccess(true);
+                    setTimeout(() => {
+                        setShowSuggestionModal(false);
+                        setSuggestionSuccess(false);
+                        setSuggestionStep(1);
+                    }, 3000);
+                })
+                .catch(err => {
+                    console.error(err);
+                    setFormError("Erreur lors de l'envoi. Réessayez.");
+                })
+                .finally(() => setIsSubmitting(false));
+        }, 0);
     };
 
 
@@ -821,36 +897,37 @@ export default function ChurchMap() {
         : "🌍";
 
     return (
-        <div className={`churchMapLayout ${mobileShowMap ? "mapFocused" : ""}`}>
+        <div className={`churchMapLayout ${mobileShowMap ? "mapFocused" : ""}`} data-theme={mapTheme}>
             {/* Sidebar */}
             <aside className="churchMapSidebar">
-                {/* Map Controls (Manual Recenter) - Moved here for dynamic Flexbox alignment on mobile */}
-                <button 
-                    className={`mapRecenterBtn ${!userLocation ? "requesting" : ""}`}
-                    onClick={handleRecenter}
-                    title={t("youAreHere")}
-                    aria-label="Recenter map"
-                    data-mode={bottomSheetMode}
-                >
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                        <circle cx="12" cy="10" r="3"></circle>
-                    </svg>
-                </button>
-
                 <div className={`churchMapBottomSheet ${showMapSettings ? 'settings-active' : ''}`} data-mode={bottomSheetMode}>
-                    <div
-                        className="bottomSheetDragHandleArea"
-                        onClick={() => {
-                            if (bottomSheetMode === "hidden") setBottomSheetMode("collapsed");
-                            else if (bottomSheetMode === "collapsed") setBottomSheetMode("expanded");
-                            else setBottomSheetMode("collapsed");
-                        }}
-                        onTouchStart={handleTouchStart}
-                        onTouchEnd={handleTouchEnd}
+                    {/* Map Controls (Manual Recenter) - Moved here to follow sheet on mobile */}
+                    <button 
+                        className={`mapRecenterBtn ${!userLocation ? "requesting" : ""}`}
+                        onClick={handleRecenter}
+                        title={t("youAreHere")}
+                        aria-label="Recenter map"
+                        data-mode={bottomSheetMode}
                     >
-                        <div className="bottomSheetDragHandle"></div>
-                    </div>
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                    </button>
+
+                    <div className="bottomSheetInner">
+                        <div
+                            className="bottomSheetDragHandleArea"
+                            onClick={() => {
+                                if (bottomSheetMode === "hidden") setBottomSheetMode("collapsed");
+                                else if (bottomSheetMode === "collapsed") setBottomSheetMode("expanded");
+                                else setBottomSheetMode("collapsed");
+                            }}
+                            onTouchStart={handleTouchStart}
+                            onTouchEnd={handleTouchEnd}
+                        >
+                            <div className="bottomSheetDragHandle"></div>
+                        </div>
 
                     {/* Search and Country Filter Area */}
                     <div className="churchMapFilterContainer">
@@ -874,6 +951,19 @@ export default function ChurchMap() {
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
+                            {searchQuery && (
+                                <button 
+                                    className="churchMapSearchClear" 
+                                    onClick={() => setSearchQuery("")}
+                                    title={t("clearSearch") || "Clear search"}
+                                    aria-label="Clear search"
+                                >
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                                    </svg>
+                                </button>
+                            )}
                         </div>
 
                         <div className="countryFilterDropdown" ref={filterRef}>
@@ -1003,9 +1093,6 @@ export default function ChurchMap() {
                                                                 <h3>{church.name}{church.city ? ` - ${church.city}` : ''}</h3>
                                                                     <p>{`${church.street || ""} ${church.number || ""}`.trim()}, {church.zipCode ? `${church.zipCode} ` : ""}{church.city}, {getCountryLabel(church.country)}</p>
                                                             </div>
-                                                            {dist != null && (
-                                                                <span className="churchDistance">{formatDistance(dist)}</span>
-                                                            )}
                                                         </button>
                                                     );
                                                 })}
@@ -1059,6 +1146,7 @@ export default function ChurchMap() {
                         )}
                     </div>
                 </div>
+            </div>
 
                 {/* Mobile: Back to list */}
                 {mobileShowMap && (
@@ -1166,22 +1254,37 @@ export default function ChurchMap() {
                         </div>
 
                         {/* Language Selection */}
-                        <div className="mapSettingsItem">
+                        <div className="mapSettingsItem vertical">
                             <div className="mapSettingsLabel">
                                 <span>{t("language")}</span>
                             </div>
-                            <div className="langSelectGrid">
+                            <div className="langSegmentedControl">
                                 {langOptions.map((opt) => (
                                     <button 
                                         key={opt.value}
-                                        className={`langOptionBtn ${lang === opt.value ? 'active' : ''}`}
+                                        className={`langSegmentOption ${lang === opt.value ? 'active' : ''}`}
                                         onClick={() => setLang(opt.value)}
+                                        aria-label={opt.short}
                                     >
-                                        <img src={opt.flag} alt={opt.short} />
+                                        <img src={opt.flag} alt="" />
                                         <span>{opt.short}</span>
                                     </button>
                                 ))}
                             </div>
+                        </div>
+
+                        {/* Contact Option */}
+                        <div className="mapSettingsItem">
+                            <button 
+                                className="mapSettingsContactBtn"
+                                onClick={() => window.location.href = "mailto:claudiu.dev@outlook.com"}
+                            >
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <rect width="20" height="16" x="2" y="4" rx="2"/>
+                                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                                </svg>
+                                <span>{t("contact")}</span>
+                            </button>
                         </div>
 
                         {/* Placeholder for future settings */}
@@ -1338,156 +1441,233 @@ export default function ChurchMap() {
                                 {formError && <div className="suggestionError">{formError}</div>}
 
                                 <div className="suggestionFormBody">
-                                    <div className="suggestionFormRow">
-                                        <div className="suggestionFormGroup" style={{ flex: 1 }}>
-                                            <label>{t("name")} *</label>
-                                            <input
-                                                type="text"
-                                                required
-                                                value={suggestionForm.name}
-                                                onChange={(e) => setSuggestionForm({ ...suggestionForm, name: e.target.value })}
-                                            />
+                                    {/* Visual Stepper */}
+                                    <div className="suggestionStepper">
+                                        <div className={`stepItem ${suggestionStep >= 1 ? 'active' : ''} ${suggestionStep > 1 ? 'completed' : ''}`}>
+                                            <div className="stepCircle">{suggestionStep > 1 ? '✓' : '1'}</div>
+                                            <span>{t("churchInfo")}</span>
                                         </div>
-                                        <div className="suggestionFormGroup" style={{ flex: 1 }}>
-                                            <label>{t("country")}</label>
-                                            <select
-                                                value={suggestionForm.country}
-                                                onChange={(e) => setSuggestionForm({ ...suggestionForm, country: e.target.value })}
-                                            >
-                                                {SUGGESTION_COUNTRIES.map(c => (
-                                                    <option key={c} value={c}>{getCountryLabel(c)}</option>
-                                                ))}
-                                            </select>
+                                        <div className="stepLine"></div>
+                                        <div className={`stepItem ${suggestionStep >= 2 ? 'active' : ''}`}>
+                                            <div className="stepCircle">2</div>
+                                            <span>{t("yourInfo")}</span>
                                         </div>
                                     </div>
 
-                                    <div className="suggestionFormRow">
-                                        <div className="suggestionFormGroup" style={{ flex: 1 }}>
-                                            <label>{t("city")} *</label>
-                                            <input
-                                                type="text"
-                                                required
-                                                value={suggestionForm.city}
-                                                onChange={(e) => setSuggestionForm({ ...suggestionForm, city: e.target.value })}
-                                            />
-                                        </div>
-                                        <div className="suggestionFormGroup" style={{ flex: 1 }}>
-                                            <label>{t("postalCode")}</label>
-                                            <input
-                                                type="text"
-                                                value={suggestionForm.zipCode}
-                                                onChange={(e) => setSuggestionForm({ ...suggestionForm, zipCode: e.target.value })}
-                                            />
-                                        </div>
-                                    </div>
+                                    {suggestionStep === 1 ? (
+                                        <div className="suggestionStep1">
+                                            <div className="suggestionFormRow">
+                                                <div className="suggestionFormGroup">
+                                                    <label>{t("name")} *</label>
+                                                    <input
+                                                        type="text"
+                                                        required
+                                                        placeholder={t("churchNamePlaceholder")}
+                                                        value={suggestionForm.name}
+                                                        onChange={(e) => setSuggestionForm({ ...suggestionForm, name: e.target.value })}
+                                                    />
+                                                </div>
+                                                <div className="suggestionFormGroup">
+                                                    <label>{t("country")}</label>
+                                                    <select
+                                                        value={suggestionForm.country}
+                                                        onChange={(e) => setSuggestionForm({ ...suggestionForm, country: e.target.value })}
+                                                    >
+                                                        {SUGGESTION_COUNTRIES.map(c => (
+                                                            <option key={c} value={c}>{getCountryLabel(c)}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            </div>
 
-                                    <div className="suggestionFormRow">
-                                        <div className="suggestionFormGroup" style={{ flex: 3 }}>
-                                            <label>{t("street")}</label>
-                                            <input
-                                                type="text"
-                                                value={suggestionForm.street}
-                                                onChange={(e) => setSuggestionForm({ ...suggestionForm, street: e.target.value })}
-                                            />
-                                        </div>
-                                        <div className="suggestionFormGroup" style={{ flex: 1 }}>
-                                            <label>{t("number")}</label>
-                                            <input
-                                                type="text"
-                                                value={suggestionForm.number}
-                                                onChange={(e) => setSuggestionForm({ ...suggestionForm, number: e.target.value })}
-                                            />
-                                        </div>
-                                    </div>
+                                            <div className="suggestionFormRow">
+                                                <div className="suggestionFormGroup">
+                                                    <label>{t("city")} *</label>
+                                                    <input
+                                                        type="text"
+                                                        required
+                                                        value={suggestionForm.city}
+                                                        onChange={(e) => setSuggestionForm({ ...suggestionForm, city: e.target.value })}
+                                                    />
+                                                </div>
+                                                <div className="suggestionFormGroup">
+                                                    <label>{t("postalCode")}</label>
+                                                    <input
+                                                        type="text"
+                                                        value={suggestionForm.zipCode}
+                                                        onChange={(e) => setSuggestionForm({ ...suggestionForm, zipCode: e.target.value })}
+                                                    />
+                                                </div>
+                                            </div>
 
-                                    <div className="suggestionFormRow">
-                                        <div className="suggestionFormGroup">
-                                            <label>{t("phone")}</label>
-                                            <input
-                                                type="tel"
-                                                value={suggestionForm.phone}
-                                                onChange={(e) => setSuggestionForm({ ...suggestionForm, phone: e.target.value })}
-                                            />
-                                        </div>
-                                        <div className="suggestionFormGroup">
-                                            <label>{t("email")}</label>
-                                            <input
-                                                type="email"
-                                                value={suggestionForm.email}
-                                                onChange={(e) => setSuggestionForm({ ...suggestionForm, email: e.target.value })}
-                                            />
-                                        </div>
-                                    </div>
+                                            <div className="suggestionFormRow">
+                                                <div className="suggestionFormGroup" style={{ flex: 3 }}>
+                                                    <label>{t("street")}</label>
+                                                    <input
+                                                        type="text"
+                                                        value={suggestionForm.street}
+                                                        onChange={(e) => setSuggestionForm({ ...suggestionForm, street: e.target.value })}
+                                                    />
+                                                </div>
+                                                <div className="suggestionFormGroup" style={{ flex: 1 }}>
+                                                    <label>{t("number")}</label>
+                                                    <input
+                                                        type="text"
+                                                        value={suggestionForm.number}
+                                                        onChange={(e) => setSuggestionForm({ ...suggestionForm, number: e.target.value })}
+                                                    />
+                                                </div>
+                                            </div>
 
-                                    <div className="suggestionFormRow">
-                                        <div className="suggestionFormGroup">
-                                            <label>{t("website")}</label>
-                                            <input
-                                                type="url"
-                                                placeholder="https://..."
-                                                value={suggestionForm.website}
-                                                onChange={(e) => setSuggestionForm({ ...suggestionForm, website: e.target.value })}
-                                            />
-                                        </div>
-                                        <div className="suggestionFormGroup">
-                                            <label>{t("youtube")}</label>
-                                            <input
-                                                type="url"
-                                                placeholder="https://youtube.com/..."
-                                                value={suggestionForm.youtube}
-                                                onChange={(e) => setSuggestionForm({ ...suggestionForm, youtube: e.target.value })}
-                                            />
-                                        </div>
-                                    </div>
+                                            <div className="suggestionFormRow">
+                                                <div className="suggestionFormGroup">
+                                                    <label>{t("phone")}</label>
+                                                    <input
+                                                        type="tel"
+                                                        value={suggestionForm.phone}
+                                                        onChange={(e) => setSuggestionForm({ ...suggestionForm, phone: e.target.value.replace(/[^\d+\s\-\(\)]/g, "") })}
+                                                    />
+                                                </div>
+                                                <div className="suggestionFormGroup">
+                                                    <label>{t("email")}</label>
+                                                    <input
+                                                        type="email"
+                                                        value={suggestionForm.email}
+                                                        onChange={(e) => setSuggestionForm({ ...suggestionForm, email: e.target.value })}
+                                                    />
+                                                </div>
+                                            </div>
 
-                                    <div className="suggestionFormRow">
-                                        <div className="suggestionFormGroup">
-                                            <label>{t("instagram")}</label>
-                                            <input
-                                                type="url"
-                                                placeholder="https://instagram.com/..."
-                                                value={suggestionForm.instagram}
-                                                onChange={(e) => setSuggestionForm({ ...suggestionForm, instagram: e.target.value })}
-                                            />
-                                        </div>
-                                        <div className="suggestionFormGroup">
-                                            <label>{t("facebook")}</label>
-                                            <input
-                                                type="url"
-                                                placeholder="https://facebook.com/..."
-                                                value={suggestionForm.facebook}
-                                                onChange={(e) => setSuggestionForm({ ...suggestionForm, facebook: e.target.value })}
-                                            />
-                                        </div>
-                                    </div>
+                                            <div className="suggestionFormRow">
+                                                <div className="suggestionFormGroup">
+                                                    <label>{t("website")}</label>
+                                                    <input
+                                                        type="url"
+                                                        placeholder="https://..."
+                                                        value={suggestionForm.website}
+                                                        onChange={(e) => setSuggestionForm({ ...suggestionForm, website: e.target.value })}
+                                                    />
+                                                </div>
+                                                <div className="suggestionFormGroup">
+                                                    <label>{t("youtube")}</label>
+                                                    <input
+                                                        type="url"
+                                                        placeholder="https://youtube.com/..."
+                                                        value={suggestionForm.youtube}
+                                                        onChange={(e) => setSuggestionForm({ ...suggestionForm, youtube: e.target.value })}
+                                                    />
+                                                </div>
+                                            </div>
 
-                                    <div className="suggestionFormRow">
-                                        <div className="suggestionFormGroup" style={{ flex: 1 }}>
-                                            <label>{t("notes")}</label>
-                                            <textarea
-                                                rows="3"
-                                                value={suggestionForm.notes}
-                                                onChange={(e) => setSuggestionForm({ ...suggestionForm, notes: e.target.value })}
-                                                style={{
-                                                    width: "100%", padding: "8px 12px", borderRadius: "10px",
-                                                    border: "1px solid #e2e8f0", fontSize: "0.95rem", resize: "vertical",
-                                                    minHeight: "60px"
-                                                }} />
+                                            <div className="suggestionFormRow">
+                                                <div className="suggestionFormGroup">
+                                                    <label>{t("instagram")}</label>
+                                                    <input
+                                                        type="url"
+                                                        placeholder="instagram.com/..."
+                                                        value={suggestionForm.instagram}
+                                                        onChange={(e) => setSuggestionForm({ ...suggestionForm, instagram: e.target.value })}
+                                                    />
+                                                </div>
+                                                <div className="suggestionFormGroup">
+                                                    <label>{t("facebook")}</label>
+                                                    <input
+                                                        type="url"
+                                                        placeholder="facebook.com/..."
+                                                        value={suggestionForm.facebook}
+                                                        onChange={(e) => setSuggestionForm({ ...suggestionForm, facebook: e.target.value })}
+                                                    />
+                                                </div>
+                                            </div>
+
                                         </div>
-                                    </div>
+                                    ) : (
+                                        <div className="suggestionStep2">
+                                            <div className="step2Header">
+                                                <h4>{t("submitterTitle")}</h4>
+                                            </div>
+
+                                            <div className="suggestionFormRow">
+                                                <div className="suggestionFormGroup">
+                                                    <label>{t("lastName")}</label>
+                                                    <input
+                                                        type="text"
+                                                        value={submitterForm.lastName}
+                                                        onChange={(e) => setSubmitterForm({ ...submitterForm, lastName: e.target.value })}
+                                                    />
+                                                </div>
+                                                <div className="suggestionFormGroup">
+                                                    <label>{t("firstName")}</label>
+                                                    <input
+                                                        type="text"
+                                                        value={submitterForm.firstName}
+                                                        onChange={(e) => setSubmitterForm({ ...submitterForm, firstName: e.target.value })}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="suggestionFormRow">
+                                                <div className="suggestionFormGroup">
+                                                    <label>{t("phone")}</label>
+                                                    <input
+                                                        type="tel"
+                                                        value={submitterForm.phone}
+                                                        onChange={(e) => setSubmitterForm({ ...submitterForm, phone: e.target.value.replace(/[^\d+\s\-\(\)]/g, "") })}
+                                                    />
+                                                </div>
+                                                <div className="suggestionFormGroup">
+                                                    <label>{t("email")}</label>
+                                                    <input
+                                                        type="email"
+                                                        value={submitterForm.email}
+                                                        onChange={(e) => setSubmitterForm({ ...submitterForm, email: e.target.value })}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="suggestionFormRow">
+                                                <div className="suggestionFormGroup" style={{ flex: 1 }}>
+                                                    <label>{t("notes")}</label>
+                                                    <textarea
+                                                        value={submitterForm.notes}
+                                                        placeholder={t("notesPlaceholder")}
+                                                        onChange={(e) => setSubmitterForm({ ...submitterForm, notes: e.target.value })}
+                                                        rows={3}
+                                                        className="compactTextarea"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="suggestionFormActions">
-                                    <button type="button" className="btnCancel" onClick={() => setShowSuggestionModal(false)}>
-                                        {t("cancel")}
-                                    </button>
-                                    <button 
-                                        type="submit" 
-                                        className="btnSubmit" 
-                                        disabled={isSubmitting || (suggestionType === "edit" && !hasChanges)}
-                                    >
-                                        {isSubmitting ? "..." : t("submit")}
-                                    </button>
+                                    {suggestionStep === 1 ? (
+                                        <button 
+                                            type="submit" 
+                                            className="suggestionSubmitBtn"
+                                            disabled={isSubmitting || (suggestionType === "edit" && !hasChanges)}
+                                        >
+                                            {isSubmitting ? "..." : t("nextStep")}
+                                        </button>
+                                    ) : (
+                                        <div className="step2Actions">
+                                            <button 
+                                                type="button" 
+                                                className="suggestionSkipBtn"
+                                                onClick={() => setSuggestionStep(1)}
+                                            >
+                                                {t("back")}
+                                            </button>
+                                            <button 
+                                                type="submit" 
+                                                className="suggestionSubmitBtn"
+                                                disabled={isSubmitting}
+                                            >
+                                                {isSubmitting ? "..." : t("skipAndSend")}
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             </form>
                         )}
@@ -1495,5 +1675,13 @@ export default function ChurchMap() {
                 </div>
             )}
         </div>
+    );
+}
+
+export default function ChurchMapWithParams() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <ChurchMap />
+        </Suspense>
     );
 }

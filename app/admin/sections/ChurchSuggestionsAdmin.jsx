@@ -51,7 +51,6 @@ const FIELDS = [
     { key: "youtube", label: "YouTube", type: "text" },
     { key: "facebook", label: "Facebook", type: "text" },
     { key: "instagram", label: "Instagram", type: "text" },
-    { key: "notes", label: "Notes / Message", type: "textarea" },
 ];
 
 const geocodeAddress = async (street, number, city, zipCode, country) => {
@@ -296,7 +295,41 @@ export default function ChurchSuggestionsAdmin() {
                                             })}
                                         </div>
 
-                                        <div className="adminAnnActions" style={{ marginTop: "20px", display: "flex", gap: "8px" }}>
+                                        <div style={{ marginTop: "24px", paddingTop: "20px", borderTop: "1px dashed rgba(10, 42, 67, 0.15)" }}>
+                                            <h4 style={{ fontSize: "0.85rem", fontWeight: "800", color: "#0a2a43", textTransform: "uppercase", marginBottom: "12px", display: "flex", alignItems: "center", gap: "8px" }}>
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                                    <circle cx="12" cy="7" r="4"></circle>
+                                                </svg>
+                                                Submitter Information
+                                            </h4>
+                                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", backgroundColor: "#f8fafc", padding: "12px", borderRadius: "8px", border: "1px solid rgba(10, 42, 67, 0.05)" }}>
+                                                <div>
+                                                    <label className="adminLabel" style={{ fontSize: "10px", marginBottom: "2px" }}>Prénom</label>
+                                                    <div style={{ fontWeight: "600", color: "#0a2a43", fontSize: "13px" }}>{s.data?.submitter?.firstName || <span className="adminMuted">Not provided</span>}</div>
+                                                </div>
+                                                <div>
+                                                    <label className="adminLabel" style={{ fontSize: "10px", marginBottom: "2px" }}>Nom</label>
+                                                    <div style={{ fontWeight: "600", color: "#0a2a43", fontSize: "13px" }}>{s.data?.submitter?.lastName || <span className="adminMuted">Not provided</span>}</div>
+                                                </div>
+                                                <div>
+                                                    <label className="adminLabel" style={{ fontSize: "10px", marginBottom: "2px" }}>Phone</label>
+                                                    <div style={{ fontWeight: "600", color: "#0a2a43", fontSize: "13px" }}>{s.data?.submitter?.phone || <span className="adminMuted">Not provided</span>}</div>
+                                                </div>
+                                                <div>
+                                                    <label className="adminLabel" style={{ fontSize: "10px", marginBottom: "2px" }}>Email</label>
+                                                    <div style={{ fontWeight: "600", color: "#0a2a43", fontSize: "13px" }}>{s.data?.submitter?.email || <span className="adminMuted">Not provided</span>}</div>
+                                                </div>
+                                                <div style={{ gridColumn: "span 2" }}>
+                                                    <label className="adminLabel" style={{ fontSize: "10px", marginBottom: "2px" }}>Notes / Message</label>
+                                                    <div style={{ fontWeight: "600", color: "#0a2a43", fontSize: "13px", whiteSpace: "pre-wrap", backgroundColor: "#fff", padding: "8px", borderRadius: "4px", border: "1px solid rgba(0,0,0,0.05)" }}>
+                                                        {s.data?.submitter?.notes || <span className="adminMuted">No notes provided</span>}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="adminAnnActions" style={{ marginTop: "24px", display: "flex", gap: "12px" }}>
                                             <button
                                                 className="adminBtn"
                                                 style={{ flex: 1, padding: "10px", backgroundColor: "#ffebee", color: "#c62828", border: "1px solid #ffcdd2" }}

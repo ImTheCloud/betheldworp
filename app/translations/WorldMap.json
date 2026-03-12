@@ -60,7 +60,20 @@
         "mapTheme": "Tema hărții",
         "themeLight": "Luminos",
         "themeDark": "Întunecat",
-        "language": "Limba"
+        "language": "Limba",
+        "churchInfo": "Detalii Biserică",
+        "yourInfo": "Informațiile Tale",
+        "churchNamePlaceholder": "",
+        "notesPlaceholder": "",
+        "contact": "Contactează-ne",
+        "submitterTitle": "Informațiile tale (Opțional)",
+        "submitterSubtitle": "Lăsați-vă datele pentru a vă putea contacta.",
+        "skipAndSend": "Trimite",
+        "finishAndSend": "Trimite tot",
+        "nextStep": "Înainte",
+        "back": "Înapoi",
+        "firstName": "Prenume",
+        "lastName": "Nume"
     },
     "fr": {
         "title": "Églises Chrétiennes Pentecôtistes Roumaines",
@@ -123,7 +136,20 @@
         "mapTheme": "Thème de la carte",
         "themeLight": "Clair",
         "themeDark": "Sombre",
-        "language": "Langue"
+        "language": "Langue",
+        "churchInfo": "Infos Église",
+        "yourInfo": "Vos Infos",
+        "churchNamePlaceholder": "",
+        "notesPlaceholder": "",
+        "contact": "Contactez-nous",
+        "submitterTitle": "Vos Informations (Optionnel)",
+        "submitterSubtitle": "Laissez vos coordonnées si besoin.",
+        "skipAndSend": "Envoyer",
+        "finishAndSend": "Terminer",
+        "nextStep": "Suivant",
+        "back": "Retour",
+        "firstName": "Prénom",
+        "lastName": "Nom"
     },
     "en": {
         "title": "Romanian Pentecostal Christian Churches",
@@ -186,7 +212,20 @@
         "mapTheme": "Map Theme",
         "themeLight": "Light",
         "themeDark": "Dark",
-        "language": "Language"
+        "language": "Language",
+        "churchInfo": "Church Details",
+        "yourInfo": "Your Info",
+        "churchNamePlaceholder": "",
+        "notesPlaceholder": "",
+        "contact": "Contact Us",
+        "submitterTitle": "Your Information (Optional)",
+        "submitterSubtitle": "Leave details so we can contact you.",
+        "skipAndSend": "Send",
+        "finishAndSend": "Finish",
+        "nextStep": "Next",
+        "back": "Back",
+        "firstName": "First Name",
+        "lastName": "Last Name"
     },
     "nl": {
         "title": "Roemeense Christelijke Pinkstergemeenten",
@@ -249,6 +288,19 @@
         "mapTheme": "Kaartthema",
         "themeLight": "Licht",
         "themeDark": "Donker",
-        "language": "Taal"
+        "language": "Taal",
+        "churchInfo": "Kerk Details",
+        "yourInfo": "Uw Info",
+        "churchNamePlaceholder": "",
+        "notesPlaceholder": "",
+        "contact": "Neem contact op",
+        "submitterTitle": "Uw Informatie (Optioneel)",
+        "submitterSubtitle": "Laat gegevens achter voor contact.",
+        "skipAndSend": "Verzenden",
+        "finishAndSend": "Voltooien",
+        "nextStep": "Volgende",
+        "back": "Terug",
+        "firstName": "Voornaam",
+        "lastName": "Achternaam"
     }
 }

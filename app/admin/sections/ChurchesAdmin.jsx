@@ -65,7 +65,6 @@ const FIELDS = [
     { key: "youtube", label: "YouTube", type: "text" },
     { key: "facebook", label: "Facebook", type: "text" },
     { key: "instagram", label: "Instagram", type: "text" },
-    { key: "notes", label: "Notes / Message", type: "textarea" },
     { key: "likes", label: "Hearts / Likes", type: "number" },
 ];
 
@@ -186,6 +185,17 @@ function ChurchCard({ item, expanded, drafts, saveState, errorText, onToggle, on
                         })}
                     </div>
 
+                    <div style={{ marginTop: "16px", paddingTop: "16px", borderTop: "1px dashed rgba(10, 42, 67, 0.1)" }}>
+                        <label className="adminLabel">Notes / Message</label>
+                        <textarea
+                            className="adminInput"
+                            rows="4"
+                            style={{ resize: "vertical", marginTop: 4 }}
+                            value={drafts.notes ?? ""}
+                            onChange={(e) => onChange(id, "notes", e.target.value)}
+                        />
+                    </div>
+
                     <div className="adminMsgActions" style={{ marginTop: "20px" }}>
                         <button
                             type="button"
@@ -281,6 +291,17 @@ function NewChurchCard({ drafts, setDraft, errorText, saveState, onCancel, onSav
                             </label>
                         );
                     })}
+                </div>
+
+                <div style={{ marginTop: "16px", paddingTop: "16px", borderTop: "1px dashed rgba(10, 42, 67, 0.1)" }}>
+                    <label className="adminLabel">Notes / Message</label>
+                    <textarea
+                        className="adminInput"
+                        rows="4"
+                        style={{ resize: "vertical", marginTop: 4 }}
+                        value={drafts.notes ?? ""}
+                        onChange={(e) => setDraft("notes", e.target.value)}
+                    />
                 </div>
 
                 <div className="adminMsgActions" style={{ marginTop: "20px" }}>
