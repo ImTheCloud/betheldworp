@@ -185,16 +185,6 @@ function ChurchCard({ item, expanded, drafts, saveState, errorText, onToggle, on
                         })}
                     </div>
 
-                    <div style={{ marginTop: "16px", paddingTop: "16px", borderTop: "1px dashed rgba(10, 42, 67, 0.1)" }}>
-                        <label className="adminLabel">Notes / Message</label>
-                        <textarea
-                            className="adminInput"
-                            rows="4"
-                            style={{ resize: "vertical", marginTop: 4 }}
-                            value={drafts.notes ?? ""}
-                            onChange={(e) => onChange(id, "notes", e.target.value)}
-                        />
-                    </div>
 
                     <div className="adminMsgActions" style={{ marginTop: "20px" }}>
                         <button
@@ -293,16 +283,6 @@ function NewChurchCard({ drafts, setDraft, errorText, saveState, onCancel, onSav
                     })}
                 </div>
 
-                <div style={{ marginTop: "16px", paddingTop: "16px", borderTop: "1px dashed rgba(10, 42, 67, 0.1)" }}>
-                    <label className="adminLabel">Notes / Message</label>
-                    <textarea
-                        className="adminInput"
-                        rows="4"
-                        style={{ resize: "vertical", marginTop: 4 }}
-                        value={drafts.notes ?? ""}
-                        onChange={(e) => setDraft("notes", e.target.value)}
-                    />
-                </div>
 
                 <div className="adminMsgActions" style={{ marginTop: "20px" }}>
                     <button type="button" className="adminDeleteBtn" onClick={onCancel} disabled={saveState === "saving"}>

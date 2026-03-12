@@ -305,11 +305,11 @@ export default function ChurchSuggestionsAdmin() {
                                             </h4>
                                             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", backgroundColor: "#f8fafc", padding: "12px", borderRadius: "8px", border: "1px solid rgba(10, 42, 67, 0.05)" }}>
                                                 <div>
-                                                    <label className="adminLabel" style={{ fontSize: "10px", marginBottom: "2px" }}>Prénom</label>
+                                                    <label className="adminLabel" style={{ fontSize: "10px", marginBottom: "2px" }}>First Name</label>
                                                     <div style={{ fontWeight: "600", color: "#0a2a43", fontSize: "13px" }}>{s.data?.submitter?.firstName || <span className="adminMuted">Not provided</span>}</div>
                                                 </div>
                                                 <div>
-                                                    <label className="adminLabel" style={{ fontSize: "10px", marginBottom: "2px" }}>Nom</label>
+                                                    <label className="adminLabel" style={{ fontSize: "10px", marginBottom: "2px" }}>Last Name</label>
                                                     <div style={{ fontWeight: "600", color: "#0a2a43", fontSize: "13px" }}>{s.data?.submitter?.lastName || <span className="adminMuted">Not provided</span>}</div>
                                                 </div>
                                                 <div>
