@@ -18,6 +18,15 @@ function IconSearch(props) {
     );
 }
 
+function IconMap(props) {
+    return (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+            <circle cx="12" cy="10" r="3" />
+        </svg>
+    );
+}
+
 function s(v) {
     return String(v ?? "");
 }
@@ -419,6 +428,7 @@ export default function StatsAdmin() {
                         city: clamp(d.city, 60),
                         language: normalizeLang(d.language),
                         deviceType: normalizeDevice(d.deviceType),
+                        timestamp: d.timestamp || 0,
                     });
                 });
 
@@ -431,6 +441,7 @@ export default function StatsAdmin() {
                         city: clamp(d.city, 60),
                         language: normalizeLang(d.language),
                         deviceType: normalizeDevice(d.deviceType),
+                        timestamp: d.timestamp || 0,
                     });
                 });
 
@@ -448,7 +459,8 @@ export default function StatsAdmin() {
                         preciseLat: d.preciseLat,
                         preciseLng: d.preciseLng,
                         timeHM: d.timeHM || "??:??",
-                        visitorId: d.visitorId || docSnap.id
+                        visitorId: d.visitorId || docSnap.id,
+                        timestamp: d.timestamp || 0
                     });
                 });
 
@@ -731,36 +743,44 @@ export default function StatsAdmin() {
                     {page === "world_map" && (visitorType === "human" || visitorType === "unique") && agg.byGeo["granted"] > 0 && (
                         <div className="statsCard" style={{ marginTop: "24px" }}>
                             <div className="statsCardTop">
-                                <div className="statsCardTitle">Recent Precise Positions (GPS)</div>
+                                <div className="statsCardTitle">
+                                    Recent Precise Positions (GPS)
+                                    <span className="statsGPSCounter">{scoped.length}</span>
+                                </div>
                             </div>
                             <div className="statsLegendScroll">
-                                <div className="statsLegendHead" style={{ gridTemplateColumns: "110px 1fr 70px" }}>
+                                <div className="statsLegendHead statsGPSHead">
                                     <div className="statsLegendHeadCell">Date / Time</div>
-                                    <div className="statsLegendHeadCell">Location (Nearest)</div>
+                                    <div className="statsLegendHeadCell">Location</div>
                                     <div className="statsLegendHeadCell statsRight">Maps</div>
                                 </div>
                                 {scoped
-                                    .filter(v => v.preciseLat)
-                                    .sort((a, b) => b.timestamp - a.timestamp)
-                                    .slice(0, 50)
+                                    .sort((a, b) => (Number(b.timestamp) || 0) - (Number(a.timestamp) || 0))
                                     .map((v, i) => (
-                                        <div key={i} className="statsLegendRow" style={{ gridTemplateColumns: "110px 1fr 70px" }}>
-                                            <div className="statsLegendName" style={{ fontSize: "12px", color: "rgba(10,42,67,0.6)" }}>
-                                                {v.day.split('-').slice(0,2).join('/')} {v.timeHM}
+                                        <div key={i} className="statsLegendRow statsGPSRow">
+                                            <div className="statsGPSInfo">
+                                                <div className="statsGPSDateCol">
+                                                    <span className="statsGPSDate">{formatEnDateFromKey(v.day)}</span>
+                                                    <span className="statsGPSTime">{v.timeHM}</span>
+                                                </div>
+                                                <div className="statsGPSLocation">
+                                                    {v.city}, {v.country}
+                                                </div>
                                             </div>
-                                            <div className="statsLegendName" style={{ fontWeight: "500" }}>
-                                                {v.city}, {v.country}
-                                            </div>
-                                            <div className="statsLegendCount statsRight">
-                                                <a
-                                                    href={`https://www.google.com/maps?q=${v.preciseLat},${v.preciseLng}`}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="adminBtn adminBtnPrimary"
-                                                    style={{ padding: "4px 10px", fontSize: "11px", height: "auto", textDecoration: "none" }}
-                                                >
-                                                    View
-                                                </a>
+                                            <div className="statsLegendCount statsRight statsGPSMaps">
+                                                {v.preciseLat && v.preciseLng ? (
+                                                    <a
+                                                        href={`https://www.google.com/maps?q=${v.preciseLat},${v.preciseLng}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="adminBtn adminBtnPrimary statsGPSBtn"
+                                                        title="View on Google Maps"
+                                                    >
+                                                        <IconMap className="statsGPSBtnIcon" />
+                                                    </a>
+                                                ) : (
+                                                    <span className="statsGPSNoCoord">No GPS</span>
+                                                )}
                                             </div>
                                         </div>
                                     ))}

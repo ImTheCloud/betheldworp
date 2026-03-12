@@ -273,3 +273,127 @@
         font-size: 13px;
     }
 }
+
+/* GPS Table Specific Styles */
+
+.statsGPSHead,
+.statsGPSRow {
+    grid-template-columns: 110px 1fr 70px !important;
+}
+
+.statsGPSInfo {
+    display: contents; /* Behaves as individual cells on desktop */
+}
+
+.statsGPSDateCol {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: rgba(10, 42, 67, 0.6);
+}
+
+.statsGPSDate {
+    font-weight: 500;
+}
+
+.statsGPSTime {
+    font-weight: 400;
+}
+
+.statsGPSLocation {
+    font-size: 14px;
+    font-weight: 500;
+    color: #0a2a43;
+}
+
+.statsGPSNoCoord {
+    font-size: 10px;
+    color: rgba(10, 42, 67, 0.3);
+    font-style: italic;
+}
+
+.statsGPSCounter {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(10, 42, 67, 0.05);
+    color: #0a2a43;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 99px;
+    margin-left: 10px;
+    vertical-align: middle;
+}
+
+.statsGPSBtn {
+    padding: 6px !important;
+    width: 32px;
+    height: 32px !important;
+    border-radius: 8px !important;
+    font-size: 11px !important;
+    text-decoration: none !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+}
+
+.statsGPSBtnIcon {
+    display: block;
+    width: 16px;
+    height: 16px;
+}
+
+@media (max-width: 600px) {
+    .statsGPSHead {
+        display: none !important;
+    }
+
+    .statsGPSRow {
+        grid-template-columns: 1fr auto !important;
+        gap: 0 12px !important;
+        padding: 8px 0 !important;
+        align-items: flex-start !important;
+    }
+
+    .statsGPSInfo {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .statsGPSDateCol {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 0;
+    }
+
+    .statsGPSDate {
+        font-size: 10px;
+    }
+
+    .statsGPSTime {
+        font-size: 10px;
+        color: rgba(10, 42, 67, 0.4);
+    }
+
+    .statsGPSLocation {
+        font-size: 12px;
+        line-height: 1.2;
+    }
+
+    .statsGPSMaps {
+        grid-row: 1;
+        grid-column: 2;
+        margin-top: 2px; /* Slight adjustment to align with the first line of text */
+    }
+
+    .statsGPSBtn {
+        width: 30px;
+        height: 30px !important;
+    }
+}
