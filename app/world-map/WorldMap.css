@@ -1604,22 +1604,22 @@
         z-index: 1000;
         display: flex;
         align-items: center;
-        padding: 0 4px;
-        gap: 2px;
+        padding: 0 8px;
+        gap: 6px;
         border: 1px solid #e2e8f0;
     }
     .mobileSearchBox {
-        flex: 2; /* Large share of space since back button is gone */
+        flex: 1;
+        min-width: 0;
         height: 44px;
         background: #ffffff;
         border: 1px solid #cbd5e1;
         border-radius: 12px;
         display: flex;
         align-items: center;
-        padding: 0 4px 0 16px;
+        padding: 0 4px 0 12px;
         gap: 0;
         transition: all 0.2s ease;
-        margin: 0 4px 0 8px;
     }
 
     .mobileSearchBox:focus-within {
@@ -1680,12 +1680,12 @@
         padding: 0 10px;
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 4px;
         background: #ffffff;
         border: 1px solid #cbd5e1;
         border-radius: 12px;
         transition: all 0.2s ease;
-        margin-left: 2px;
+        flex-shrink: 0;
     }
 
     .mobileHeaderFilterBtn.hasFilter {
@@ -1726,11 +1726,26 @@
         border: none;
         border-radius: 10px;
         transition: all 0.2s ease;
+        flex-shrink: 0;
     }
 
     .mobileHeaderSettingsBtn:active {
         background: #f1f5f9;
         transform: scale(0.92);
+    }
+
+    /* Extra narrow screens fix */
+    @media (max-width: 360px) {
+        .mobileTopHeader {
+            padding: 0 4px;
+            gap: 4px;
+        }
+        .mobileHeaderFilterBtn {
+            padding: 0 6px;
+        }
+        .mobileFilterCount {
+            font-size: 0.75rem;
+        }
     }
 
     /* Adjust country filter menu for mobile header */
@@ -1927,7 +1942,7 @@
 
 @media (max-width: 480px) {
     .churchMapBottomSheet {
-        height: 45vh;
+        height: var(--dynamic-height, 45vh);
     }
 
     .churchDetailsCard {
