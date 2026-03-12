@@ -73,7 +73,8 @@
         "nextStep": "Înainte",
         "back": "Înapoi",
         "firstName": "Prenume",
-        "lastName": "Nume"
+        "lastName": "Nume",
+        "backToWebsite": "Înapoi la Site"
     },
     "fr": {
         "title": "Églises Chrétiennes Pentecôtistes Roumaines",
@@ -149,7 +150,8 @@
         "nextStep": "Suivant",
         "back": "Retour",
         "firstName": "Prénom",
-        "lastName": "Nom"
+        "lastName": "Nom",
+        "backToWebsite": "Retour au site"
     },
     "en": {
         "title": "Romanian Pentecostal Christian Churches",
@@ -225,7 +227,8 @@
         "nextStep": "Next",
         "back": "Back",
         "firstName": "First Name",
-        "lastName": "Last Name"
+        "lastName": "Last Name",
+        "backToWebsite": "Back to website"
     },
     "nl": {
         "title": "Roemeense Christelijke Pinkstergemeenten",
@@ -301,6 +304,7 @@
         "nextStep": "Volgende",
         "back": "Terug",
         "firstName": "Voornaam",
-        "lastName": "Achternaam"
+        "lastName": "Achternaam",
+        "backToWebsite": "Terug naar de website"
     }
 }

@@ -365,9 +365,13 @@ function ChurchMap() {
     const [bottomSheetMode, setBottomSheetMode] = useState("collapsed"); // "hidden" | "collapsed" | "expanded"
     const [filterOpen, setFilterOpen] = useState(false);
     const filterRef = useRef(null);
-    const touchStartY = useRef(0);
+    const touchStartY = useRef(null);
     const [isMobile, setIsMobile] = useState(false);
     const [isExiting, setIsExiting] = useState(false);
+    const [dragHeight, setDragHeight] = useState(null);
+    const [isDragging, setIsDragging] = useState(false);
+    const startHeight = useRef(null);
+    const sheetRef = useRef(null);
 
     useEffect(() => {
         const checkMobile = () => setIsMobile(window.innerWidth <= 768);
@@ -783,22 +787,53 @@ function ChurchMap() {
 
     const handleTouchStart = (e) => {
         touchStartY.current = e.touches[0].clientY;
+        if (sheetRef.current) {
+            startHeight.current = sheetRef.current.offsetHeight;
+        }
+        setIsDragging(true);
+    };
+
+    const handleTouchMove = (e) => {
+        if (!isDragging || !startHeight.current) return;
+        const currentY = e.touches[0].clientY;
+        const deltaY = currentY - touchStartY.current;
+        
+        // Calculate new height (dragging up reduces deltaY, so we subtract it)
+        let newHeight = startHeight.current - deltaY;
+        
+        // Respect limits (min 84px, max 95vh)
+        const minH = 84;
+        const maxH = window.innerHeight * 0.95;
+        
+        if (newHeight < minH) {
+            newHeight = minH + (newHeight - minH) * 0.2; // Resistance
+        } else if (newHeight > maxH) {
+            newHeight = maxH + (newHeight - maxH) * 0.2; // Resistance
+        }
+        
+        setDragHeight(newHeight);
     };
 
     const handleTouchEnd = (e) => {
-        const touchEndY = e.changedTouches[0].clientY;
-        const distance = touchEndY - touchStartY.current;
-
-        // Swipe up
-        if (distance < -40) {
-            if (bottomSheetMode === "hidden") setBottomSheetMode("collapsed");
-            else if (bottomSheetMode === "collapsed") setBottomSheetMode("expanded");
+        if (!isDragging) return;
+        setIsDragging(false);
+        
+        if (dragHeight) {
+            const vh = window.innerHeight / 100;
+            const hInVh = dragHeight / vh;
+            
+            // Snap logic based on height
+            if (hInVh < 25) {
+                setBottomSheetMode("hidden");
+            } else if (hInVh < 65) {
+                setBottomSheetMode("collapsed");
+            } else {
+                setBottomSheetMode("expanded");
+            }
         }
-        // Swipe down
-        if (distance > 40) {
-            if (bottomSheetMode === "expanded") setBottomSheetMode("collapsed");
-            else if (bottomSheetMode === "collapsed") setBottomSheetMode("hidden");
-        }
+        
+        setDragHeight(null);
+        startHeight.current = null;
     };
 
     if (!API_KEY) {
@@ -898,9 +933,94 @@ function ChurchMap() {
 
     return (
         <div className={`churchMapLayout ${mobileShowMap ? "mapFocused" : ""}`} data-theme={mapTheme}>
+            {/* Mobile Top Header (Search, Filters, Settings) */}
+            {isMobile && (
+                <div className="mobileTopHeader">
+                    
+                    <div className="mobileSearchBox">
+                        <input
+                            type="text"
+                            placeholder="Recherche"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                        {searchQuery ? (
+                            <button className="mobileSearchClear" onClick={() => setSearchQuery("")}>
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </button>
+                        ) : (
+                            <svg className="mobileSearchIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                        )}
+                    </div>
+
+                    <div className="mobileFilterAction" ref={filterRef}>
+                        <button 
+                            className={`mobileHeaderFilterBtn ${activeCountryFilter ? "hasFilter" : ""}`}
+                            onClick={() => setFilterOpen(!filterOpen)}
+                        >
+                            <span className="mobileFlagIcon">{activeFilterIcon}</span>
+                            <span className="mobileFilterCount">({activeCountryFilter ? (countryCounts[activeCountryFilter] || 0) : (countryCounts.all || 0)})</span>
+                            <svg className={`mobileFilterChevron ${filterOpen ? "open" : ""}`} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </button>
+                        {filterOpen && (
+                            <div className="countryFilterMenu mobileVersion">
+                                <button
+                                    className={`countryFilterOption ${!activeCountryFilter ? "active" : ""}`}
+                                    onClick={() => {
+                                        setActiveCountryFilter("");
+                                        setFilterOpen(false);
+                                    }}
+                                >
+                                    <span style={{ fontSize: '1.1rem' }}>🌍</span> {t("allCountries")}
+                                    <span style={{ fontSize: '0.85rem', opacity: 0.7, marginLeft: 'auto' }}>({countryCounts.all || 0})</span>
+                                </button>
+                                {ALL_COUNTRIES.map((country) => (
+                                    <button
+                                        key={country}
+                                        className={`countryFilterOption ${activeCountryFilter === country ? "active" : ""}`}
+                                        onClick={() => {
+                                            setActiveCountryFilter(country);
+                                            setFilterOpen(false);
+                                        }}
+                                    >
+                                        <span style={{ fontSize: '1.1rem' }}>{COUNTRY_FLAGS[country] || "🌍"}</span> {getCountryLabel(country)}
+                                        <span style={{ fontSize: '0.85rem', opacity: 0.7, marginLeft: 'auto' }}>({countryCounts[country] || 0})</span>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    <button 
+                        className="mobileHeaderSettingsBtn"
+                        onClick={() => setShowMapSettings(!showMapSettings)}
+                    >
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                        </svg>
+                    </button>
+                </div>
+            )}
             {/* Sidebar */}
             <aside className="churchMapSidebar">
-                <div className={`churchMapBottomSheet ${showMapSettings ? 'settings-active' : ''}`} data-mode={bottomSheetMode}>
+                <div 
+                    ref={sheetRef}
+                    className={`churchMapBottomSheet ${showMapSettings ? 'settings-active' : ''}`} 
+                    data-mode={bottomSheetMode}
+                    style={isMobile ? {
+                        "--dynamic-height": dragHeight ? `${dragHeight}px` : undefined,
+                        transition: isDragging ? 'none' : undefined
+                    } : {}}
+                >
                     {/* Map Controls (Manual Recenter) - Moved here to follow sheet on mobile */}
                     {userLocation && (
                         <button 
@@ -926,94 +1046,89 @@ function ChurchMap() {
                                 else setBottomSheetMode("collapsed");
                             }}
                             onTouchStart={handleTouchStart}
+                            onTouchMove={handleTouchMove}
                             onTouchEnd={handleTouchEnd}
                         >
                             <div className="bottomSheetDragHandle"></div>
                         </div>
 
-                    {/* Search and Country Filter Area */}
-                    <div className="churchMapFilterContainer">
-                        {isMobile && (
-                            <Link href="/#harta-mondiala" className="churchMapBackLink" title={t("backToHome")} aria-label={t("backToHome")}>
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                    <line x1="19" y1="12" x2="5" y2="12"></line>
-                                    <polyline points="12 19 5 12 12 5"></polyline>
-                                </svg>
-                            </Link>
-                        )}
+                        {/* Search and Country Filter Area - Desktop Only */}
+                    {!isMobile && (
+                        <div className="churchMapFilterContainer">
+                            <div className="churchMapSearch">
+                                <input
+                                    type="text"
+                                    placeholder="Recherche"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
+                                {searchQuery ? (
+                                    <button 
+                                        className="churchMapSearchClear" 
+                                        onClick={() => setSearchQuery("")}
+                                        title={t("clearSearch") || "Clear search"}
+                                        aria-label="Clear search"
+                                    >
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                                        </svg>
+                                    </button>
+                                ) : (
+                                    <svg className="churchMapSearchIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <circle cx="11" cy="11" r="8"></circle>
+                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                    </svg>
+                                )}
+                            </div>
 
-                        <div className="churchMapSearch">
-                            <svg className="churchMapSearchIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <circle cx="11" cy="11" r="8"></circle>
-                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                            </svg>
-                            <input
-                                type="text"
-                                placeholder={t("searchPlaceholder")}
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                            />
-                            {searchQuery && (
-                                <button 
-                                    className="churchMapSearchClear" 
-                                    onClick={() => setSearchQuery("")}
-                                    title={t("clearSearch") || "Clear search"}
-                                    aria-label="Clear search"
+                            <div className="countryFilterDropdown" ref={filterRef}>
+                                <button
+                                    className={`countryFilterBtn ${activeCountryFilter ? "hasFilter" : ""}`}
+                                    onClick={() => setFilterOpen(!filterOpen)}
+                                    title={activeCountryFilter ? getCountryLabel(activeCountryFilter) : t("allCountries")}
                                 >
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>{activeFilterIcon}</span>
+                                        <span style={{ fontSize: '0.95rem', fontWeight: '500', opacity: 0.9 }}>
+                                            ({activeCountryFilter ? (countryCounts[activeCountryFilter] || 0) : (countryCounts.all || 0)})
+                                        </span>
+                                    </div>
+                                    <svg className={`chevron ${filterOpen ? "open" : ""}`} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ margin: 0 }}>
+                                        <polyline points="6 9 12 15 18 9"></polyline>
                                     </svg>
                                 </button>
-                            )}
-                        </div>
-
-                        <div className="countryFilterDropdown" ref={filterRef}>
-                            <button
-                                className={`countryFilterBtn ${activeCountryFilter ? "hasFilter" : ""}`}
-                                onClick={() => setFilterOpen(!filterOpen)}
-                                title={activeCountryFilter ? getCountryLabel(activeCountryFilter) : t("allCountries")}
-                            >
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                    <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>{activeFilterIcon}</span>
-                                    <span style={{ fontSize: '0.95rem', fontWeight: '500', opacity: 0.9 }}>
-                                        ({activeCountryFilter ? (countryCounts[activeCountryFilter] || 0) : (countryCounts.all || 0)})
-                                    </span>
-                                </div>
-                                <svg className={`chevron ${filterOpen ? "open" : ""}`} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ margin: 0 }}>
-                                    <polyline points="6 9 12 15 18 9"></polyline>
-                                </svg>
-                            </button>
-                            {filterOpen && (
-                                <div className="countryFilterMenu">
-                                    <button
-                                        className={`countryFilterOption ${!activeCountryFilter ? "active" : ""}`}
-                                        onClick={() => {
-                                            setActiveCountryFilter("");
-                                            setFilterOpen(false);
-                                        }}
-                                        style={{ justifyContent: 'flex-start', padding: '10px 16px' }}
-                                    >
-                                        <span style={{ fontSize: '1.1rem' }}>🌍</span> {t("allCountries")}
-                                        <span style={{ fontSize: '0.85rem', opacity: 0.7, marginLeft: 'auto' }}>({countryCounts.all || 0})</span>
-                                    </button>
-                                    {ALL_COUNTRIES.map((country) => (
+                                {filterOpen && (
+                                    <div className="countryFilterMenu">
                                         <button
-                                            key={country}
-                                            className={`countryFilterOption ${activeCountryFilter === country ? "active" : ""}`}
+                                            className={`countryFilterOption ${!activeCountryFilter ? "active" : ""}`}
                                             onClick={() => {
-                                                setActiveCountryFilter(country);
+                                                setActiveCountryFilter("");
                                                 setFilterOpen(false);
                                             }}
+                                            style={{ justifyContent: 'flex-start', padding: '10px 16px' }}
                                         >
-                                            <span style={{ fontSize: '1.1rem' }}>{COUNTRY_FLAGS[country] || "🌍"}</span> {getCountryLabel(country)}
-                                            <span style={{ fontSize: '0.85rem', opacity: 0.7, marginLeft: 'auto' }}>({countryCounts[country] || 0})</span>
+                                            <span style={{ fontSize: '1.1rem' }}>🌍</span> {t("allCountries")}
+                                            <span style={{ fontSize: '0.85rem', opacity: 0.7, marginLeft: 'auto' }}>({countryCounts.all || 0})</span>
                                         </button>
-                                    ))}
-                                </div>
-                            )}
+                                        {ALL_COUNTRIES.map((country) => (
+                                            <button
+                                                key={country}
+                                                className={`countryFilterOption ${activeCountryFilter === country ? "active" : ""}`}
+                                                onClick={() => {
+                                                    setActiveCountryFilter(country);
+                                                    setFilterOpen(false);
+                                                }}
+                                            >
+                                                <span style={{ fontSize: '1.1rem' }}>{COUNTRY_FLAGS[country] || "🌍"}</span> {getCountryLabel(country)}
+                                                <span style={{ fontSize: '0.85rem', opacity: 0.7, marginLeft: 'auto' }}>({countryCounts[country] || 0})</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                     <div className="churchList">
                         {churchesLoading ? (
@@ -1164,44 +1279,17 @@ function ChurchMap() {
 
             {/* Map */}
             <div className="churchMapContainer">
-                {/* Mobile Back Button (Floating on Map) */}
-                <Link href="/#harta-mondiala" className="mobileMapBackLink">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <line x1="19" y1="12" x2="5" y2="12"></line>
-                        <polyline points="12 19 5 12 12 5"></polyline>
-                    </svg>
-                    {t("backToHome")}
-                </Link>
-
-                {/* Mobile Settings Button (Floating on Map) */}
-                <button 
-                    className="mobileMapSettingsBtn"
-                    onClick={() => setShowMapSettings(!showMapSettings)}
-                    aria-label={t("settings")}
-                >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="3"></circle>
-                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                    </svg>
-                </button>
-
                 {/* Desktop Back Button (Floating on Map) */}
-                {!isMobile && (
-                    <Link href="/#harta-mondiala" className="desktopMapBackBtn" title={t("backToHome")} aria-label={t("backToHome")}>
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <line x1="19" y1="12" x2="5" y2="12"></line>
-                            <polyline points="12 19 5 12 12 5"></polyline>
-                        </svg>
-                    </Link>
-                )}
 
-                {/* Map Overlay Title */}
-                <div className="mapOverlayTitle">
-                    <div className="mapOverlayTitleContent">
-                        <h1 className="mapOverlayHeading">{t("subtitle")}</h1>
-                        <p className="mapOverlaySubtitle">{t("title")}</p>
+                {/* Map Overlay Title - Desktop Only */}
+                {!isMobile && (
+                    <div className="mapOverlayTitle">
+                        <div className="mapOverlayTitleContent">
+                            <h1 className="mapOverlayHeading">{t("subtitle")}</h1>
+                            <p className="mapOverlaySubtitle">{t("title")}</p>
+                        </div>
                     </div>
-                </div>
+                )}
 
                 {/* Settings Modal + Backdrop */}
                 {showMapSettings && <div className="mapSettingsBackdrop" onClick={() => setShowMapSettings(false)} />}
@@ -1273,6 +1361,17 @@ function ChurchMap() {
                                     </button>
                                 ))}
                             </div>
+                        </div>
+
+                        {/* Back to Website Option */}
+                        <div className="mapSettingsItem">
+                            <Link href="/" className="mapSettingsBackLink">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                                    <polyline points="9 22 9 12 15 12 15 22" />
+                                </svg>
+                                <span>{t("backToWebsite")}</span>
+                            </Link>
                         </div>
 
                         {/* Contact Option */}
