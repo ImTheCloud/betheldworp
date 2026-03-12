@@ -902,18 +902,20 @@ function ChurchMap() {
             <aside className="churchMapSidebar">
                 <div className={`churchMapBottomSheet ${showMapSettings ? 'settings-active' : ''}`} data-mode={bottomSheetMode}>
                     {/* Map Controls (Manual Recenter) - Moved here to follow sheet on mobile */}
-                    <button 
-                        className={`mapRecenterBtn ${!userLocation ? "requesting" : ""}`}
-                        onClick={handleRecenter}
-                        title={t("youAreHere")}
-                        aria-label="Recenter map"
-                        data-mode={bottomSheetMode}
-                    >
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                            <circle cx="12" cy="10" r="3"></circle>
-                        </svg>
-                    </button>
+                    {userLocation && (
+                        <button 
+                            className="mapRecenterBtn"
+                            onClick={handleRecenter}
+                            title={t("youAreHere")}
+                            aria-label="Recenter map"
+                            data-mode={bottomSheetMode}
+                        >
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
+                        </button>
+                    )}
 
                     <div className="bottomSheetInner">
                         <div

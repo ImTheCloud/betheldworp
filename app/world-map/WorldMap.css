@@ -118,6 +118,16 @@
     background: #ffffff;
 }
 
+/* Container for all sidebar content to handle scrolling and button positioning */
+.bottomSheetInner {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+}
+
 @media (min-width: 769px) {
     .churchMapBottomSheet {
         flex: 1;
@@ -1165,11 +1175,6 @@
     transform: scale(0.95) translateY(0);
 }
 
-.mapRecenterBtn.requesting svg {
-    animation: iconPulse 1.5s infinite;
-    color: #94a3b8;
-}
-
 @keyframes iconPulse {
     0% { transform: scale(1); opacity: 1; }
     50% { transform: scale(0.8); opacity: 0.5; }
@@ -1722,17 +1727,11 @@
     }
 
     .bottomSheetInner {
-        position: relative;
         z-index: 10;
         pointer-events: auto;
         background: #ffffff;
         border-radius: 32px 32px 0 0;
         border-top: 1px solid #e2e8f0;
-        display: flex;
-        flex-direction: column;
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
     }
 
     .churchMapBottomSheet:has(.mobileChurchDetails) {
