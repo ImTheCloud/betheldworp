@@ -860,25 +860,18 @@
 }
 
 /* Dark mode tweaks for picker & toggle */
-.churchMapLayout[data-theme="dark"] .themeToggleSwitch,
-.churchMapLayout[data-theme="dark"] .langSegmentedControl {
+.churchMapLayout[data-theme="dark"] .themeToggleSwitch {
     background: #1e293b;
 }
 
-.churchMapLayout[data-theme="dark"] .themeToggleBtn.active,
-.churchMapLayout[data-theme="dark"] .langSegmentOption.active {
+.churchMapLayout[data-theme="dark"] .themeToggleBtn.active {
     background: #334155;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     color: #60a5fa;
 }
 
-.churchMapLayout[data-theme="dark"] .langSegmentOption span,
 .churchMapLayout[data-theme="dark"] .themeToggleBtn {
     color: #94a3b8;
-}
-
-.churchMapLayout[data-theme="dark"] .langSegmentOption.active span {
-    color: #60a5fa;
 }
 
 /* Contact Button in Settings - Unified with primary brand style */
@@ -909,17 +902,7 @@
     opacity: 0.9;
 }
 
-.churchMapLayout[data-theme="dark"] .mapSettingsContactBtn {
-    background: #1e293b;
-    border-color: #334155;
-    color: #60a5fa;
-    box-shadow: none;
-}
-
-.churchMapLayout[data-theme="dark"] .mapSettingsContactBtn:hover {
-    background: #334155;
-    border-color: #60a5fa;
-}
+/* Dark mode contact button override removed to keep brand blue */
 
 .langOptionBtn.active span {
     color: #fff;

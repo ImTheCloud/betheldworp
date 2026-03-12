@@ -744,7 +744,7 @@ export default function StatsAdmin() {
                         <div className="statsCard" style={{ marginTop: "24px" }}>
                             <div className="statsCardTop">
                                 <div className="statsCardTitle">
-                                    Recent Precise Positions (GPS)
+                                    Recent Precise Positions
                                     <span className="statsGPSCounter">{scoped.length}</span>
                                 </div>
                             </div>

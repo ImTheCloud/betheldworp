@@ -117,10 +117,18 @@ function ChurchCard({ item, expanded, drafts, saveState, errorText, onToggle, on
                 <div className="adminAnnBody">
                     {errorText ? <div className="adminAlert">{errorText}</div> : null}
 
-                    {item.createdAt ? (
-                        <div style={{ color: "rgba(10, 42, 67, 0.6)", fontWeight: 500, fontSize: 13, marginBottom: 12 }}>
-                            Added on: {item.createdAt}
+                    {item.createdByInfo ? (
+                        <div style={{ color: "rgba(10, 42, 67, 0.6)", fontWeight: 500, fontSize: 13, marginBottom: 4 }}>
+                            Created by {item.createdByInfo.name} on {item.createdByInfo.date}
                         </div>
+                    ) : item.createdAt ? (
+                        <div style={{ color: "rgba(10, 42, 67, 0.6)", fontWeight: 500, fontSize: 13, marginBottom: 4 }}>
+                            Created by Popadiuc Claudiu on {item.createdAt}
+                        </div>
+                    ) : null}
+
+                    {item.modifiedByInfo ? (
+                        null
                     ) : null}
 
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 16px" }}>
@@ -400,7 +408,26 @@ export default function ChurchesAdmin() {
                             createdAtMs = dObj.getTime();
                         } catch (e) { }
                     }
-                    return { ...data, id: d.id, createdAtMs, createdAt: createdAtText };
+
+                    const formatAttribution = (attr) => {
+                        if (!attr || !attr.name) return null;
+                        let dateText = "";
+                        if (attr.at) {
+                            try {
+                                const dObj = attr.at.toDate ? attr.at.toDate() : new Date(attr.at);
+                                dateText = dObj.toLocaleDateString("en-US", { year: 'numeric', month: 'long', day: 'numeric' });
+                            } catch (e) { }
+                        }
+                        return { name: attr.name, date: dateText };
+                    };
+
+                    return { 
+                        ...data, 
+                        id: d.id, 
+                        createdAtMs, 
+                        createdAt: createdAtText,
+                        createdByInfo: formatAttribution(data.createdBy)
+                    };
                 });
 
                 setItems(list);
@@ -498,6 +525,7 @@ export default function ChurchesAdmin() {
                 instagram: (newDrafts.instagram || "").trim(),
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp(),
+                createdBy: { name: "Popadiuc Claudiu", at: serverTimestamp() }
             });
 
             if (!mountedRef.current) return;

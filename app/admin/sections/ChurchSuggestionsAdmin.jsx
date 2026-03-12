@@ -130,10 +130,20 @@ export default function ChurchSuggestionsAdmin() {
 
             // 1. Geocode
             const coords = await geocodeAddress(draft.street, draft.number, draft.city, draft.zipCode, draft.country);
-            // Ensure zipCode is included in draft
-            const finalData = { ...draft, ...coords, updatedAt: serverTimestamp() };
+            
+            // 2. Attribution Info
+            const submitter = suggestion.data?.submitter || {};
+            const submitterName = `${submitter.firstName || ""} ${submitter.lastName || ""}`.trim() || "Unknown";
+            const attribution = { name: submitterName, at: serverTimestamp() };
+
+            const finalData = { 
+                ...draft, 
+                ...coords, 
+                updatedAt: serverTimestamp() 
+            };
 
             if (type === "new") {
+                finalData.createdBy = attribution;
                 await addDoc(collection(db, "churches"), finalData);
             } else if (type === "edit" && originalChurchId) {
                 await updateDoc(doc(db, "churches", originalChurchId), finalData);
