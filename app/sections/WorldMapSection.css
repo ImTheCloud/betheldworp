@@ -104,10 +104,10 @@
     gap: 12px;
     background: #ffffff;
     color: #0a2a43;
-    padding: 18px 40px;
-    border-radius: 16px;
+    padding: 14px 32px;
+    border-radius: 14px;
     font-weight: 800;
-    font-size: 1.15rem;
+    font-size: 1rem;
     text-decoration: none;
     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35);
@@ -150,8 +150,9 @@
     }
 
     .worldmap-cta {
-        width: 100%;
+        width: auto;
+        min-width: 200px;
         justify-content: center;
-        padding: 20px 24px;
+        padding: 14px 28px;
     }
 }
