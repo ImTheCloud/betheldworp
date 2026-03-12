@@ -577,17 +577,21 @@
    ============================================= */
 .mapOverlayTitle {
     position: absolute;
-    top: 32px;
+    top: 24px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 50;
     text-align: center;
     pointer-events: none;
+    animation: mapTitleFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.mapOverlayTitleContent {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 4px;
-    animation: mapTitleFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    pointer-events: none;
 }
 
 @keyframes mapTitleFadeIn {
@@ -601,6 +605,236 @@
         transform: translateX(-50%) translateY(0);
     }
 }
+
+/* Map Settings Buttons */
+.mapSettingsToggleBtn.desktopOnly,
+.desktopMapBackBtn {
+    position: absolute;
+    top: 24px;
+    z-index: 1001;
+    width: 44px;
+    height: 44px;
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    color: rgba(15, 23, 42, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    text-decoration: none;
+}
+
+.mapSettingsToggleBtn.desktopOnly {
+    right: 20px;
+}
+
+.desktopMapBackBtn {
+    left: 20px;
+}
+
+.mapSettingsToggleBtn:hover,
+.desktopMapBackBtn:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.8);
+    color: #2563eb;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Settings Backdrop Overlay */
+.mapSettingsBackdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 2000;
+    animation: backdropFadeIn 0.3s ease;
+}
+
+@keyframes backdropFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Redesigned Settings Menu - Desktop Flyout */
+.mapSettingsMenu {
+    position: absolute;
+    top: 80px;
+    right: 20px;
+    width: 300px;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 24px;
+    padding: 0;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+    z-index: 2005;
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.95) translateY(-10px);
+    transform-origin: top right;
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mapSettingsMenu.open {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1) translateY(0);
+}
+
+.mapSettingsSection {
+    display: flex;
+    flex-direction: column;
+}
+
+.mapSettingsHeader {
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.mapSettingsHeader h3 {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+}
+
+.closeSettings {
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    color: #64748b;
+    border-radius: 50%;
+    transition: all 0.2s;
+    display: flex;
+}
+
+.closeSettings:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: #1e293b;
+}
+
+.mapSettingsItem {
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.mapSettingsLabel {
+    display: flex;
+    flex-direction: column;
+}
+
+.mapSettingsLabel span {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #334155;
+}
+
+/* Theme Toggle Switch */
+.themeToggleSwitch {
+    background: #f1f5f9;
+    padding: 3px;
+    border-radius: 10px;
+    display: flex;
+    gap: 2px;
+}
+
+.themeToggleBtn {
+    border: none;
+    background: none;
+    padding: 6px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #64748b;
+    transition: all 0.2s;
+    display: flex;
+}
+
+.themeToggleBtn.active {
+    background: #fff;
+    color: #2563eb;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+/* Language Selection Grid */
+.langSelectGrid {
+    display: flex;
+    gap: 6px;
+}
+
+.langOptionBtn {
+    background: none;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 4px 8px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.langOptionBtn img {
+    width: 16px;
+    height: auto;
+}
+
+.langOptionBtn span {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #475569;
+}
+
+.langOptionBtn.active {
+    background: #2563eb;
+    border-color: #2563eb;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
+.langOptionBtn.active span {
+    color: #fff;
+}
+
+.mapSettingsItem {
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+.mapSettingsItem:last-of-type {
+    border-bottom: none;
+}
+
+.mapSettingsFooter {
+    padding: 12px 20px;
+    background: rgba(0, 0, 0, 0.02);
+    text-align: center;
+}
+
+.mapSettingsFooter p {
+    margin: 0;
+    font-size: 0.7rem;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
 
 .mapOverlaySubtitle {
     margin: 0;
@@ -754,12 +988,104 @@
 
 /* User Location Dot */
 .userLocationDot {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     background: #0ea5e9;
     border: 3px solid white;
     border-radius: 50%;
-    box-shadow: 0 0 12px rgba(14, 165, 233, 0.5);
+    box-shadow: 0 0 15px rgba(14, 165, 233, 0.6);
+    position: relative;
+}
+
+.userLocationDot::after {
+    content: "";
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    right: -3px;
+    bottom: -3px;
+    border-radius: 50%;
+    background: rgba(14, 165, 233, 0.2);
+    animation: userDotPulse 2s infinite;
+}
+
+@keyframes userDotPulse {
+    0% { transform: scale(1); opacity: 0.8; }
+    100% { transform: scale(3); opacity: 0; }
+}
+
+/* Map Control Buttons */
+.mapRecenterBtn {
+    position: fixed; /* Fixed relative to viewport on desktop */
+    bottom: 32px;
+    right: 32px;
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(15, 23, 42, 0.8);
+    cursor: pointer;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 101; /* Above almost everything */
+    pointer-events: auto;
+}
+
+.mapRecenterBtn:hover {
+    background: rgba(255, 255, 255, 0.8);
+    color: #2563eb;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.16);
+}
+
+.mapRecenterBtn:active {
+    transform: scale(0.95) translateY(0);
+}
+
+.mapRecenterBtn.requesting svg {
+    animation: iconPulse 1.5s infinite;
+    color: #94a3b8;
+}
+
+@keyframes iconPulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(0.8); opacity: 0.5; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* Positioning adjustments for mobile */
+@media (max-width: 768px) {
+    .mapRecenterBtn {
+        position: relative; /* Use flexbox flow in sidebar */
+        top: auto;
+        bottom: auto;
+        right: auto;
+        left: auto;
+        align-self: flex-end; /* Align to right */
+        margin-right: 16px;
+        margin-bottom: 20px; /* Space above bottom sheet */
+        width: 36px;
+        height: 36px;
+        background: rgba(255, 255, 255, 0.4);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        color: rgba(15, 23, 42, 0.8);
+        border-radius: 50%;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        transition: all 0.2s ease;
+    }
+
+    .mapRecenterBtn:active {
+        background: rgba(255, 255, 255, 0.7);
+        transform: scale(0.95);
+    }
 }
 
 /* =============================================
@@ -1106,12 +1432,14 @@
 /* =============================================
    MOBILE
    ============================================= */
-.mobileBackToList {
+.mobileBackToList,
+.mapSettingsBackdrop,
+.mapSettingsHandle {
     display: none;
 }
 
-/* Hide mobile map back link on desktop */
-.mobileMapBackLink {
+.mobileMapBackLink,
+.mobileMapSettingsBtn {
     display: none;
 }
 
@@ -1180,12 +1508,84 @@
         transform: scale(0.95);
     }
 
-    /* Map Overlay Title – Mobile */
     .mapOverlayTitle {
-        top: 20px; /* Reduced from 36px */
-        gap: 3px;
-        pointer-events: none; /* Let clicks pass through if needed */
-        margin-left: 12px;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: auto;
+        pointer-events: none;
+    }
+
+    .mobileMapSettingsBtn {
+        position: absolute;
+        top: 20px;
+        right: 16px;
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        background: rgba(255, 255, 255, 0.4);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        color: rgba(15, 23, 42, 0.8);
+        border-radius: 50%;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .mobileMapSettingsBtn:active {
+        background: rgba(255, 255, 255, 0.7);
+        transform: scale(0.95);
+    }
+
+    .mapSettingsBackdrop {
+        display: block;
+        background: rgba(0, 0, 0, 0.5);
+    }
+
+    .mapSettingsHandle {
+        display: block;
+        width: 40px;
+        height: 5px;
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 10px;
+        margin: 12px auto;
+        cursor: pointer;
+    }
+
+    /* Mobile Bottom Sheet */
+    .mapSettingsMenu {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        top: auto;
+        width: 100%;
+        height: auto;
+        max-height: 85vh;
+        background: rgba(255, 255, 255, 0.98); /* More opaque to hide map content */
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 32px 32px 0 0;
+        transform: translateY(100%);
+        transform-origin: bottom;
+        opacity: 1;
+        visibility: visible;
+        box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.3);
+        padding-bottom: 40px; /* Safe area */
+        z-index: 2005; /* High priority */
+    }
+
+    .mapSettingsMenu.open {
+        transform: translateY(0);
+    }
+
+    .mapSettingsToggleBtn.desktopOnly {
+        display: none;
     }
 
     .mapOverlayHeading {
@@ -1202,9 +1602,13 @@
     /* Bottom Sheet Overrides – Mobile */
     .churchMapBottomSheet {
         pointer-events: auto;
-        border-radius: 24px 24px 0 0;
-        box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.12);
-        height: 45vh; /* Fixed height for middle state (list view) */
+        background: rgba(255, 255, 255, 0.98); /* Same as settings */
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 32px 32px 0 0 !important;
+        overflow: hidden;
+        box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.3); /* Same as settings */
+        height: 45vh;
         flex: none;
         transition: height 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         transform: translateY(0);
@@ -1219,6 +1623,14 @@
     .churchMapBottomSheet[data-mode="hidden"] {
         /* Leave a little bit of the drag handle visible at the bottom */
         transform: translateY(calc(100% - 24px));
+        opacity: 1;
+    }
+
+    /* Completely hide church list only when settings are active */
+    .churchMapBottomSheet.settings-active {
+        transform: translateY(100%) !important;
+        opacity: 0 !important;
+        pointer-events: none;
     }
 
     .churchMapBottomSheet[data-mode="expanded"] {
@@ -1323,11 +1735,17 @@
 }
 
 @media (max-width: 768px) {
+    .churchSidebarFooter {
+        padding-bottom: calc(env(safe-area-inset-bottom, 16px) + 8px);
+        padding-top: 16px;
+    }
+
     .churchMapBottomSheet:has(.mobileChurchDetails) .churchSidebarFooter {
         border-top: none;
         padding-top: 0;
         position: relative; /* Remove sticky to follow content closely */
         box-shadow: none;
+        padding-bottom: calc(env(safe-area-inset-bottom, 16px) + 12px);
     }
 }
 
@@ -1341,9 +1759,9 @@
 .mobileFooterActions a {
     flex: 1;
     min-width: 0; /* Allow shrinking */
-    height: 44px;
-    padding: 0 8px;
-    font-size: 0.88rem;
+    height: 50px; /* Increased for better visibility/touch */
+    padding: 0 12px;
+    font-size: 0.9rem;
 }
 
 .sidebarDirectionsBtn {
@@ -1378,13 +1796,14 @@
     justify-content: center;
     gap: 8px;
     width: 100%;
+    height: 52px; /* Standardize height for primary action */
     padding: 12px;
     background: #134b7b;
     border: 1px solid #134b7b;
     border-radius: 14px;
     color: #ffffff;
-    font-size: 0.95rem;
-    font-weight: 600;
+    font-size: 1rem;
+    font-weight: 700;
     cursor: pointer;
     box-shadow: 0 4px 15px rgba(19, 75, 123, 0.15);
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);

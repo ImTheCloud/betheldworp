@@ -58,6 +58,87 @@ const COUNTRY_FLAGS = {
 
 
 
+const DARK_MAP_STYLES = [
+    { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
+    { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
+    { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
+    {
+        featureType: "administrative.locality",
+        elementType: "labels.text.fill",
+        stylers: [{ color: "#d59563" }],
+    },
+    {
+        featureType: "poi",
+        elementType: "labels.text.fill",
+        stylers: [{ color: "#d59563" }],
+    },
+    {
+        featureType: "poi.park",
+        elementType: "geometry",
+        stylers: [{ color: "#263c3f" }],
+    },
+    {
+        featureType: "poi.park",
+        elementType: "labels.text.fill",
+        stylers: [{ color: "#6b9a76" }],
+    },
+    {
+        featureType: "road",
+        elementType: "geometry",
+        stylers: [{ color: "#38414e" }],
+    },
+    {
+        featureType: "road",
+        elementType: "geometry.stroke",
+        stylers: [{ color: "#212a37" }],
+    },
+    {
+        featureType: "road",
+        elementType: "labels.text.fill",
+        stylers: [{ color: "#9ca5b3" }],
+    },
+    {
+        featureType: "road.highway",
+        elementType: "geometry",
+        stylers: [{ color: "#746855" }],
+    },
+    {
+        featureType: "road.highway",
+        elementType: "geometry.stroke",
+        stylers: [{ color: "#1f2835" }],
+    },
+    {
+        featureType: "road.highway",
+        elementType: "labels.text.fill",
+        stylers: [{ color: "#f3d19c" }],
+    },
+    {
+        featureType: "transit",
+        elementType: "geometry",
+        stylers: [{ color: "#2f3948" }],
+    },
+    {
+        featureType: "transit.station",
+        elementType: "labels.text.fill",
+        stylers: [{ color: "#d59563" }],
+    },
+    {
+        featureType: "water",
+        elementType: "geometry",
+        stylers: [{ color: "#17263c" }],
+    },
+    {
+        featureType: "water",
+        elementType: "labels.text.fill",
+        stylers: [{ color: "#515c6d" }],
+    },
+    {
+        featureType: "water",
+        elementType: "labels.text.stroke",
+        stylers: [{ color: "#17263c" }],
+    },
+];
+
 function getBoundsCenter(churches) {
     if (churches.length === 0) return { lat: 0, lng: 0 };
     let minLat = churches[0].lat;
@@ -206,47 +287,30 @@ const ChurchInfoLinks = ({ church, t }) => {
     );
 };
 
-
-function MapController({ selectedChurch, requestedLocation, isInitialLoad }) {
+function MapController({ selectedChurch, requestedLocation, isInitialLoad, recenterTrigger }) {
     const map = useMap();
     const prevChurchRef = useRef(null);
-    const wasSelectedRef = useRef(false);
 
     useEffect(() => {
         if (!map) return;
 
         if (selectedChurch) {
-            const target = { lat: selectedChurch.lat, lng: selectedChurch.lng };
-            const currentZoom = map.getZoom() || 7;
-
-            if (wasSelectedRef.current && prevChurchRef.current?.id !== selectedChurch.id) {
-                // Switching between churches: always smooth pan, no zoom tricks
-                map.panTo(target);
-            } else {
-                // First selection: smooth zoom in
-                map.panTo(target);
-                if (currentZoom < 12) {
-                    const step1 = Math.min(currentZoom + 3, 11);
-                    map.setZoom(step1);
-                    setTimeout(() => map.setZoom(14), 600);
-                }
-            }
-
+            // Instant jump to church
+            map.setCenter({ lat: selectedChurch.lat, lng: selectedChurch.lng });
+            map.setZoom(14);
             prevChurchRef.current = selectedChurch;
-            wasSelectedRef.current = true;
-        } else {
-            // Deselected: single smooth zoom out back to overview
-            if (wasSelectedRef.current) {
-                map.panTo(BELGIUM_CENTER);
-                map.setZoom(8);
-                prevChurchRef.current = null;
-                wasSelectedRef.current = false;
-            } else if (requestedLocation && isInitialLoad) {
-                map.panTo({ lat: requestedLocation.lat, lng: requestedLocation.lng });
-                setTimeout(() => map.setZoom(9), 500);
-            }
+        } else if (requestedLocation && (isInitialLoad || recenterTrigger > 0 || prevChurchRef.current)) {
+            // Instant jump to user location (triggered by load, recenter, or deselection)
+            map.setCenter({ lat: requestedLocation.lat, lng: requestedLocation.lng });
+            map.setZoom(12);
+            prevChurchRef.current = null;
+        } else if (!requestedLocation && !selectedChurch) {
+            // Instant jump to global view
+            map.setCenter(BELGIUM_CENTER);
+            map.setZoom(8);
+            prevChurchRef.current = null;
         }
-    }, [map, selectedChurch, requestedLocation, isInitialLoad]);
+    }, [map, selectedChurch, requestedLocation, isInitialLoad, recenterTrigger]);
 
     return null;
 }
@@ -292,6 +356,7 @@ export default function ChurchMap() {
     const [selectedChurch, setSelectedChurch] = useState(null);
     const [searchQuery, setSearchQuery] = useState("");
     const [userLocation, setUserLocation] = useState(null);
+    const [recenterTrigger, setRecenterTrigger] = useState(0);
     const [isInitialLoad, setIsInitialLoad] = useState(true);
     const [activeCountryFilter, setActiveCountryFilter] = useState("");
     const [hoveredMarker, setHoveredMarker] = useState(null);
@@ -357,7 +422,58 @@ export default function ChurchMap() {
     const [suggestionType, setSuggestionType] = useState("new"); // "new" | "edit"
     const [suggestionSuccess, setSuggestionSuccess] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const { lang, setLang, supported } = useLang();
+    const t = makeT(worldMapTranslations, lang);
+
     const [formError, setFormError] = useState("");
+    const [initialFormValues, setInitialFormValues] = useState(null);
+    const [mapTheme, setMapTheme] = useState("dark"); // "light" | "dark"
+    const [showMapSettings, setShowMapSettings] = useState(false);
+    const settingsRef = useRef(null);
+
+    const langOptions = [
+        { value: "ro", short: "RO", flag: "https://flagcdn.com/w40/ro.png" },
+        { value: "fr", short: "FR", flag: "https://flagcdn.com/w40/fr.png" },
+        { value: "nl", short: "NL", flag: "https://flagcdn.com/w40/nl.png" },
+        { value: "en", short: "EN", flag: "https://flagcdn.com/w40/gb.png" }
+    ];
+
+    // Load theme from localStorage
+    useEffect(() => {
+        const storedTheme = localStorage.getItem("bethel_map_theme");
+        if (storedTheme) {
+            setMapTheme(storedTheme);
+        }
+    }, []);
+
+    // Save theme to localStorage
+    const toggleTheme = (theme) => {
+        setMapTheme(theme);
+        localStorage.setItem("bethel_map_theme", theme);
+    };
+
+    // Close settings when clicking outside
+    useEffect(() => {
+        function handleClickOutside(e) {
+            if (settingsRef.current && !settingsRef.current.contains(e.target)) {
+                setShowMapSettings(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    // Sync bottom sheets on mobile for clean transition
+    useEffect(() => {
+        if (isMobile) {
+            if (showMapSettings) {
+                setBottomSheetMode("hidden");
+            } else {
+                setBottomSheetMode("collapsed");
+            }
+        }
+    }, [showMapSettings, isMobile]);
+
     const [suggestionForm, setSuggestionForm] = useState({
         name: "",
         city: "",
@@ -378,8 +494,9 @@ export default function ChurchMap() {
 
     const openSuggestionModal = (type = "new", church = null) => {
         setSuggestionType(type);
+        let data;
         if (type === "edit" && church) {
-            setSuggestionForm({
+            data = {
                 name: church.name || "",
                 city: church.city || "",
                 street: church.street || "",
@@ -393,9 +510,9 @@ export default function ChurchMap() {
                 instagram: church.instagram || "",
                 country: church.country || "Belgium",
                 notes: church.notes || ""
-            });
+            };
         } else {
-            setSuggestionForm({
+            data = {
                 name: "",
                 city: "",
                 street: "",
@@ -408,12 +525,19 @@ export default function ChurchMap() {
                 instagram: "",
                 country: activeCountryFilter || "Belgium",
                 notes: ""
-            });
+            };
         }
+        setSuggestionForm(data);
+        setInitialFormValues(data);
         setShowSuggestionModal(true);
         setSuggestionSuccess(false);
         setFormError("");
     };
+
+    const hasChanges = useMemo(() => {
+        if (!initialFormValues) return false;
+        return JSON.stringify(suggestionForm) !== JSON.stringify(initialFormValues);
+    }, [suggestionForm, initialFormValues]);
 
     const handleSuggestionSubmit = async (e) => {
         e.preventDefault();
@@ -445,8 +569,6 @@ export default function ChurchMap() {
         }
     };
 
-    const { lang } = useLang();
-    const t = makeT(worldMapTranslations, lang);
 
     // Load churches from Firestore
     useEffect(() => {
@@ -514,6 +636,26 @@ export default function ChurchMap() {
             trackWorldMapVisit("denied");
         }
     }, []);
+
+    const handleRecenter = () => {
+        if (userLocation) {
+            setRecenterTrigger(prev => prev + 1);
+        } else {
+            // Re-request position if not available
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        setUserLocation({ lat, lng });
+                        setRecenterTrigger(prev => prev + 1);
+                    },
+                    null,
+                    { timeout: 5000 }
+                );
+            }
+        }
+    };
 
     const selectChurch = useCallback((church) => {
         setSelectedChurch(church);
@@ -682,7 +824,21 @@ export default function ChurchMap() {
         <div className={`churchMapLayout ${mobileShowMap ? "mapFocused" : ""}`}>
             {/* Sidebar */}
             <aside className="churchMapSidebar">
-                <div className="churchMapBottomSheet" data-mode={bottomSheetMode}>
+                {/* Map Controls (Manual Recenter) - Moved here for dynamic Flexbox alignment on mobile */}
+                <button 
+                    className={`mapRecenterBtn ${!userLocation ? "requesting" : ""}`}
+                    onClick={handleRecenter}
+                    title={t("youAreHere")}
+                    aria-label="Recenter map"
+                    data-mode={bottomSheetMode}
+                >
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                </button>
+
+                <div className={`churchMapBottomSheet ${showMapSettings ? 'settings-active' : ''}`} data-mode={bottomSheetMode}>
                     <div
                         className="bottomSheetDragHandleArea"
                         onClick={() => {
@@ -698,12 +854,14 @@ export default function ChurchMap() {
 
                     {/* Search and Country Filter Area */}
                     <div className="churchMapFilterContainer">
-                        <Link href="/#harta-mondiala" className="churchMapBackLink" title={t("backToHome")} aria-label={t("backToHome")}>
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                <line x1="19" y1="12" x2="5" y2="12"></line>
-                                <polyline points="12 19 5 12 12 5"></polyline>
-                            </svg>
-                        </Link>
+                        {isMobile && (
+                            <Link href="/#harta-mondiala" className="churchMapBackLink" title={t("backToHome")} aria-label={t("backToHome")}>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                                    <polyline points="12 19 5 12 12 5"></polyline>
+                                </svg>
+                            </Link>
+                        )}
 
                         <div className="churchMapSearch">
                             <svg className="churchMapSearchIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -925,10 +1083,112 @@ export default function ChurchMap() {
                     {t("backToHome")}
                 </Link>
 
+                {/* Mobile Settings Button (Floating on Map) */}
+                <button 
+                    className="mobileMapSettingsBtn"
+                    onClick={() => setShowMapSettings(!showMapSettings)}
+                    aria-label={t("settings")}
+                >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                </button>
+
+                {/* Desktop Back Button (Floating on Map) */}
+                {!isMobile && (
+                    <Link href="/#harta-mondiala" className="desktopMapBackBtn" title={t("backToHome")} aria-label={t("backToHome")}>
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="19" y1="12" x2="5" y2="12"></line>
+                            <polyline points="12 19 5 12 12 5"></polyline>
+                        </svg>
+                    </Link>
+                )}
+
                 {/* Map Overlay Title */}
                 <div className="mapOverlayTitle">
-                    <h1 className="mapOverlayHeading">{t("subtitle")}</h1>
-                    <p className="mapOverlaySubtitle">{t("title")}</p>
+                    <div className="mapOverlayTitleContent">
+                        <h1 className="mapOverlayHeading">{t("subtitle")}</h1>
+                        <p className="mapOverlaySubtitle">{t("title")}</p>
+                    </div>
+                </div>
+
+                {/* Settings Modal + Backdrop */}
+                {showMapSettings && <div className="mapSettingsBackdrop" onClick={() => setShowMapSettings(false)} />}
+                <div className={`mapSettingsMenu ${showMapSettings ? 'open' : ''}`} ref={settingsRef}>
+                    {isMobile && <div className="mapSettingsHandle" onClick={() => setShowMapSettings(false)} />}
+                    <div className="mapSettingsSection">
+                        <div className="mapSettingsHeader">
+                            <h3>{t("settings")}</h3>
+                            {!isMobile && (
+                                <button className="closeSettings" onClick={() => setShowMapSettings(false)}>
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                                    </svg>
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Theme Selection - Minimal Toggle */}
+                        <div className="mapSettingsItem">
+                            <div className="mapSettingsLabel">
+                                <span>{t("mapTheme")}</span>
+                            </div>
+                            <div className="themeToggleSwitch">
+                                <button 
+                                    className={`themeToggleBtn ${mapTheme === 'light' ? 'active' : ''}`}
+                                    onClick={() => toggleTheme('light')}
+                                    aria-label={t("themeLight")}
+                                >
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <circle cx="12" cy="12" r="5"></circle>
+                                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                                    </svg>
+                                </button>
+                                <button 
+                                    className={`themeToggleBtn ${mapTheme === 'dark' ? 'active' : ''}`}
+                                    onClick={() => toggleTheme('dark')}
+                                    aria-label={t("themeDark")}
+                                >
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Language Selection */}
+                        <div className="mapSettingsItem">
+                            <div className="mapSettingsLabel">
+                                <span>{t("language")}</span>
+                            </div>
+                            <div className="langSelectGrid">
+                                {langOptions.map((opt) => (
+                                    <button 
+                                        key={opt.value}
+                                        className={`langOptionBtn ${lang === opt.value ? 'active' : ''}`}
+                                        onClick={() => setLang(opt.value)}
+                                    >
+                                        <img src={opt.flag} alt={opt.short} />
+                                        <span>{opt.short}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Placeholder for future settings */}
+                        <div className="mapSettingsFooter">
+                            <p>Bethel Dworp &copy; {new Date().getFullYear()}</p>
+                        </div>
+                    </div>
                 </div>
 
                 <APIProvider apiKey={API_KEY}>
@@ -938,7 +1198,20 @@ export default function ChurchMap() {
                         mapId={MAP_ID}
                         disableDefaultUI={true}
                         gestureHandling={"greedy"}
+                        styles={mapTheme === 'dark' ? DARK_MAP_STYLES : []}
+                        colorScheme={mapTheme.toUpperCase()}
                     >
+                        {/* Settings Button (Desktop Overlay) */}
+                        <button 
+                            className="mapSettingsToggleBtn desktopOnly"
+                            onClick={() => setShowMapSettings(!showMapSettings)}
+                            aria-label={t("settings")}
+                        >
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                            </svg>
+                        </button>
                         {filteredChurches.map((church, idx) => (
                             <AdvancedMarker
                                 key={idx}
@@ -970,6 +1243,7 @@ export default function ChurchMap() {
                             selectedChurch={selectedChurch}
                             requestedLocation={userLocation}
                             isInitialLoad={isInitialLoad}
+                            recenterTrigger={recenterTrigger}
                         />
                         <FilterController
                             filteredChurches={filteredChurches}
@@ -1207,7 +1481,11 @@ export default function ChurchMap() {
                                     <button type="button" className="btnCancel" onClick={() => setShowSuggestionModal(false)}>
                                         {t("cancel")}
                                     </button>
-                                    <button type="submit" className="btnSubmit" disabled={isSubmitting}>
+                                    <button 
+                                        type="submit" 
+                                        className="btnSubmit" 
+                                        disabled={isSubmitting || (suggestionType === "edit" && !hasChanges)}
+                                    >
                                         {isSubmitting ? "..." : t("submit")}
                                     </button>
                                 </div>

@@ -55,7 +55,12 @@
         "route": "Traseu",
         "postalCode": "Cod Poștal",
         "notSpecified": "Nespecificat",
-        "country": "Țară"
+        "country": "Țară",
+        "settings": "Setări",
+        "mapTheme": "Tema hărții",
+        "themeLight": "Luminos",
+        "themeDark": "Întunecat",
+        "language": "Limba"
     },
     "fr": {
         "title": "Églises Chrétiennes Pentecôtistes Roumaines",
@@ -113,7 +118,12 @@
         "route": "Itinéraire",
         "postalCode": "Code Postal",
         "notSpecified": "Non spécifié",
-        "country": "Pays"
+        "country": "Pays",
+        "settings": "Paramètres",
+        "mapTheme": "Thème de la carte",
+        "themeLight": "Clair",
+        "themeDark": "Sombre",
+        "language": "Langue"
     },
     "en": {
         "title": "Romanian Pentecostal Christian Churches",
@@ -171,7 +181,12 @@
         "route": "Route",
         "postalCode": "Postal Code",
         "notSpecified": "Not specified",
-        "country": "Country"
+        "country": "Country",
+        "settings": "Settings",
+        "mapTheme": "Map Theme",
+        "themeLight": "Light",
+        "themeDark": "Dark",
+        "language": "Language"
     },
     "nl": {
         "title": "Roemeense Christelijke Pinkstergemeenten",
@@ -229,6 +244,11 @@
         "route": "Route",
         "postalCode": "Postcode",
         "notSpecified": "Niet gespecificeerd",
-        "country": "Land"
+        "country": "Land",
+        "settings": "Instellingen",
+        "mapTheme": "Kaartthema",
+        "themeLight": "Licht",
+        "themeDark": "Donker",
+        "language": "Taal"
     }
 }
