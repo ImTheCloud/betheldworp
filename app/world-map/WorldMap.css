@@ -5,7 +5,7 @@
     display: flex;
     height: 100vh;
     width: 100vw;
-    background-color: #f8fafc;
+    background-color: #ffffff;
     color: #0f172a;
     font-family: inherit;
     overflow: hidden;
@@ -22,7 +22,6 @@
     display: flex;
     flex-direction: column;
     z-index: 10;
-    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.05);
 }
 
 .churchMapTitle {
@@ -62,7 +61,14 @@
     background: #ffffff;
     border: 1px solid rgba(19, 75, 123, 0.15);
     border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(6, 24, 50, 0.04);
+}
+
+.churchMapSearch input {
+    width: 100%;
+    padding: 12px 16px 12px 42px;
+    background: #ffffff; /* Unified white background */
+    border: 1px solid rgba(19, 75, 123, 0.12);
+    border-radius: 12px;
 }
 
 .churchCountValue {
@@ -101,7 +107,6 @@
     height: 6px;
     background: #22c55e;
     border-radius: 50%;
-    box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
 }
 
 /* =============================================
@@ -167,13 +172,12 @@
     justify-content: center;
     width: 38px;
     height: 38px;
-    background: #f1f5f9;
+    background: #ffffff;
     border-radius: 10px;
     color: #64748b;
     flex-shrink: 0;
     text-decoration: none;
     border: 1px solid rgba(10, 42, 67, 0.12);
-    box-shadow: 0 4px 12px rgba(6, 24, 50, 0.04);
     transition: all 0.2s ease;
 }
 
@@ -193,8 +197,9 @@
 
 @media (max-width: 1024px) {
     .churchMapFilterContainer {
-        padding: 6px 16px 0 16px;
-        /* High up for Mobile */
+        padding: 4px 16px 0 16px;
+        /* Shifted higher for Mobile */
+        background: #ffffff;
     }
 
     .churchMapBackLink {
@@ -229,12 +234,11 @@
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: 0 4px 12px rgba(6, 24, 50, 0.04);
 }
 
 .countryFilterBtn:hover {
     border-color: #cbd5e1;
-    background: #f1f5f9;
+    background: #ffffff;
 }
 
 .countryFilterBtn.hasFilter {
@@ -263,7 +267,6 @@
     background: #ffffff;
     border: 1px solid rgba(10, 42, 67, 0.12);
     border-radius: 12px;
-    box-shadow: 0 12px 32px rgba(6, 24, 50, 0.18);
     z-index: 100;
     padding: 0;
     max-height: 260px;
@@ -320,7 +323,8 @@
 }
 
 .countryFilterOption:hover {
-    background: #f1f5f9;
+    background: #ffffff;
+    box-shadow: inset 0 0 0 1px rgba(19, 75, 123, 0.08); /* Subtle highlight instead of gray */
 }
 
 .countryFilterOption.active {
@@ -351,7 +355,7 @@
     padding: 11px 12px 11px 40px;
     border: 1px solid #cbd5e1;
     border-radius: 10px;
-    background: #f8fafc;
+    background: #ffffff;
     font-size: 0.9rem;
     color: #0f172a;
     transition: all 0.2s ease;
@@ -361,7 +365,6 @@
 .churchMapSearch input:focus {
     background: #ffffff;
     border-color: #134b7b;
-    box-shadow: 0 0 0 3px rgba(19, 75, 123, 0.1);
 }
 
 .churchMapSearch input::placeholder {
@@ -425,7 +428,8 @@
 
 .countryCount {
     margin-left: auto;
-    background: #f1f5f9;
+    background: #ffffff;
+    border: 1px solid #f1f5f9;
     color: #94a3b8;
     font-size: 0.7rem;
     font-weight: 700;
@@ -450,7 +454,8 @@
 }
 
 .churchListItem:hover {
-    background: #f8fafc;
+    background: #ffffff;
+    box-shadow: inset 0 0 0 1px rgba(19, 75, 123, 0.05); /* Very subtle indicator */
 }
 
 .churchListItem.active {
@@ -462,7 +467,8 @@
     width: 34px;
     height: 34px;
     border-radius: 50%;
-    background: #e2e8f0;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -477,7 +483,6 @@
 .churchListItem.active .churchListItemIcon {
     background: #134b7b;
     color: #ffffff;
-    box-shadow: 0 4px 12px rgba(19, 75, 123, 0.25);
 }
 
 .churchListItemContent {
@@ -1567,16 +1572,14 @@
         width: 100%;
         height: auto;
         max-height: 85vh;
-        background: rgba(255, 255, 255, 0.98); /* More opaque to hide map content */
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
+        background: #ffffff;
         border-radius: 32px 32px 0 0;
         transform: translateY(100%);
         transform-origin: bottom;
         opacity: 1;
         visibility: visible;
-        box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.3);
-        padding-bottom: 40px; /* Safe area */
+        border-top: 1px solid #e2e8f0;
+        padding-bottom: calc(env(safe-area-inset-bottom, 24px) + 16px); /* Increased safe area */
         z-index: 2005; /* High priority */
     }
 
@@ -1602,12 +1605,10 @@
     /* Bottom Sheet Overrides – Mobile */
     .churchMapBottomSheet {
         pointer-events: auto;
-        background: rgba(255, 255, 255, 0.98); /* Same as settings */
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
+        background: #ffffff;
         border-radius: 32px 32px 0 0 !important;
         overflow: hidden;
-        box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.3); /* Same as settings */
+        border-top: 1px solid #e2e8f0;
         height: 45vh;
         flex: none;
         transition: height 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -1621,8 +1622,9 @@
     }
 
     .churchMapBottomSheet[data-mode="hidden"] {
-        /* Leave a little bit of the drag handle visible at the bottom */
-        transform: translateY(calc(100% - 24px));
+        /* Leave a little bit of the drag handle visible at the bottom. 
+           Increased to 84px to show more information (title/search) when closed. */
+        transform: translateY(calc(100% - 84px));
         opacity: 1;
     }
 
@@ -1640,8 +1642,8 @@
 
     .bottomSheetDragHandleArea {
         width: 100%;
-        height: 24px;
-        /* Reduced from 34px to move search bar higher */
+        height: 16px;
+        /* Reduced from 24px to move content higher */
         display: flex;
         align-items: center;
         justify-content: center;
@@ -1731,12 +1733,11 @@
     position: sticky;
     bottom: 0;
     z-index: 10;
-    box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.03);
 }
 
 @media (max-width: 768px) {
     .churchSidebarFooter {
-        padding-bottom: calc(env(safe-area-inset-bottom, 16px) + 8px);
+        padding-bottom: calc(env(safe-area-inset-bottom, 24px) + 20px);
         padding-top: 16px;
     }
 
@@ -1745,7 +1746,7 @@
         padding-top: 0;
         position: relative; /* Remove sticky to follow content closely */
         box-shadow: none;
-        padding-bottom: calc(env(safe-area-inset-bottom, 16px) + 12px);
+        padding-bottom: calc(env(safe-area-inset-bottom, 24px) + 24px);
     }
 }
 
@@ -1759,9 +1760,9 @@
 .mobileFooterActions a {
     flex: 1;
     min-width: 0; /* Allow shrinking */
-    height: 50px; /* Increased for better visibility/touch */
+    height: 44px; /* Reduced for a more refined look */
     padding: 0 12px;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
 }
 
 .sidebarDirectionsBtn {
@@ -1796,16 +1797,15 @@
     justify-content: center;
     gap: 8px;
     width: 100%;
-    height: 52px; /* Standardize height for primary action */
-    padding: 12px;
+    height: 44px; /* Reduced height for premium look */
+    padding: 10px;
     background: #134b7b;
     border: 1px solid #134b7b;
-    border-radius: 14px;
+    border-radius: 12px;
     color: #ffffff;
-    font-size: 1rem;
+    font-size: 0.9rem;
     font-weight: 700;
     cursor: pointer;
-    box-shadow: 0 4px 15px rgba(19, 75, 123, 0.15);
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -1856,9 +1856,9 @@
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    padding: 12px 16px;
+    padding: 8px 16px;
     border-bottom: 1px solid rgba(19, 75, 123, 0.08);
-    background: rgba(255, 255, 255, 0.8);
+    background: #ffffff; /* Unified solid white */
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     position: sticky;
@@ -1934,7 +1934,8 @@
     font-size: 0.85rem;
     color: #94a3b8;
     line-height: 1.5;
-    background: #f8fafc;
+    background: #ffffff;
+    border: 1px solid #f1f5f9;
     padding: 12px;
     border-radius: 8px;
 }
@@ -1966,14 +1967,14 @@
     flex-direction: column;
     background: #ffffff;
     border-radius: 24px;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    border: 1px solid #e2e8f0;
     overflow: hidden;
     animation: slideUp 0.3s ease-out;
 }
 
 .suggestionModalHeader {
     padding: 16px;
-    background: #f8fafc;
+    background: #ffffff;
     border-bottom: 1px solid #e2e8f0;
     display: flex;
     align-items: center;
@@ -2014,7 +2015,7 @@
 
 .suggestionFormActions {
     padding: 12px 24px;
-    background: #f8fafc;
+    background: #ffffff;
     border-top: 1px solid #e2e8f0;
     display: flex;
     gap: 12px;
@@ -2078,7 +2079,7 @@
 }
 
 .btnCancel {
-    background: #f1f5f9;
+    background: #ffffff;
     color: #64748b;
     border: 1px solid #e2e8f0;
 }

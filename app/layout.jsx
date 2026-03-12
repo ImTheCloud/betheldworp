@@ -15,6 +15,12 @@ export const metadata = {
     icons: { icon: "/icon.png" },
 };
 
+export const viewport = {
+    width: "device-width",
+    initialScale: 1,
+    viewportFit: "cover",
+};
+
 function normalizeLang(v) {
     const base = String(v || "").toLowerCase().split("-")[0];
     return SUPPORTED.includes(base) ? base : null;
