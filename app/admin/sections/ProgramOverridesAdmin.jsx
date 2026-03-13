@@ -1087,7 +1087,7 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed }) {
             </div>
 
             {loading ? (
-                <div className="adminSkeleton" style={{ margin: "0 24px" }} />
+                <div className="adminSkeleton" />
             ) : (
                 <div className="adminFullContent">
                     {globalError ? <div className="adminAlert">{globalError}</div> : null}
@@ -1095,21 +1095,19 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed }) {
 
                     <div className="adminFullList">
                         {showNew ? (
-                            <div style={{ padding: "0 4px" }}>
-                                <NewOverrideCard
-                                    draft={newDraft}
-                                    saveState={newState}
-                                    errorText={newError}
-                                    eventsList={eventsList}
-                                    weekKeyForCard={newDraft.weekKey}
-                                    onToggleAffected={toggleAffected}
-                                    onChangeWeekKey={changeWeekKey}
-                                    onChangeReplacement={changeReplacement}
-                                    onChangeAddition={changeAddition}
-                                    onCancel={cancelNew}
-                                    onSave={saveNew}
-                                />
-                            </div>
+                            <NewOverrideCard
+                                draft={newDraft}
+                                saveState={newState}
+                                errorText={newError}
+                                eventsList={eventsList}
+                                weekKeyForCard={newDraft.weekKey}
+                                onToggleAffected={toggleAffected}
+                                onChangeWeekKey={changeWeekKey}
+                                onChangeReplacement={changeReplacement}
+                                onChangeAddition={changeAddition}
+                                onCancel={cancelNew}
+                                onSave={saveNew}
+                            />
                         ) : null}
 
                         {!showHistory ? (

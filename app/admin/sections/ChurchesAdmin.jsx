@@ -695,8 +695,7 @@ export default function ChurchesAdmin() {
                     >
                         <option value="date-desc">Newest first</option>
                         <option value="date-asc">Oldest first</option>
-                        <option value="az">Alphabetical (A-Z)</option>
-                        <option value="za">Alphabetical (Z-A)</option>
+                        <option value="az">Alphabetical</option>
                     </select>
 
                     <button className="adminBtn adminBtn--new" type="button" onClick={startNew} disabled={loading || showNew}>
@@ -717,7 +716,7 @@ export default function ChurchesAdmin() {
                 </div>
             </div>
 
-            {loading ? <div className="adminSkeleton" style={{ margin: "0 24px" }} /> : null}
+            {loading ? <div className="adminSkeleton" /> : null}
 
             {
                 !loading ? (
@@ -725,16 +724,14 @@ export default function ChurchesAdmin() {
                         {globalError ? <div className="adminAlert">{globalError}</div> : null}
 
                         {showNew ? (
-                            <div style={{ padding: "0 4px" }}>
-                                <NewChurchCard
-                                    drafts={newDrafts}
-                                    setDraft={setNewField}
-                                    errorText={newError}
-                                    saveState={newState}
-                                    onCancel={cancelNew}
-                                    onSave={saveNew}
-                                />
-                            </div>
+                            <NewChurchCard
+                                drafts={newDrafts}
+                                setDraft={setNewField}
+                                errorText={newError}
+                                saveState={newState}
+                                onCancel={cancelNew}
+                                onSave={saveNew}
+                            />
                         ) : null}
 
                         <div className="adminFullList">

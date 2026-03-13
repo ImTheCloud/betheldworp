@@ -824,24 +824,20 @@ export default function EventsAdmin({ onCreateOverride }) {
             </div>
 
             {loading ? (
-                <div className="adminSkeleton" style={{ margin: "0 24px" }} />
+                <div className="adminSkeleton" />
             ) : (
                 <div className="adminFullContent">
                     {globalError ? <div className="adminAlert">{globalError}</div> : null}
 
                     {showNew ? (
-                        <div style={{ padding: "0 4px" }}>
-                            <NewEventCard
-                                draft={newDraft}
-                                saveState={newState}
-                                errorText={newError}
-                                activeLang={newLang}
-                                onLangChange={setNewLang}
-                                onChangeField={changeNewField}
-                                onCancel={cancelNew}
-                                onSave={saveNew}
-                            />
-                        </div>
+                        <NewEventCard
+                            draft={newDraft}
+                            setDraft={handleNewDraftChange}
+                            errorText={newError}
+                            saveState={newState}
+                            onCancel={cancelNew}
+                            onSave={saveNew}
+                        />
                     ) : null}
 
                     <div className="adminFullList">

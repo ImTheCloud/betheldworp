@@ -575,8 +575,7 @@ export default function NewsletterAdmin() {
                     >
                         <option value="date-desc">Newest first</option>
                         <option value="date-asc">Oldest first</option>
-                        <option value="az">Alphabetical (A-Z)</option>
-                        <option value="za">Alphabetical (Z-A)</option>
+                        <option value="az">Alphabetical</option>
                     </select>
 
                     <button className="adminBtn adminBtn--new" type="button" onClick={startNew} disabled={loading || showNew}>
@@ -599,23 +598,21 @@ export default function NewsletterAdmin() {
                 </div>
             </div>
 
-            {loading ? <div className="adminSkeleton" style={{ margin: "0 24px" }} /> : null}
+            {loading ? <div className="adminSkeleton" /> : null}
 
             {!loading ? (
                 <div className="adminFullContent">
                     {globalError ? <div className="adminAlert">{globalError}</div> : null}
 
                     {showNew ? (
-                        <div style={{ padding: "0 4px" }}>
-                            <NewSubscriberCard
-                                email={newEmail}
-                                setEmail={setNewEmail}
-                                errorText={newError}
-                                saveState={newState}
-                                onCancel={cancelNew}
-                                onSave={saveNew}
-                            />
-                        </div>
+                        <NewSubscriberCard
+                            email={newEmail}
+                            setEmail={setNewEmail}
+                            errorText={newError}
+                            saveState={newState}
+                            onCancel={cancelNew}
+                            onSave={saveNew}
+                        />
                     ) : null}
 
 

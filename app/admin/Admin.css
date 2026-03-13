@@ -1047,8 +1047,13 @@
     flex-direction: column;
     gap: 24px;
     overflow: hidden;
-    /* Prevent page scroll, use internal */
-    padding-bottom: 0;
+    padding: 0;
+}
+
+@media (max-width: 768px) {
+    .adminFullPage {
+        padding: 0 12px;
+    }
 }
 
 .adminFullTop {
@@ -1589,8 +1594,7 @@
         padding: 12px;
     }
 
-    .adminContent,
-    .adminFullContent {
+    .adminContent {
         padding-left: 12px;
         padding-right: 12px;
     }

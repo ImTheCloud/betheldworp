@@ -1617,9 +1617,10 @@
         border-radius: 12px;
         display: flex;
         align-items: center;
-        padding: 0 4px 0 12px;
-        gap: 0;
+        padding: 0 4px 0 10px;
+        gap: 8px;
         transition: all 0.2s ease;
+        overflow: hidden; /* Prevent any accidental overflow */
     }
 
     .mobileSearchBox:focus-within {
@@ -1630,6 +1631,8 @@
         border: none;
         background: transparent;
         flex: 1;
+        min-width: 0; /* CRITICAL: allows input to shrink below its content width */
+        width: 100%;
         height: 100%;
         font-size: 0.95rem;
         color: #1e293b;
@@ -1638,9 +1641,8 @@
     }
 
     .mobileSearchIcon {
-        width: 20px;
-        height: 20px;
-        margin-right: 8px;
+        width: 18px;
+        height: 18px;
         color: #94a3b8;
         flex-shrink: 0;
     }
@@ -1656,8 +1658,8 @@
         border-radius: 8px;
         color: #94a3b8;
         transition: all 0.2s ease;
-        flex-shrink: 0;
-        margin-right: 4px;
+        flex-shrink: 0; /* Ensure X button never shrinks */
+        margin-right: 2px;
     }
 
     .mobileSearchClear svg {

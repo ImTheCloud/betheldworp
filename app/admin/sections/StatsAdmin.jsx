@@ -721,7 +721,7 @@ export default function StatsAdmin() {
             </div>
 
             {loading ? (
-                <div className="adminSkeleton" style={{ margin: "0 24px" }} />
+                <div className="adminSkeleton" />
             ) : (
                 <div className="adminFullContent">
                     {error ? <div className="adminAlert">{error}</div> : null}
