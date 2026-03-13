@@ -310,42 +310,10 @@ function MapController({ selectedChurch, requestedLocation, isInitialLoad, recen
 
         if (!target) return;
 
-        const currentCenter = map.getCenter();
-        const distance = currentCenter 
-            ? haversineDistance(currentCenter.lat(), currentCenter.lng(), target.lat, target.lng)
-            : 0;
-
-        // Configuration for fly-to
-        const FLY_THRESHOLD = 50; // km
-        let timeouts = [];
-
-        if (distance > FLY_THRESHOLD && !isInitialLoad) {
-            // Determine dynamic mid-zoom level based on distance to ensure smooth pan
-            let midZoom = 10;
-            if (distance > 2000) midZoom = 4;
-            else if (distance > 1000) midZoom = 5;
-            else if (distance > 500) midZoom = 6;
-            else if (distance > 200) midZoom = 8;
-            
-            // Step 1: Zoom out slightly to gain perspective
-            map.setZoom(Math.min(map.getZoom(), midZoom));
-            
-            // Step 2: Pan after short delay to allow map to prepare
-            const t1 = setTimeout(() => {
-                map.panTo(target);
-            }, 400);
-            
-            // Step 3: Zoom back in once panning is nearly complete
-            const t2 = setTimeout(() => {
-                map.setZoom(targetZoom);
-            }, 1400); // 1.4s seems to be a good sweet spot for long transitions
-            
-            timeouts = [t1, t2];
-        } else {
-            // Simple smooth pan for short distances or initial load
-            map.panTo(target);
-            map.setZoom(targetZoom);
-        }
+        // Restore default instant jump (no animation)
+        map.setCenter(target);
+        map.setZoom(targetZoom);
+        if (map.setTilt) map.setTilt(0);
 
         if (selectedChurch) {
             prevChurchRef.current = selectedChurch;
@@ -353,9 +321,7 @@ function MapController({ selectedChurch, requestedLocation, isInitialLoad, recen
             prevChurchRef.current = null;
         }
 
-        return () => {
-            timeouts.forEach(t => clearTimeout(t));
-        };
+        return () => {};
     }, [map, selectedChurch, requestedLocation, isInitialLoad, recenterTrigger]);
 
     return null;
