@@ -760,13 +760,13 @@ export default function MonthlyVerseAdmin() {
             </div>
 
             {loading ? (
-                <div className="adminSkeleton" style={{ margin: "0 24px" }} />
+                <div className="adminSkeleton" />
             ) : (
                 <div className="adminFullContent">
                     {error ? <div className="adminAlert">{error}</div> : null}
 
                     {showNew ? (
-                        <div style={{ padding: "0 4px" }}>
+                        <div>
                             <NewVerseCard
                                 newDraft={newDraft}
                                 setNewDraft={setNewDraft}

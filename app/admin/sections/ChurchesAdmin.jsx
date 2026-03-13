@@ -724,14 +724,16 @@ export default function ChurchesAdmin() {
                         {globalError ? <div className="adminAlert">{globalError}</div> : null}
 
                         {showNew ? (
-                            <NewChurchCard
-                                drafts={newDrafts}
-                                setDraft={setNewField}
-                                errorText={newError}
-                                saveState={newState}
-                                onCancel={cancelNew}
-                                onSave={saveNew}
-                            />
+                            <div>
+                                <NewChurchCard
+                                    drafts={newDrafts}
+                                    setDraft={setNewField}
+                                    errorText={newError}
+                                    saveState={newState}
+                                    onCancel={cancelNew}
+                                    onSave={saveNew}
+                                />
+                            </div>
                         ) : null}
 
                         <div className="adminFullList">

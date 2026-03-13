@@ -207,8 +207,8 @@
     /* Full viewport height */
     overflow-y: auto;
     /* Scrollable content */
-    padding: 32px 40px;
-    /* Generous padding */
+    padding: 24px 12px;
+    /* Aggressively reduced padding */
 }
 
 /* Hide scrollbar for cleaner ook but keep functionality */
@@ -1045,15 +1045,11 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 16px;
+    /* Reduced gap between sections */
     overflow: hidden;
-    padding: 0;
-}
-
-@media (max-width: 768px) {
-    .adminFullPage {
-        padding: 0 12px;
-    }
+    /* Prevent page scroll, use internal */
+    padding-bottom: 0;
 }
 
 .adminFullTop {
@@ -1062,7 +1058,8 @@
     justify-content: space-between;
     gap: 20px;
     flex-wrap: wrap;
-    padding: 24px;
+    padding: 20px 16px;
+    /* Reduced padding */
     background: #fff;
     border-radius: 16px;
     border: 1px solid rgba(10, 42, 67, 0.08);
@@ -1098,8 +1095,8 @@
 .adminFullList {
     flex: 1;
     overflow-y: auto;
-    padding-right: 6px;
-    /* Space for scrollbar */
+    padding-right: 4px;
+    /* Minimal space for scrollbar */
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -1427,7 +1424,8 @@
     }
 
     .adminContent {
-        padding: 16px;
+        padding: 12px 0px;
+        /* Minimal padding on mobile */
         padding-bottom: 80px;
         height: auto;
         overflow-y: visible;
@@ -1442,7 +1440,7 @@
         flex-direction: column;
         align-items: stretch;
         gap: 16px;
-        padding: 16px;
+        padding: 12px;
     }
 
     .adminFullTop .adminActions {
@@ -1591,12 +1589,17 @@
         width: 100%;
         min-width: 0;
         overflow: hidden;
-        padding: 12px;
+        padding: 8px;
     }
 
     .adminContent {
-        padding-left: 12px;
-        padding-right: 12px;
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+
+    .adminFullContent {
+        padding-left: 0;
+        padding-right: 0;
     }
 
     .adminAffectChip {

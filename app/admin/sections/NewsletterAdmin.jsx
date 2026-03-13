@@ -605,14 +605,16 @@ export default function NewsletterAdmin() {
                     {globalError ? <div className="adminAlert">{globalError}</div> : null}
 
                     {showNew ? (
-                        <NewSubscriberCard
-                            email={newEmail}
-                            setEmail={setNewEmail}
-                            errorText={newError}
-                            saveState={newState}
-                            onCancel={cancelNew}
-                            onSave={saveNew}
-                        />
+                        <div>
+                            <NewSubscriberCard
+                                email={newEmail}
+                                setEmail={setNewEmail}
+                                errorText={newError}
+                                saveState={newState}
+                                onCancel={cancelNew}
+                                onSave={saveNew}
+                            />
+                        </div>
                     ) : null}
 
 

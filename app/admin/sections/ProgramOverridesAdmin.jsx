@@ -1095,19 +1095,21 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed }) {
 
                     <div className="adminFullList">
                         {showNew ? (
-                            <NewOverrideCard
-                                draft={newDraft}
-                                saveState={newState}
-                                errorText={newError}
-                                eventsList={eventsList}
-                                weekKeyForCard={newDraft.weekKey}
-                                onToggleAffected={toggleAffected}
-                                onChangeWeekKey={changeWeekKey}
-                                onChangeReplacement={changeReplacement}
-                                onChangeAddition={changeAddition}
-                                onCancel={cancelNew}
-                                onSave={saveNew}
-                            />
+                            <div>
+                                <NewOverrideCard
+                                    draft={newDraft}
+                                    saveState={newState}
+                                    errorText={newError}
+                                    eventsList={eventsList}
+                                    weekKeyForCard={newDraft.weekKey}
+                                    onToggleAffected={toggleAffected}
+                                    onChangeWeekKey={changeWeekKey}
+                                    onChangeReplacement={changeReplacement}
+                                    onChangeAddition={changeAddition}
+                                    onCancel={cancelNew}
+                                    onSave={saveNew}
+                                />
+                            </div>
                         ) : null}
 
                         {!showHistory ? (

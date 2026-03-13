@@ -830,14 +830,18 @@ export default function EventsAdmin({ onCreateOverride }) {
                     {globalError ? <div className="adminAlert">{globalError}</div> : null}
 
                     {showNew ? (
-                        <NewEventCard
-                            draft={newDraft}
-                            setDraft={handleNewDraftChange}
-                            errorText={newError}
-                            saveState={newState}
-                            onCancel={cancelNew}
-                            onSave={saveNew}
-                        />
+                        <div>
+                            <NewEventCard
+                                draft={newDraft}
+                                saveState={newState}
+                                errorText={newError}
+                                activeLang={newLang}
+                                onLangChange={setNewLang}
+                                onChangeField={changeNewField}
+                                onCancel={cancelNew}
+                                onSave={saveNew}
+                            />
+                        </div>
                     ) : null}
 
                     <div className="adminFullList">
