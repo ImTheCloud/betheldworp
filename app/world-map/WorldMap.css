@@ -1957,11 +1957,15 @@
     }
 
     /* Hide internal content in hidden mode to prevent bleed/overlap with handle */
-    .churchMapBottomSheet[data-mode="hidden"] .churchList,
-    .churchMapBottomSheet[data-mode="hidden"] .churchSidebarFooter {
+    .churchMapBottomSheet[data-mode="hidden"] .churchList {
         opacity: 0;
         pointer-events: none;
         visibility: hidden;
+    }
+    
+    /* Completely remove footer in hidden mode for clean closure */
+    .churchMapBottomSheet[data-mode="hidden"] .churchSidebarFooter {
+        display: none;
     }
 
     .churchMapBottomSheet[data-mode="expanded"] {
@@ -2084,6 +2088,16 @@
     .churchSidebarFooter {
         padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 8px);
         padding-top: 10px;
+        /* Dynamic stickiness: move with sheet during closure */
+        position: relative;
+        bottom: auto;
+    }
+
+    /* Only sticky when fully open */
+    .churchMapBottomSheet[data-mode="expanded"] .churchSidebarFooter {
+        position: sticky;
+        bottom: 0;
+        border-top: 1px solid #e5e7eb !important;
     }
 
     .churchMapBottomSheet:has(.mobileChurchDetails) .churchSidebarFooter {
