@@ -1012,7 +1012,7 @@ function ChurchMap() {
         let newHeight = startHeight.current - deltaY;
         
         // Respect limits (min 84px, max 95vh)
-        const minH = 84;
+        const minH = 48;
         const maxH = window.innerHeight * 0.95;
         
         if (newHeight < minH) {

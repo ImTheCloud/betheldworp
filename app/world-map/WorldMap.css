@@ -1957,14 +1957,14 @@
     }
 
     /* Hide internal content in hidden mode to prevent bleed/overlap with handle */
-    .churchMapBottomSheet[data-mode="hidden"] .churchList {
+    .churchMapBottomSheet[data-mode="hidden"]:not(.is-dragging) .churchList {
         opacity: 0;
         pointer-events: none;
         visibility: hidden;
     }
     
     /* Completely remove footer in hidden mode for clean closure */
-    .churchMapBottomSheet[data-mode="hidden"] .churchSidebarFooter {
+    .churchMapBottomSheet[data-mode="hidden"]:not(.is-dragging) .churchSidebarFooter {
         display: none;
     }
 
