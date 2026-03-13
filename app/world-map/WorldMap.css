@@ -499,6 +499,18 @@
     background: rgba(19, 75, 123, 0.04);
 }
 
+/* Suppress highlights when dragging the bottom sheet */
+.churchMapBottomSheet.is-dragging .churchListItem:hover,
+.churchMapBottomSheet.is-dragging .churchListItem:active,
+.churchMapBottomSheet.is-dragging .churchListItem.active {
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.churchMapBottomSheet.is-dragging .churchListItem * {
+    pointer-events: none !important;
+}
+
 .churchListItemIcon {
     flex-shrink: 0;
     width: 34px;
@@ -705,6 +717,10 @@
     transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+.churchMapBottomSheet.is-dragging .churchList {
+    overflow: hidden !important;
+}
+
 .mapSettingsMenu.open {
     opacity: 1;
     visibility: visible;
@@ -877,34 +893,60 @@
 }
 
 /* Contact Button in Settings - Unified with primary brand style */
+/* Unified Action Buttons in Settings */
+.mapSettingsBackLink,
 .mapSettingsContactBtn {
     flex: 1;
-    height: 38px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    background: #134b7b;
-    border: 1px solid #134b7b;
+    height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px;
     border-radius: 10px;
-    color: #ffffff;
-    font-size: 0.8rem;
-    font-weight: 700;
-    cursor: pointer;
+    font-size: 0.85rem !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    box-sizing: border-box;
-    line-height: 1;
-    margin: 0;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    padding: 0 12px !important;
+    line-height: 1 !important;
+    cursor: pointer;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    border: 1px solid transparent;
+}
+
+.mapSettingsContactBtn {
+    background: #134b7b;
+    border-color: #134b7b;
+    color: #ffffff !important;
 }
 
 .mapSettingsContactBtn:hover {
     background: #0d345a;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(13, 52, 90, 0.2);
+    border-color: #0d345a;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(13, 52, 90, 0.15);
 }
 
-.mapSettingsContactBtn svg {
-    opacity: 0.9;
+.mapSettingsBackLink {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: #475569 !important;
+}
+
+.mapSettingsBackLink:hover {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+    color: #1e293b !important;
+    transform: translateY(-1px);
+}
+
+.mapSettingsContactBtn svg,
+.mapSettingsBackLink svg {
+    flex-shrink: 0;
 }
 
 /* Dark mode contact button override removed to keep brand blue */
@@ -919,11 +961,12 @@
 }
 
 .mapSettingsItem.actionsRow {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     align-items: center;
     gap: 10px;
-    padding-top: 12px;
-    padding-bottom: 4px;
+    padding: 12px 16px;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .mapSettingsItem:last-of-type {
@@ -1394,31 +1437,7 @@
     margin-bottom: 16px;
 }
 
-.mapSettingsBackLink {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 38px;
-    padding: 0;
-    gap: 6px;
-    background: #f1f5f9;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    color: #475569;
-    font-size: 0.8rem;
-    font-weight: 700;
-    text-decoration: none;
-    transition: all 0.2s;
-    box-sizing: border-box;
-    line-height: 1;
-    margin: 0;
-}
-
-.mapSettingsBackLink:hover {
-    background: #e2e8f0;
-    color: #1e293b;
-}
+/* mapSettingsBackLink styles moved and consolidated earlier */
 
 .churchScheduleTitle {
     display: flex;
@@ -1874,6 +1893,8 @@
         flex: none;
         transition: height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         flex-shrink: 0;
+        touch-action: none;
+        user-select: none;
     }
 
     .bottomSheetInner {

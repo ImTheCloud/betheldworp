@@ -791,6 +791,17 @@ function ChurchMap() {
     }, []);
 
     const handleTouchStart = (e) => {
+        // On mobile, if we're in the list, only drag if we're at the top
+        const scrollableContent = e.target.closest('.churchList');
+        if (scrollableContent && scrollableContent.scrollTop > 0) {
+            return;
+        }
+
+        // Don't start drag on interactive elements to allow their default behavior
+        if (e.target.closest('button') || e.target.closest('a') || e.target.closest('input')) {
+            return;
+        }
+
         touchStartY.current = e.touches[0].clientY;
         if (sheetRef.current) {
             startHeight.current = sheetRef.current.offsetHeight;
@@ -802,6 +813,32 @@ function ChurchMap() {
         if (!isDragging || !startHeight.current) return;
         const currentY = e.touches[0].clientY;
         const deltaY = currentY - touchStartY.current;
+        
+        // Threshold check to avoid accidental micro-drags when wanting to tap
+        if (Math.abs(deltaY) < 5) return;
+
+        // Check for scrollable content conflict
+        const scrollableContent = e.target.closest('.churchList');
+        if (scrollableContent) {
+            const isSwipingDown = deltaY > 0;
+            const isSwipingUp = deltaY < 0;
+            const atTop = scrollableContent.scrollTop <= 0;
+            
+            // If dragging up and sheet is already expanded, let content scroll
+            if (isSwipingUp && bottomSheetMode === "expanded") {
+                setIsDragging(false);
+                return;
+            }
+            
+            // If dragging down and content is not at top, let content scroll
+            if (isSwipingDown && !atTop) {
+                setIsDragging(false);
+                return;
+            }
+        }
+
+        // If we reach here, we are dragging the SHEET, so prevent scroll
+        if (e.cancelable) e.preventDefault();
         
         // Calculate new height (dragging up reduces deltaY, so we subtract it)
         let newHeight = startHeight.current - deltaY;
@@ -1048,12 +1085,15 @@ function ChurchMap() {
             <aside className="churchMapSidebar">
                 <div 
                     ref={sheetRef}
-                    className={`churchMapBottomSheet ${showMapSettings ? 'settings-active' : ''}`} 
+                    className={`churchMapBottomSheet ${showMapSettings ? 'settings-active' : ''} ${isDragging ? 'is-dragging' : ''}`} 
                     data-mode={bottomSheetMode}
                     style={isMobile ? {
                         "--dynamic-height": dragHeight ? `${dragHeight}px` : undefined,
                         transition: isDragging ? 'none' : undefined
                     } : {}}
+                    onTouchStart={isMobile ? handleTouchStart : undefined}
+                    onTouchMove={isMobile ? handleTouchMove : undefined}
+                    onTouchEnd={isMobile ? handleTouchEnd : undefined}
                 >
                     {/* Map Controls (Manual Recenter) - Moved here to follow sheet on mobile */}
                     {userLocation && (
@@ -1079,9 +1119,6 @@ function ChurchMap() {
                                 else if (bottomSheetMode === "collapsed") setBottomSheetMode("expanded");
                                 else setBottomSheetMode("collapsed");
                             }}
-                            onTouchStart={handleTouchStart}
-                            onTouchMove={handleTouchMove}
-                            onTouchEnd={handleTouchEnd}
                         >
                             <div className="bottomSheetDragHandle"></div>
                         </div>
