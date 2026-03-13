@@ -372,6 +372,11 @@ function ChurchMap() {
     const [isDragging, setIsDragging] = useState(false);
     const startHeight = useRef(null);
     const sheetRef = useRef(null);
+    
+    // Settings dragging state
+    const settingsTouchStartY = useRef(null);
+    const [settingsDragOffset, setSettingsDragOffset] = useState(0);
+    const isSettingsDragging = useRef(false);
 
     useEffect(() => {
         const checkMobile = () => setIsMobile(window.innerWidth <= 768);
@@ -836,6 +841,36 @@ function ChurchMap() {
         startHeight.current = null;
     };
 
+    // Settings Modal Touch Handlers
+    const handleSettingsTouchStart = (e) => {
+        if (!isMobile) return;
+        settingsTouchStartY.current = e.touches[0].clientY;
+        isSettingsDragging.current = true;
+    };
+
+    const handleSettingsTouchMove = (e) => {
+        if (!isSettingsDragging.current) return;
+        const currentY = e.touches[0].clientY;
+        const deltaY = currentY - settingsTouchStartY.current;
+        
+        // Only allow dragging downwards
+        if (deltaY > 0) {
+            setSettingsDragOffset(deltaY);
+        } else {
+            setSettingsDragOffset(deltaY * 0.2); // Resistance when dragging up
+        }
+    };
+
+    const handleSettingsTouchEnd = (e) => {
+        if (!isSettingsDragging.current) return;
+        isSettingsDragging.current = false;
+        
+        if (settingsDragOffset > 100) {
+            setShowMapSettings(false);
+        }
+        setSettingsDragOffset(0);
+    };
+
     if (!API_KEY) {
         return <div className="text-white p-8">Cheia API Google Maps nu este configurată.</div>;
     }
@@ -1292,19 +1327,32 @@ function ChurchMap() {
 
                 {/* Settings Modal + Backdrop */}
                 {showMapSettings && <div className="mapSettingsBackdrop" onClick={() => setShowMapSettings(false)} />}
-                <div className={`mapSettingsMenu ${showMapSettings ? 'open' : ''}`} ref={settingsRef}>
-                    {isMobile && <div className="mapSettingsHandle" onClick={() => setShowMapSettings(false)} />}
+                <div 
+                    className={`mapSettingsMenu ${showMapSettings ? 'open' : ''}`} 
+                    ref={settingsRef}
+                    style={isMobile ? {
+                        transform: `translateY(${showMapSettings ? settingsDragOffset + 'px' : '100%'})`,
+                        transition: isSettingsDragging.current ? 'none' : undefined
+                    } : {}}
+                    onTouchStart={handleSettingsTouchStart}
+                    onTouchMove={handleSettingsTouchMove}
+                    onTouchEnd={handleSettingsTouchEnd}
+                >
+                    {isMobile && (
+                        <div 
+                            className="mapSettingsHandle" 
+                            onClick={() => setShowMapSettings(false)}
+                        />
+                    )}
                     <div className="mapSettingsSection">
                         <div className="mapSettingsHeader">
                             <h3>{t("settings")}</h3>
-                            {!isMobile && (
-                                <button className="closeSettings" onClick={() => setShowMapSettings(false)}>
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                                    </svg>
-                                </button>
-                            )}
+                            <button className="closeSettings" onClick={() => setShowMapSettings(false)}>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </button>
                         </div>
 
                         {/* Theme Selection - Minimal Toggle */}
@@ -1362,8 +1410,8 @@ function ChurchMap() {
                             </div>
                         </div>
 
-                        {/* Back to Website Option */}
-                        <div className="mapSettingsItem">
+                        {/* Multi-action Row (Website & Contact) */}
+                        <div className="mapSettingsItem actionsRow">
                             <Link href="/" className="mapSettingsBackLink">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
@@ -1371,10 +1419,6 @@ function ChurchMap() {
                                 </svg>
                                 <span>{t("backToWebsite")}</span>
                             </Link>
-                        </div>
-
-                        {/* Contact Option */}
-                        <div className="mapSettingsItem">
                             <button 
                                 className="mapSettingsContactBtn"
                                 onClick={() => window.location.href = "mailto:claudiu.dev@outlook.com"}
@@ -1387,10 +1431,6 @@ function ChurchMap() {
                             </button>
                         </div>
 
-                        {/* Placeholder for future settings */}
-                        <div className="mapSettingsFooter">
-                            <p>Bethel Dworp &copy; {new Date().getFullYear()}</p>
-                        </div>
                     </div>
                 </div>
 

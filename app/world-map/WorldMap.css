@@ -717,7 +717,7 @@
 }
 
 .mapSettingsHeader {
-    padding: 16px 20px;
+    padding: 12px 16px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -726,10 +726,10 @@
 
 .mapSettingsHeader h3 {
     margin: 0;
-    font-size: 1.15rem;
+    font-size: 1rem;
     font-weight: 800;
     color: #0f172a;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.01em;
 }
 
 .closeSettings {
@@ -762,7 +762,7 @@
 }
 
 .mapSettingsLabel span {
-    font-size: 0.95rem;
+    font-size: 0.85rem;
     font-weight: 700;
     color: #1e293b;
 }
@@ -785,7 +785,7 @@
 .themeToggleBtn {
     border: none;
     background: none;
-    padding: 6px 10px;
+    padding: 5px 8px;
     border-radius: 8px;
     cursor: pointer;
     color: #64748b;
@@ -838,7 +838,7 @@
 }
 
 .langSegmentOption span {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     font-weight: 700;
     color: #64748b;
     transition: all 0.3s;
@@ -878,20 +878,23 @@
 
 /* Contact Button in Settings - Unified with primary brand style */
 .mapSettingsContactBtn {
-    width: 100%;
-    height: 44px;
+    flex: 1;
+    height: 38px;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 6px;
     background: #134b7b;
     border: 1px solid #134b7b;
-    border-radius: 12px;
+    border-radius: 10px;
     color: #ffffff;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     font-weight: 700;
     cursor: pointer;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-sizing: border-box;
+    line-height: 1;
+    margin: 0;
 }
 
 .mapSettingsContactBtn:hover {
@@ -911,8 +914,16 @@
 }
 
 .mapSettingsItem {
-    padding: 16px 20px;
+    padding: 8px 16px;
     border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+.mapSettingsItem.actionsRow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-top: 12px;
+    padding-bottom: 4px;
 }
 
 .mapSettingsItem:last-of-type {
@@ -920,7 +931,7 @@
 }
 
 .mapSettingsFooter {
-    padding: 16px 20px;
+    padding: 12px 16px;
     background: transparent;
     text-align: center;
     border-top: 1px solid rgba(0, 0, 0, 0.05);
@@ -1381,6 +1392,32 @@
     border-radius: 12px;
     padding: 14px;
     margin-bottom: 16px;
+}
+
+.mapSettingsBackLink {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 38px;
+    padding: 0;
+    gap: 6px;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    color: #475569;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.2s;
+    box-sizing: border-box;
+    line-height: 1;
+    margin: 0;
+}
+
+.mapSettingsBackLink:hover {
+    background: #e2e8f0;
+    color: #1e293b;
 }
 
 .churchScheduleTitle {

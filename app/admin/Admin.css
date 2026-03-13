@@ -437,19 +437,21 @@
 .adminOverrideLink {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    background: none;
-    border: none;
-    padding: 6px 2px;
+    justify-content: center;
+    gap: 8px;
+    background: rgba(10, 107, 74, 0.08);
+    border: 1px solid rgba(10, 107, 74, 0.2);
+    border-radius: 8px;
+    padding: 10px 16px;
     cursor: pointer;
-    font-size: 12px;
-    font-weight: 600;
-    color: rgba(10, 107, 74, 0.65);
+    font-size: 13px;
+    font-weight: 700;
+    color: #0a6b4a; /* More prominent green */
     letter-spacing: 0.01em;
-    transition: color 0.15s ease;
+    transition: all 0.2s ease;
     text-decoration: none;
     width: 100%;
-    margin-top: 2px;
+    margin-top: 16px; /* Increased margin for separation */
 }
 
 .adminOverrideLink svg {
@@ -459,7 +461,10 @@
 
 @media (hover: hover) {
     .adminOverrideLink:hover {
-        color: #0a6b4a;
+        background: rgba(10, 107, 74, 0.12);
+        border-color: #0a6b4a;
+        color: #065f41;
+        box-shadow: 0 2px 8px rgba(10, 107, 74, 0.1);
     }
 
     .adminOverrideLink:hover svg {
@@ -715,6 +720,7 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
     gap: 8px;
+    margin-top: 12px; /* Add space above language chips (below title fields) */
 }
 
 .adminAffectChip {
@@ -891,6 +897,7 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 12px;
+    margin-top: 24px; /* Add space above action buttons (below image picker) */
 }
 
 .adminDeleteBtn {

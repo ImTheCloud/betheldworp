@@ -174,7 +174,7 @@ function EventCard({ item, expanded, draft, saveState, errorText, activeLang, on
     return (
         <div className={`adminAnnCard${item?.upcoming ? " is-active" : ""}`}>
             <div className="adminAnnHeader" style={{ cursor: "pointer", justifyContent: "space-between" }} onClick={() => onToggle(id)}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
                     <div className="adminAnnIdChip">{date || "No date"}</div>
                     <div className="adminSummary"><strong>{title || "No title"}</strong></div>
                 </div>

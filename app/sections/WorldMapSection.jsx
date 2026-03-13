@@ -43,15 +43,15 @@ const CountUp = ({ end, duration = 2 }) => {
             const elapsed = currentTime - startTime;
             const progress = Math.min(elapsed / durationMs, 1);
             
-            // Ease out function for smoother finish
-            const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+            // Ease out cubic function: smoother finish, less stall at the end
+            const easeOutCubic = 1 - Math.pow(1 - progress, 3);
             
-            setCount(Math.floor(easeOutQuart * end));
+            setCount(Math.floor(easeOutCubic * end));
             
             if (progress < 1) {
                 requestAnimationFrame(animate);
             } else {
-                setCount(end); // Ensure we land exactly on the final number
+                setCount(end);
             }
         };
         requestAnimationFrame(animate);
@@ -98,7 +98,7 @@ export default function WorldMapSection() {
                                 <polyline points="9 22 9 12 15 12 15 22"></polyline>
                             </svg>
                             <span className="impact-pill-value">
-                                {isLoaded ? <CountUp end={stats.churches} duration={2.5} /> : 0}
+                                {isLoaded ? <CountUp end={stats.churches} duration={2.0} /> : 0}
                             </span>
                             <span className="impact-pill-label">{t("statChurches") || "Biserici"}</span>
                         </div>
@@ -110,7 +110,7 @@ export default function WorldMapSection() {
                                 <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
                             </svg>
                             <span className="impact-pill-value">
-                                {isLoaded ? <CountUp end={stats.countries} duration={2} /> : 0}
+                                {isLoaded ? <CountUp end={stats.countries} duration={1.5} /> : 0}
                             </span>
                             <span className="impact-pill-label">{t("statCountries") || "Țări"}</span>
                         </div>

@@ -65,7 +65,7 @@
         "yourInfo": "Informațiile Tale",
         "churchNamePlaceholder": "",
         "notesPlaceholder": "",
-        "contact": "Contactează-ne",
+        "contact": "Contact",
         "submitterTitle": "Informațiile tale (Opțional)",
         "submitterSubtitle": "Lăsați-vă datele pentru a vă putea contacta.",
         "skipAndSend": "Trimite",
@@ -74,7 +74,7 @@
         "back": "Înapoi",
         "firstName": "Prenume",
         "lastName": "Nume",
-        "backToWebsite": "Înapoi la Site"
+        "backToWebsite": "Site"
     },
     "fr": {
         "title": "Églises Chrétiennes Pentecôtistes Roumaines",
@@ -142,7 +142,7 @@
         "yourInfo": "Vos Infos",
         "churchNamePlaceholder": "",
         "notesPlaceholder": "",
-        "contact": "Contactez-nous",
+        "contact": "Contact",
         "submitterTitle": "Vos Informations (Optionnel)",
         "submitterSubtitle": "Laissez vos coordonnées si besoin.",
         "skipAndSend": "Envoyer",
@@ -151,7 +151,7 @@
         "back": "Retour",
         "firstName": "Prénom",
         "lastName": "Nom",
-        "backToWebsite": "Retour au site"
+        "backToWebsite": "Site"
     },
     "en": {
         "title": "Romanian Pentecostal Christian Churches",
@@ -219,7 +219,7 @@
         "yourInfo": "Your Info",
         "churchNamePlaceholder": "",
         "notesPlaceholder": "",
-        "contact": "Contact Us",
+        "contact": "Contact",
         "submitterTitle": "Your Information (Optional)",
         "submitterSubtitle": "Leave details so we can contact you.",
         "skipAndSend": "Send",
@@ -228,7 +228,7 @@
         "back": "Back",
         "firstName": "First Name",
         "lastName": "Last Name",
-        "backToWebsite": "Back to website"
+        "backToWebsite": "Website"
     },
     "nl": {
         "title": "Roemeense Christelijke Pinkstergemeenten",
@@ -296,7 +296,7 @@
         "yourInfo": "Uw Info",
         "churchNamePlaceholder": "",
         "notesPlaceholder": "",
-        "contact": "Neem contact op",
+        "contact": "Contact",
         "submitterTitle": "Uw Informatie (Optioneel)",
         "submitterSubtitle": "Laat gegevens achter voor contact.",
         "skipAndSend": "Verzenden",
@@ -305,6 +305,6 @@
         "back": "Terug",
         "firstName": "Voornaam",
         "lastName": "Achternaam",
-        "backToWebsite": "Terug naar de website"
+        "backToWebsite": "Website"
     }
 }
