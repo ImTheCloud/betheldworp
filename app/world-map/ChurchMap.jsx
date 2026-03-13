@@ -294,22 +294,68 @@ function MapController({ selectedChurch, requestedLocation, isInitialLoad, recen
     useEffect(() => {
         if (!map) return;
 
+        let target = null;
+        let targetZoom = 12;
+
         if (selectedChurch) {
-            // Instant jump to church
-            map.setCenter({ lat: selectedChurch.lat, lng: selectedChurch.lng });
-            map.setZoom(14);
-            prevChurchRef.current = selectedChurch;
+            target = { lat: selectedChurch.lat, lng: selectedChurch.lng };
+            targetZoom = 14;
         } else if (requestedLocation && (isInitialLoad || recenterTrigger > 0 || prevChurchRef.current)) {
-            // Instant jump to user location (triggered by load, recenter, or deselection)
-            map.setCenter({ lat: requestedLocation.lat, lng: requestedLocation.lng });
-            map.setZoom(12);
-            prevChurchRef.current = null;
+            target = { lat: requestedLocation.lat, lng: requestedLocation.lng };
+            targetZoom = 12;
         } else if (!requestedLocation && !selectedChurch) {
-            // Instant jump to global view
-            map.setCenter(BELGIUM_CENTER);
-            map.setZoom(8);
+            target = BELGIUM_CENTER;
+            targetZoom = 8;
+        }
+
+        if (!target) return;
+
+        const currentCenter = map.getCenter();
+        const distance = currentCenter 
+            ? haversineDistance(currentCenter.lat(), currentCenter.lng(), target.lat, target.lng)
+            : 0;
+
+        // Configuration for fly-to
+        const FLY_THRESHOLD = 50; // km
+        let timeouts = [];
+
+        if (distance > FLY_THRESHOLD && !isInitialLoad) {
+            // Determine dynamic mid-zoom level based on distance to ensure smooth pan
+            let midZoom = 10;
+            if (distance > 2000) midZoom = 4;
+            else if (distance > 1000) midZoom = 5;
+            else if (distance > 500) midZoom = 6;
+            else if (distance > 200) midZoom = 8;
+            
+            // Step 1: Zoom out slightly to gain perspective
+            map.setZoom(Math.min(map.getZoom(), midZoom));
+            
+            // Step 2: Pan after short delay to allow map to prepare
+            const t1 = setTimeout(() => {
+                map.panTo(target);
+            }, 400);
+            
+            // Step 3: Zoom back in once panning is nearly complete
+            const t2 = setTimeout(() => {
+                map.setZoom(targetZoom);
+            }, 1400); // 1.4s seems to be a good sweet spot for long transitions
+            
+            timeouts = [t1, t2];
+        } else {
+            // Simple smooth pan for short distances or initial load
+            map.panTo(target);
+            map.setZoom(targetZoom);
+        }
+
+        if (selectedChurch) {
+            prevChurchRef.current = selectedChurch;
+        } else {
             prevChurchRef.current = null;
         }
+
+        return () => {
+            timeouts.forEach(t => clearTimeout(t));
+        };
     }, [map, selectedChurch, requestedLocation, isInitialLoad, recenterTrigger]);
 
     return null;
@@ -432,6 +478,20 @@ function ChurchMap() {
     const [suggestionSuccess, setSuggestionSuccess] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const { lang, setLang, supported } = useLang();
+    // Lock body scroll on mount to prevent mobile conflict
+    useEffect(() => {
+        const originalBodyOverflow = document.body.style.overflow;
+        const originalHtmlOverflow = document.documentElement.style.overflow;
+        
+        document.body.style.overflow = "hidden";
+        document.documentElement.style.overflow = "hidden";
+        
+        return () => {
+            document.body.style.overflow = originalBodyOverflow;
+            document.documentElement.style.overflow = originalHtmlOverflow;
+        };
+    }, []);
+
     const t = makeT(worldMapTranslations, lang);
 
     const [formError, setFormError] = useState("");
@@ -1019,6 +1079,12 @@ function ChurchMap() {
                             placeholder="Recherche"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
+                            onFocus={() => isMobile && setBottomSheetMode("expanded")}
+                            onBlur={() => {
+                                if (isMobile && !searchQuery.trim()) {
+                                    setBottomSheetMode("collapsed");
+                                }
+                            }}
                         />
                         {searchQuery && (
                             <button className="mobileSearchClear" onClick={() => setSearchQuery("")}>
