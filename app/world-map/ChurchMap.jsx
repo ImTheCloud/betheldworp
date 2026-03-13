@@ -367,49 +367,59 @@ const Markers = ({ churches, onMarkerClick, selectedChurchId, hoveredMarkerId, s
     const clusterer = useRef(null);
     const markersRef = useRef({}); // id -> marker instance
 
-    // Initialize Clusterer
+    // Initialize/Re-initialize Clusterer whenever map or markerLibrary changes
     useEffect(() => {
         if (!map || !markerLibrary) return;
-        if (!clusterer.current) {
-            clusterer.current = new MarkerClusterer({ 
-                map,
-                renderer: {
-                    render: ({ count, position }) => {
-                        const div = document.createElement('div');
-                        div.className = 'customClusterMarker';
-                        div.innerHTML = `<span>${count}</span>`;
-                        return new markerLibrary.AdvancedMarkerElement({
-                            position,
-                            content: div,
-                            zIndex: 1001
-                        });
-                    }
-                }
-            });
-        }
-    }, [map, markerLibrary]);
 
-    // Cleanup on unmount
-    useEffect(() => {
+        // Cleanup previous clusterer if it exists
+        if (clusterer.current) {
+            clusterer.current.clearMarkers();
+            clusterer.current.setMap(null);
+            clusterer.current = null;
+        }
+
+        // Clear existing markers since they are bound to the old map/library
+        Object.values(markersRef.current).forEach(marker => {
+            marker.map = null;
+        });
+        markersRef.current = {};
+
+        // Create new clusterer
+        clusterer.current = new MarkerClusterer({ 
+            map,
+            renderer: {
+                render: ({ count, position }) => {
+                    const div = document.createElement('div');
+                    div.className = 'customClusterMarker';
+                    div.innerHTML = `<span>${count}</span>`;
+                    return new markerLibrary.AdvancedMarkerElement({
+                        position,
+                        content: div,
+                        zIndex: 1001
+                    });
+                }
+            }
+        });
+
+        // Cleanup on unmount or map/library change
         return () => {
             if (clusterer.current) {
                 clusterer.current.clearMarkers();
+                clusterer.current.setMap(null);
+                clusterer.current = null;
             }
-            Object.values(markersRef.current).forEach(marker => {
-                marker.map = null;
-            });
-            markersRef.current = {};
         };
-    }, []);
+    }, [map, markerLibrary]);
 
     // Synchronize markers with churches data
+    // This effect runs whenever map, churches, or libraries change
     useEffect(() => {
         if (!map || !clusterer.current || !markerLibrary) return;
 
         const currentIds = new Set(churches.map(c => c.id));
         const markersToRemove = [];
 
-        // 1. Identify markers to remove
+        // 1. Identify markers to remove (no longer in data)
         Object.keys(markersRef.current).forEach(id => {
             if (!currentIds.has(id)) {
                 markersToRemove.push(markersRef.current[id]);
@@ -422,7 +432,7 @@ const Markers = ({ churches, onMarkerClick, selectedChurchId, hoveredMarkerId, s
             markersToRemove.forEach(m => m.map = null);
         }
 
-        // 2. Add new markers
+        // 2. Add new markers (not already in ref)
         const newMarkers = [];
         churches.forEach(church => {
             if (!markersRef.current[church.id]) {
@@ -448,7 +458,7 @@ const Markers = ({ churches, onMarkerClick, selectedChurchId, hoveredMarkerId, s
             clusterer.current.addMarkers(newMarkers);
         }
 
-    }, [map, churches, onMarkerClick, setHoveredMarker, markerLibrary]);
+    }, [map, markerLibrary, churches, onMarkerClick, setHoveredMarker]);
 
     // Update marker content appearance (active/hover states) 
     // This effect runs whenever selection or hover changes, but NOT when churches change

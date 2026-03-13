@@ -1956,6 +1956,14 @@
         opacity: 1;
     }
 
+    /* Hide internal content in hidden mode to prevent bleed/overlap with handle */
+    .churchMapBottomSheet[data-mode="hidden"] .churchList,
+    .churchMapBottomSheet[data-mode="hidden"] .churchSidebarFooter {
+        opacity: 0;
+        pointer-events: none;
+        visibility: hidden;
+    }
+
     .churchMapBottomSheet[data-mode="expanded"] {
         height: var(--dynamic-height, 85vh);
     }
