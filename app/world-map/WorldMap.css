@@ -1912,6 +1912,10 @@
         border-top: none !important;
         box-shadow: none !important;
         position: relative;
+        overflow: hidden; /* Prevent content bleed */
+        display: flex;
+        flex-direction: column;
+        height: 100%;
     }
 
     .churchMapBottomSheet:has(.mobileChurchDetails) {
@@ -1920,7 +1924,7 @@
     }
 
     .churchMapBottomSheet[data-mode="hidden"] {
-        height: var(--dynamic-height, 84px);
+        height: var(--dynamic-height, 48px); /* Reduced from 84px to hide list content */
         opacity: 1;
     }
 
