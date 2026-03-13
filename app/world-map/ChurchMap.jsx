@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useCallback, useRef, Suspense } from "react";
-import { APIProvider, Map, AdvancedMarker, useMap } from "@vis.gl/react-google-maps";
+import { APIProvider, Map, AdvancedMarker, useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
+import { MarkerClusterer } from "@googlemaps/markerclusterer";
 import { useSearchParams } from "next/navigation";
 import { collection, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, increment } from "firebase/firestore";
 import { db } from "../lib/Firebase";
@@ -359,6 +360,137 @@ function FilterController({ filteredChurches, activeCountryFilter }) {
 
     return null;
 }
+
+const Markers = ({ churches, onMarkerClick, selectedChurchId, hoveredMarkerId, setHoveredMarker }) => {
+    const map = useMap();
+    const markerLibrary = useMapsLibrary('marker');
+    const clusterer = useRef(null);
+    const markersRef = useRef({}); // id -> marker instance
+
+    // Initialize Clusterer
+    useEffect(() => {
+        if (!map || !markerLibrary) return;
+        if (!clusterer.current) {
+            clusterer.current = new MarkerClusterer({ 
+                map,
+                renderer: {
+                    render: ({ count, position }) => {
+                        const div = document.createElement('div');
+                        div.className = 'customClusterMarker';
+                        div.innerHTML = `<span>${count}</span>`;
+                        return new markerLibrary.AdvancedMarkerElement({
+                            position,
+                            content: div,
+                            zIndex: 1001
+                        });
+                    }
+                }
+            });
+        }
+    }, [map, markerLibrary]);
+
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            if (clusterer.current) {
+                clusterer.current.clearMarkers();
+            }
+            Object.values(markersRef.current).forEach(marker => {
+                marker.map = null;
+            });
+            markersRef.current = {};
+        };
+    }, []);
+
+    // Synchronize markers with churches data
+    useEffect(() => {
+        if (!map || !clusterer.current || !markerLibrary) return;
+
+        const currentIds = new Set(churches.map(c => c.id));
+        const markersToRemove = [];
+
+        // 1. Identify markers to remove
+        Object.keys(markersRef.current).forEach(id => {
+            if (!currentIds.has(id)) {
+                markersToRemove.push(markersRef.current[id]);
+                delete markersRef.current[id];
+            }
+        });
+
+        if (markersToRemove.length > 0) {
+            clusterer.current.removeMarkers(markersToRemove);
+            markersToRemove.forEach(m => m.map = null);
+        }
+
+        // 2. Add new markers
+        const newMarkers = [];
+        churches.forEach(church => {
+            if (!markersRef.current[church.id]) {
+                const container = document.createElement("div");
+                container.className = "markerWrapper";
+                
+                const marker = new markerLibrary.AdvancedMarkerElement({
+                    position: { lat: church.lat, lng: church.lng },
+                    content: container,
+                });
+
+                marker.addListener("click", () => onMarkerClick(church));
+                
+                container.addEventListener("mouseenter", () => setHoveredMarker(church.id));
+                container.addEventListener("mouseleave", () => setHoveredMarker(null));
+
+                markersRef.current[church.id] = marker;
+                newMarkers.push(marker);
+            }
+        });
+
+        if (newMarkers.length > 0) {
+            clusterer.current.addMarkers(newMarkers);
+        }
+
+    }, [map, churches, onMarkerClick, setHoveredMarker, markerLibrary]);
+
+    // Update marker content appearance (active/hover states) 
+    // This effect runs whenever selection or hover changes, but NOT when churches change
+    useEffect(() => {
+        if (!markerLibrary) return;
+        churches.forEach(church => {
+            const marker = markersRef.current[church.id];
+            if (!marker || !marker.content) return;
+
+            const isSelected = selectedChurchId === church.id;
+            const isHovered = hoveredMarkerId === church.id;
+            
+            let wrapper = marker.content;
+            if (wrapper.children.length === 0) {
+                wrapper.innerHTML = `
+                    <div class="customMarker">
+                        <svg width="34" height="34" viewBox="0 0 24 24">
+                            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+                        </svg>
+                    </div>
+                    <div class="markerTooltip"></div>
+                `;
+            }
+
+            const markerIcon = wrapper.querySelector('.customMarker');
+            const tooltip = wrapper.querySelector('.markerTooltip');
+
+            if (markerIcon) {
+                markerIcon.className = `customMarker ${isSelected ? 'pulse' : ''}`;
+            }
+
+            if (tooltip) {
+                tooltip.style.display = (isHovered && !isSelected) ? 'block' : 'none';
+                tooltip.textContent = `${church.name}${church.city ? ` - ${church.city}` : ''}`;
+            }
+            
+            marker.zIndex = isSelected ? 1000 : (isHovered ? 999 : 1);
+        });
+    }, [churches, selectedChurchId, hoveredMarkerId]);
+
+    return null;
+};
 
 function ChurchMap() {
     const searchParams = useSearchParams();
@@ -1524,26 +1656,14 @@ function ChurchMap() {
                                 <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
                             </svg>
                         </button>
-                        {filteredChurches.map((church, idx) => (
-                            <AdvancedMarker
-                                key={idx}
-                                position={{ lat: church.lat, lng: church.lng }}
-                                onClick={() => selectChurch(church)}
-                                onMouseEnter={() => setHoveredMarker(church.id)}
-                                onMouseLeave={() => setHoveredMarker(null)}
-                            >
-                                <div className="markerWrapper">
-                                    <div className={`customMarker ${selectedChurch?.id === church.id ? "pulse" : ""}`}>
-                                        <svg width="34" height="34" viewBox="0 0 24 24">
-                                            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-                                        </svg>
-                                    </div>
-                                    {hoveredMarker === church.id && selectedChurch?.id !== church.id && (
-                                        <div className="markerTooltip">{church.name}{church.city ? ` - ${church.city}` : ''}</div>
-                                    )}
-                                </div>
-                            </AdvancedMarker>
-                        ))}
+                        <Markers
+                            churches={filteredChurches}
+                            onMarkerClick={selectChurch}
+                            selectedChurchId={selectedChurch?.id}
+                            hoveredMarkerId={hoveredMarker}
+                            setHoveredMarker={setHoveredMarker}
+                            t={t}
+                        />
 
                         {userLocation && (
                             <AdvancedMarker position={userLocation} zIndex={1001} title={t("youAreHere")}>

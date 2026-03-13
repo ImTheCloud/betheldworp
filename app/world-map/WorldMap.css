@@ -287,9 +287,11 @@
     border-radius: 12px;
     z-index: 100;
     padding: 0;
-    max-height: 260px;
+    max-height: 180px;
     overflow-y: auto;
     animation: dropdownFade 0.15s ease;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    width: 180px;
 }
 
 .countryFilterOption:first-child {
@@ -328,12 +330,12 @@
     align-items: center;
     width: 100%;
     gap: 8px;
-    padding: 10px 16px;
+    padding: 6px 12px;
     border: none;
     border-radius: 0;
     background: transparent;
     color: #334155;
-    font-size: 0.875rem;
+    font-size: 0.8rem;
     font-weight: 500;
     cursor: pointer;
     text-align: left;
@@ -528,11 +530,6 @@
     justify-content: center;
     color: #64748b;
     transition: all 0.2s ease;
-}
-
-.churchListItem:hover .churchListItemIcon {
-    /* Hover background disabled for mobile/clean look */
-    /* background: #cbd5e1; */
 }
 
 .churchListItem.active .churchListItemIcon {
@@ -1163,6 +1160,36 @@
         opacity: 1;
         transform: translateX(-50%) translateY(0);
     }
+}
+
+/* Custom Cluster Marker */
+.customClusterMarker {
+    background: #134b7b;
+    color: white;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 12px rgba(19, 75, 123, 0.4);
+    border: 3px solid white;
+    transition: transform 0.2s ease, background 0.2s ease;
+    cursor: pointer;
+}
+
+.customClusterMarker:hover {
+    transform: scale(1.1);
+    background: #1a64a3;
+}
+
+.churchMapLayout[data-theme="dark"] .customClusterMarker {
+    background: #bae6fd;
+    color: #134b7b;
+    box-shadow: 0 4px 12px rgba(186, 230, 253, 0.3);
+    border-color: #0f172a;
 }
 
 /* User Location Dot */
@@ -1818,10 +1845,11 @@
         position: absolute;
         top: calc(100% + 12px);
         right: -10px;
-        width: 220px;
-        max-height: 400px;
+        width: 190px;
+        max-height: 220px;
         z-index: 1001;
         animation: scaleIn 0.2s ease;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     }
 
     @keyframes scaleIn {
