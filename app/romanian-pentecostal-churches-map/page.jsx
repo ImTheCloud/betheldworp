@@ -2,9 +2,9 @@ import React, { Suspense } from "react";
 import ChurchMap from "./ChurchMap";
 
 export const metadata = {
-    title: "World Church Map - Bethel Dworp",
-    description: "Cartographie de toutes les églises associées.",
-    robots: { index: false, follow: false },
+    title: "Harta Bisericilor Penticostale Române din Diaspora | Bethel Dworp",
+    description: "Explorează harta interactivă a bisericilor penticostale române din diaspora. Găsește adrese, contacte și detalii despre comunitățile creștine românești din întreaga lume.",
+    robots: { index: true, follow: true },
 };
 
 export default function WorldMapPage() {
