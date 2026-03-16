@@ -1,7 +1,7 @@
 {
     "ro": {
-        "title": "Biserici Creștine Penticostale Române",
-        "subtitle": "Harta Mondială",
+        "title": "",
+        "subtitle": "Biserici Penticostale Române",
         "associatedChurches": "biserici asociate",
         "allCountries": "Toate",
         "searchPlaceholder": "Caută după nume, oraș...",
@@ -74,8 +74,8 @@
         "backToWebsite": "Site"
     },
     "fr": {
-        "title": "Églises Chrétiennes Pentecôtistes Roumaines",
-        "subtitle": "Carte Mondiale",
+        "title": "",
+        "subtitle": "Églises Pentecôtistes Roumaines",
         "associatedChurches": "églises associées",
         "allCountries": "Tous",
         "searchPlaceholder": "Rechercher par nom, ville...",
@@ -148,8 +148,8 @@
         "backToWebsite": "Site"
     },
     "en": {
-        "title": "Romanian Pentecostal Christian Churches",
-        "subtitle": "World Map",
+        "title": "",
+        "subtitle": "Romanian Pentecostal Churches",
         "associatedChurches": "associated churches",
         "allCountries": "All",
         "searchPlaceholder": "Search by name, city...",

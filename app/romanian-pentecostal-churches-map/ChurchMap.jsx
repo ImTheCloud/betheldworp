@@ -900,7 +900,7 @@ function ChurchMap() {
     }, [isMobile, selectedChurch]);
 
     const handleShare = useCallback(async (church) => {
-        const url = `${window.location.origin}/world-map?church=${church.id}`;
+        const url = `${window.location.origin}/romanian-pentecostal-churches-map?church=${church.id}`;
         try {
             await navigator.clipboard.writeText(url);
             setCopied(true);
@@ -1478,7 +1478,6 @@ function ChurchMap() {
                     <div className="mapOverlayTitle">
                         <div className="mapOverlayTitleContent">
                             <h1 className="mapOverlayHeading">{t("subtitle")}</h1>
-                            <p className="mapOverlaySubtitle">{t("title")}</p>
                         </div>
                     </div>
                 )}

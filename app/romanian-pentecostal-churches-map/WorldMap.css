@@ -631,8 +631,9 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
     pointer-events: none;
+    max-width: min(800px, calc(100vw - 480px));
+    margin: 0 auto;
 }
 
 @keyframes mapTitleFadeIn {
@@ -992,26 +993,12 @@
 
 
 .mapOverlaySubtitle {
-    margin: 0;
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.18em;
-    color: rgba(255, 255, 255, 0.9);
-    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
-    background: rgba(10, 30, 60, 0.55);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    padding: 4px 14px;
-    border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    line-height: 1.4;
-    white-space: nowrap;
+    display: none;
 }
 
 .mapOverlayHeading {
     margin: 0;
-    font-size: clamp(2.4rem, 4vw, 3.8rem);
+    font-size: clamp(1.8rem, 3.5vw, 3rem);
     font-weight: 900;
     letter-spacing: -0.03em;
     line-height: 1;
@@ -1020,7 +1007,7 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
     filter: drop-shadow(0 2px 4px rgba(255, 255, 255, 0.8)) drop-shadow(0 0 24px rgba(255, 255, 255, 0.6));
-    white-space: nowrap;
+    text-align: center;
     transition: all 0.5s ease;
 }
 
