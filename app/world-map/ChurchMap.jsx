@@ -539,47 +539,6 @@ function ChurchMap() {
         return () => window.removeEventListener("resize", checkMobile);
     }, []);
 
-    // Collaboration State
-    const [likedChurches, setLikedChurches] = useState(new Set());
-
-    useEffect(() => {
-        try {
-            const stored = localStorage.getItem("bethel_liked_churches");
-            if (stored) {
-                setLikedChurches(new Set(JSON.parse(stored)));
-            }
-        } catch (e) { }
-    }, []);
-
-    const handleLike = async (churchId) => {
-        const isLiking = !likedChurches.has(churchId);
-        const newLikes = new Set(likedChurches);
-
-        if (isLiking) {
-            newLikes.add(churchId);
-        } else {
-            newLikes.delete(churchId);
-        }
-
-        setLikedChurches(newLikes);
-        try {
-            localStorage.setItem("bethel_liked_churches", JSON.stringify([...newLikes]));
-        } catch (e) { }
-
-        const incrementValue = isLiking ? 1 : -1;
-
-        if (selectedChurch?.id === churchId) {
-            setSelectedChurch(prev => ({ ...prev, likes: Math.max(0, (prev.likes || 0) + incrementValue) }));
-        }
-        setChurches(prev => prev.map(c => c.id === churchId ? { ...c, likes: Math.max(0, (c.likes || 0) + incrementValue) } : c));
-
-        try {
-            const churchRef = doc(db, "churches", churchId);
-            await updateDoc(churchRef, { likes: increment(incrementValue) });
-        } catch (err) {
-            console.error("Failed to update church recommendation:", err);
-        }
-    };
 
     const [showSuggestionModal, setShowSuggestionModal] = useState(false);
     const [suggestionType, setSuggestionType] = useState("new"); // "new" | "edit"
@@ -1396,18 +1355,6 @@ function ChurchMap() {
                                                 {selectedChurch.name}{selectedChurch.city ? ` - ${selectedChurch.city}` : ''}
                                             </h2>
                                             <div className="mobileDetailsHeaderActions">
-                                                <div className="churchLikeTooltipWrapper">
-                                                    <button
-                                                        className={`churchLikeBtn ${likedChurches.has(selectedChurch.id) ? "liked" : ""}`}
-                                                        onClick={() => handleLike(selectedChurch.id)}
-                                                        title={likedChurches.has(selectedChurch.id) ? t("removeRecommendation") : t("recommendChurch")}
-                                                    >
-                                                        <svg width="18" height="18" viewBox="0 0 24 24" fill={likedChurches.has(selectedChurch.id) ? "#ef4444" : "none"} stroke={likedChurches.has(selectedChurch.id) ? "#ef4444" : "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                                                        </svg>
-                                                        <span className="churchLikeCount">{selectedChurch.likes || 0}</span>
-                                                    </button>
-                                                </div>
                                                 <button className="mobileDetailsBack" onClick={deselectChurch} aria-label="Close">
                                                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                                         <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -1701,22 +1648,6 @@ function ChurchMap() {
                                     {selectedChurch.name}{selectedChurch.city ? ` - ${selectedChurch.city}` : ''}
                                 </h2>
                                 <div className="churchDetailsHeaderActions">
-                                    <div className="churchLikeTooltipWrapper">
-                                        <button
-                                            className={`churchLikeBtn ${likedChurches.has(selectedChurch.id) ? "liked" : ""}`}
-                                            onClick={() => handleLike(selectedChurch.id)}
-                                            style={{ cursor: "pointer", margin: 0, padding: "4px 10px" }}
-                                            title={likedChurches.has(selectedChurch.id) ? t("removeRecommendation") : t("recommendChurch")}
-                                        >
-                                            <svg width="18" height="18" viewBox="0 0 24 24" fill={likedChurches.has(selectedChurch.id) ? "#ef4444" : "none"} stroke={likedChurches.has(selectedChurch.id) ? "#ef4444" : "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                                            </svg>
-                                            <span className="churchLikeCount">{selectedChurch.likes || 0}</span>
-                                        </button>
-                                        <div className="churchLikeTooltipContent">
-                                            {t("recommendInfo")}
-                                        </div>
-                                    </div>
                                     <button className="churchDetailsClose" onClick={deselectChurch} aria-label="Close">
                                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                             <line x1="18" y1="6" x2="6" y2="18"></line>

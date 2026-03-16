@@ -65,11 +65,10 @@ const FIELDS = [
     { key: "youtube", label: "YouTube", type: "text" },
     { key: "facebook", label: "Facebook", type: "text" },
     { key: "instagram", label: "Instagram", type: "text" },
-    { key: "likes", label: "Hearts / Likes", type: "number" },
 ];
 
 function emptyChurch() {
-    return { name: "", street: "", number: "", city: "", country: "", zipCode: "", lat: "", lng: "", phone: "", email: "", website: "", youtube: "", facebook: "", instagram: "", notes: "", likes: 0 };
+    return { name: "", street: "", number: "", city: "", country: "", zipCode: "", lat: "", lng: "", phone: "", email: "", website: "", youtube: "", facebook: "", instagram: "", notes: "" };
 }
 
 const geocodeAddress = async (street, number, city, zipCode, country) => {
