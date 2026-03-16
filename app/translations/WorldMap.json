@@ -1,7 +1,7 @@
 {
     "ro": {
         "title": "",
-        "subtitle": "Biserici Penticostale Române",
+        "subtitle": "Biserici Penticostale Române din lume",
         "associatedChurches": "biserici asociate",
         "allCountries": "Toate",
         "searchPlaceholder": "Caută după nume, oraș...",
@@ -75,7 +75,7 @@
     },
     "fr": {
         "title": "",
-        "subtitle": "Églises Pentecôtistes Roumaines",
+        "subtitle": "Églises Pentecôtistes Roumaines dans le monde",
         "associatedChurches": "églises associées",
         "allCountries": "Tous",
         "searchPlaceholder": "Rechercher par nom, ville...",
@@ -149,7 +149,7 @@
     },
     "en": {
         "title": "",
-        "subtitle": "Romanian Pentecostal Churches",
+        "subtitle": "Romanian Pentecostal Churches worldwide",
         "associatedChurches": "associated churches",
         "allCountries": "All",
         "searchPlaceholder": "Search by name, city...",
@@ -223,7 +223,7 @@
     },
     "nl": {
         "title": "Roemeense Christelijke Pinkstergemeenten",
-        "subtitle": "Wereldkaart",
+        "subtitle": "Roemeense Christelijke Pinkstergemeenten wereldwijd",
         "associatedChurches": "geassocieerde kerken",
         "allCountries": "Alle",
         "searchPlaceholder": "Zoek op naam, stad...",
