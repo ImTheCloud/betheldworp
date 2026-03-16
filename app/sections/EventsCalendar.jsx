@@ -106,7 +106,13 @@ export default function EventsCalendar() {
 
     const eventsByDate = useMemo(() => {
         const map = new Map();
-        for (const ev of eventsSorted) map.set(String(ev.dateEvent || ""), ev);
+        for (const ev of eventsSorted) {
+            const date = String(ev.dateEvent || "");
+            if (!map.has(date)) {
+                map.set(date, []);
+            }
+            map.get(date).push(ev);
+        }
         return map;
     }, [eventsSorted]);
 
@@ -134,26 +140,34 @@ export default function EventsCalendar() {
         setDidPickMonth(true);
     }, [didPickMonth, eventsSorted, startOfCurrentMonth, todayIso]);
 
-    const [eventOpen, setEventOpen] = useState(false);
-    const [selectedId, setSelectedId] = useState(null);
+    const [selectedDate, setSelectedDate] = useState(null);
+    const [eventIndex, setEventIndex] = useState(0);
 
-    const selectedEvent = useMemo(() => eventsSorted.find((e) => e.id === selectedId) ?? null, [eventsSorted, selectedId]);
+    const eventsForSelectedDate = useMemo(() => {
+        if (!selectedDate) return [];
+        return eventsByDate.get(selectedDate) || [];
+    }, [eventsByDate, selectedDate]);
+
+    const selectedEvent = useMemo(() => {
+        return eventsForSelectedDate[eventIndex] || null;
+    }, [eventsForSelectedDate, eventIndex]);
 
     useEffect(() => {
         if (!eventsSorted.length) return;
-        if (selectedId && eventsSorted.some((e) => e.id === selectedId)) return;
+        if (selectedDate && eventsByDate.has(selectedDate)) return;
 
-        const todayEvent = eventsByDate.get(todayIso);
-        const nextEvent = eventsSorted.find((ev) => ev.dateEvent >= todayIso);
-        setSelectedId(todayEvent?.id || nextEvent?.id || eventsSorted[0].id);
-    }, [eventsSorted, eventsByDate, todayIso, selectedId]);
+        const nextEvent = eventsSorted.find((ev) => ev.dateEvent >= todayIso) || eventsSorted[0];
+        setSelectedDate(nextEvent.dateEvent);
+        setEventIndex(0);
+    }, [eventsSorted, eventsByDate, todayIso, selectedDate]);
 
-    const openEvent = (ev) => {
-        setSelectedId(ev.id);
+    const [eventOpen, setEventOpen] = useState(false);
+
+    const openEvent = (date, index = 0) => {
+        setSelectedDate(date);
+        setEventIndex(index);
         setEventOpen(true);
     };
-
-    const closeEvent = () => setEventOpen(false);
 
     // Listen for "open-event" dispatched from WeeklyProgram
     useEffect(() => {
@@ -167,7 +181,10 @@ export default function EventsCalendar() {
             if (!Number.isNaN(d.getTime())) {
                 setMonth(new Date(d.getFullYear(), d.getMonth(), 1));
             }
-            setSelectedId(ev.id);
+            setSelectedDate(ev.dateEvent);
+            const dateEvents = eventsByDate.get(ev.dateEvent) || [];
+            const idx = dateEvents.findIndex(x => x.id === eventId);
+            setEventIndex(idx >= 0 ? idx : 0);
             setEventOpen(true);
         };
         window.addEventListener("open-event", handler);
@@ -244,8 +261,10 @@ export default function EventsCalendar() {
         return firstOfMonth.toLocaleDateString(locale, { month: "long", year: "numeric" });
     };
 
-    const getEventAriaLabel = (ev) => {
-        if (!ev) return t("event");
+    const getEventAriaLabel = (evs) => {
+        if (!evs || !evs.length) return t("event");
+        if (evs.length > 1) return `${evs.length} ${t("events_count") || "evenimente"}`;
+        const ev = evs[0];
         const parts = [ev.title || t("event")];
         if (ev.description) parts.push(ev.description);
         if (ev.dateEvent) parts.push(formatDate(ev.dateEvent));
@@ -275,7 +294,7 @@ export default function EventsCalendar() {
             d.setDate(gridStart.getDate() + i);
 
             const iso = `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
-            const event = eventsByDate.get(iso) ?? null;
+            const dateEvents = eventsByDate.get(iso) ?? [];
 
             const isToday = iso === todayIso;
             const inCurrentMonth = d.getFullYear() === year && d.getMonth() === m;
@@ -286,7 +305,7 @@ export default function EventsCalendar() {
                 day: d.getDate(),
                 isToday,
                 inCurrentMonth,
-                event,
+                dateEvents,
             });
         }
 
@@ -295,6 +314,16 @@ export default function EventsCalendar() {
 
     const goPrevMonth = () => setMonth((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1));
     const goNextMonth = () => setMonth((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1));
+
+    const nextEventInList = () => {
+        setEventIndex((prev) => (prev + 1) % eventsForSelectedDate.length);
+    };
+
+    const prevEventInList = () => {
+        setEventIndex((prev) => (prev - 1 + eventsForSelectedDate.length) % eventsForSelectedDate.length);
+    };
+
+    const closeEvent = () => setEventOpen(false);
 
     const mapQuery = selectedEvent ? encodeURIComponent([selectedEvent.place, selectedEvent.address].filter(Boolean).join(", ")) : "";
 
@@ -330,31 +359,35 @@ export default function EventsCalendar() {
 
                         <div className="ec-grid">
                             {calendarCells.map((cell) => {
-                                const hasEvent = Boolean(cell.event);
-
                                 return (
                                     <div
                                         key={cell.key}
                                         className={[
                                             "ec-cell",
                                             cell.isToday ? "is-today" : "",
-                                            hasEvent ? "has-events" : "",
+                                            cell.dateEvents.length > 0 ? "has-events" : "",
                                             !cell.inCurrentMonth ? "is-outside" : "",
                                         ]
                                             .filter(Boolean)
                                             .join(" ")}
                                     >
-                                        {!hasEvent ? <div className="ec-dayBadge">{cell.day}</div> : null}
+                                        {cell.dateEvents.length === 0 ? (
+                                            <div className="ec-dayBadge">{cell.day}</div>
+                                        ) : null}
 
-                                        {hasEvent ? (
+                                        {cell.dateEvents.length > 0 ? (
                                             <button
                                                 type="button"
                                                 className="ec-eventCellBtn"
-                                                onClick={() => openEvent(cell.event)}
-                                                title={getEventAriaLabel(cell.event)}
-                                                aria-label={getEventAriaLabel(cell.event)}
+                                                onClick={() => openEvent(cell.iso)}
+                                                title={getEventAriaLabel(cell.dateEvents)}
+                                                aria-label={getEventAriaLabel(cell.dateEvents)}
                                             >
-                                                <img className="ec-eventBg" src={cell.event.image} alt={t("event")} loading="lazy" decoding="async" />
+                                                <CalendarCellImage events={cell.dateEvents} t={t} />
+                                                <div className="ec-dayBadge">{cell.day}</div>
+                                                {cell.dateEvents.length > 1 && (
+                                                    <div className="ec-multiBadge">+{cell.dateEvents.length}</div>
+                                                )}
                                             </button>
                                         ) : (
                                             <div className="ec-emptyBody" />
@@ -415,6 +448,20 @@ export default function EventsCalendar() {
                             <button type="button" className="ev-close" onClick={closeEvent} aria-label={t("close")}>
                                 ×
                             </button>
+
+                            {eventsForSelectedDate.length > 1 && (
+                                <div className="ev-modal-nav ev-modal-nav--desktop">
+                                    <button className="ev-nav-btn prev" onClick={prevEventInList} aria-label={t("prev_event") || "Previous"}>
+                                        ‹
+                                    </button>
+                                    <span className="ev-nav-indicator">
+                                        {eventIndex + 1} / {eventsForSelectedDate.length}
+                                    </span>
+                                    <button className="ev-nav-btn next" onClick={nextEventInList} aria-label={t("next_event") || "Next"}>
+                                        ›
+                                    </button>
+                                </div>
+                            )}
                         </header>
 
                         <div className="ev-body">
@@ -459,9 +506,50 @@ export default function EventsCalendar() {
                                 </div>
                             </div>
                         </div>
+
+                        {eventsForSelectedDate.length > 1 && (
+                            <div className="ev-modal-nav ev-modal-nav--mobile">
+                                <button className="ev-nav-btn prev" onClick={prevEventInList} aria-label={t("prev_event") || "Previous"}>
+                                    ‹
+                                </button>
+                                <span className="ev-nav-indicator">
+                                    {eventIndex + 1} / {eventsForSelectedDate.length}
+                                </span>
+                                <button className="ev-nav-btn next" onClick={nextEventInList} aria-label={t("next_event") || "Next"}>
+                                    ›
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
         </>
+    );
+}
+
+function CalendarCellImage({ events, t }) {
+    const [index, setIndex] = useState(0);
+
+    useEffect(() => {
+        if (events.length <= 1) return;
+        const timer = setInterval(() => {
+            setIndex((prev) => (prev + 1) % events.length);
+        }, 3000);
+        return () => clearInterval(timer);
+    }, [events.length]);
+
+    return (
+        <div className="ec-eventImgContainer">
+            {events.map((ev, i) => (
+                <img
+                    key={ev.id}
+                    className={`ec-eventBg ${i === index ? "active" : ""}`}
+                    src={ev.image}
+                    alt={t("event")}
+                    loading="lazy"
+                    decoding="async"
+                />
+            ))}
+        </div>
     );
 }

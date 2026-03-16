@@ -678,7 +678,7 @@
 .mapSettingsToggleBtn:hover {
     transform: translateY(-2px);
     background: rgba(255, 255, 255, 0.8);
-    color: #2563eb;
+    color: #134b7b;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
@@ -817,7 +817,7 @@
 
 .themeToggleBtn.active {
     background: #ffffff;
-    color: #2563eb;
+    color: #134b7b;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
@@ -878,7 +878,7 @@
 }
 
 .langSegmentOption.active span {
-    color: #2563eb;
+    color: #134b7b;
 }
 
 /* Dark mode tweaks for picker & toggle */
@@ -942,9 +942,9 @@
 }
 
 .mapSettingsBackLink:hover {
-    background: #f1f5f9;
-    border-color: #94a3b8;
-    color: #1e293b !important;
+    background: #f8fafc;
+    border-color: #134b7b;
+    color: #134b7b !important;
     transform: translateY(-1px);
 }
 
@@ -1232,7 +1232,7 @@
 
 .mapRecenterBtn:hover {
     background: rgba(255, 255, 255, 0.8);
-    color: #2563eb;
+    color: #134b7b;
     transform: translateY(-2px);
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.16);
 }
@@ -2813,13 +2813,13 @@
 }
 
 .mapSettingsBackLink:hover {
-    background: #134b7b;
-    color: #ffffff;
+    background: #f8fafc;
+    color: #134b7b;
     box-shadow: 0 8px 15px rgba(19, 75, 123, 0.15);
 }
 
 .mapSettingsBackLink:hover svg {
-    color: #ffffff;
+    color: #134b7b;
     transform: translateX(-3px);
 }
 

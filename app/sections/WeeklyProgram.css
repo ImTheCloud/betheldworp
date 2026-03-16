@@ -52,9 +52,13 @@
 }
 
 .program-weekNavBtn:hover {
-    background: #0a2a43;
-    color: #fff;
-    border-color: #0a2a43;
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(10, 42, 67, 0.3);
+}
+
+.program-weekNavBtn:active {
+    background: rgba(255, 255, 255, 0.9);
+    transform: scale(0.95);
 }
 
 .program-todayBtn {
@@ -72,9 +76,13 @@
 }
 
 .program-todayBtn:hover {
-    background: #0a2a43;
-    color: #fff;
-    border-color: #0a2a43;
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(10, 42, 67, 0.4);
+}
+
+.program-todayBtn:active {
+    background: rgba(255, 255, 255, 0.9);
+    transform: scale(0.98);
 }
 
 .program-title {
