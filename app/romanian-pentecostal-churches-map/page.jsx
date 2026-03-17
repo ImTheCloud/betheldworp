@@ -9,7 +9,7 @@ export const metadata = {
 
 export default function WorldMapPage() {
     return (
-        <main className="w-full h-screen bg-black overflow-hidden relative font-sans">
+        <main className="w-full h-full bg-black font-sans">
             <Suspense fallback={<div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>Chargement de la carte...</div>}>
                 <ChurchMap />
             </Suspense>

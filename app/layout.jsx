@@ -57,7 +57,7 @@ export default async function RootLayout({ children }) {
                 <link
                     rel="preload"
                     as="image"
-                    href="/images/drone.jpg"
+                    href="/images/landing_page/drone.jpg"
                     fetchPriority="high"
                 />
                 <link rel="preconnect" href="https://fonts.googleapis.com" />

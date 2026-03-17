@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import { collection, doc, onSnapshot, updateDoc, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, doc, onSnapshot, updateDoc, addDoc, serverTimestamp, deleteDoc } from "firebase/firestore";
 import { db } from "../../lib/Firebase";
 import ConfirmModal from "../components/ConfirmModal";
 
@@ -39,6 +39,7 @@ const COUNTRY_OPTIONS = [
 ].sort();
 
 const FIELDS = [
+    { key: "locationTitle", label: "Location Title (Directions)", type: "text" },
     { key: "name", label: "Name", type: "text", required: true },
     { key: "country", label: "Country", type: "select", options: COUNTRY_OPTIONS },
     { key: "city", label: "City / Locality", type: "text" },
@@ -81,6 +82,15 @@ function IconHistory(props) {
     );
 }
 
+function IconTrash(props) {
+    return (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+            <path d="M3 6h18" />
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+        </svg>
+    );
+}
+
 export default function ChurchSuggestionsAdmin() {
     const [suggestions, setSuggestions] = useState([]);
     const [processedSuggestions, setProcessedSuggestions] = useState([]);
@@ -88,7 +98,7 @@ export default function ChurchSuggestionsAdmin() {
     const [processingId, setProcessingId] = useState(null);
     const [expandedIds, setExpandedIds] = useState(new Set());
     const [draftsById, setDraftsById] = useState({});
-    const [modal, setModal] = useState({ isOpen: false, suggestionId: null });
+    const [modal, setModal] = useState({ isOpen: false, title: "", message: "", onConfirm: () => {} });
     const [showHistory, setShowHistory] = useState(false);
 
     useEffect(() => {
@@ -186,9 +196,22 @@ export default function ChurchSuggestionsAdmin() {
                 status: "rejected",
                 processedAt: serverTimestamp()
             });
-            setModal({ isOpen: false, suggestionId: null });
+            setModal({ ...modal, isOpen: false });
         } catch (err) {
             console.error("Rejection failed:", err);
+        } finally {
+            setProcessingId(null);
+        }
+    };
+
+    const handleDelete = async (suggestionId) => {
+        setProcessingId(suggestionId);
+        try {
+            await deleteDoc(doc(db, "church_suggestions", suggestionId));
+            setModal({ ...modal, isOpen: false });
+        } catch (err) {
+            console.error("Deletion failed:", err);
+            alert("Deletion failed.");
         } finally {
             setProcessingId(null);
         }
@@ -316,7 +339,7 @@ export default function ChurchSuggestionsAdmin() {
                                                         );
                                                     }
                                                     return (
-                                                        <label key={f.key} className="adminLabel" style={(f.key === "notes") ? { gridColumn: "span 2" } : {}}>
+                                                        <label key={f.key} className="adminLabel" style={(f.key === "locationTitle" || f.key === "notes") ? { gridColumn: "span 2" } : {}}>
                                                             <div style={{ display: "flex", alignItems: "center" }}>
                                                                 {f.label}{f.required ? " *" : ""}
                                                                 {isModified && <span style={{ color: "#d97706", marginLeft: 8, fontSize: "0.80rem", fontWeight: "normal" }}>(Modified)</span>}
@@ -400,7 +423,12 @@ export default function ChurchSuggestionsAdmin() {
                                                     <button
                                                         className="adminBtn"
                                                         style={{ flex: 1, padding: "10px", backgroundColor: "#ffebee", color: "#c62828", border: "1px solid #ffcdd2" }}
-                                                        onClick={() => setModal({ isOpen: true, suggestionId: s.id })}
+                                                        onClick={() => setModal({ 
+                                                            isOpen: true, 
+                                                            title: "Reject Suggestion", 
+                                                            message: "Are you sure you want to reject this church suggestion?",
+                                                            onConfirm: () => handleReject(s.id)
+                                                        })}
                                                         disabled={processingId === s.id}
                                                     >
                                                         <IconX style={{ marginRight: 6 }} /> Reject
@@ -415,6 +443,24 @@ export default function ChurchSuggestionsAdmin() {
                                                     </button>
                                                 </div>
                                             )}
+
+                                            {isProcessed && (
+                                                <div className="adminAnnActions" style={{ marginTop: "24px", display: "flex", gap: "12px" }}>
+                                                    <button
+                                                        className="adminBtn"
+                                                        style={{ flex: 1, padding: "10px", backgroundColor: "#ffebee", color: "#c62828", border: "1px solid #ffcdd2" }}
+                                                        onClick={() => setModal({ 
+                                                            isOpen: true, 
+                                                            title: "Delete Suggestion", 
+                                                            message: "Are you sure you want to permanently delete this suggestion from history?",
+                                                            onConfirm: () => handleDelete(s.id)
+                                                        })}
+                                                        disabled={processingId === s.id}
+                                                    >
+                                                        <IconTrash style={{ marginRight: 6 }} /> Delete
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                 </div>
@@ -426,10 +472,10 @@ export default function ChurchSuggestionsAdmin() {
 
             <ConfirmModal
                 isOpen={modal.isOpen}
-                title="Reject Suggestion"
-                message="Are you sure you want to reject this church suggestion? This action cannot be undone."
-                onConfirm={() => handleReject(modal.suggestionId)}
-                onCancel={() => setModal({ isOpen: false, suggestionId: null })}
+                title={modal.title}
+                message={modal.message}
+                onConfirm={modal.onConfirm}
+                onCancel={() => setModal({ ...modal, isOpen: false })}
             />
         </div>
     );

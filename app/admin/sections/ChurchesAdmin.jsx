@@ -6,6 +6,7 @@ import { db } from "../../lib/Firebase";
 import { usePagination } from "../hooks/usePagination";
 import PaginationControls from "../components/PaginationControls";
 import ConfirmModal from "../components/ConfirmModal";
+import AdminSearch from "../components/AdminSearch";
 
 const safeStr = (v) => String(v ?? "");
 
@@ -36,13 +37,6 @@ function IconChevronDown(props) {
     );
 }
 
-function IconSearch(props) {
-    return (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
-            <path d="M21 21l-4.35-4.35M19 11a8 8 0 1 1-16 0 8 8 0 0 1 16 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-    );
-}
 
 const COUNTRY_OPTIONS = [
     "Austria", "Belgium", "Bulgaria", "Croatia", "Cyprus", "Czech Republic",
@@ -53,6 +47,7 @@ const COUNTRY_OPTIONS = [
 ].sort();
 
 const FIELDS = [
+    { key: "locationTitle", label: "Location Title (Directions)", type: "text" },
     { key: "name", label: "Name", type: "text", required: true },
     { key: "country", label: "Country", type: "select", options: COUNTRY_OPTIONS },
     { key: "city", label: "City / Locality", type: "text" },
@@ -68,7 +63,7 @@ const FIELDS = [
 ];
 
 function emptyChurch() {
-    return { name: "", street: "", number: "", city: "", country: "", zipCode: "", lat: "", lng: "", phone: "", email: "", website: "", youtube: "", facebook: "", instagram: "", notes: "" };
+    return { name: "", locationTitle: "", street: "", number: "", city: "", country: "", zipCode: "", lat: "", lng: "", phone: "", email: "", website: "", youtube: "", facebook: "", instagram: "", notes: "" };
 }
 
 const geocodeAddress = async (street, number, city, zipCode, country) => {
@@ -156,7 +151,7 @@ function ChurchCard({ item, expanded, drafts, saveState, errorText, onToggle, on
                                 );
                             }
                             return (
-                                <label key={f.key} className="adminLabel" style={(f.key === "notes") ? { gridColumn: "span 2" } : {}}>
+                                <label key={f.key} className="adminLabel" style={(f.key === "locationTitle" || f.key === "notes") ? { gridColumn: "span 2" } : {}}>
                                     {f.label}{f.required ? " *" : ""}
                                     {f.type === "select" ? (
                                         <select
@@ -254,7 +249,7 @@ function NewChurchCard({ drafts, setDraft, errorText, saveState, onCancel, onSav
                             );
                         }
                         return (
-                            <label key={f.key} className="adminLabel" style={(f.key === "notes") ? { gridColumn: "span 2" } : {}}>
+                            <label key={f.key} className="adminLabel" style={(f.key === "locationTitle" || f.key === "notes") ? { gridColumn: "span 2" } : {}}>
                                 {f.label}{f.required ? " *" : ""}
                                 {f.type === "select" ? (
                                     <select
@@ -342,7 +337,11 @@ export default function ChurchesAdmin() {
 
         if (searchQuery.trim()) {
             const q = searchQuery.toLowerCase();
-            arr = arr.filter(it => safeStr(it.name).toLowerCase().includes(q));
+            arr = arr.filter(it => 
+                safeStr(it.name).toLowerCase().includes(q) ||
+                safeStr(it.city).toLowerCase().includes(q) ||
+                safeStr(it.country).toLowerCase().includes(q)
+            );
         }
         arr.sort((a, b) => {
             if (sortBy === "az") return a.name.localeCompare(b.name);
@@ -510,6 +509,7 @@ export default function ChurchesAdmin() {
         try {
             await addDoc(collection(db, "churches"), {
                 name: newDrafts.name.trim(),
+                locationTitle: (newDrafts.locationTitle || "").trim(),
                 street: (newDrafts.street || "").trim(),
                 number: (newDrafts.number || "").trim(),
                 city: (newDrafts.city || "").trim(),
@@ -591,6 +591,7 @@ export default function ChurchesAdmin() {
         try {
             await updateDoc(doc(db, "churches", id), {
                 name: draft.name.trim(),
+                locationTitle: (draft.locationTitle || "").trim(),
                 street: (draft.street || "").trim(),
                 number: (draft.number || "").trim(),
                 city: (draft.city || "").trim(),
@@ -703,16 +704,11 @@ export default function ChurchesAdmin() {
                     </button>
                 </div>
 
-                <div className="adminSearchWrapper">
-                    <input
-                        type="text"
-                        className="adminSearchInput"
-                        placeholder="Search by Name"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                    <IconSearch className="adminSearchIcon" />
-                </div>
+                <AdminSearch
+                    value={searchQuery}
+                    onChange={setSearchQuery}
+                    placeholder="Search by name, city, or country"
+                />
             </div>
 
             {loading ? <div className="adminSkeleton" /> : null}

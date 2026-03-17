@@ -4,19 +4,13 @@ import "./StatsAdmin.css";
 import { useEffect, useMemo, useState } from "react";
 import { collection, collectionGroup, getDocs } from "firebase/firestore";
 import { db } from "../../lib/Firebase";
+import AdminSearch from "../components/AdminSearch";
 
 const BOT_ICON = "🤖";
 const HUMAN_ICON = "👤";
 
 const SITE_START_KEY = "2025-12-21";
 
-function IconSearch(props) {
-    return (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
-            <path d="M21 21l-4.35-4.35M19 11a8 8 0 1 1-16 0 8 8 0 0 1 16 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-    );
-}
 
 function IconMap(props) {
     return (
@@ -708,16 +702,11 @@ export default function StatsAdmin() {
                     </select>
                 </div>
 
-                <div className="adminSearchWrapper">
-                    <input
-                        type="text"
-                        className="adminSearchInput"
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        placeholder={`Search ${nameLabel}`}
-                    />
-                    <IconSearch className="adminSearchIcon" />
-                </div>
+                <AdminSearch
+                    value={search}
+                    onChange={setSearch}
+                    placeholder={`Search ${nameLabel}`}
+                />
             </div>
 
             {loading ? (

@@ -36,9 +36,6 @@ export default function Header() {
         []
     );
 
-    // MODIFICATION ICI : Remplacement des emojis par des liens CDN vers les drapeaux
-
-
     useEffect(() => {
         activeIdRef.current = activeId;
     }, [activeId]);

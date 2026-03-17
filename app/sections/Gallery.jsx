@@ -35,10 +35,21 @@ export default function Gallery() {
 
     const IMAGES = useMemo(
         () => [
-            { src: "/images/drone.jpg", alt: "Bethel 1" },
-            { src: "/images/outside.jpg", alt: "Bethel 2" },
-            { src: "/images/inside.jpg", alt: "Bethel 3" },
-            { src: "/images/inside2.jpg", alt: "Bethel 4" },
+            { src: "/images/landing_page/drone.jpg", alt: "Bethel" },
+            { src: "/images/landing_page/outside.jpg", alt: "Bethel" },
+            { src: "/images/landing_page/inside.jpg", alt: "Bethel" },
+            { src: "/images/landing_page/inside2.jpg", alt: "Bethel" },
+            { src: "/images/landing_page/1.Botez_2024.jpg", alt: "Bethel" },
+            { src: "/images/landing_page/2.Botez_2024.jpg", alt: "Bethel" },
+            { src: "/images/landing_page/1.Huizingen.jpg", alt: "Bethel" },
+            { src: "/images/landing_page/2.Huizingen.jpg", alt: "Bethel" },
+            { src: "/images/landing_page/3.Huizingen.jpg", alt: "Bethel" },
+            { src: "/images/landing_page/4.Huizingen.jpg", alt: "Bethel" },
+            { src: "/images/landing_page/5.Huizingen.jpg", alt: "Bethel" },
+            { src: "/images/landing_page/6.Huizingen.jpg", alt: "Bethel" },
+            { src: "/images/landing_page/7.Huizingen.jpg", alt: "Bethel" },
+            { src: "/images/landing_page/8.Huizingen.jpg", alt: "Bethel" },
+            { src: "/images/landing_page/9.Huizingen.jpg", alt: "Bethel" }
         ],
         []
     );
@@ -91,170 +102,6 @@ export default function Gallery() {
     };
     const closeVidModal = () => setVidOpen(false);
 
-    const imgRowRef = useRef(null);
-    const imgRafRef = useRef(null);
-    const imgLastTsRef = useRef(0);
-    const imgDirRef = useRef(1);
-    const imgPausedRef = useRef(false);
-
-    useEffect(() => {
-        const el = imgRowRef.current;
-        if (!el) return;
-
-        const mql = window.matchMedia?.("(prefers-reduced-motion: reduce)");
-        if (mql?.matches) return;
-
-        const speedPxPerSec = 22;
-
-        const step = (ts) => {
-            if (!imgRowRef.current) return;
-
-            if (!imgLastTsRef.current) imgLastTsRef.current = ts;
-            const dt = Math.min(50, ts - imgLastTsRef.current);
-            imgLastTsRef.current = ts;
-
-            const e = imgRowRef.current;
-            const max = Math.max(0, e.scrollWidth - e.clientWidth);
-
-            if (!imgPausedRef.current && max > 0) {
-                const delta = (speedPxPerSec * dt) / 1000;
-                e.scrollLeft += imgDirRef.current * delta;
-
-                if (e.scrollLeft >= max - 1) {
-                    e.scrollLeft = max;
-                    imgDirRef.current = -1;
-                } else if (e.scrollLeft <= 1) {
-                    e.scrollLeft = 0;
-                    imgDirRef.current = 1;
-                }
-            }
-
-            imgRafRef.current = requestAnimationFrame(step);
-        };
-
-        imgRafRef.current = requestAnimationFrame(step);
-
-        const pause = () => {
-            imgPausedRef.current = true;
-        };
-        const resume = () => {
-            imgPausedRef.current = false;
-            imgLastTsRef.current = 0;
-        };
-
-        el.addEventListener("mouseenter", pause);
-        el.addEventListener("mouseleave", resume);
-        el.addEventListener("touchstart", pause, { passive: true });
-        el.addEventListener("touchend", resume, { passive: true });
-        el.addEventListener("focusin", pause);
-        el.addEventListener("focusout", resume);
-        el.addEventListener("wheel", pause, { passive: true });
-
-        const onVis = () => {
-            if (document.hidden) pause();
-            else resume();
-        };
-        document.addEventListener("visibilitychange", onVis);
-
-        return () => {
-            if (imgRafRef.current) cancelAnimationFrame(imgRafRef.current);
-            imgRafRef.current = null;
-            imgLastTsRef.current = 0;
-
-            el.removeEventListener("mouseenter", pause);
-            el.removeEventListener("mouseleave", resume);
-            el.removeEventListener("touchstart", pause);
-            el.removeEventListener("touchend", resume);
-            el.removeEventListener("focusin", pause);
-            el.removeEventListener("focusout", resume);
-            el.removeEventListener("wheel", pause);
-
-            document.removeEventListener("visibilitychange", onVis);
-        };
-    }, [otherImages.length]);
-
-    const rowRef = useRef(null);
-    const rafRef = useRef(null);
-    const lastTsRef = useRef(0);
-    const dirRef = useRef(1);
-    const pausedRef = useRef(false);
-
-    useEffect(() => {
-        const el = rowRef.current;
-        if (!el) return;
-
-        const mql = window.matchMedia?.("(prefers-reduced-motion: reduce)");
-        if (mql?.matches) return;
-
-        const speedPxPerSec = 22;
-
-        const step = (ts) => {
-            if (!rowRef.current) return;
-
-            if (!lastTsRef.current) lastTsRef.current = ts;
-            const dt = Math.min(50, ts - lastTsRef.current);
-            lastTsRef.current = ts;
-
-            const e = rowRef.current;
-            const max = Math.max(0, e.scrollWidth - e.clientWidth);
-
-            if (!pausedRef.current && max > 0) {
-                const delta = (speedPxPerSec * dt) / 1000;
-                e.scrollLeft += dirRef.current * delta;
-
-                if (e.scrollLeft >= max - 1) {
-                    e.scrollLeft = max;
-                    dirRef.current = -1;
-                } else if (e.scrollLeft <= 1) {
-                    e.scrollLeft = 0;
-                    dirRef.current = 1;
-                }
-            }
-
-            rafRef.current = requestAnimationFrame(step);
-        };
-
-        rafRef.current = requestAnimationFrame(step);
-
-        const pause = () => {
-            pausedRef.current = true;
-        };
-        const resume = () => {
-            pausedRef.current = false;
-            lastTsRef.current = 0;
-        };
-
-        el.addEventListener("mouseenter", pause);
-        el.addEventListener("mouseleave", resume);
-        el.addEventListener("touchstart", pause, { passive: true });
-        el.addEventListener("touchend", resume, { passive: true });
-        el.addEventListener("focusin", pause);
-        el.addEventListener("focusout", resume);
-        el.addEventListener("wheel", pause, { passive: true });
-
-        const onVis = () => {
-            if (document.hidden) pause();
-            else resume();
-        };
-        document.addEventListener("visibilitychange", onVis);
-
-        return () => {
-            if (rafRef.current) cancelAnimationFrame(rafRef.current);
-            rafRef.current = null;
-            lastTsRef.current = 0;
-
-            el.removeEventListener("mouseenter", pause);
-            el.removeEventListener("mouseleave", resume);
-            el.removeEventListener("touchstart", pause);
-            el.removeEventListener("touchend", resume);
-            el.removeEventListener("focusin", pause);
-            el.removeEventListener("focusout", resume);
-            el.removeEventListener("wheel", pause);
-
-            document.removeEventListener("visibilitychange", onVis);
-        };
-    }, [others.length]);
-
     return (
         <>
             <section id="galerie" className="gal-section">
@@ -280,7 +127,7 @@ export default function Gallery() {
                         )}
 
                         <div className="gal-rowScroller">
-                            <div className="gal-rowOutside" ref={imgRowRef}>
+                            <div className="gal-rowOutside">
                                 {otherImages.map((img) => (
                                     <button
                                         key={img.src}
@@ -318,7 +165,7 @@ export default function Gallery() {
                         )}
 
                         <div className="gal-rowScroller">
-                            <div className="gal-rowOutside" ref={rowRef}>
+                            <div className="gal-rowOutside">
                                 {others.map((v) => (
                                     <button
                                         key={v.id}

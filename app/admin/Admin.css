@@ -342,6 +342,28 @@
     pointer-events: none;
 }
 
+.adminSearchClear {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    padding: 6px;
+    cursor: pointer;
+    color: rgba(10, 42, 67, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: all 0.15s ease;
+}
+
+.adminSearchClear:hover {
+    background: rgba(10, 42, 67, 0.05);
+    color: #ef4444;
+}
+
 /* ── Standardized Date/Time/Week Inputs ── */
 .adminInput[type="date"],
 .adminInput[type="time"],

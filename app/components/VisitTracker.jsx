@@ -30,38 +30,6 @@ function isBotUserAgent() {
     }
 }
 
-// ── Bot tracking ──────────────────────────────────────────────────────────────
-async function trackBot() {
-    try {
-        const visitorId = Tracker.getOrCreateVisitorIdSafe();
-        const botDoneKey = `bethel_bot_done_${visitorId}`;
-        if (Tracker.safeStorageGet(botDoneKey) === "1") return;
-
-        const day = Tracker.getBrusselsDayKeySafe();
-        const timeHM = Tracker.getBrusselsTimeHMSafe();
-        const language = Tracker.getBrowserLanguageSafe();
-        const dt = Tracker.deviceTypeSafe();
-
-        let userAgent = "unknown";
-        try { userAgent = String(navigator.userAgent || "").slice(0, 200); } catch { }
-
-        const geo = await Tracker.getGeoClientSideRobust(900);
-
-        const botRef = doc(db, "bot_visits", visitorId);
-        await setDoc(botRef, {
-            visitorId,
-            day,
-            timeHM,
-            deviceType: dt,
-            language,
-            country: geo.country,
-            city: geo.city,
-            userAgent,
-        });
-
-        Tracker.safeStorageSet(botDoneKey, "1");
-    } catch { }
-}
 
 // ── Human tracking ─────────────────────────────────────────────────────────
 async function trackHuman(cancelled) {
@@ -149,9 +117,7 @@ export default function VisitTracker() {
             try {
                 if (isCancelled) return;
 
-                if (isBotUserAgent()) {
-                    await trackBot();
-                } else {
+                if (!isBotUserAgent()) {
                     await trackHuman(cancelled);
                 }
             } catch { }

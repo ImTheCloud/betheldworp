@@ -1122,8 +1122,11 @@ function ChurchMap() {
         return map;
     }, [userLocation, churches]);
 
-    const getDirectionsUrl = (church) => {
-        return `https://www.google.com/maps/dir/?api=1&destination=${church.lat},${church.lng}`;
+    const getGoogleMapsSearchUrl = (church) => {
+        const query = church.locationTitle 
+            ? encodeURIComponent(church.locationTitle) 
+            : encodeURIComponent(`${church.name} ${church.city}`);
+        return `https://www.google.com/maps/search/?api=1&query=${query}`;
     };
 
     const activeFilterIcon = activeCountryFilter
@@ -1434,7 +1437,7 @@ function ChurchMap() {
                                     <span className="btnText">{t("editShort")}</span>
                                 </button>
                                 <a 
-                                    href={getDirectionsUrl(selectedChurch)} 
+                                    href={getGoogleMapsSearchUrl(selectedChurch)} 
                                     target="_blank" 
                                     rel="noopener noreferrer" 
                                     className="sidebarDirectionsBtn"
@@ -1673,7 +1676,7 @@ function ChurchMap() {
                                         <span className="btnText">{t("editShort")}</span>
                                     </button>
                                     <a
-                                        href={getDirectionsUrl(selectedChurch)}
+                                        href={getGoogleMapsSearchUrl(selectedChurch)}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="sidebarDirectionsBtn"
@@ -1736,6 +1739,9 @@ function ChurchMap() {
                                                         onChange={(e) => setSuggestionForm({ ...suggestionForm, name: e.target.value })}
                                                     />
                                                 </div>
+                                            </div>
+
+                                            <div className="suggestionFormRow">
                                                 <div className="suggestionFormGroup">
                                                     <label>{t("country")}</label>
                                                     <select
@@ -1747,9 +1753,6 @@ function ChurchMap() {
                                                         ))}
                                                     </select>
                                                 </div>
-                                            </div>
-
-                                            <div className="suggestionFormRow">
                                                 <div className="suggestionFormGroup">
                                                     <label>{t("city")} *</label>
                                                     <input

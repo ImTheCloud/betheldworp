@@ -71,7 +71,8 @@
         "back": "Înapoi",
         "firstName": "Prenume",
         "lastName": "Nume",
-        "backToWebsite": "Site"
+        "backToWebsite": "Site",
+        "locationTitle": "Titlu locație (Google Maps)"
     },
     "fr": {
         "title": "",
@@ -145,7 +146,8 @@
         "back": "Retour",
         "firstName": "Prénom",
         "lastName": "Nom",
-        "backToWebsite": "Site"
+        "backToWebsite": "Site",
+        "locationTitle": "Titre du lieu (Google Maps)"
     },
     "en": {
         "title": "",
@@ -219,7 +221,8 @@
         "back": "Back",
         "firstName": "First Name",
         "lastName": "Last Name",
-        "backToWebsite": "Website"
+        "backToWebsite": "Website",
+        "locationTitle": "Location Title (Google Maps)"
     },
     "nl": {
         "title": "Roemeense Christelijke Pinkstergemeenten",
@@ -293,6 +296,7 @@
         "back": "Terug",
         "firstName": "Voornaam",
         "lastName": "Achternaam",
-        "backToWebsite": "Website"
+        "backToWebsite": "Website",
+        "locationTitle": "Locatietitel (Google Maps)"
     }
 }
