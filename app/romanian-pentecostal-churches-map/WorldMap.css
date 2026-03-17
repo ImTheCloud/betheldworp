@@ -528,13 +528,22 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #64748b;
+    color: #134b7b;
     transition: all 0.2s ease;
+}
+
+.churchMapLayout[data-theme="dark"] .churchListItemIcon {
+    color: #bae6fd;
 }
 
 .churchListItem.active .churchListItemIcon {
     background: #134b7b;
     color: #ffffff;
+}
+
+.churchMapLayout[data-theme="dark"] .churchListItem.active .churchListItemIcon {
+    background: #bae6fd;
+    color: #0f172a;
 }
 
 .churchListItemContent {
@@ -564,6 +573,10 @@
 
 .churchListItem.active .churchListItemContent h3 {
     color: #134b7b;
+}
+
+.churchMapLayout[data-theme="dark"] .churchListItem.active .churchListItemContent h3 {
+    color: #bae6fd;
 }
 
 
