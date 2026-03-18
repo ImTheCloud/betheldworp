@@ -300,11 +300,11 @@ function MapController({ selectedChurch, requestedLocation, isInitialLoad, recen
 
         if (selectedChurch) {
             target = { lat: selectedChurch.lat, lng: selectedChurch.lng };
-            targetZoom = 14;
-        } else if (requestedLocation && (isInitialLoad || recenterTrigger > 0 || prevChurchRef.current)) {
+            targetZoom = 11.5; // Adjusted from 10 to be slightly closer
+        } else if (requestedLocation && (isInitialLoad || recenterTrigger > 0)) {
             target = { lat: requestedLocation.lat, lng: requestedLocation.lng };
             targetZoom = 12;
-        } else if (!requestedLocation && !selectedChurch) {
+        } else if (!requestedLocation && !selectedChurch && isInitialLoad) {
             target = BELGIUM_CENTER;
             targetZoom = 8;
         }
@@ -322,7 +322,7 @@ function MapController({ selectedChurch, requestedLocation, isInitialLoad, recen
             prevChurchRef.current = null;
         }
 
-        return () => {};
+        return () => { };
     }, [map, selectedChurch, requestedLocation, isInitialLoad, recenterTrigger]);
 
     return null;
@@ -356,6 +356,18 @@ function FilterController({ filteredChurches, activeCountryFilter }) {
         const bounds = new google.maps.LatLngBounds();
         filteredChurches.forEach((c) => bounds.extend({ lat: c.lat, lng: c.lng }));
         map.fitBounds(bounds, { top: 40, right: 40, bottom: 40, left: 40 });
+
+        // Cap the zoom after fitting bounds by watching zoom_changed immediately
+        const zoomListener = map.addListener("zoom_changed", () => {
+            if (map.getZoom() > 10) {
+                map.setZoom(10);
+            }
+        });
+
+        // Remove listener once map reaches final position
+        const idleListener = google.maps.event.addListenerOnce(map, "idle", () => {
+            google.maps.event.removeListener(zoomListener);
+        });
     }, [map, filteredChurches, activeCountryFilter]);
 
     return null;
@@ -385,7 +397,7 @@ const Markers = ({ churches, onMarkerClick, selectedChurchId, hoveredMarkerId, s
         markersRef.current = {};
 
         // Create new clusterer
-        clusterer.current = new MarkerClusterer({ 
+        clusterer.current = new MarkerClusterer({
             map,
             renderer: {
                 render: ({ count, position }) => {
@@ -398,6 +410,23 @@ const Markers = ({ churches, onMarkerClick, selectedChurchId, hoveredMarkerId, s
                         zIndex: 1001
                     });
                 }
+            },
+            onClusterClick: (event, cluster, map) => {
+                const bounds = new google.maps.LatLngBounds();
+                cluster.markers.forEach(m => bounds.extend(m.position));
+                map.fitBounds(bounds);
+
+                // Cap the zoom after fitting bounds by watching zoom_changed immediately
+                const zoomListener = map.addListener("zoom_changed", () => {
+                    if (map.getZoom() > 10) {
+                        map.setZoom(10);
+                    }
+                });
+
+                // Remove listener once map reaches final position
+                const idleListener = google.maps.event.addListenerOnce(map, "idle", () => {
+                    google.maps.event.removeListener(zoomListener);
+                });
             }
         });
 
@@ -414,9 +443,9 @@ const Markers = ({ churches, onMarkerClick, selectedChurchId, hoveredMarkerId, s
     // Helper to update marker visual state
     const updateMarkerContent = (marker, church, isSelected, isHovered) => {
         if (!marker || !marker.content) return;
-        
+
         const container = marker.content;
-        
+
         // Ensure base HTML is present
         if (container.children.length === 0) {
             container.innerHTML = `
@@ -440,7 +469,7 @@ const Markers = ({ churches, onMarkerClick, selectedChurchId, hoveredMarkerId, s
             tooltip.style.display = (isHovered && !isSelected) ? 'block' : 'none';
             tooltip.textContent = `${church.name}${church.city ? ` - ${church.city}` : ''}`;
         }
-        
+
         marker.zIndex = isSelected ? 1000 : (isHovered ? 999 : 1);
     };
 
@@ -474,14 +503,14 @@ const Markers = ({ churches, onMarkerClick, selectedChurchId, hoveredMarkerId, s
             if (!marker) {
                 const container = document.createElement("div");
                 container.className = "markerWrapper";
-                
+
                 marker = new markerLibrary.AdvancedMarkerElement({
                     position: { lat: church.lat, lng: church.lng },
                     content: container,
                 });
 
                 marker.addListener("click", () => onMarkerClick(church));
-                
+
                 container.addEventListener("mouseenter", () => setHoveredMarker(church.id));
                 container.addEventListener("mouseleave", () => setHoveredMarker(null));
 
@@ -526,7 +555,7 @@ function ChurchMap() {
     const [isDragging, setIsDragging] = useState(false);
     const startHeight = useRef(null);
     const sheetRef = useRef(null);
-    
+
     // Settings dragging state
     const settingsTouchStartY = useRef(null);
     const [settingsDragOffset, setSettingsDragOffset] = useState(0);
@@ -549,10 +578,10 @@ function ChurchMap() {
     useEffect(() => {
         const originalBodyOverflow = document.body.style.overflow;
         const originalHtmlOverflow = document.documentElement.style.overflow;
-        
+
         document.body.style.overflow = "hidden";
         document.documentElement.style.overflow = "hidden";
-        
+
         return () => {
             document.body.style.overflow = originalBodyOverflow;
             document.documentElement.style.overflow = originalHtmlOverflow;
@@ -693,7 +722,7 @@ function ChurchMap() {
 
     const handleSuggestionSubmit = async (e) => {
         if (e) e.preventDefault();
-        
+
         if (suggestionStep === 1) {
             if (!suggestionForm.name || !suggestionForm.city) {
                 setFormError("Nom et Ville sont requis.");
@@ -762,7 +791,7 @@ function ChurchMap() {
                 },
                 createdAt: serverTimestamp()
             };
-            
+
             setIsSubmitting(true);
             addDoc(collection(db, "church_suggestions"), finalData)
                 .then(() => {
@@ -940,7 +969,7 @@ function ChurchMap() {
         if (!isDragging || !startHeight.current) return;
         const currentY = e.touches[0].clientY;
         const deltaY = currentY - touchStartY.current;
-        
+
         // Threshold check to avoid accidental micro-drags when wanting to tap
         if (Math.abs(deltaY) < 5) return;
 
@@ -950,13 +979,13 @@ function ChurchMap() {
             const isSwipingDown = deltaY > 0;
             const isSwipingUp = deltaY < 0;
             const atTop = scrollableContent.scrollTop <= 0;
-            
+
             // If dragging up and sheet is already expanded, let content scroll
             if (isSwipingUp && bottomSheetMode === "expanded") {
                 setIsDragging(false);
                 return;
             }
-            
+
             // If dragging down and content is not at top, let content scroll
             if (isSwipingDown && !atTop) {
                 setIsDragging(false);
@@ -966,32 +995,32 @@ function ChurchMap() {
 
         // If we reach here, we are dragging the SHEET, so prevent scroll
         if (e.cancelable) e.preventDefault();
-        
+
         // Calculate new height (dragging up reduces deltaY, so we subtract it)
         let newHeight = startHeight.current - deltaY;
-        
+
         // Respect limits (min 48px, max height leaving room for header)
         const headerH = 110; // Safe approximation of mobileTopHeader content + padding
         const minH = 48;
         const maxH = window.innerHeight - headerH - 10;
-        
+
         if (newHeight < minH) {
             newHeight = minH + (newHeight - minH) * 0.2; // Resistance
         } else if (newHeight > maxH) {
             newHeight = maxH + (newHeight - maxH) * 0.2; // Resistance
         }
-        
+
         setDragHeight(newHeight);
     };
 
     const handleTouchEnd = (e) => {
         if (!isDragging) return;
         setIsDragging(false);
-        
+
         if (dragHeight) {
             const vh = window.innerHeight / 100;
             const hInVh = dragHeight / vh;
-            
+
             // Snap logic based on height
             if (hInVh < 25) {
                 setBottomSheetMode("hidden");
@@ -1001,7 +1030,7 @@ function ChurchMap() {
                 setBottomSheetMode("expanded");
             }
         }
-        
+
         setDragHeight(null);
         startHeight.current = null;
     };
@@ -1017,7 +1046,7 @@ function ChurchMap() {
         if (!isSettingsDragging.current) return;
         const currentY = e.touches[0].clientY;
         const deltaY = currentY - settingsTouchStartY.current;
-        
+
         // Only allow dragging downwards
         if (deltaY > 0) {
             setSettingsDragOffset(deltaY);
@@ -1029,7 +1058,7 @@ function ChurchMap() {
     const handleSettingsTouchEnd = (e) => {
         if (!isSettingsDragging.current) return;
         isSettingsDragging.current = false;
-        
+
         if (settingsDragOffset > 100) {
             setShowMapSettings(false);
         }
@@ -1124,8 +1153,8 @@ function ChurchMap() {
     }, [userLocation, churches]);
 
     const getGoogleMapsSearchUrl = (church) => {
-        const query = church.locationTitle 
-            ? encodeURIComponent(church.locationTitle) 
+        const query = church.locationTitle
+            ? encodeURIComponent(church.locationTitle)
             : encodeURIComponent(`${church.name} ${church.city}`);
         return `https://www.google.com/maps/search/?api=1&query=${query}`;
     };
@@ -1139,7 +1168,7 @@ function ChurchMap() {
             {/* Mobile Top Header (Search, Filters, Settings) */}
             {isMobile && (
                 <div className="mobileTopHeader">
-                    
+
                     <div className="mobileSearchBox">
                         <svg className="mobileSearchIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <circle cx="11" cy="11" r="8"></circle>
@@ -1168,7 +1197,7 @@ function ChurchMap() {
                     </div>
 
                     <div className="mobileFilterAction" ref={filterRef}>
-                        <button 
+                        <button
                             className={`mobileHeaderFilterBtn ${activeCountryFilter ? "hasFilter" : ""}`}
                             onClick={() => setFilterOpen(!filterOpen)}
                         >
@@ -1207,7 +1236,7 @@ function ChurchMap() {
                         )}
                     </div>
 
-                    <button 
+                    <button
                         className="mobileHeaderSettingsBtn"
                         onClick={() => setShowMapSettings(!showMapSettings)}
                     >
@@ -1220,9 +1249,9 @@ function ChurchMap() {
             )}
             {/* Sidebar */}
             <aside className="churchMapSidebar">
-                <div 
+                <div
                     ref={sheetRef}
-                    className={`churchMapBottomSheet ${showMapSettings ? 'settings-active' : ''} ${isDragging ? 'is-dragging' : ''}`} 
+                    className={`churchMapBottomSheet ${showMapSettings ? 'settings-active' : ''} ${isDragging ? 'is-dragging' : ''}`}
                     data-mode={bottomSheetMode}
                     style={isMobile ? {
                         "--dynamic-height": dragHeight ? `${dragHeight}px` : undefined,
@@ -1234,7 +1263,7 @@ function ChurchMap() {
                 >
                     {/* Map Controls (Manual Recenter) - Moved here to follow sheet on mobile */}
                     {userLocation && (
-                        <button 
+                        <button
                             className="mapRecenterBtn"
                             onClick={handleRecenter}
                             title={t("youAreHere")}
@@ -1261,205 +1290,205 @@ function ChurchMap() {
                         </div>
 
                         {/* Search and Country Filter Area - Desktop Only */}
-                    {!isMobile && (
-                        <div className="churchMapFilterContainer">
-                            <div className="churchMapSearch">
-                                <input
-                                    type="text"
-                                    placeholder="Recherche"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                />
-                                {searchQuery ? (
-                                    <button 
-                                        className="churchMapSearchClear" 
-                                        onClick={() => setSearchQuery("")}
-                                        title={t("clearSearch") || "Clear search"}
-                                        aria-label="Clear search"
+                        {!isMobile && (
+                            <div className="churchMapFilterContainer">
+                                <div className="churchMapSearch">
+                                    <input
+                                        type="text"
+                                        placeholder="Recherche"
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                    />
+                                    {searchQuery ? (
+                                        <button
+                                            className="churchMapSearchClear"
+                                            onClick={() => setSearchQuery("")}
+                                            title={t("clearSearch") || "Clear search"}
+                                            aria-label="Clear search"
+                                        >
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                                            </svg>
+                                        </button>
+                                    ) : (
+                                        <svg className="churchMapSearchIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <circle cx="11" cy="11" r="8"></circle>
+                                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                        </svg>
+                                    )}
+                                </div>
+
+                                <div className="countryFilterDropdown" ref={filterRef}>
+                                    <button
+                                        className={`countryFilterBtn ${activeCountryFilter ? "hasFilter" : ""}`}
+                                        onClick={() => setFilterOpen(!filterOpen)}
+                                        title={activeCountryFilter ? getCountryLabel(activeCountryFilter) : t("allCountries")}
                                     >
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                            <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>{activeFilterIcon}</span>
+                                            <span style={{ fontSize: '0.95rem', fontWeight: '500', opacity: 0.9 }}>
+                                                ({activeCountryFilter ? (countryCounts[activeCountryFilter] || 0) : (countryCounts.all || 0)})
+                                            </span>
+                                        </div>
+                                        <svg className={`chevron ${filterOpen ? "open" : ""}`} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ margin: 0 }}>
+                                            <polyline points="6 9 12 15 18 9"></polyline>
                                         </svg>
                                     </button>
-                                ) : (
-                                    <svg className="churchMapSearchIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <circle cx="11" cy="11" r="8"></circle>
-                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                    </svg>
-                                )}
-                            </div>
-
-                            <div className="countryFilterDropdown" ref={filterRef}>
-                                <button
-                                    className={`countryFilterBtn ${activeCountryFilter ? "hasFilter" : ""}`}
-                                    onClick={() => setFilterOpen(!filterOpen)}
-                                    title={activeCountryFilter ? getCountryLabel(activeCountryFilter) : t("allCountries")}
-                                >
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                        <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>{activeFilterIcon}</span>
-                                        <span style={{ fontSize: '0.95rem', fontWeight: '500', opacity: 0.9 }}>
-                                            ({activeCountryFilter ? (countryCounts[activeCountryFilter] || 0) : (countryCounts.all || 0)})
-                                        </span>
-                                    </div>
-                                    <svg className={`chevron ${filterOpen ? "open" : ""}`} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ margin: 0 }}>
-                                        <polyline points="6 9 12 15 18 9"></polyline>
-                                    </svg>
-                                </button>
-                                {filterOpen && (
-                                    <div className="countryFilterMenu">
-                                        <button
-                                            className={`countryFilterOption ${!activeCountryFilter ? "active" : ""}`}
-                                            onClick={() => {
-                                                setActiveCountryFilter("");
-                                                setFilterOpen(false);
-                                            }}
-                                            style={{ justifyContent: 'flex-start', padding: '10px 16px' }}
-                                        >
-                                            <span style={{ fontSize: '1.1rem' }}>🌍</span> {t("allCountries")}
-                                            <span style={{ fontSize: '0.85rem', opacity: 0.7, marginLeft: 'auto' }}>({countryCounts.all || 0})</span>
-                                        </button>
-                                        {ALL_COUNTRIES.map((country) => (
+                                    {filterOpen && (
+                                        <div className="countryFilterMenu">
                                             <button
-                                                key={country}
-                                                className={`countryFilterOption ${activeCountryFilter === country ? "active" : ""}`}
+                                                className={`countryFilterOption ${!activeCountryFilter ? "active" : ""}`}
                                                 onClick={() => {
-                                                    setActiveCountryFilter(country);
+                                                    setActiveCountryFilter("");
                                                     setFilterOpen(false);
                                                 }}
+                                                style={{ justifyContent: 'flex-start', padding: '10px 16px' }}
                                             >
-                                                <span style={{ fontSize: '1.1rem' }}>{COUNTRY_FLAGS[country] || "🌍"}</span> {getCountryLabel(country)}
-                                                <span style={{ fontSize: '0.85rem', opacity: 0.7, marginLeft: 'auto' }}>({countryCounts[country] || 0})</span>
+                                                <span style={{ fontSize: '1.1rem' }}>🌍</span> {t("allCountries")}
+                                                <span style={{ fontSize: '0.85rem', opacity: 0.7, marginLeft: 'auto' }}>({countryCounts.all || 0})</span>
                                             </button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
-
-                    <div className="churchList">
-                        {churchesLoading ? (
-                            <div className="loaderContainer">
-                                <div className="premiumLoader">
-                                    <div className="loaderRing"></div>
-                                    <div className="loaderRing"></div>
-                                    <div className="loaderLogo">
-                                        <img src="/icon.png" alt="Bethel Logo" />
-                                    </div>
-                                </div>
-                                <span className="loaderText">{t("loadingChurches") || "Încărcare..."}</span>
-                            </div>
-                        ) : (
-                            <>
-                                {isMobile && (selectedChurch || isExiting) ? (
-                                    <div className={`mobileChurchDetails ${isExiting ? "exiting" : ""}`}>
-                                        <div className="mobileDetailsHeader">
-                                            <h2 className="churchDetailsTitle">
-                                                {selectedChurch.name}{selectedChurch.city ? ` - ${selectedChurch.city}` : ''}
-                                            </h2>
-                                            <div className="mobileDetailsHeaderActions">
-                                                <button className="mobileDetailsBack" onClick={deselectChurch} aria-label="Close">
-                                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                                                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                                                    </svg>
+                                            {ALL_COUNTRIES.map((country) => (
+                                                <button
+                                                    key={country}
+                                                    className={`countryFilterOption ${activeCountryFilter === country ? "active" : ""}`}
+                                                    onClick={() => {
+                                                        setActiveCountryFilter(country);
+                                                        setFilterOpen(false);
+                                                    }}
+                                                >
+                                                    <span style={{ fontSize: '1.1rem' }}>{COUNTRY_FLAGS[country] || "🌍"}</span> {getCountryLabel(country)}
+                                                    <span style={{ fontSize: '0.85rem', opacity: 0.7, marginLeft: 'auto' }}>({countryCounts[country] || 0})</span>
                                                 </button>
-                                            </div>
+                                            ))}
                                         </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
 
-                                        <div className="mobileDetailsBody">
-                                            <p className="churchDetailsAddress">
-                                                {`${selectedChurch.street || ""} ${selectedChurch.number || ""}`.trim()}, {selectedChurch.zipCode ? `${selectedChurch.zipCode} ` : ""}{selectedChurch.city}, {getCountryLabel(selectedChurch.country)}
-                                            </p>
-
-                                            <ChurchInfoLinks church={selectedChurch} t={t} />
-
+                        <div className="churchList">
+                            {churchesLoading ? (
+                                <div className="loaderContainer">
+                                    <div className="premiumLoader">
+                                        <div className="loaderRing"></div>
+                                        <div className="loaderRing"></div>
+                                        <div className="loaderLogo">
+                                            <img src="/icon.png" alt="Bethel Logo" />
                                         </div>
                                     </div>
-                                ) : (
-                                    <>
-                                        {Object.entries(groupedChurches).map(([country, items]) => (
-                                            <div key={country} className="churchCountryGroup">
-                                                <h2 className="churchCountryHeader">
-                                                    <span className="countryFlag">{COUNTRY_FLAGS[country] || "🌍"}</span>
-                                                    {t(`country_${country}`) === `country_${country}` ? country : t(`country_${country}`)}
-                                                    <span className="countryCount">{items.length}</span>
+                                    <span className="loaderText">{t("loadingChurches") || "Încărcare..."}</span>
+                                </div>
+                            ) : (
+                                <>
+                                    {isMobile && (selectedChurch || isExiting) ? (
+                                        <div className={`mobileChurchDetails ${isExiting ? "exiting" : ""}`}>
+                                            <div className="mobileDetailsHeader">
+                                                <h2 className="churchDetailsTitle">
+                                                    {selectedChurch.name}{selectedChurch.city ? ` - ${selectedChurch.city}` : ''}
                                                 </h2>
-                                                {items.map((church, idx) => {
-                                                    const isSelected = selectedChurch?.id === church.id;
-                                                    const dist = distanceMap[church.id];
-                                                    return (
-                                                        <button
-                                                            key={idx}
-                                                            className={`churchListItem ${isSelected ? "active" : ""}`}
-                                                            onClick={() => {
-                                                                selectChurch(church);
-                                                            }}
-                                                        >
-                                                            <div className="churchListItemIcon">
-                                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                                                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-                                                                </svg>
-                                                            </div>
-                                                            <div className="churchListItemContent">
-                                                                <h3>{church.name}{church.city ? ` - ${church.city}` : ''}</h3>
+                                                <div className="mobileDetailsHeaderActions">
+                                                    <button className="mobileDetailsBack" onClick={deselectChurch} aria-label="Close">
+                                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                                                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div className="mobileDetailsBody">
+                                                <p className="churchDetailsAddress">
+                                                    {`${selectedChurch.street || ""} ${selectedChurch.number || ""}`.trim()}, {selectedChurch.zipCode ? `${selectedChurch.zipCode} ` : ""}{selectedChurch.city}, {getCountryLabel(selectedChurch.country)}
+                                                </p>
+
+                                                <ChurchInfoLinks church={selectedChurch} t={t} />
+
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            {Object.entries(groupedChurches).map(([country, items]) => (
+                                                <div key={country} className="churchCountryGroup">
+                                                    <h2 className="churchCountryHeader">
+                                                        <span className="countryFlag">{COUNTRY_FLAGS[country] || "🌍"}</span>
+                                                        {t(`country_${country}`) === `country_${country}` ? country : t(`country_${country}`)}
+                                                        <span className="countryCount">{items.length}</span>
+                                                    </h2>
+                                                    {items.map((church, idx) => {
+                                                        const isSelected = selectedChurch?.id === church.id;
+                                                        const dist = distanceMap[church.id];
+                                                        return (
+                                                            <button
+                                                                key={idx}
+                                                                className={`churchListItem ${isSelected ? "active" : ""}`}
+                                                                onClick={() => {
+                                                                    selectChurch(church);
+                                                                }}
+                                                            >
+                                                                <div className="churchListItemIcon">
+                                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                                                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+                                                                    </svg>
+                                                                </div>
+                                                                <div className="churchListItemContent">
+                                                                    <h3>{church.name}{church.city ? ` - ${church.city}` : ''}</h3>
                                                                     <p>{`${church.street || ""} ${church.number || ""}`.trim()}, {church.zipCode ? `${church.zipCode} ` : ""}{church.city}, {getCountryLabel(church.country)}</p>
-                                                            </div>
-                                                        </button>
-                                                    );
-                                                })}
-                                            </div>
-                                        ))}
+                                                                </div>
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            ))}
 
-                                        {filteredChurches.length === 0 && (
-                                            <div className="churchListEmpty">
-                                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                                                    <circle cx="11" cy="11" r="8"></circle>
-                                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                                </svg>
-                                                <p>{t("noChurchFound")}</p>
-                                            </div>
-                                        )}
-                                    </>
-                                )}
-                            </>
-                        )}
-                    </div>
+                                            {filteredChurches.length === 0 && (
+                                                <div className="churchListEmpty">
+                                                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                                        <circle cx="11" cy="11" r="8"></circle>
+                                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                                    </svg>
+                                                    <p>{t("noChurchFound")}</p>
+                                                </div>
+                                            )}
+                                        </>
+                                    )}
+                                </>
+                            )}
+                        </div>
 
-                    <div className="churchSidebarFooter">
-                        {isMobile && selectedChurch ? (
-                            <div className="mobileFooterActions">
-                                <button className="sidebarSuggestBtn editMode" onClick={() => openSuggestionModal("edit", selectedChurch)}>
+                        <div className="churchSidebarFooter">
+                            {isMobile && selectedChurch ? (
+                                <div className="mobileFooterActions">
+                                    <button className="sidebarSuggestBtn editMode" onClick={() => openSuggestionModal("edit", selectedChurch)}>
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                            <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                        </svg>
+                                        <span className="btnText">{t("editShort")}</span>
+                                    </button>
+                                    <a
+                                        href={getGoogleMapsSearchUrl(selectedChurch)}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="sidebarDirectionsBtn"
+                                    >
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
+                                        </svg>
+                                        <span className="btnText">{t("route")}</span>
+                                    </a>
+                                </div>
+                            ) : (
+                                <button className="sidebarSuggestBtn" onClick={() => openSuggestionModal("new")}>
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                        <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                        <path d="M12 5v14M5 12h14"></path>
                                     </svg>
-                                    <span className="btnText">{t("editShort")}</span>
+                                    {t("suggestChurch")}
                                 </button>
-                                <a 
-                                    href={getGoogleMapsSearchUrl(selectedChurch)} 
-                                    target="_blank" 
-                                    rel="noopener noreferrer" 
-                                    className="sidebarDirectionsBtn"
-                                >
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
-                                    </svg>
-                                    <span className="btnText">{t("route")}</span>
-                                </a>
-                            </div>
-                        ) : (
-                            <button className="sidebarSuggestBtn" onClick={() => openSuggestionModal("new")}>
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="M12 5v14M5 12h14"></path>
-                                </svg>
-                                {t("suggestChurch")}
-                            </button>
-                        )}
+                            )}
+                        </div>
                     </div>
                 </div>
-            </div>
 
                 {/* Mobile: Back to list */}
                 {mobileShowMap && (
@@ -1488,8 +1517,8 @@ function ChurchMap() {
 
                 {/* Settings Modal + Backdrop */}
                 {showMapSettings && <div className="mapSettingsBackdrop" onClick={() => setShowMapSettings(false)} />}
-                <div 
-                    className={`mapSettingsMenu ${showMapSettings ? 'open' : ''}`} 
+                <div
+                    className={`mapSettingsMenu ${showMapSettings ? 'open' : ''}`}
                     ref={settingsRef}
                     style={isMobile ? {
                         transform: `translateY(${showMapSettings ? settingsDragOffset + 'px' : '100%'})`,
@@ -1500,8 +1529,8 @@ function ChurchMap() {
                     onTouchEnd={handleSettingsTouchEnd}
                 >
                     {isMobile && (
-                        <div 
-                            className="mapSettingsHandle" 
+                        <div
+                            className="mapSettingsHandle"
                             onClick={() => setShowMapSettings(false)}
                         />
                     )}
@@ -1522,7 +1551,7 @@ function ChurchMap() {
                                 <span>{t("mapTheme")}</span>
                             </div>
                             <div className="themeToggleSwitch">
-                                <button 
+                                <button
                                     className={`themeToggleBtn ${mapTheme === 'light' ? 'active' : ''}`}
                                     onClick={() => toggleTheme('light')}
                                     aria-label={t("themeLight")}
@@ -1539,7 +1568,7 @@ function ChurchMap() {
                                         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
                                     </svg>
                                 </button>
-                                <button 
+                                <button
                                     className={`themeToggleBtn ${mapTheme === 'dark' ? 'active' : ''}`}
                                     onClick={() => toggleTheme('dark')}
                                     aria-label={t("themeDark")}
@@ -1558,7 +1587,7 @@ function ChurchMap() {
                             </div>
                             <div className="langSegmentedControl">
                                 {langOptions.map((opt) => (
-                                    <button 
+                                    <button
                                         key={opt.value}
                                         className={`langSegmentOption ${lang === opt.value ? 'active' : ''}`}
                                         onClick={() => setLang(opt.value)}
@@ -1580,13 +1609,13 @@ function ChurchMap() {
                                 </svg>
                                 <span>{t("backToWebsite")}</span>
                             </Link>
-                            <button 
+                            <button
                                 className="mapSettingsContactBtn"
                                 onClick={() => window.location.href = "mailto:claudiu.dev@outlook.com"}
                             >
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                    <rect width="20" height="16" x="2" y="4" rx="2"/>
-                                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                                    <rect width="20" height="16" x="2" y="4" rx="2" />
+                                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
                                 </svg>
                                 <span>{t("contact")}</span>
                             </button>
@@ -1606,7 +1635,7 @@ function ChurchMap() {
                         colorScheme={mapTheme.toUpperCase()}
                     >
                         {/* Settings Button (Desktop Overlay) */}
-                        <button 
+                        <button
                             className="mapSettingsToggleBtn desktopOnly"
                             onClick={() => setShowMapSettings(!showMapSettings)}
                             aria-label={t("settings")}
@@ -1916,8 +1945,8 @@ function ChurchMap() {
 
                                 <div className="suggestionFormActions">
                                     {suggestionStep === 1 ? (
-                                        <button 
-                                            type="submit" 
+                                        <button
+                                            type="submit"
                                             className="suggestionSubmitBtn"
                                             disabled={isSubmitting || (suggestionType === "edit" && !hasChanges)}
                                         >
@@ -1925,15 +1954,15 @@ function ChurchMap() {
                                         </button>
                                     ) : (
                                         <div className="step2Actions">
-                                            <button 
-                                                type="button" 
+                                            <button
+                                                type="button"
                                                 className="suggestionSkipBtn"
                                                 onClick={() => setSuggestionStep(1)}
                                             >
                                                 {t("back")}
                                             </button>
-                                            <button 
-                                                type="submit" 
+                                            <button
+                                                type="submit"
                                                 className="suggestionSubmitBtn"
                                                 disabled={isSubmitting}
                                             >
