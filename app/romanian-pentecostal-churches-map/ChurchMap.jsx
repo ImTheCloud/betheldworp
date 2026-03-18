@@ -970,9 +970,10 @@ function ChurchMap() {
         // Calculate new height (dragging up reduces deltaY, so we subtract it)
         let newHeight = startHeight.current - deltaY;
         
-        // Respect limits (min 84px, max 95vh)
+        // Respect limits (min 48px, max height leaving room for header)
+        const headerH = 110; // Safe approximation of mobileTopHeader content + padding
         const minH = 48;
-        const maxH = window.innerHeight * 0.95;
+        const maxH = window.innerHeight - headerH - 10;
         
         if (newHeight < minH) {
             newHeight = minH + (newHeight - minH) * 0.2; // Resistance
@@ -994,7 +995,7 @@ function ChurchMap() {
             // Snap logic based on height
             if (hInVh < 25) {
                 setBottomSheetMode("hidden");
-            } else if (hInVh < 65) {
+            } else if (hInVh < 55) {
                 setBottomSheetMode("collapsed");
             } else {
                 setBottomSheetMode("expanded");

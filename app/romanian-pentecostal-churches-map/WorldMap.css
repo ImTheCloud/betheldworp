@@ -1589,6 +1589,10 @@
         z-index: 1;
     }
 
+    :root {
+        --mobile-header-height: calc(79px + env(safe-area-inset-top, 0px));
+    }
+
     .churchMapSidebar {
         width: 100vw;
         height: 100vh;
@@ -1604,7 +1608,7 @@
         display: flex;
         flex-direction: column;
         justify-content: flex-end;
-        z-index: 20;
+        z-index: 2000; /* Increased to be above marker tooltips but below modas */
     }
 
     .churchMapSidebarHeader {
@@ -1618,7 +1622,7 @@
         right: 0;
         height: auto;
         min-height: 54px;
-        padding-top: env(safe-area-inset-top, 0px);
+        padding-top: calc(env(safe-area-inset-top, 0px) + 15px);
         background: #ffffff;
         border-radius: 0 0 16px 16px;
         box-shadow: 0 12px 36px rgba(0, 0, 0, 0.15);
@@ -1763,7 +1767,8 @@
     /* Extra narrow screens fix */
     @media (max-width: 360px) {
         .mobileTopHeader {
-            padding: 0 4px;
+            padding-left: 4px;
+            padding-right: 4px;
             gap: 4px;
         }
         .mobileHeaderFilterBtn {
@@ -1903,7 +1908,7 @@
     }
 
     .churchMapBottomSheet[data-mode="expanded"] {
-        height: var(--dynamic-height, 85vh);
+        height: var(--dynamic-height, calc(100dvh - var(--mobile-header-height) - 12px));
     }
 
     /* Completely hide church list only when settings are active */
