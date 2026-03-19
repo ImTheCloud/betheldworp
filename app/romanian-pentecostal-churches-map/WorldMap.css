@@ -33,58 +33,90 @@
    SIDEBAR
    ============================================= */
 .churchMapSidebar {
-    width: 340px;
+    width: 380px;
     height: 100%;
     background: #ffffff;
-    border-right: 1px solid #e1e8f0;
+    box-shadow: 2px 0 20px rgba(0, 0, 0, 0.05);
+    z-index: 1000;
+    transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     display: flex;
     flex-direction: column;
-    z-index: 100;
-    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
 }
 
-.churchMapLayout.sidebar-closed .churchMapSidebar {
-    width: 0;
-    transform: translateX(-100%);
-    border-right: none;
-    opacity: 0;
-    pointer-events: none;
+.churchMapSidebar.collapsed {
+    width: 60px;
 }
 
-/* Sidebar Toggle Button */
-.sidebarToggleBtn {
-    position: absolute;
-    left: 340px; /* Aligned with sidebar width */
-    top: 50%;
-    transform: translateY(-50%);
-    width: 24px;
-    height: 48px;
-    background: #ffffff;
-    border: 1px solid #e1e8f0;
-    border-left: none;
-    border-radius: 0 8px 8px 0;
+/* Sidebar Header */
+.sidebarHeader {
+    padding: 8px 16px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    min-height: 52px;
+    display: flex;
+    align-items: center;
+}
+
+.sidebarHeaderOpen {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.sidebarBrand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sidebarLogo {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
+
+.sidebarTitle {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #64748b;
+    white-space: nowrap;
+}
+
+.sidebarHeaderCollapsed {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.sidebarCloseBtn, .sidebarHamburgerBtn {
+    background: none;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    color: #64748b;
+    border-radius: 8px;
+    transition: all 0.2s;
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
-    z-index: 1000;
-    color: #64748b;
-    box-shadow: 4px 0 10px rgba(0, 0, 0, 0.05);
-    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.sidebarToggleBtn:hover {
+.sidebarCloseBtn:hover, .sidebarHamburgerBtn:hover {
+    background: #f1f5f9;
     color: #134b7b;
-    background: #f8fafc;
 }
 
-.sidebarToggleBtn.is-closed {
-    left: 0;
+/* Old floating toggle removed */
+
+.churchMapLayout .churchMapSidebar.collapsed .churchMapBottomSheet {
+    display: none;
 }
 
 .churchMapLayout.sidebar-closed .churchMapContainer {
     width: 100vw;
 }
+
 
 .churchMapTitle {
     font-size: 1.4rem;
@@ -163,6 +195,225 @@
     align-items: center;
     gap: 6px;
 }
+
+/* Floating Controls */
+.desktopMapControls {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    z-index: 1000;
+    pointer-events: auto;
+}
+
+.churchMapSearch.floating.google-style {
+    width: 380px;
+    background: #ffffff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    border-radius: 28px;
+    border: none;
+    padding: 4px 8px 4px 20px;
+    display: flex;
+    align-items: center;
+    height: 48px;
+}
+
+.churchMapSearch.floating.google-style input {
+    flex: 1;
+    padding: 0;
+    font-size: 1rem;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+    color: #3c4043;
+}
+
+.churchMapSearch.floating.google-style input::placeholder {
+    color: #70757a;
+    font-size: 0.95rem;
+}
+
+.searchActions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.searchActions button {
+    background: none;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    color: #5f6368;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+
+.searchActions button:hover {
+    background: #f1f3f4;
+}
+
+.searchClearBtn {
+    color: #70757a !important;
+}
+
+.searchDivider {
+    width: 1px;
+    height: 24px;
+    background: #dadce0;
+    margin: 0 4px;
+}
+
+.searchDirectionsBtn svg rect {
+    fill: #134b7b;
+}
+
+.searchDirectionsBtn:hover svg rect {
+    fill: #0f3d63;
+}
+
+.countryPillContainer {
+    display: flex;
+    gap: 8px;
+    padding-bottom: 4px;
+    position: relative;
+    z-index: 1001;
+}
+
+.countryPillContainer::-webkit-scrollbar {
+    display: none;
+}
+
+.countryPill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    border-radius: 20px;
+    white-space: nowrap;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #64748b;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.countryPill:hover {
+    background: #f8fafc;
+    transform: translateY(-1px);
+}
+
+.countryPill.active {
+    background: #134b7b;
+    color: #ffffff;
+    border-color: #134b7b;
+}
+
+.pillLabel {
+    opacity: 0.9;
+}
+
+.pillCount {
+    font-size: 0.75rem;
+    opacity: 0.7;
+    background: rgba(0, 0, 0, 0.05);
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-weight: 700;
+}
+
+.otherCountriesWrapper {
+    position: relative;
+    display: flex;
+}
+
+.otherCountriesDropdown {
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+    width: 200px;
+    background: #ffffff;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+    border-radius: 16px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 8px;
+    z-index: 1100;
+    max-height: 300px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.dropdownItem {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: none;
+    border: none;
+    border-radius: 10px;
+    width: 100%;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+}
+
+.dropdownItem:hover {
+    background: #f1f5f9;
+}
+
+.dropdownItem.active {
+    background: #f1f5f9;
+    color: #134b7b;
+    font-weight: 700;
+}
+
+.dropdownFlag {
+    font-size: 1.2rem;
+}
+
+.dropdownLabel {
+    flex: 1;
+    font-size: 0.85rem;
+    color: #334155;
+}
+
+.dropdownCount {
+    font-size: 0.75rem;
+    color: #64748b;
+    background: #f1f5f9;
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.countryPill.otherBtn.selected {
+    background: #134b7b;
+    color: #ffffff;
+    border-color: #134b7b;
+}
+
+.countryPill.otherBtn.selected .pillCount {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+}
+
+
+.countryPill.otherBtn.active {
+    border-color: #134b7b;
+    box-shadow: 0 0 0 2px rgba(19, 75, 123, 0.1);
+}
+
+
 
 .churchCountType::before {
     content: "";

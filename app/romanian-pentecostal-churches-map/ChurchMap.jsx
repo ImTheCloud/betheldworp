@@ -456,6 +456,10 @@ function ChurchMap() {
     const searchParams = useSearchParams();
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [showOtherCountries, setShowOtherCountries] = useState(false);
+    const otherCountriesRef = useRef(null);
+
+
     const [churches, setChurches] = useState([]);
     const [churchesLoading, setChurchesLoading] = useState(true);
     const [selectedChurch, setSelectedChurch] = useState(null);
@@ -537,6 +541,19 @@ function ChurchMap() {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
+    // Close "Autres" country dropdown when clicking outside
+    useEffect(() => {
+        function handleClickOutside(e) {
+            if (otherCountriesRef.current && !otherCountriesRef.current.contains(e.target)) {
+                setShowOtherCountries(false);
+            }
+        }
+        if (showOtherCountries) {
+            document.addEventListener("mousedown", handleClickOutside);
+        }
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [showOtherCountries]);
+
     // Sync bottom sheets on mobile for clean transition
     useEffect(() => {
         if (isMobile) {
@@ -560,7 +577,8 @@ function ChurchMap() {
         youtube: "",
         facebook: "",
         instagram: "",
-        country: "Belgium"
+        country: "Belgium",
+        locationTitle: ""
     });
     const [suggestionStep, setSuggestionStep] = useState(1);
     const [submitterForm, setSubmitterForm] = useState({
@@ -589,7 +607,8 @@ function ChurchMap() {
                 youtube: church.youtube || "",
                 facebook: church.facebook || "",
                 instagram: church.instagram || "",
-                country: church.country || "Belgium"
+                country: church.country || "Belgium",
+                locationTitle: church.locationTitle || ""
             };
         } else {
             data = {
@@ -604,7 +623,8 @@ function ChurchMap() {
                 youtube: "",
                 facebook: "",
                 instagram: "",
-                country: activeCountryFilter || "Belgium"
+                country: activeCountryFilter || "Belgium",
+                locationTitle: ""
             };
         }
         setSuggestionForm(data);
@@ -668,6 +688,24 @@ function ChurchMap() {
                 },
                 createdAt: serverTimestamp()
             });
+
+            // Send real-time notification via ntfy.sh
+            try {
+                const topic = "bethel_churches_notifications_f93k2n8";
+                const title = suggestionType === "new" ? "Nouvelle église suggérée" : "Modification d'église suggérée";
+                const message = `${suggestionForm.name} - ${suggestionForm.city} (${getCountryLabel(suggestionForm.country)})`;
+                
+                // Use query params instead of headers to avoid CORS preflight issues in browsers
+                const notifyUrl = `https://ntfy.sh/${topic}?title=${encodeURIComponent(title)}&priority=high&tags=church,pray`;
+                
+                fetch(notifyUrl, {
+                    method: 'POST',
+                    body: message
+                }).catch(e => console.error("Notification error:", e));
+            } catch (notifyErr) {
+                console.error("Failed to send notification:", notifyErr);
+            }
+
             setSuggestionSuccess(true);
             setTimeout(() => {
                 setShowSuggestionModal(false);
@@ -704,6 +742,23 @@ function ChurchMap() {
             setIsSubmitting(true);
             addDoc(collection(db, "church_suggestions"), finalData)
                 .then(() => {
+                    // Send real-time notification via ntfy.sh
+                    try {
+                        const topic = "bethel_churches_notifications_f93k2n8";
+                        const title = suggestionType === "new" ? "Nouvelle église suggérée" : "Modification d'église suggérée";
+                        const message = `${suggestionForm.name} - ${suggestionForm.city} (${getCountryLabel(suggestionForm.country)})`;
+                        
+                        // Use query params instead of headers to avoid CORS preflight issues in browsers
+                        const notifyUrl = `https://ntfy.sh/${topic}?title=${encodeURIComponent(title)}&priority=high&tags=church,pray`;
+                        
+                        fetch(notifyUrl, {
+                            method: 'POST',
+                            body: message
+                        }).catch(e => console.error("Notification error:", e));
+                    } catch (notifyErr) {
+                        console.error("Failed to send notification:", notifyErr);
+                    }
+
                     setSuggestionSuccess(true);
                     setTimeout(() => {
                         setShowSuggestionModal(false);
@@ -986,19 +1041,24 @@ function ChurchMap() {
         return translated === key ? country : translated;
     }, [t]);
 
-    const GLOBAL_BOUNDS_CENTER = useMemo(() => getBoundsCenter(churches), [churches]);
-    const ALL_COUNTRIES = useMemo(() => {
-        return [...new Set(churches.map((c) => c.country))].sort((a, b) => {
+    // Combined Country Data (Counts, Sorting, Pagination)
+    const { 
+        ALL_COUNTRIES, 
+        countryCounts, 
+        sortedCountries, 
+        topCountries, 
+        otherCountries 
+    } = useMemo(() => {
+        // 1. Get all unique countries
+        const all = [...new Set(churches.map((c) => c.country))].sort((a, b) => {
             return getCountryLabel(a).localeCompare(getCountryLabel(b), lang);
         });
-    }, [churches, getCountryLabel, lang]);
 
-    // Calculate counts independent of currently selected country, but dependent on search
-    const countryCounts = useMemo(() => {
-        let result = [...churches];
+        // 2. Calculate counts (independent of selected country, dependent on search)
+        let filteredForCounts = [...churches];
         if (searchQuery.trim()) {
             const q = searchQuery.toLowerCase();
-            result = result.filter(
+            filteredForCounts = filteredForCounts.filter(
                 (c) =>
                     c.name.toLowerCase().includes(q) ||
                     c.city.toLowerCase().includes(q) ||
@@ -1006,12 +1066,35 @@ function ChurchMap() {
             );
         }
 
-        const counts = { all: result.length };
-        for (const c of result) {
+        const counts = { all: filteredForCounts.length };
+        for (const c of filteredForCounts) {
             counts[c.country] = (counts[c.country] || 0) + 1;
         }
-        return counts;
-    }, [churches, searchQuery]);
+
+        // 3. Sort by church count for defaults
+        const sorted = [...all].sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
+
+        // 4. Dynamic Elevation: If a selected country is in the "others" list, bring it to the front
+        const defaultTop = sorted.slice(0, 2);
+        const others = sorted.slice(2);
+
+        let finalTop = [...defaultTop];
+        let finalOthers = [...others];
+
+        if (activeCountryFilter && others.includes(activeCountryFilter)) {
+            finalTop = [...defaultTop, activeCountryFilter];
+            finalOthers = others.filter(c => c !== activeCountryFilter);
+        }
+
+        return {
+            ALL_COUNTRIES: all,
+            countryCounts: counts,
+            sortedCountries: sorted,
+            topCountries: finalTop,
+            otherCountries: finalOthers
+        };
+    }, [churches, getCountryLabel, lang, searchQuery, activeCountryFilter]);
+
 
     // Filter + sort alphabetically by name
     const filteredChurches = useMemo(() => {
@@ -1074,21 +1157,7 @@ function ChurchMap() {
 
     return (
         <div className={`churchMapLayout ${mobileShowMap ? "mapFocused" : ""} ${!isSidebarOpen ? "sidebar-closed" : ""}`}>
-            {!isMobile && (
-                <button
-                    className={`sidebarToggleBtn ${!isSidebarOpen ? "is-closed" : ""}`}
-                    onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                    title={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
-                >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        {isSidebarOpen ? (
-                            <polyline points="15 18 9 12 15 6"></polyline>
-                        ) : (
-                            <polyline points="9 18 15 12 9 6"></polyline>
-                        )}
-                    </svg>
-                </button>
-            )}
+
             {/* Mobile Top Header (Search, Filters, Settings) */}
             {isMobile && (
                 <div className="mobileTopHeader">
@@ -1172,7 +1241,35 @@ function ChurchMap() {
                 </div>
             )}
             {/* Sidebar */}
-            <aside className="churchMapSidebar">
+            <aside className={`churchMapSidebar ${!isSidebarOpen ? "collapsed" : ""}`}>
+                {!isMobile && (
+                    <div className="sidebarHeader">
+                        {isSidebarOpen ? (
+                            <div className="sidebarHeaderOpen">
+                                <div className="sidebarBrand">
+                                    <img src="/icon.png" alt="Bethel Logo" className="sidebarLogo" />
+                                    <span className="sidebarTitle">{t("title")}</span>
+                                </div>
+                                <button className="sidebarCloseBtn" onClick={() => setIsSidebarOpen(false)}>
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                                    </svg>
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="sidebarHeaderCollapsed">
+                                <button className="sidebarHamburgerBtn" onClick={() => setIsSidebarOpen(true)}>
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                                    </svg>
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
                 <div
                     ref={sheetRef}
                     className={`churchMapBottomSheet ${showMapSettings ? 'settings-active' : ''} ${isDragging ? 'is-dragging' : ''}`}
@@ -1213,84 +1310,7 @@ function ChurchMap() {
                             <div className="bottomSheetDragHandle"></div>
                         </div>
 
-                        {/* Search and Country Filter Area - Desktop Only */}
-                        {!isMobile && (
-                            <div className="churchMapFilterContainer">
-                                <div className="churchMapSearch">
-                                    <input
-                                        type="text"
-                                        placeholder="Recherche"
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                    />
-                                    {searchQuery ? (
-                                        <button
-                                            className="churchMapSearchClear"
-                                            onClick={() => setSearchQuery("")}
-                                            title={t("clearSearch") || "Clear search"}
-                                            aria-label="Clear search"
-                                        >
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                                <line x1="18" y1="6" x2="6" y2="18"></line>
-                                                <line x1="6" y1="6" x2="18" y2="18"></line>
-                                            </svg>
-                                        </button>
-                                    ) : (
-                                        <svg className="churchMapSearchIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                            <circle cx="11" cy="11" r="8"></circle>
-                                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                        </svg>
-                                    )}
-                                </div>
-
-                                <div className="countryFilterDropdown" ref={filterRef}>
-                                    <button
-                                        className={`countryFilterBtn ${activeCountryFilter ? "hasFilter" : ""}`}
-                                        onClick={() => setFilterOpen(!filterOpen)}
-                                        title={activeCountryFilter ? getCountryLabel(activeCountryFilter) : t("allCountries")}
-                                    >
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                            <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>{activeFilterIcon}</span>
-                                            <span style={{ fontSize: '0.95rem', fontWeight: '500', opacity: 0.9 }}>
-                                                ({activeCountryFilter ? (countryCounts[activeCountryFilter] || 0) : (countryCounts.all || 0)})
-                                            </span>
-                                        </div>
-                                        <svg className={`chevron ${filterOpen ? "open" : ""}`} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ margin: 0 }}>
-                                            <polyline points="6 9 12 15 18 9"></polyline>
-                                        </svg>
-                                    </button>
-                                    {filterOpen && (
-                                        <div className="countryFilterMenu">
-                                            <button
-                                                className={`countryFilterOption ${!activeCountryFilter ? "active" : ""}`}
-                                                onClick={() => {
-                                                    setActiveCountryFilter("");
-                                                    setFilterOpen(false);
-                                                }}
-                                                style={{ justifyContent: 'flex-start', padding: '10px 16px' }}
-                                            >
-                                                <span style={{ fontSize: '1.1rem' }}>🌍</span> {t("allCountries")}
-                                                <span style={{ fontSize: '0.85rem', opacity: 0.7, marginLeft: 'auto' }}>({countryCounts.all || 0})</span>
-                                            </button>
-                                            {ALL_COUNTRIES.map((country) => (
-                                                <button
-                                                    key={country}
-                                                    className={`countryFilterOption ${activeCountryFilter === country ? "active" : ""}`}
-                                                    onClick={() => {
-                                                        setActiveCountryFilter(country);
-                                                        setFilterOpen(false);
-                                                    }}
-                                                >
-                                                    <span style={{ fontSize: '1.1rem' }}>{COUNTRY_FLAGS[country] || "🌍"}</span> {getCountryLabel(country)}
-                                                    <span style={{ fontSize: '0.85rem', opacity: 0.7, marginLeft: 'auto' }}>({countryCounts[country] || 0})</span>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-
+                                {/* Removed Search and Filter from here, moved to Map area */}
                         <div className="churchList">
                             {churchesLoading ? (
                                 <div className="loaderContainer">
@@ -1435,6 +1455,93 @@ function ChurchMap() {
                     <div className="mapOverlayTitle sr-only">
                         <div className="mapOverlayTitleContent">
                             <h1 className="mapOverlayHeading">{t("subtitle")}</h1>
+                        </div>
+                    </div>
+                )}
+
+                {/* Desktop Floating Search and Country Filter */}
+                {!isMobile && (
+                    <div className="desktopMapControls">
+                        <div className="churchMapSearch floating google-style">
+                            <input
+                                type="text"
+                                placeholder={t("searchPlaceholder") || "Rechercher une église..."}
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                            <div className="searchActions">
+                                {searchQuery && (
+                                    <button className="searchClearBtn" onClick={() => setSearchQuery("")}>
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                                        </svg>
+                                    </button>
+                                )}
+                                <button className="searchMainBtn">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                        <circle cx="11" cy="11" r="8"></circle>
+                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="countryPillContainer">
+                            <button
+                                className={`countryPill ${!activeCountryFilter ? "active" : ""}`}
+                                onClick={() => setActiveCountryFilter("")}
+                            >
+                                🌍 <span className="pillLabel">{t("allCountries")}</span>
+                                <span className="pillCount">{countryCounts.all || 0}</span>
+                            </button>
+                            {topCountries.map((country) => (
+                                <button
+                                    key={country}
+                                    className={`countryPill ${activeCountryFilter === country ? "active" : ""}`}
+                                    onClick={() => {
+                                        if (activeCountryFilter === country) {
+                                            setActiveCountryFilter("");
+                                        } else {
+                                            setActiveCountryFilter(country);
+                                        }
+                                    }}
+                                >
+                                    {COUNTRY_FLAGS[country] || "🌍"} <span className="pillLabel">{getCountryLabel(country)}</span>
+                                    {countryCounts[country] > 0 && <span className="pillCount">{countryCounts[country]}</span>}
+                                </button>
+                            ))}
+                            {otherCountries.length > 0 && (
+                                <div className="otherCountriesWrapper" ref={otherCountriesRef}>
+                                    <button 
+                                        className={`countryPill otherBtn ${showOtherCountries ? "active" : ""} ${otherCountries.includes(activeCountryFilter) ? "selected" : ""}`}
+                                        onClick={() => setShowOtherCountries(!showOtherCountries)}
+                                    >
+                                        <span className="pillLabel">{t("othersFilter") || "Autres (+)"}</span>
+                                        {otherCountries.includes(activeCountryFilter) && (
+                                            <span className="pillCount">{countryCounts[activeCountryFilter]}</span>
+                                        )}
+                                    </button>
+                                    {showOtherCountries && (
+                                        <div className="otherCountriesDropdown">
+                                            {otherCountries.map((country) => (
+                                                <button
+                                                    key={country}
+                                                    className={`dropdownItem ${activeCountryFilter === country ? "active" : ""}`}
+                                                    onClick={() => {
+                                                        setActiveCountryFilter(country);
+                                                        setShowOtherCountries(false);
+                                                    }}
+                                                >
+                                                    <span className="dropdownFlag">{COUNTRY_FLAGS[country] || "🌍"}</span>
+                                                    <span className="dropdownLabel">{getCountryLabel(country)}</span>
+                                                    <span className="dropdownCount">{countryCounts[country] || 0}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}
@@ -1653,6 +1760,15 @@ function ChurchMap() {
                                                         onChange={(e) => setSuggestionForm({ ...suggestionForm, name: e.target.value })}
                                                     />
                                                 </div>
+                                                <div className="suggestionFormGroup">
+                                                    <label>{t("city")} *</label>
+                                                    <input
+                                                        type="text"
+                                                        required
+                                                        value={suggestionForm.city}
+                                                        onChange={(e) => setSuggestionForm({ ...suggestionForm, city: e.target.value })}
+                                                    />
+                                                </div>
                                             </div>
 
                                             <div className="suggestionFormRow">
@@ -1666,15 +1782,6 @@ function ChurchMap() {
                                                             <option key={c} value={c}>{getCountryLabel(c)}</option>
                                                         ))}
                                                     </select>
-                                                </div>
-                                                <div className="suggestionFormGroup">
-                                                    <label>{t("city")} *</label>
-                                                    <input
-                                                        type="text"
-                                                        required
-                                                        value={suggestionForm.city}
-                                                        onChange={(e) => setSuggestionForm({ ...suggestionForm, city: e.target.value })}
-                                                    />
                                                 </div>
                                                 <div className="suggestionFormGroup">
                                                     <label>{t("postalCode")}</label>

@@ -1,6 +1,6 @@
 {
     "ro": {
-        "title": "",
+        "title": "Biserici Penticostale Române",
         "subtitle": "Biserici Penticostale Române din lume",
         "associatedChurches": "biserici asociate",
         "allCountries": "Toate",
@@ -8,6 +8,7 @@
         "noChurchFound": "Nu s-a găsit nicio biserică",
         "resetSearch": "Resetează căutarea",
         "backToList": "Înapoi la listă",
+        "othersFilter": "Altele (+)",
         "directions": "Indicații",
         "share": "Distribuie",
         "copied": "Copiat!",
@@ -72,7 +73,7 @@
         "locationTitle": "Titlu locație (Google Maps)"
     },
     "fr": {
-        "title": "",
+        "title": "Églises Pentecôtistes Roumaines",
         "subtitle": "Églises Pentecôtistes Roumaines dans le monde",
         "associatedChurches": "églises associées",
         "allCountries": "Tous",
@@ -80,6 +81,7 @@
         "noChurchFound": "Aucune église trouvée",
         "resetSearch": "Réinitialiser la recherche",
         "backToList": "Retour à la liste",
+        "othersFilter": "Autres (+)",
         "directions": "Itinéraire",
         "share": "Partager",
         "copied": "Copié !",
@@ -144,7 +146,7 @@
         "locationTitle": "Titre du lieu (Google Maps)"
     },
     "en": {
-        "title": "",
+        "title": "Romanian Pentecostal Churches",
         "subtitle": "Romanian Pentecostal Churches worldwide",
         "associatedChurches": "associated churches",
         "allCountries": "All",
@@ -152,6 +154,7 @@
         "noChurchFound": "No church found",
         "resetSearch": "Reset search",
         "backToList": "Back to list",
+        "othersFilter": "Others (+)",
         "directions": "Directions",
         "share": "Share",
         "copied": "Copied!",
