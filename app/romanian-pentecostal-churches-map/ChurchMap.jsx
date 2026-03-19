@@ -59,86 +59,7 @@ const COUNTRY_FLAGS = {
 
 
 
-const DARK_MAP_STYLES = [
-    { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
-    { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
-    { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
-    {
-        featureType: "administrative.locality",
-        elementType: "labels.text.fill",
-        stylers: [{ color: "#d59563" }],
-    },
-    {
-        featureType: "poi",
-        elementType: "labels.text.fill",
-        stylers: [{ color: "#d59563" }],
-    },
-    {
-        featureType: "poi.park",
-        elementType: "geometry",
-        stylers: [{ color: "#263c3f" }],
-    },
-    {
-        featureType: "poi.park",
-        elementType: "labels.text.fill",
-        stylers: [{ color: "#6b9a76" }],
-    },
-    {
-        featureType: "road",
-        elementType: "geometry",
-        stylers: [{ color: "#38414e" }],
-    },
-    {
-        featureType: "road",
-        elementType: "geometry.stroke",
-        stylers: [{ color: "#212a37" }],
-    },
-    {
-        featureType: "road",
-        elementType: "labels.text.fill",
-        stylers: [{ color: "#9ca5b3" }],
-    },
-    {
-        featureType: "road.highway",
-        elementType: "geometry",
-        stylers: [{ color: "#746855" }],
-    },
-    {
-        featureType: "road.highway",
-        elementType: "geometry.stroke",
-        stylers: [{ color: "#1f2835" }],
-    },
-    {
-        featureType: "road.highway",
-        elementType: "labels.text.fill",
-        stylers: [{ color: "#f3d19c" }],
-    },
-    {
-        featureType: "transit",
-        elementType: "geometry",
-        stylers: [{ color: "#2f3948" }],
-    },
-    {
-        featureType: "transit.station",
-        elementType: "labels.text.fill",
-        stylers: [{ color: "#d59563" }],
-    },
-    {
-        featureType: "water",
-        elementType: "geometry",
-        stylers: [{ color: "#17263c" }],
-    },
-    {
-        featureType: "water",
-        elementType: "labels.text.fill",
-        stylers: [{ color: "#515c6d" }],
-    },
-    {
-        featureType: "water",
-        elementType: "labels.text.stroke",
-        stylers: [{ color: "#17263c" }],
-    },
-];
+
 
 function getBoundsCenter(churches) {
     if (churches.length === 0) return { lat: 0, lng: 0 };
@@ -373,7 +294,7 @@ function FilterController({ filteredChurches, activeCountryFilter }) {
     return null;
 }
 
-const Markers = ({ churches, onMarkerClick, selectedChurchId, hoveredMarkerId, setHoveredMarker, mapTheme }) => {
+const Markers = ({ churches, onMarkerClick, selectedChurchId, hoveredMarkerId, setHoveredMarker }) => {
     const map = useMap();
     const markerLibrary = useMapsLibrary('marker');
     const clusterer = useRef(null);
@@ -438,7 +359,7 @@ const Markers = ({ churches, onMarkerClick, selectedChurchId, hoveredMarkerId, s
                 clusterer.current = null;
             }
         };
-    }, [map, markerLibrary, mapTheme]);
+    }, [map, markerLibrary]);
 
     // Helper to update marker visual state
     const updateMarkerContent = (marker, church, isSelected, isHovered) => {
@@ -526,7 +447,7 @@ const Markers = ({ churches, onMarkerClick, selectedChurchId, hoveredMarkerId, s
             clusterer.current.addMarkers(newMarkers);
         }
 
-    }, [map, markerLibrary, churches, onMarkerClick, setHoveredMarker, mapTheme, selectedChurchId, hoveredMarkerId]);
+    }, [map, markerLibrary, churches, onMarkerClick, setHoveredMarker, selectedChurchId, hoveredMarkerId]);
 
     return null;
 };
@@ -592,7 +513,6 @@ function ChurchMap() {
 
     const [formError, setFormError] = useState("");
     const [initialFormValues, setInitialFormValues] = useState(null);
-    const [mapTheme, setMapTheme] = useState("light"); // "light" | "dark"
     const [showMapSettings, setShowMapSettings] = useState(false);
     const settingsRef = useRef(null);
 
@@ -603,19 +523,7 @@ function ChurchMap() {
         { value: "en", short: "EN", flag: "https://flagcdn.com/w40/gb.png" }
     ];
 
-    // Load theme from localStorage
-    useEffect(() => {
-        const storedTheme = localStorage.getItem("bethel_map_theme");
-        if (storedTheme) {
-            setMapTheme(storedTheme);
-        }
-    }, []);
 
-    // Save theme to localStorage
-    const toggleTheme = (theme) => {
-        setMapTheme(theme);
-        localStorage.setItem("bethel_map_theme", theme);
-    };
 
     // Close settings when clicking outside
     useEffect(() => {
@@ -1164,7 +1072,7 @@ function ChurchMap() {
         : "🌍";
 
     return (
-        <div className={`churchMapLayout ${mobileShowMap ? "mapFocused" : ""}`} data-theme={mapTheme}>
+        <div className={`churchMapLayout ${mobileShowMap ? "mapFocused" : ""}`}>
             {/* Mobile Top Header (Search, Filters, Settings) */}
             {isMobile && (
                 <div className="mobileTopHeader">
@@ -1536,55 +1444,18 @@ function ChurchMap() {
                     )}
                     <div className="mapSettingsSection">
                         <div className="mapSettingsHeader">
-                            <h3>{t("settings")}</h3>
                             <button className="closeSettings" onClick={() => setShowMapSettings(false)}>
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                                     <line x1="18" y1="6" x2="6" y2="18"></line>
                                     <line x1="6" y1="6" x2="18" y2="18"></line>
                                 </svg>
                             </button>
                         </div>
 
-                        {/* Theme Selection - Minimal Toggle */}
-                        <div className="mapSettingsItem">
-                            <div className="mapSettingsLabel">
-                                <span>{t("mapTheme")}</span>
-                            </div>
-                            <div className="themeToggleSwitch">
-                                <button
-                                    className={`themeToggleBtn ${mapTheme === 'light' ? 'active' : ''}`}
-                                    onClick={() => toggleTheme('light')}
-                                    aria-label={t("themeLight")}
-                                >
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <circle cx="12" cy="12" r="5"></circle>
-                                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                                    </svg>
-                                </button>
-                                <button
-                                    className={`themeToggleBtn ${mapTheme === 'dark' ? 'active' : ''}`}
-                                    onClick={() => toggleTheme('dark')}
-                                    aria-label={t("themeDark")}
-                                >
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
+
 
                         {/* Language Selection */}
-                        <div className="mapSettingsItem vertical">
-                            <div className="mapSettingsLabel">
-                                <span>{t("language")}</span>
-                            </div>
+                        <div className="mapSettingsItem compact">
                             <div className="langSegmentedControl">
                                 {langOptions.map((opt) => (
                                     <button
@@ -1631,8 +1502,6 @@ function ChurchMap() {
                         mapId={MAP_ID}
                         disableDefaultUI={true}
                         gestureHandling={"greedy"}
-                        styles={mapTheme === 'dark' ? DARK_MAP_STYLES : []}
-                        colorScheme={mapTheme.toUpperCase()}
                     >
                         {/* Settings Button (Desktop Overlay) */}
                         <button
@@ -1650,7 +1519,6 @@ function ChurchMap() {
                             onMarkerClick={selectChurch}
                             selectedChurchId={selectedChurch?.id}
                             setHoveredMarker={setHoveredMarker}
-                            mapTheme={mapTheme}
                             t={t}
                         />
 

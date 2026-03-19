@@ -532,19 +532,14 @@
     transition: all 0.2s ease;
 }
 
-.churchMapLayout[data-theme="dark"] .churchListItemIcon {
-    color: #bae6fd;
-}
+
 
 .churchListItem.active .churchListItemIcon {
     background: #134b7b;
     color: #ffffff;
 }
 
-.churchMapLayout[data-theme="dark"] .churchListItem.active .churchListItemIcon {
-    background: #bae6fd;
-    color: #0f172a;
-}
+
 
 .churchListItemContent {
     flex: 1;
@@ -575,9 +570,7 @@
     color: #134b7b;
 }
 
-.churchMapLayout[data-theme="dark"] .churchListItem.active .churchListItemContent h3 {
-    color: #bae6fd;
-}
+
 
 
 /* Empty State */
@@ -722,10 +715,10 @@
     position: absolute;
     top: 80px;
     right: 20px;
-    width: 320px;
+    width: 260px;
     background: #ffffff;
-    border: 1px solid rgba(0, 0, 0, 0.06);
-    border-radius: 20px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 16px;
     padding: 0;
     box-shadow: 0 15px 45px rgba(0, 0, 0, 0.1);
     z-index: 2005;
@@ -753,11 +746,11 @@
 }
 
 .mapSettingsHeader {
-    padding: 12px 16px;
+    padding: 8px 14px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    justify-content: flex-end;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
 }
 
 .mapSettingsHeader h3 {
@@ -785,11 +778,15 @@
 }
 
 .mapSettingsItem {
-    padding: 12px 20px;
+    padding: 8px 14px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-bottom: none;
+}
+
+.mapSettingsItem.compact {
+    padding-top: 4px;
+    padding-bottom: 12px;
 }
 
 .mapSettingsLabel {
@@ -809,40 +806,14 @@
     gap: 12px;
 }
 
-/* /* Theme Toggle Switch */
-.themeToggleSwitch {
-    background: #f1f5f9;
-    padding: 3px;
-    border-radius: 10px;
-    display: flex;
-    gap: 2px;
-}
 
-.themeToggleBtn {
-    border: none;
-    background: none;
-    padding: 5px 8px;
-    border-radius: 8px;
-    cursor: pointer;
-    color: #64748b;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.themeToggleBtn.active {
-    background: #ffffff;
-    color: #134b7b;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
 
 /* Modern Segmented Language Picker - More Compact */
 .langSegmentedControl {
     display: flex;
     background: #f1f5f9;
-    padding: 3px;
-    border-radius: 12px;
+    padding: 2px;
+    border-radius: 10px;
     width: 100%;
     position: relative;
     box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
@@ -852,8 +823,8 @@
     flex: 1;
     border: none;
     background: transparent;
-    border-radius: 10px;
-    padding: 7px 2px;
+    border-radius: 8px;
+    padding: 6px 2px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -866,15 +837,15 @@
 }
 
 .langSegmentOption img {
-    width: 18px;
+    width: 22px;
     height: auto;
-    border-radius: 2px;
+    border-radius: 4px;
     filter: grayscale(0.2);
     transition: all 0.3s;
 }
 
 .langSegmentOption span {
-    font-size: 0.65rem;
+    font-size: 0.6rem;
     font-weight: 700;
     color: #64748b;
     transition: all 0.3s;
@@ -897,20 +868,7 @@
     color: #134b7b;
 }
 
-/* Dark mode tweaks for picker & toggle */
-.churchMapLayout[data-theme="dark"] .themeToggleSwitch {
-    background: #1e293b;
-}
 
-.churchMapLayout[data-theme="dark"] .themeToggleBtn.active {
-    background: #334155;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    color: #60a5fa;
-}
-
-.churchMapLayout[data-theme="dark"] .themeToggleBtn {
-    color: #94a3b8;
-}
 
 /* Contact Button in Settings - Unified with primary brand style */
 /* Unified Action Buttons in Settings */
@@ -921,9 +879,9 @@
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 8px;
-    border-radius: 10px;
-    font-size: 0.85rem !important;
+    gap: 6px;
+    border-radius: 8px;
+    font-size: 0.8rem !important;
     font-weight: 700 !important;
     text-decoration: none !important;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -969,7 +927,7 @@
     flex-shrink: 0;
 }
 
-/* Dark mode contact button override removed to keep brand blue */
+
 
 .langOptionBtn.active span {
     color: #fff;
@@ -984,9 +942,9 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     align-items: center;
-    gap: 10px;
-    padding: 12px 16px;
-    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    gap: 8px;
+    padding: 10px 14px;
+    border-top: 1px solid rgba(0, 0, 0, 0.04);
 }
 
 .mapSettingsItem:last-of-type {
@@ -994,10 +952,10 @@
 }
 
 .mapSettingsFooter {
-    padding: 12px 16px;
+    padding: 10px 14px;
     background: transparent;
     text-align: center;
-    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    border-top: 1px solid rgba(0, 0, 0, 0.04);
 }
 
 .mapSettingsFooter p {
@@ -1027,15 +985,7 @@
     transition: all 0.5s ease;
 }
 
-/* Dark Mode Title Override */
-.churchMapLayout[data-theme="dark"] .mapOverlayHeading {
-    background: none;
-    -webkit-background-clip: initial;
-    background-clip: initial;
-    -webkit-text-fill-color: initial;
-    color: #ffffff;
-    filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.4)) drop-shadow(0 0 30px rgba(255, 255, 255, 0.1));
-}
+
 
 /* Sidebar Credits */
 .sidebarCredits {
@@ -1103,14 +1053,7 @@
     transition: fill 0.3s ease;
 }
 
-/* Dark Mode Marker Override */
-.churchMapLayout[data-theme="dark"] .customMarker svg {
-    fill: #bae6fd; /* Brighter, clearer blue */
-}
 
-.churchMapLayout[data-theme="dark"] .customMarker.pulse::after {
-    background: rgba(186, 230, 253, 0.6);
-}
 
 @keyframes pulse {
     0% {
@@ -1188,12 +1131,7 @@
     background: #1a64a3;
 }
 
-.churchMapLayout[data-theme="dark"] .customClusterMarker {
-    background: #bae6fd;
-    color: #134b7b;
-    box-shadow: 0 4px 12px rgba(186, 230, 253, 0.3);
-    border-color: #0f172a;
-}
+
 
 /* User Location Dot */
 .userLocationDot {
@@ -2573,12 +2511,7 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Dark Mode Spacing Adjustments */
-.churchMapLayout[data-theme="dark"] .suggestionModalHeader,
-.churchMapLayout[data-theme="dark"] .suggestionFormBody,
-.churchMapLayout[data-theme="dark"] .suggestionFormActions {
-    background: #1a1c1e;
-}
+
 
 .suggestionSuccess {
     padding: 48px 24px;
