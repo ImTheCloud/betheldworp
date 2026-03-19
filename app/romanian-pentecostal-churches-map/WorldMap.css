@@ -222,7 +222,7 @@
 
 .churchMapSearch.floating.google-style input {
     flex: 1;
-    padding: 0;
+    padding: 0 0 0 8px;
     font-size: 1rem;
     border: none;
     box-shadow: none;
@@ -1858,44 +1858,24 @@
         display: none;
     }
 
-    .mobileTopHeader {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: auto;
-        min-height: 54px;
-        padding-top: calc(env(safe-area-inset-top, 0px) + 15px);
-        background: #ffffff;
-        border-radius: 0 0 16px 16px;
-        box-shadow: 0 12px 36px rgba(0, 0, 0, 0.15);
-        z-index: 1000;
-        display: flex;
-        align-items: center;
-        padding-left: 12px;
-        padding-right: 12px;
-        padding-bottom: 8px;
-        gap: 6px;
-        border: 1px solid #e2e8f0;
-        border-top: none;
-    }
     .mobileSearchBox {
-        flex: 1;
-        min-width: 0;
-        height: 44px;
-        background: #ffffff;
-        border: 1px solid #cbd5e1;
+        flex: 1; /* Take up majority of space */
+        height: 44px; /* Slightly more compact height */
+        background: #f8fafc;
+        border: 1.5px solid #e2e8f0;
         border-radius: 12px;
         display: flex;
         align-items: center;
-        padding: 0 4px 0 10px;
-        gap: 8px;
+        padding: 0 4px 0 12px;
+        gap: 6px;
         transition: all 0.2s ease;
-        overflow: hidden; /* Prevent any accidental overflow */
+        overflow: hidden;
     }
 
     .mobileSearchBox:focus-within {
         border-color: #134b7b;
+        background: #ffffff;
+        box-shadow: 0 4px 12px rgba(19, 75, 123, 0.08);
     }
 
     .mobileSearchBox input {
@@ -1916,6 +1896,16 @@
         height: 18px;
         color: #94a3b8;
         flex-shrink: 0;
+    }
+
+    .mobileSearchIconWrapper {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        margin-right: 2px;
     }
 
     .mobileSearchClear {
@@ -1949,21 +1939,23 @@
     }
 
     .mobileHeaderFilterBtn {
-        height: 42px;
-        padding: 0 10px;
+        width: auto;
+        height: 44px;
+        padding: 0 12px;
         display: flex;
         align-items: center;
-        gap: 4px;
+        gap: 6px;
         background: #ffffff;
-        border: 1px solid #cbd5e1;
+        border: 1.5px solid #e2e8f0;
         border-radius: 12px;
         transition: all 0.2s ease;
         flex-shrink: 0;
     }
 
     .mobileHeaderFilterBtn.hasFilter {
-        background: #eff6ff;
-        border-color: #bfdbfe;
+        border-color: #134b7b;
+        background: #f0f7ff;
+        color: #134b7b;
     }
 
     .mobileFlagIcon {
@@ -1988,45 +1980,13 @@
         color: #134b7b;
     }
 
-    .mobileHeaderSettingsBtn {
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #64748b;
-        background: transparent;
-        border: none;
-        border-radius: 10px;
-        transition: all 0.2s ease;
-        flex-shrink: 0;
-    }
 
-    .mobileHeaderSettingsBtn:active {
-        background: #f1f5f9;
-        transform: scale(0.92);
-    }
 
-    /* Extra narrow screens fix */
-    @media (max-width: 360px) {
-        .mobileTopHeader {
-            padding-left: 4px;
-            padding-right: 4px;
-            gap: 4px;
-        }
-        .mobileHeaderFilterBtn {
-            padding: 0 6px;
-        }
-        .mobileFilterCount {
-            font-size: 0.75rem;
-        }
-    }
-
-    /* Adjust country filter menu for mobile header */
+    /* Adjust country filter menu for mobile bottom sheet */
     .countryFilterMenu.mobileVersion {
         position: absolute;
-        top: calc(100% + 12px);
-        right: -10px;
+        bottom: calc(100% + 12px); /* Open upwards to avoid clipping */
+        right: 0;
         width: 190px;
         max-height: 220px;
         z-index: 1001;
@@ -2047,45 +2007,6 @@
         display: none !important;
     }
 
-    .mapSettingsBackdrop {
-        display: block;
-        background: rgba(0, 0, 0, 0.5);
-    }
-
-    .mapSettingsHandle {
-        display: block;
-        width: 40px;
-        height: 5px;
-        background: rgba(0, 0, 0, 0.1);
-        border-radius: 10px;
-        margin: 12px auto;
-        cursor: pointer;
-    }
-
-    /* Mobile Bottom Sheet */
-    .mapSettingsMenu {
-        position: fixed;
-        top: auto;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        width: 100%;
-        background: #ffffff;
-        border: none;
-        border-radius: 32px 32px 0 0;
-        transform: translateY(100%);
-        transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
-        padding-bottom: calc(env(safe-area-inset-bottom, 24px) + 8px); /* Reduced from 16px */
-        z-index: 2005; /* High priority */
-    }
-
-    .mapSettingsMenu.open {
-        transform: translateY(0);
-    }
-
-    .mapSettingsToggleBtn.desktopOnly {
-        display: none;
-    }
 
     .mapOverlayHeading {
         font-size: clamp(2rem, 9vw, 3rem);
@@ -2122,7 +2043,7 @@
         border-top: none !important;
         box-shadow: none !important;
         position: relative;
-        overflow: hidden; /* Prevent content bleed */
+        overflow: visible; /* Allow filter menu to pop out */
         display: flex;
         flex-direction: column;
         height: 100%;
@@ -2178,6 +2099,20 @@
         background: #cbd5e1;
         border-radius: 4px;
     }
+
+    .mobileControlsInSheet {
+        padding: 12px 16px;
+        display: flex;
+        flex-direction: row; /* Horizontal alignment */
+        align-items: center;
+        gap: 8px; /* Compact gap */
+        background: #ffffff;
+        border-bottom: 1px solid #f1f5f9;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
 
     .churchList {
         flex: 1;

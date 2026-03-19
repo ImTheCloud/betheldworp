@@ -482,10 +482,6 @@ function ChurchMap() {
     const startHeight = useRef(null);
     const sheetRef = useRef(null);
 
-    // Settings dragging state
-    const settingsTouchStartY = useRef(null);
-    const [settingsDragOffset, setSettingsDragOffset] = useState(0);
-    const isSettingsDragging = useRef(false);
 
     useEffect(() => {
         const checkMobile = () => setIsMobile(window.innerWidth <= 768);
@@ -518,8 +514,6 @@ function ChurchMap() {
 
     const [formError, setFormError] = useState("");
     const [initialFormValues, setInitialFormValues] = useState(null);
-    const [showMapSettings, setShowMapSettings] = useState(false);
-    const settingsRef = useRef(null);
 
     const langOptions = [
         { value: "ro", short: "RO", flag: "https://flagcdn.com/w40/ro.png" },
@@ -530,16 +524,6 @@ function ChurchMap() {
 
 
 
-    // Close settings when clicking outside
-    useEffect(() => {
-        function handleClickOutside(e) {
-            if (settingsRef.current && !settingsRef.current.contains(e.target)) {
-                setShowMapSettings(false);
-            }
-        }
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
 
     // Close "Autres" country dropdown when clicking outside
     useEffect(() => {
@@ -554,16 +538,6 @@ function ChurchMap() {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [showOtherCountries]);
 
-    // Sync bottom sheets on mobile for clean transition
-    useEffect(() => {
-        if (isMobile) {
-            if (showMapSettings) {
-                setBottomSheetMode("hidden");
-            } else {
-                setBottomSheetMode("collapsed");
-            }
-        }
-    }, [showMapSettings, isMobile]);
 
     const [suggestionForm, setSuggestionForm] = useState({
         name: "",
@@ -999,35 +973,6 @@ function ChurchMap() {
         startHeight.current = null;
     };
 
-    // Settings Modal Touch Handlers
-    const handleSettingsTouchStart = (e) => {
-        if (!isMobile) return;
-        settingsTouchStartY.current = e.touches[0].clientY;
-        isSettingsDragging.current = true;
-    };
-
-    const handleSettingsTouchMove = (e) => {
-        if (!isSettingsDragging.current) return;
-        const currentY = e.touches[0].clientY;
-        const deltaY = currentY - settingsTouchStartY.current;
-
-        // Only allow dragging downwards
-        if (deltaY > 0) {
-            setSettingsDragOffset(deltaY);
-        } else {
-            setSettingsDragOffset(deltaY * 0.2); // Resistance when dragging up
-        }
-    };
-
-    const handleSettingsTouchEnd = (e) => {
-        if (!isSettingsDragging.current) return;
-        isSettingsDragging.current = false;
-
-        if (settingsDragOffset > 100) {
-            setShowMapSettings(false);
-        }
-        setSettingsDragOffset(0);
-    };
 
     if (!API_KEY) {
         return <div className="text-white p-8">Cheia API Google Maps nu este configurată.</div>;
@@ -1159,87 +1104,6 @@ function ChurchMap() {
         <div className={`churchMapLayout ${mobileShowMap ? "mapFocused" : ""} ${!isSidebarOpen ? "sidebar-closed" : ""}`}>
 
             {/* Mobile Top Header (Search, Filters, Settings) */}
-            {isMobile && (
-                <div className="mobileTopHeader">
-
-                    <div className="mobileSearchBox">
-                        <svg className="mobileSearchIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <circle cx="11" cy="11" r="8"></circle>
-                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                        </svg>
-                        <input
-                            type="text"
-                            placeholder="Recherche"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            onFocus={() => isMobile && setBottomSheetMode("expanded")}
-                            onBlur={() => {
-                                if (isMobile && !searchQuery.trim()) {
-                                    setBottomSheetMode("collapsed");
-                                }
-                            }}
-                        />
-                        {searchQuery && (
-                            <button className="mobileSearchClear" onClick={() => setSearchQuery("")}>
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                                </svg>
-                            </button>
-                        )}
-                    </div>
-
-                    <div className="mobileFilterAction" ref={filterRef}>
-                        <button
-                            className={`mobileHeaderFilterBtn ${activeCountryFilter ? "hasFilter" : ""}`}
-                            onClick={() => setFilterOpen(!filterOpen)}
-                        >
-                            <span className="mobileFlagIcon">{activeFilterIcon}</span>
-                            <span className="mobileFilterCount">({activeCountryFilter ? (countryCounts[activeCountryFilter] || 0) : (countryCounts.all || 0)})</span>
-                            <svg className={`mobileFilterChevron ${filterOpen ? "open" : ""}`} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                                <polyline points="6 9 12 15 18 9"></polyline>
-                            </svg>
-                        </button>
-                        {filterOpen && (
-                            <div className="countryFilterMenu mobileVersion">
-                                <button
-                                    className={`countryFilterOption ${!activeCountryFilter ? "active" : ""}`}
-                                    onClick={() => {
-                                        setActiveCountryFilter("");
-                                        setFilterOpen(false);
-                                    }}
-                                >
-                                    <span style={{ fontSize: '1.1rem' }}>🌍</span> {t("allCountries")}
-                                    <span style={{ fontSize: '0.85rem', opacity: 0.7, marginLeft: 'auto' }}>({countryCounts.all || 0})</span>
-                                </button>
-                                {ALL_COUNTRIES.map((country) => (
-                                    <button
-                                        key={country}
-                                        className={`countryFilterOption ${activeCountryFilter === country ? "active" : ""}`}
-                                        onClick={() => {
-                                            setActiveCountryFilter(country);
-                                            setFilterOpen(false);
-                                        }}
-                                    >
-                                        <span style={{ fontSize: '1.1rem' }}>{COUNTRY_FLAGS[country] || "🌍"}</span> {getCountryLabel(country)}
-                                        <span style={{ fontSize: '0.85rem', opacity: 0.7, marginLeft: 'auto' }}>({countryCounts[country] || 0})</span>
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-
-                    <button
-                        className="mobileHeaderSettingsBtn"
-                        onClick={() => setShowMapSettings(!showMapSettings)}
-                    >
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <circle cx="12" cy="12" r="3"></circle>
-                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                        </svg>
-                    </button>
-                </div>
-            )}
             {/* Sidebar */}
             <aside className={`churchMapSidebar ${!isSidebarOpen ? "collapsed" : ""}`}>
                 {!isMobile && (
@@ -1272,7 +1136,7 @@ function ChurchMap() {
                 )}
                 <div
                     ref={sheetRef}
-                    className={`churchMapBottomSheet ${showMapSettings ? 'settings-active' : ''} ${isDragging ? 'is-dragging' : ''}`}
+                    className={`churchMapBottomSheet ${isDragging ? 'is-dragging' : ''}`}
                     data-mode={bottomSheetMode}
                     style={isMobile ? {
                         "--dynamic-height": dragHeight ? `${dragHeight}px` : undefined,
@@ -1310,7 +1174,80 @@ function ChurchMap() {
                             <div className="bottomSheetDragHandle"></div>
                         </div>
 
-                                {/* Removed Search and Filter from here, moved to Map area */}
+                        {isMobile && (
+                            <div className="mobileControlsInSheet">
+                                <div className="mobileSearchBox">
+                                    <input
+                                        type="text"
+                                        placeholder="Recherche"
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        onFocus={() => isMobile && setBottomSheetMode("expanded")}
+                                        onBlur={() => {
+                                            if (isMobile && !searchQuery.trim()) {
+                                                setBottomSheetMode("collapsed");
+                                            }
+                                        }}
+                                    />
+                                    {searchQuery ? (
+                                        <button className="mobileSearchClear" onClick={() => setSearchQuery("")}>
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                                            </svg>
+                                        </button>
+                                    ) : (
+                                        <div className="mobileSearchIconWrapper">
+                                            <svg className="mobileSearchIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <circle cx="11" cy="11" r="8"></circle>
+                                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                            </svg>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="mobileFilterAction" ref={filterRef}>
+                                    <button
+                                        className={`mobileHeaderFilterBtn ${activeCountryFilter ? "hasFilter" : ""}`}
+                                        onClick={() => setFilterOpen(!filterOpen)}
+                                    >
+                                        <span className="mobileFlagIcon">{activeFilterIcon}</span>
+                                        <span className="mobileFilterCount">({activeCountryFilter ? (countryCounts[activeCountryFilter] || 0) : (countryCounts.all || 0)})</span>
+                                        <svg className={`mobileFilterChevron ${filterOpen ? "open" : ""}`} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                            <polyline points="6 9 12 15 18 9"></polyline>
+                                        </svg>
+                                    </button>
+                                    {filterOpen && (
+                                        <div className="countryFilterMenu mobileVersion">
+                                            <button
+                                                className={`countryFilterOption ${!activeCountryFilter ? "active" : ""}`}
+                                                onClick={() => {
+                                                    setActiveCountryFilter("");
+                                                    setFilterOpen(false);
+                                                }}
+                                            >
+                                                <span style={{ fontSize: '1.1rem' }}>🌍</span> {t("allCountries")}
+                                                <span style={{ fontSize: '0.85rem', opacity: 0.7, marginLeft: 'auto' }}>({countryCounts.all || 0})</span>
+                                            </button>
+                                            {ALL_COUNTRIES.map((country) => (
+                                                <button
+                                                    key={country}
+                                                    className={`countryFilterOption ${activeCountryFilter === country ? "active" : ""}`}
+                                                    onClick={() => {
+                                                        setActiveCountryFilter(country);
+                                                        setFilterOpen(false);
+                                                    }}
+                                                >
+                                                    <span style={{ fontSize: '1.1rem' }}>{COUNTRY_FLAGS[country] || "🌍"}</span> {getCountryLabel(country)}
+                                                    <span style={{ fontSize: '0.85rem', opacity: 0.7, marginLeft: 'auto' }}>({countryCounts[country] || 0})</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
                         <div className="churchList">
                             {churchesLoading ? (
                                 <div className="loaderContainer">
@@ -1470,20 +1407,21 @@ function ChurchMap() {
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
                             <div className="searchActions">
-                                {searchQuery && (
+                                {searchQuery ? (
                                     <button className="searchClearBtn" onClick={() => setSearchQuery("")}>
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                             <line x1="18" y1="6" x2="6" y2="18"></line>
                                             <line x1="6" y1="6" x2="18" y2="18"></line>
                                         </svg>
                                     </button>
+                                ) : (
+                                    <button className="searchMainBtn">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                            <circle cx="11" cy="11" r="8"></circle>
+                                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                        </svg>
+                                    </button>
                                 )}
-                                <button className="searchMainBtn">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                        <circle cx="11" cy="11" r="8"></circle>
-                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                    </svg>
-                                </button>
                             </div>
                         </div>
 
@@ -1546,77 +1484,6 @@ function ChurchMap() {
                     </div>
                 )}
 
-                {/* Settings Modal + Backdrop */}
-                {showMapSettings && <div className="mapSettingsBackdrop" onClick={() => setShowMapSettings(false)} />}
-                <div
-                    className={`mapSettingsMenu ${showMapSettings ? 'open' : ''}`}
-                    ref={settingsRef}
-                    style={isMobile ? {
-                        transform: `translateY(${showMapSettings ? settingsDragOffset + 'px' : '100%'})`,
-                        transition: isSettingsDragging.current ? 'none' : undefined
-                    } : {}}
-                    onTouchStart={handleSettingsTouchStart}
-                    onTouchMove={handleSettingsTouchMove}
-                    onTouchEnd={handleSettingsTouchEnd}
-                >
-                    {isMobile && (
-                        <div
-                            className="mapSettingsHandle"
-                            onClick={() => setShowMapSettings(false)}
-                        />
-                    )}
-                    <div className="mapSettingsSection">
-                        <div className="mapSettingsHeader">
-                            <button className="closeSettings" onClick={() => setShowMapSettings(false)}>
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                                </svg>
-                            </button>
-                        </div>
-
-
-
-                        {/* Language Selection */}
-                        <div className="mapSettingsItem compact">
-                            <div className="langSegmentedControl">
-                                {langOptions.map((opt) => (
-                                    <button
-                                        key={opt.value}
-                                        className={`langSegmentOption ${lang === opt.value ? 'active' : ''}`}
-                                        onClick={() => setLang(opt.value)}
-                                        aria-label={opt.short}
-                                    >
-                                        <img src={opt.flag} alt="" />
-                                        <span>{opt.short}</span>
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Multi-action Row (Website & Contact) */}
-                        <div className="mapSettingsItem actionsRow">
-                            <Link href="/" className="mapSettingsBackLink">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                                    <polyline points="9 22 9 12 15 12 15 22" />
-                                </svg>
-                                <span>{t("backToWebsite")}</span>
-                            </Link>
-                            <button
-                                className="mapSettingsContactBtn"
-                                onClick={() => window.location.href = "mailto:claudiu.dev@outlook.com"}
-                            >
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                    <rect width="20" height="16" x="2" y="4" rx="2" />
-                                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-                                </svg>
-                                <span>{t("contact")}</span>
-                            </button>
-                        </div>
-
-                    </div>
-                </div>
 
                 <APIProvider apiKey={API_KEY}>
                     <Map
