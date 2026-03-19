@@ -45,7 +45,7 @@ async function getInitialLang() {
     return fromHeader || "ro";
 }
 
-import NewsletterPopup from "./components/NewsletterPopup";
+
 
 export default async function RootLayout({ children }) {
     const lang = await getInitialLang();
@@ -68,7 +68,7 @@ export default async function RootLayout({ children }) {
                 <LanguageProvider initialLang={lang}>
                     <VisitTracker />
                     {children}
-                    <NewsletterPopup />
+
                     <Analytics />
 
                 </LanguageProvider>
