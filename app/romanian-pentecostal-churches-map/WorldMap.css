@@ -16,6 +16,25 @@
     overscroll-behavior: none; /* Prevent pull-to-refresh */
 }
 
+/* Medium Desktop Responsiveness for Header */
+@media (min-width: 769px) and (max-width: 1300px) {
+    .desktopMapControls {
+        gap: 8px;
+        left: 15px;
+    }
+    .churchMapSearch.floating.google-style {
+        width: 240px;
+    }
+    .countryPill {
+        padding: 0 10px;
+        gap: 6px;
+    }
+    .mapSuggestBtn {
+        right: 15px;
+        padding: 0 12px;
+    }
+}
+
 /* Screen Reader Only - For SEO */
 .sr-only {
     position: absolute;
@@ -203,13 +222,13 @@
     left: 20px;
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 12px; /* Reduced from 16px */
     z-index: 1000;
     pointer-events: auto;
 }
 
 .churchMapSearch.floating.google-style {
-    width: 380px;
+    width: 280px; /* Reduced from 380px to prevent overlap */
     background: #ffffff;
     box-shadow: 0 2px 6px rgba(0,0,0,0.3);
     border-radius: 24px; /* Rounded pill style */
@@ -292,8 +311,8 @@
 .countryPill {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 0 18px;
+    gap: 8px;
+    padding: 0 14px; /* Reduced from 18px */
     height: 48px; /* Standardize height */
     background: #ffffff;
     border: 1px solid rgba(0, 0, 0, 0.05);
@@ -973,7 +992,7 @@
     background: #134b7b;
     color: #ffffff;
     border: none;
-    padding: 0 20px;
+    padding: 0 16px; /* Reduced from 20px */
     height: 48px; /* Standardize height */
     border-radius: 24px; /* Standardize pill shape */
     display: flex;
