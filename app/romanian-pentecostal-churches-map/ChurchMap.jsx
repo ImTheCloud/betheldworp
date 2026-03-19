@@ -455,6 +455,7 @@ const Markers = ({ churches, onMarkerClick, selectedChurchId, hoveredMarkerId, s
 function ChurchMap() {
     const searchParams = useSearchParams();
 
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [churches, setChurches] = useState([]);
     const [churchesLoading, setChurchesLoading] = useState(true);
     const [selectedChurch, setSelectedChurch] = useState(null);
@@ -1072,7 +1073,22 @@ function ChurchMap() {
         : "🌍";
 
     return (
-        <div className={`churchMapLayout ${mobileShowMap ? "mapFocused" : ""}`}>
+        <div className={`churchMapLayout ${mobileShowMap ? "mapFocused" : ""} ${!isSidebarOpen ? "sidebar-closed" : ""}`}>
+            {!isMobile && (
+                <button
+                    className={`sidebarToggleBtn ${!isSidebarOpen ? "is-closed" : ""}`}
+                    onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                    title={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
+                >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        {isSidebarOpen ? (
+                            <polyline points="15 18 9 12 15 6"></polyline>
+                        ) : (
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        )}
+                    </svg>
+                </button>
+            )}
             {/* Mobile Top Header (Search, Filters, Settings) */}
             {isMobile && (
                 <div className="mobileTopHeader">
@@ -1414,9 +1430,9 @@ function ChurchMap() {
             <div className="churchMapContainer">
                 {/* Desktop Back Button (Floating on Map) */}
 
-                {/* Map Overlay Title - Desktop Only */}
+                {/* Map Overlay Title - SR Only for SEO */}
                 {!isMobile && (
-                    <div className="mapOverlayTitle">
+                    <div className="mapOverlayTitle sr-only">
                         <div className="mapOverlayTitleContent">
                             <h1 className="mapOverlayHeading">{t("subtitle")}</h1>
                         </div>

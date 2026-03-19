@@ -16,21 +16,78 @@
     overscroll-behavior: none; /* Prevent pull-to-refresh */
 }
 
+/* Screen Reader Only - For SEO */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
 /* =============================================
    SIDEBAR
    ============================================= */
 .churchMapSidebar {
-    width: 440px;
+    width: 340px;
     height: 100%;
     background: #ffffff;
-    border-right: 1px solid #e2e8f0;
+    border-right: 1px solid #e1e8f0;
     display: flex;
     flex-direction: column;
-    z-index: 10;
+    z-index: 100;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.churchMapLayout.sidebar-closed .churchMapSidebar {
+    width: 0;
+    transform: translateX(-100%);
+    border-right: none;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Sidebar Toggle Button */
+.sidebarToggleBtn {
+    position: absolute;
+    left: 340px; /* Aligned with sidebar width */
+    top: 50%;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 48px;
+    background: #ffffff;
+    border: 1px solid #e1e8f0;
+    border-left: none;
+    border-radius: 0 8px 8px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1000;
+    color: #64748b;
+    box-shadow: 4px 0 10px rgba(0, 0, 0, 0.05);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sidebarToggleBtn:hover {
+    color: #134b7b;
+    background: #f8fafc;
+}
+
+.sidebarToggleBtn.is-closed {
+    left: 0;
+}
+
+.churchMapLayout.sidebar-closed .churchMapContainer {
+    width: 100vw;
 }
 
 .churchMapTitle {
-    font-size: 1.85rem;
+    font-size: 1.4rem;
     font-weight: 800;
     margin: 0 0 4px 0;
     color: #0f172a;
@@ -38,7 +95,7 @@
 }
 
 .churchMapSubtitle {
-    font-size: 1.05rem;
+    font-size: 0.85rem;
     font-weight: 600;
     color: #475569;
     margin: 0 0 14px 0;
@@ -70,10 +127,11 @@
 
 .churchMapSearch input {
     width: 100%;
-    padding: 12px 16px 12px 42px;
-    background: #ffffff; /* Unified white background */
+    padding: 10px 14px 10px 38px;
+    background: #ffffff;
     border: 1px solid rgba(19, 75, 123, 0.12);
-    border-radius: 12px;
+    border-radius: 10px;
+    font-size: 0.85rem;
 }
 
 .churchCountValue {
@@ -451,9 +509,9 @@
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    padding: 10px 24px;
+    padding: 8px 16px;
     margin: 0;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -528,7 +586,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #134b7b;
+    color: #64748b;
     transition: all 0.2s ease;
 }
 
@@ -548,22 +606,18 @@
 
 .churchListItemContent h3 {
     margin: 0 0 2px 0;
-    font-size: 0.95rem;
+    font-size: 0.85rem;
     font-weight: 600;
     color: #0f172a;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    line-height: 1.2;
 }
 
 .churchListItemContent p {
     margin: 0;
-    font-size: 0.8rem;
+    font-size: 0.68rem;
     color: #64748b;
     line-height: 1.4;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    word-break: break-word;
 }
 
 .churchListItem.active .churchListItemContent h3 {
