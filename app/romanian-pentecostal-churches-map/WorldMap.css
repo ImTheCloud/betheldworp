@@ -365,7 +365,7 @@
     border-radius: 16px;
     border: 1px solid rgba(0, 0, 0, 0.05);
     padding: 8px;
-    z-index: 1100;
+    z-index: 2000; /* Boosted for mobile safety */
     max-height: 300px;
     overflow-y: auto;
     display: flex;
@@ -1963,7 +1963,7 @@
     /* Adjust country filter menu for mobile bottom sheet */
     .countryFilterMenu.mobileVersion {
         position: absolute;
-        bottom: calc(100% + 12px); /* Open upwards to avoid clipping */
+        top: calc(100% + 4px); /* Open downwards to stay within screen/sheet */
         right: 0;
         width: 190px;
         max-height: 220px;
@@ -2004,7 +2004,7 @@
         background: none;
         border: none;
         border-radius: 0 !important;
-        overflow: visible;
+        overflow: visible !important; /* Force visibility for dropdowns */
         height: var(--dynamic-height, 40vh); /* Reduced from 48vh for more map visibility */
         flex: none;
         transition: height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -2021,7 +2021,7 @@
         border-top: none !important;
         box-shadow: none !important;
         position: relative;
-        overflow: visible; /* Allow filter menu to pop out */
+        overflow: visible !important; /* Allow filter menu to pop out */
         display: flex;
         flex-direction: column;
         height: 100%;
@@ -2035,6 +2035,7 @@
     .churchMapBottomSheet[data-mode="hidden"] {
         height: var(--dynamic-height, 40px); /* Reduced from 48px */
         opacity: 1;
+        overflow: hidden !important; /* Prevent content bleed when closed */
     }
 
     /* Hide internal content in hidden mode to prevent bleed/overlap with handle */
@@ -2088,7 +2089,8 @@
         border-bottom: 1px solid #f1f5f9;
         position: sticky;
         top: 0;
-        z-index: 10;
+        z-index: 1000; /* Boosted to stay above list content */
+        overflow: visible !important; /* Allow dropdowns to pop out over list */
     }
 
     .mobileSearchBox {

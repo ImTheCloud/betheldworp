@@ -1169,7 +1169,7 @@ function ChurchMap() {
                             <div className="bottomSheetDragHandle"></div>
                         </div>
 
-                        {isMobile && !selectedChurch && (
+                        {isMobile && !selectedChurch && bottomSheetMode !== "hidden" && (
                             <div className="mobileControlsInSheet">
                                 <div className="mobileSearchBox">
                                     <input
