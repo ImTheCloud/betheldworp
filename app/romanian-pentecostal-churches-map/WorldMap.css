@@ -80,7 +80,7 @@
     font-size: 1.05rem;
     font-weight: 700;
     color: #64748b;
-    white-space: nowrap;
+    line-height: 1.2;
 }
 
 .sidebarHeaderCollapsed {
@@ -212,9 +212,9 @@
     width: 380px;
     background: #ffffff;
     box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-    border-radius: 28px;
+    border-radius: 24px; /* Rounded pill style */
     border: none;
-    padding: 4px 8px 4px 20px;
+    padding: 0 8px 0 20px;
     display: flex;
     align-items: center;
     height: 48px;
@@ -292,11 +292,12 @@
 .countryPill {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 14px;
+    gap: 10px;
+    padding: 0 18px;
+    height: 48px; /* Standardize height */
     background: #ffffff;
     border: 1px solid rgba(0, 0, 0, 0.05);
-    border-radius: 20px;
+    border-radius: 24px; /* Standardize pill shape */
     white-space: nowrap;
     cursor: pointer;
     font-size: 0.85rem;
@@ -796,7 +797,7 @@
     align-items: center;
     gap: 12px;
     width: 100%;
-    padding: 10px 24px;
+    padding: 8px 16px; /* Reduced from 10px 24px */
     background: transparent;
     border: none;
     border-bottom: 1px solid transparent;
@@ -829,8 +830,8 @@
 
 .churchListItemIcon {
     flex-shrink: 0;
-    width: 34px;
-    height: 34px;
+    width: 28px; /* Reduced from 34px */
+    height: 28px;
     border-radius: 50%;
     background: #ffffff;
     border: 1px solid #e2e8f0;
@@ -839,6 +840,7 @@
     justify-content: center;
     color: #64748b;
     transition: all 0.2s ease;
+    font-size: 0.9rem; /* Slightly smaller icon */
 }
 
 
@@ -856,8 +858,8 @@
 }
 
 .churchListItemContent h3 {
-    margin: 0 0 2px 0;
-    font-size: 0.85rem;
+    margin: 0 0 1px 0;
+    font-size: 0.8rem; /* Reduced from 0.85rem */
     font-weight: 600;
     color: #0f172a;
     line-height: 1.2;
@@ -865,9 +867,9 @@
 
 .churchListItemContent p {
     margin: 0;
-    font-size: 0.68rem;
+    font-size: 0.65rem; /* Reduced from 0.68rem */
     color: #64748b;
-    line-height: 1.4;
+    line-height: 1.3;
     word-break: break-word;
 }
 
@@ -963,37 +965,51 @@
 }
 
 /* Map Settings Buttons */
-.mapSettingsToggleBtn.desktopOnly {
+/* Map Suggest Button - THE MOST VISIBLE */
+.mapSuggestBtn {
     position: absolute;
-    top: 24px;
-    z-index: 1001;
-    width: 44px;
-    height: 44px;
-    background: rgba(255, 255, 255, 0.4);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    cursor: pointer;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    color: rgba(15, 23, 42, 0.8);
+    top: 20px; /* Aligned with .desktopMapControls */
+    right: 20px;
+    background: #134b7b;
+    color: #ffffff;
+    border: none;
+    padding: 0 20px;
+    height: 48px; /* Standardize height */
+    border-radius: 24px; /* Standardize pill shape */
     display: flex;
     align-items: center;
-    justify-content: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    z-index: 1001; /* Above almost everything */
+    box-shadow: 0 10px 25px rgba(19, 75, 123, 0.3);
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    border: 2px solid rgba(255, 255, 255, 0.1);
     text-decoration: none;
 }
 
-.mapSettingsToggleBtn.desktopOnly {
-    right: 20px;
+.mapSuggestBtn:hover {
+    background: #0d3458;
+    transform: translateY(-2px);
+    box-shadow: 0 15px 30px rgba(19, 75, 123, 0.4);
 }
 
+.mapSuggestBtn:active {
+    transform: translateY(0) scale(0.96);
+}
 
-.mapSettingsToggleBtn:hover {
-    transform: translateY(-2px);
-    background: rgba(255, 255, 255, 0.8);
-    color: #134b7b;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+/* Specific mobile adjustment for suggest button */
+@media (max-width: 768px) {
+    .mapSuggestBtn {
+        top: calc(env(safe-area-inset-top, 0px) + 16px);
+        right: 16px;
+        padding: 0 20px;
+        height: 48px; /* Standardize height */
+        font-size: 0.85rem;
+        border-radius: 24px; /* Standardize pill shape */
+        box-shadow: 0 8px 20px rgba(19, 75, 123, 0.25);
+    }
 }
 
 /* Settings Backdrop Overlay */
@@ -1467,38 +1483,6 @@
 }
 
 /* Map Control Buttons */
-.mapRecenterBtn {
-    position: fixed; /* Fixed relative to viewport on desktop */
-    bottom: 32px;
-    right: 32px;
-    width: 48px;
-    height: 48px;
-    background: rgba(255, 255, 255, 0.4);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: rgba(15, 23, 42, 0.8);
-    cursor: pointer;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    z-index: 101; /* Above almost everything */
-    pointer-events: auto;
-}
-
-.mapRecenterBtn:hover {
-    background: rgba(255, 255, 255, 0.8);
-    color: #134b7b;
-    transform: translateY(-2px);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.16);
-}
-
-.mapRecenterBtn:active {
-    transform: scale(0.95) translateY(0);
-}
 
 @keyframes iconPulse {
     0% { transform: scale(1); opacity: 1; }
@@ -1506,31 +1490,6 @@
     100% { transform: scale(1); opacity: 1; }
 }
 
-/* Positioning adjustments for mobile */
-@media (max-width: 768px) {
-    .mapRecenterBtn {
-        position: absolute;
-        bottom: calc(min(100%, 48vh) + 12px); /* Follow sheet down, but stop at med height when expanding */
-        right: 16px;
-        margin-bottom: 0;
-        width: 40px; /* Slightly larger for better touch */
-        height: 40px;
-        background: #ffffff;
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        color: #134b7b;
-        border-radius: 50%;
-        border: 1px solid #cbd5e1;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        z-index: 5;
-    }
-
-    .mapRecenterBtn:active {
-        background: rgba(255, 255, 255, 0.7);
-        transform: scale(0.95);
-    }
-}
 
 /* =============================================
    CHURCH DETAILS CARD
@@ -2027,7 +1986,7 @@
         border: none;
         border-radius: 0 !important;
         overflow: visible;
-        height: var(--dynamic-height, 48vh); /* Use dynamic height during drag, fallback to collapsed */
+        height: var(--dynamic-height, 40vh); /* Reduced from 48vh for more map visibility */
         flex: none;
         transition: height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         flex-shrink: 0;
@@ -2050,12 +2009,12 @@
     }
 
     .churchMapBottomSheet:has(.mobileChurchDetails) {
-        height: var(--dynamic-height, auto);
+        height: var(--dynamic-height, 40vh); /* Match list view height */
         max-height: 95vh;
     }
 
     .churchMapBottomSheet[data-mode="hidden"] {
-        height: var(--dynamic-height, 48px); /* Reduced from 84px to hide list content */
+        height: var(--dynamic-height, 40px); /* Reduced from 48px */
         opacity: 1;
     }
 
@@ -2101,16 +2060,28 @@
     }
 
     .mobileControlsInSheet {
-        padding: 12px 16px;
+        padding: 6px 12px; /* Reduced from 12px 16px */
         display: flex;
-        flex-direction: row; /* Horizontal alignment */
+        flex-direction: row;
         align-items: center;
-        gap: 8px; /* Compact gap */
+        gap: 8px;
         background: #ffffff;
         border-bottom: 1px solid #f1f5f9;
         position: sticky;
         top: 0;
         z-index: 10;
+    }
+
+    .mobileSearchBox {
+        height: 40px; /* Reduced from 44px (implicit from prev restructures) */
+        border-radius: 10px;
+        padding: 0 4px 0 10px;
+    }
+
+    .mobileHeaderFilterBtn {
+        height: 40px; /* Reduced from 44px */
+        border-radius: 10px;
+        padding: 0 10px;
     }
 
 
@@ -2142,7 +2113,7 @@
     }
 
     .churchListItem {
-        padding: 10px 16px;
+        padding: 6px 12px; /* Reduced further for compactness */
     }
 
     .churchDetailsCard {
