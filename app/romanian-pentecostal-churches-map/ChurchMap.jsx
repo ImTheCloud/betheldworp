@@ -1196,29 +1196,14 @@ function ChurchMap() {
                                         onChange={(e) => setSearchQuery(e.target.value)}
                                         onFocus={() => {
                                             setIsSearchFocused(true);
-                                            if (isMobile) {
-                                                if (sheetRef.current) {
-                                                    sheetRef.current.style.transition = 'none';
-                                                }
-                                                // flushSync forces React to instantly update the DOM with the "expanded" state
-                                                // before Safari evaluates the visual viewport layout for the keyboard.
-                                                flushSync(() => {
-                                                    setBottomSheetMode("expanded");
-                                                });
-                                                
-                                                setTimeout(() => {
-                                                    if (sheetRef.current) {
-                                                        sheetRef.current.style.transition = '';
-                                                    }
-                                                }, 100);
-                                            }
+                                            // On iOS Safari, expanding a container upward concurrently with the keyboard
+                                            // natively forces a scroll jump that hides the input. We keep the sheet at its 
+                                            // current height (e.g. collapsed) so the input stays perfectly visible.
                                         }}
                                         onBlur={() => {
                                             // Delay to allow clear button click
                                             setTimeout(() => setIsSearchFocused(false), 200);
-                                            if (isMobile && !searchQuery.trim()) {
-                                                setBottomSheetMode("collapsed");
-                                            }
+                                            // Removed auto-collapse to match the removal of auto-expand
                                         }}
                                     />
                                     {(searchQuery || isSearchFocused) ? (
