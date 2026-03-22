@@ -260,10 +260,10 @@ function MapController({ selectedChurch, requestedLocation, isInitialLoad, recen
             targetZoom = 11.5; // Adjusted from 10 to be slightly closer
         } else if (requestedLocation && (isInitialLoad || recenterTrigger > 0)) {
             target = { lat: requestedLocation.lat, lng: requestedLocation.lng };
-            targetZoom = 12;
+            targetZoom = 10;
         } else if (!requestedLocation && !selectedChurch && isInitialLoad) {
             target = BELGIUM_CENTER;
-            targetZoom = 8;
+            targetZoom = 7;
         }
 
         if (!target) return;
