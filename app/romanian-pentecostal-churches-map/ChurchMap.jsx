@@ -604,7 +604,25 @@ function ChurchMap() {
         setSuggestionForm(data);
         setInitialFormValues(data);
         setSuggestionStep(1);
-        setSubmitterForm({ firstName: "", lastName: "", phone: "", email: "", notes: "" });
+        // Try to load submitter info from localStorage
+        let savedSubmitter = { firstName: "", lastName: "", phone: "", email: "", notes: "" };
+        try {
+            const saved = localStorage.getItem("bethel_submitter");
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                savedSubmitter = { 
+                    firstName: parsed.firstName || "", 
+                    lastName: parsed.lastName || "", 
+                    phone: parsed.phone || "", 
+                    email: parsed.email || "", 
+                    notes: "" 
+                };
+            }
+        } catch (e) {
+            console.error("Failed to load saved submitter info:", e);
+        }
+        
+        setSubmitterForm(savedSubmitter);
         setShowSuggestionModal(true);
         setSuggestionSuccess(false);
         setFormError("");
@@ -662,6 +680,18 @@ function ChurchMap() {
                 },
                 createdAt: serverTimestamp()
             });
+            
+            // Save submitter info to localStorage for next time (excluding notes)
+            try {
+                localStorage.setItem("bethel_submitter", JSON.stringify({
+                    firstName: submitterForm.firstName,
+                    lastName: submitterForm.lastName,
+                    phone: submitterForm.phone,
+                    email: submitterForm.email
+                }));
+            } catch (e) {
+                console.error("Failed to save submitter info:", e);
+            }
 
             // Send real-time notification via ntfy.sh
             try {
@@ -694,59 +724,6 @@ function ChurchMap() {
         }
     };
 
-    const handleSkipSubmitter = () => {
-        // Clear submitter data if skipped
-        setSubmitterForm({ name: "", phone: "", email: "" });
-        // Force the final step logic
-        setSuggestionStep(2);
-        // We need to trigger the actual submit now
-        setTimeout(() => {
-            const finalData = {
-                type: suggestionType,
-                originalChurchId: suggestionType === "edit" ? selectedChurch?.id : null,
-                originalData: suggestionType === "edit" ? selectedChurch : null,
-                status: "pending",
-                data: {
-                    ...suggestionForm,
-                    submitter: { name: "", phone: "", email: "" }
-                },
-                createdAt: serverTimestamp()
-            };
-
-            setIsSubmitting(true);
-            addDoc(collection(db, "church_suggestions"), finalData)
-                .then(() => {
-                    // Send real-time notification via ntfy.sh
-                    try {
-                        const topic = "bethel_churches_notifications_f93k2n8";
-                        const title = suggestionType === "new" ? t("suggestionNotificationNew") : t("suggestionNotificationEdit");
-                        const message = `${suggestionForm.name} - ${suggestionForm.city} (${getCountryLabel(suggestionForm.country)})`;
-                        
-                        // Use query params instead of headers to avoid CORS preflight issues in browsers
-                        const notifyUrl = `https://ntfy.sh/${topic}?title=${encodeURIComponent(title)}&priority=high&tags=church,pray`;
-                        
-                        fetch(notifyUrl, {
-                            method: 'POST',
-                            body: message
-                        }).catch(e => console.error("Notification error:", e));
-                    } catch (notifyErr) {
-                        console.error("Failed to send notification:", notifyErr);
-                    }
-
-                    setSuggestionSuccess(true);
-                    setTimeout(() => {
-                        setShowSuggestionModal(false);
-                        setSuggestionSuccess(false);
-                        setSuggestionStep(1);
-                    }, 3000);
-                })
-                .catch(err => {
-                    console.error(err);
-                    setFormError(t("errorSending"));
-                })
-                .finally(() => setIsSubmitting(false));
-        }, 0);
-    };
 
 
     // Load churches from Firestore
@@ -1621,7 +1598,6 @@ function ChurchMap() {
                                                     <input
                                                         type="text"
                                                         required
-                                                        placeholder={t("cityPlaceholder")}
                                                         value={suggestionForm.city}
                                                         onChange={(e) => setSuggestionForm({ ...suggestionForm, city: e.target.value })}
                                                     />

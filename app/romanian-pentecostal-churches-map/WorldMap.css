@@ -2033,7 +2033,7 @@
     }
 
     .churchMapBottomSheet[data-mode="hidden"] {
-        height: var(--dynamic-height, 40px); /* Reduced from 48px */
+        height: var(--dynamic-height, 64px); /* Increased from 40px for better grab area on iPhone */
         opacity: 1;
         overflow: hidden !important; /* Prevent content bleed when closed */
     }
@@ -2063,8 +2063,8 @@
 
     .bottomSheetDragHandleArea {
         width: 100%;
-        height: 16px;
-        /* Reduced from 24px to move content higher */
+        height: 24px;
+        /* Increased from 16px to provide larger touch target */
         display: flex;
         align-items: center;
         justify-content: center;
