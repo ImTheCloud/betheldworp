@@ -628,15 +628,15 @@ function ChurchMap() {
 
         if (suggestionStep === 1) {
             if (!suggestionForm.name || !suggestionForm.city) {
-                setFormError("Nom et Ville sont requis.");
+                setFormError(t("errorNameCityRequired"));
                 return;
             }
             if (suggestionType === "edit" && !hasChanges) {
-                setFormError("Aucune modification détectée.");
+                setFormError(t("errorNoChanges"));
                 return;
             }
             if (suggestionForm.email && !validateEmail(suggestionForm.email)) {
-                setFormError("Format d'email invalide.");
+                setFormError(t("errorInvalidEmail"));
                 return;
             }
             setFormError("");
@@ -645,7 +645,7 @@ function ChurchMap() {
         }
 
         if (submitterForm.email && !validateEmail(submitterForm.email)) {
-            setFormError("Format d'email invalide.");
+            setFormError(t("errorInvalidEmail"));
             return;
         }
 
@@ -666,7 +666,7 @@ function ChurchMap() {
             // Send real-time notification via ntfy.sh
             try {
                 const topic = "bethel_churches_notifications_f93k2n8";
-                const title = suggestionType === "new" ? "Nouvelle église suggérée" : "Modification d'église suggérée";
+                const title = suggestionType === "new" ? t("suggestionNotificationNew") : t("suggestionNotificationEdit");
                 const message = `${suggestionForm.name} - ${suggestionForm.city} (${getCountryLabel(suggestionForm.country)})`;
                 
                 // Use query params instead of headers to avoid CORS preflight issues in browsers
@@ -688,7 +688,7 @@ function ChurchMap() {
             }, 3000);
         } catch (err) {
             console.error(err);
-            setFormError("Erreur lors de l'envoi. Réessayez.");
+            setFormError(t("errorSending"));
         } finally {
             setIsSubmitting(false);
         }
@@ -719,7 +719,7 @@ function ChurchMap() {
                     // Send real-time notification via ntfy.sh
                     try {
                         const topic = "bethel_churches_notifications_f93k2n8";
-                        const title = suggestionType === "new" ? "Nouvelle église suggérée" : "Modification d'église suggérée";
+                        const title = suggestionType === "new" ? t("suggestionNotificationNew") : t("suggestionNotificationEdit");
                         const message = `${suggestionForm.name} - ${suggestionForm.city} (${getCountryLabel(suggestionForm.country)})`;
                         
                         // Use query params instead of headers to avoid CORS preflight issues in browsers
@@ -742,7 +742,7 @@ function ChurchMap() {
                 })
                 .catch(err => {
                     console.error(err);
-                    setFormError("Erreur lors de l'envoi. Réessayez.");
+                    setFormError(t("errorSending"));
                 })
                 .finally(() => setIsSubmitting(false));
         }, 0);
@@ -1174,7 +1174,7 @@ function ChurchMap() {
                                 <div className="mobileSearchBox">
                                     <input
                                         type="text"
-                                        placeholder="Recherche"
+                                        placeholder={t("searchPlaceholder")}
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
                                         onFocus={() => isMobile && setBottomSheetMode("expanded")}
@@ -1390,7 +1390,7 @@ function ChurchMap() {
                         <div className="churchMapSearch floating google-style">
                             <input
                                 type="text"
-                                placeholder={t("searchPlaceholder") || "Rechercher une église..."}
+                                placeholder={t("searchPlaceholder")}
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
@@ -1485,13 +1485,13 @@ function ChurchMap() {
                         <button
                             className="mapSuggestBtn"
                             onClick={() => openSuggestionModal("new")}
-                            aria-label="Proposer une nouvelle église"
+                            aria-label={t("suggestChurchLabel")}
                         >
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                 <line x1="12" y1="5" x2="12" y2="19"></line>
                                 <line x1="5" y1="12" x2="19" y2="12"></line>
                             </svg>
-                            <span>Nouvelle église</span>
+                            <span>{t("newChurch")}</span>
                         </button>
                         <Markers
                             churches={filteredChurches}
@@ -1621,6 +1621,7 @@ function ChurchMap() {
                                                     <input
                                                         type="text"
                                                         required
+                                                        placeholder={t("cityPlaceholder")}
                                                         value={suggestionForm.city}
                                                         onChange={(e) => setSuggestionForm({ ...suggestionForm, city: e.target.value })}
                                                     />
