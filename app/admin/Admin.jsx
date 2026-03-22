@@ -70,6 +70,13 @@ export default function Admin() {
     useEffect(() => {
         const unsub = onAuthStateChanged(auth, (u) => {
             if (!mountedRef.current) return;
+            // Pre-emptively set adminLoading when a user is detected to prevent
+            // a 1-render gap where authLoading is false but the user useEffect hasn't run yet
+            if (u) {
+                setAdminLoading(true);
+            } else {
+                setAdminLoading(false);
+            }
             setUser(u || null);
             setAuthLoading(false);
         });
