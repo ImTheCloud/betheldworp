@@ -1195,7 +1195,21 @@ function ChurchMap() {
                                         onChange={(e) => setSearchQuery(e.target.value)}
                                         onFocus={() => {
                                             setIsSearchFocused(true);
-                                            if (isMobile) setBottomSheetMode("expanded");
+                                            if (isMobile) {
+                                                setBottomSheetMode("expanded");
+                                                // Counteract iOS Safari's visual viewport scroll jump when the keyboard opens
+                                                // while the bottom sheet is animating upward.
+                                                const resetScroll = () => {
+                                                    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+                                                    document.documentElement.scrollTop = 0;
+                                                    document.body.scrollTop = 0;
+                                                };
+                                                // Fire multiple times during the animation to keep the viewport locked
+                                                setTimeout(resetScroll, 10);
+                                                setTimeout(resetScroll, 150);
+                                                setTimeout(resetScroll, 350);
+                                                setTimeout(resetScroll, 500);
+                                            }
                                         }}
                                         onBlur={() => {
                                             // Delay to allow clear button click
