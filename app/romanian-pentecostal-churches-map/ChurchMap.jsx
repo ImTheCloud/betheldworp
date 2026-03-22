@@ -18,43 +18,64 @@ const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 const MAP_ID = "5b50d76db2afedb8ba67cff4";
 const BELGIUM_CENTER = { lat: 50.77198, lng: 4.30396 }; // Coordinates roughly near Brussels/Halle
 
-const COUNTRY_FLAGS = {
-    Belgium: "🇧🇪",
-    Germany: "🇩🇪",
-    "United Kingdom": "🇬🇧",
-    France: "🇫🇷",
-    Netherlands: "🇳🇱",
-    Romania: "🇷🇴",
-    Italy: "🇮🇹",
-    Spain: "🇪🇸",
-    USA: "🇺🇸",
-    Austria: "🇦🇹",
-    Bulgaria: "🇧🇬",
-    Croatia: "🇭🇷",
-    Cyprus: "🇨🇾",
-    "Czech Republic": "🇨🇿",
-    Denmark: "🇩🇰",
-    Estonia: "🇪🇪",
-    Finland: "🇫🇮",
-    Greece: "🇬🇷",
-    Hungary: "🇭🇺",
-    Ireland: "🇮🇪",
-    Latvia: "🇱🇻",
-    Lithuania: "🇱🇹",
-    Luxembourg: "🇱🇺",
-    Malta: "🇲🇹",
-    Moldova: "🇲🇩",
-    Norway: "🇳🇴",
-    Poland: "🇵🇱",
-    Portugal: "🇵🇹",
-    Slovakia: "🇸🇰",
-    Slovenia: "🇸🇮",
-    Sweden: "🇸🇪",
-    Switzerland: "🇨🇭",
-    Ukraine: "🇺🇦",
-    "United States": "🇺🇸",
-    Canada: "🇨🇦",
-    Australia: "🇦🇺",
+const COUNTRY_CODES = {
+    Belgium: "be",
+    Germany: "de",
+    "United Kingdom": "gb",
+    France: "fr",
+    Netherlands: "nl",
+    Romania: "ro",
+    Italy: "it",
+    Spain: "es",
+    USA: "us",
+    Austria: "at",
+    Bulgaria: "bg",
+    Croatia: "hr",
+    Cyprus: "cy",
+    "Czech Republic": "cz",
+    Denmark: "dk",
+    Estonia: "ee",
+    Finland: "fi",
+    Greece: "gr",
+    Hungary: "hu",
+    Ireland: "ie",
+    Latvia: "lv",
+    Lithuania: "lt",
+    Luxembourg: "lu",
+    Malta: "mt",
+    Moldova: "md",
+    Norway: "no",
+    Poland: "pl",
+    Portugal: "pt",
+    Slovakia: "sk",
+    Slovenia: "si",
+    Sweden: "se",
+    Switzerland: "ch",
+    Ukraine: "ua",
+    "United States": "us",
+    Canada: "ca",
+    Australia: "au",
+};
+
+const FlagImage = ({ country, className = "" }) => {
+    const code = COUNTRY_CODES[country];
+    if (!code) return <span className={className} style={{ fontSize: '1.1rem' }}>🌍</span>;
+    return (
+        <img 
+            src={`https://flagcdn.com/w40/${code}.png`} 
+            alt={country} 
+            className={`flag-img ${className}`}
+            style={{ 
+                width: '18px', 
+                height: 'auto', 
+                display: 'inline-block', 
+                verticalAlign: 'middle', 
+                borderRadius: '2px',
+                marginRight: '8px',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+            }}
+        />
+    );
 };
 
 const COUNTRY_VIEWS = {
@@ -595,7 +616,7 @@ function ChurchMap() {
         notes: ""
     });
 
-    const SUGGESTION_COUNTRIES = Object.keys(COUNTRY_FLAGS).sort();
+    const SUGGESTION_COUNTRIES = Object.keys(COUNTRY_CODES).sort();
 
     const openSuggestionModal = (type = "new", church = null) => {
         setSuggestionType(type);
@@ -894,7 +915,7 @@ function ChurchMap() {
     }, []);
 
     const handleTouchStart = (e) => {
-        const isHeader = e.target.closest('.bottomSheetDragHandleArea') || e.target.closest('.mobileControlsInSheet');
+        const isHeader = (e.target.closest('.bottomSheetDragHandleArea') || e.target.closest('.mobileControlsInSheet')) && !e.target.closest('.countryFilterMenu');
         
         if (!isHeader) {
             isHeaderTouch.current = false;
@@ -1086,9 +1107,11 @@ function ChurchMap() {
         return `https://www.google.com/maps/search/?api=1&query=${query}`;
     };
 
-    const activeFilterIcon = activeCountryFilter
-        ? COUNTRY_FLAGS[activeCountryFilter] || "🌍"
-        : "🌍";
+    const activeFilterIcon = activeCountryFilter ? (
+        <FlagImage country={activeCountryFilter} />
+    ) : (
+        <span style={{ fontSize: '1.1rem' }}>🌍</span>
+    );
 
     if (!API_KEY) {
         return (
@@ -1218,7 +1241,7 @@ function ChurchMap() {
                                             }
                                         }}
                                     >
-                                        <span className="mobileFlagIcon">{activeFilterIcon}</span>
+                                        <span className="mobileFlagIcon" style={{ display: 'flex', alignItems: 'center' }}>{activeFilterIcon}</span>
                                         <span className="mobileFilterCount">({activeCountryFilter ? (countryCounts[activeCountryFilter] || 0) : (countryCounts.all || 0)})</span>
                                         <svg className={`mobileFilterChevron ${filterOpen ? "open" : ""}`} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                                             <polyline points="6 9 12 15 18 9"></polyline>
@@ -1233,7 +1256,7 @@ function ChurchMap() {
                                                     setFilterOpen(false);
                                                 }}
                                             >
-                                                <span style={{ fontSize: '1.1rem' }}>🌍</span> {t("allCountries")}
+                                                <span style={{ fontSize: '1.1rem', marginRight: '8px' }}>🌍</span> {t("allCountries")}
                                                 <span style={{ fontSize: '0.85rem', opacity: 0.7, marginLeft: 'auto' }}>({countryCounts.all || 0})</span>
                                             </button>
                                             {ALL_COUNTRIES.map((country) => (
@@ -1245,7 +1268,7 @@ function ChurchMap() {
                                                         setFilterOpen(false);
                                                     }}
                                                 >
-                                                    <span style={{ fontSize: '1.1rem' }}>{COUNTRY_FLAGS[country] || "🌍"}</span> {getCountryLabel(country)}
+                                                    <FlagImage country={country} /> {getCountryLabel(country)}
                                                     <span style={{ fontSize: '0.85rem', opacity: 0.7, marginLeft: 'auto' }}>({countryCounts[country] || 0})</span>
                                                 </button>
                                             ))}
@@ -1299,7 +1322,7 @@ function ChurchMap() {
                                             {Object.entries(groupedChurches).map(([country, items]) => (
                                                 <div key={country} className="churchCountryGroup">
                                                     <h2 className="churchCountryHeader">
-                                                        <span className="countryFlag">{COUNTRY_FLAGS[country] || "🌍"}</span>
+                                                        <FlagImage country={country} className="countryFlag" />
                                                         {t(`country_${country}`) === `country_${country}` ? country : t(`country_${country}`)}
                                                         <span className="countryCount">{items.length}</span>
                                                     </h2>
@@ -1440,7 +1463,7 @@ function ChurchMap() {
                                 className={`countryPill ${!activeCountryFilter ? "active" : ""}`}
                                 onClick={() => setActiveCountryFilter("")}
                             >
-                                🌍 <span className="pillLabel">{t("allCountries")}</span>
+                                <span style={{ fontSize: '1.1rem', marginRight: '6px' }}>🌍</span> <span className="pillLabel">{t("allCountries")}</span>
                                 <span className="pillCount">{countryCounts.all || 0}</span>
                             </button>
                             {topCountries.map((country) => (
@@ -1455,7 +1478,7 @@ function ChurchMap() {
                                         }
                                     }}
                                 >
-                                    {COUNTRY_FLAGS[country] || "🌍"} <span className="pillLabel">{getCountryLabel(country)}</span>
+                                    <FlagImage country={country} /> <span className="pillLabel">{getCountryLabel(country)}</span>
                                     {countryCounts[country] > 0 && <span className="pillCount">{countryCounts[country]}</span>}
                                 </button>
                             ))}
@@ -1481,7 +1504,7 @@ function ChurchMap() {
                                                         setShowOtherCountries(false);
                                                     }}
                                                 >
-                                                    <span className="dropdownFlag">{COUNTRY_FLAGS[country] || "🌍"}</span>
+                                                    <FlagImage country={country} className="dropdownFlag" />
                                                     <span className="dropdownLabel">{getCountryLabel(country)}</span>
                                                     <span className="dropdownCount">{countryCounts[country] || 0}</span>
                                                 </button>
