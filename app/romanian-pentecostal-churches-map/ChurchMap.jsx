@@ -499,12 +499,13 @@ function ChurchMap() {
     const [mobileShowMap, setMobileShowMap] = useState(false);
     const [filterOpen, setFilterOpen] = useState(false);
     const filterRef = useRef(null);
-    const touchStartY = useRef(null);
+    const sheetRef = useRef(null);
+    const startHeight = useRef(0);
+    const touchStartY = useRef(0);
+    const isHeaderTouch = useRef(false);
     const [isExiting, setIsExiting] = useState(false);
     const [dragHeight, setDragHeight] = useState(null);
     const [isDragging, setIsDragging] = useState(false);
-    const startHeight = useRef(null);
-    const sheetRef = useRef(null);
 
     // Auto-close bottom sheet on mobile when a country is selected
     useEffect(() => {
@@ -893,14 +894,18 @@ function ChurchMap() {
     }, []);
 
     const handleTouchStart = (e) => {
-        // On mobile, if we're in the list, only drag if we're at the top
-        const scrollableContent = e.target.closest('.churchList');
-        if (scrollableContent && scrollableContent.scrollTop > 0) {
-            return;
+        const isHeader = e.target.closest('.bottomSheetDragHandleArea') || e.target.closest('.mobileControlsInSheet');
+        isHeaderTouch.current = !!isHeader;
+
+        // If not header, check list scroll conflict
+        if (!isHeader) {
+            const scrollableContent = e.target.closest('.churchList');
+            if (scrollableContent && scrollableContent.scrollTop > 0) {
+                return;
+            }
         }
 
         // Removed the button/input guard to allow dragging from everywhere
-
         touchStartY.current = e.touches[0].clientY;
         if (sheetRef.current) {
             startHeight.current = sheetRef.current.offsetHeight;
@@ -922,20 +927,23 @@ function ChurchMap() {
             document.activeElement.blur();
         }
 
-        // Check for scrollable content conflict
         const scrollableContent = e.target.closest('.churchList');
-        if (scrollableContent) {
+        
+        // Header always drags, never scrolls
+        if (isHeaderTouch.current) {
+            // Drag on!
+        } else if (scrollableContent) {
             const isSwipingDown = deltaY > 0;
             const isSwipingUp = deltaY < 0;
             const atTop = scrollableContent.scrollTop <= 0;
 
-            // If dragging up and sheet is already expanded, let content scroll
+            // If we are expanded, let the list scroll naturally for up-swipes
             if (isSwipingUp && bottomSheetMode === "expanded") {
                 setIsDragging(false);
                 return;
             }
 
-            // If dragging down and content is not at top, let content scroll
+            // If swiping down and not at top of list, let list scroll
             if (isSwipingDown && !atTop) {
                 setIsDragging(false);
                 return;
