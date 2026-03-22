@@ -49,8 +49,8 @@ const COUNTRY_OPTIONS = [
 const FIELDS = [
     { key: "locationTitle", label: "Location Title (Directions)", type: "text" },
     { key: "name", label: "Name", type: "text", required: true },
+    { key: "city", label: "City / Locality", type: "text", required: true },
     { key: "country", label: "Country", type: "select", options: COUNTRY_OPTIONS },
-    { key: "city", label: "City / Locality", type: "text" },
     { key: "zipCode", label: "Postal Code", type: "text" },
     { key: "street", label: "Street", type: "text" },
     { key: "number", label: "Number", type: "text" },
@@ -63,7 +63,7 @@ const FIELDS = [
 ];
 
 function emptyChurch() {
-    return { name: "", locationTitle: "", street: "", number: "", city: "", country: "", zipCode: "", lat: "", lng: "", phone: "", email: "", website: "", youtube: "", facebook: "", instagram: "", notes: "" };
+    return { name: "", locationTitle: "", street: "", number: "", city: "", country: "Belgium", zipCode: "", lat: "", lng: "", phone: "", email: "", website: "", youtube: "", facebook: "", instagram: "", notes: "" };
 }
 
 const geocodeAddress = async (street, number, city, zipCode, country) => {
@@ -121,70 +121,77 @@ function ChurchCard({ item, expanded, drafts, saveState, errorText, onToggle, on
                         </div>
                     ) : null}
 
-                    {item.modifiedByInfo ? (
-                        null
-                    ) : null}
-
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 16px" }}>
-                        {FIELDS.map((f) => {
-                            if (f.key === "number") return null;
-                            if (f.key === "street") {
-                                return (
-                                    <div key="street-number" style={{ gridColumn: "span 2", display: "flex", gap: "12px" }}>
-                                        <div style={{ flex: 3 }}>
-                                            <label className="adminLabel">Street</label>
-                                            <input
-                                                className="adminInput"
-                                                value={drafts.street ?? ""}
-                                                onChange={(e) => onChange(id, "street", e.target.value)}
-                                            />
-                                        </div>
-                                        <div style={{ flex: 1 }}>
-                                            <label className="adminLabel">Number</label>
-                                            <input
-                                                className="adminInput"
-                                                value={drafts.number ?? ""}
-                                                onChange={(e) => onChange(id, "number", e.target.value)}
-                                            />
-                                        </div>
-                                    </div>
-                                );
-                            }
-                            return (
-                                <label key={f.key} className="adminLabel" style={(f.key === "locationTitle" || f.key === "notes") ? { gridColumn: "span 2" } : {}}>
-                                    {f.label}{f.required ? " *" : ""}
-                                    {f.type === "select" ? (
-                                        <select
-                                            className="adminSelect"
-                                            style={{ width: "100%", marginTop: 4 }}
-                                            value={drafts[f.key] ?? ""}
-                                            onChange={(e) => onChange(id, f.key, e.target.value)}
-                                        >
-                                            <option value="">-- Select Country --</option>
-                                            {f.options.map(opt => (
-                                                <option key={opt} value={opt}>{opt}</option>
-                                            ))}
-                                        </select>
-                                    ) : f.type === "textarea" ? (
-                                        <textarea
-                                            className="adminInput"
-                                            rows="3"
-                                            style={{ resize: "vertical", marginTop: 4 }}
-                                            value={drafts[f.key] ?? ""}
-                                            onChange={(e) => onChange(id, f.key, e.target.value)}
-                                        />
-                                    ) : (
-                                        <input
-                                            className="adminInput"
-                                            type={f.type}
-                                            value={drafts[f.key] ?? ""}
-                                            onChange={(e) => onChange(id, f.key, e.target.value)}
-                                            step={f.type === "number" ? "any" : undefined}
-                                        />
-                                    )}
-                                </label>
-                            );
-                        })}
+                        {/* Row 0: Location Title (Directions) - Back to top */}
+                        <label className="adminLabel" style={{ gridColumn: "span 2" }}>
+                            Location Title (Directions)
+                            <input className="adminInput" value={drafts.locationTitle ?? ""} onChange={(e) => onChange(id, "locationTitle", e.target.value)} />
+                        </label>
+
+                        {/* Row 1: Name & City */}
+                        <label className="adminLabel">
+                            Name *
+                            <input className="adminInput" value={drafts.name ?? ""} onChange={(e) => onChange(id, "name", e.target.value)} />
+                        </label>
+                        <label className="adminLabel">
+                            City / Locality *
+                            <input className="adminInput" value={drafts.city ?? ""} onChange={(e) => onChange(id, "city", e.target.value)} />
+                        </label>
+
+                        {/* Row 2: Country & Postal Code */}
+                        <label className="adminLabel">
+                            Country
+                            <select className="adminSelect" style={{ width: "100%", marginTop: 4 }} value={drafts.country ?? ""} onChange={(e) => onChange(id, "country", e.target.value)}>
+                                <option value="">-- Select Country --</option>
+                                {COUNTRY_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                            </select>
+                        </label>
+                        <label className="adminLabel">
+                            Postal Code
+                            <input className="adminInput" value={drafts.zipCode ?? ""} onChange={(e) => onChange(id, "zipCode", e.target.value)} />
+                        </label>
+
+                        {/* Row 3: Street & Number */}
+                        <div style={{ gridColumn: "span 2", display: "flex", gap: "12px" }}>
+                            <div style={{ flex: 3 }}>
+                                <label className="adminLabel">Street</label>
+                                <input className="adminInput" value={drafts.street ?? ""} onChange={(e) => onChange(id, "street", e.target.value)} />
+                            </div>
+                            <div style={{ flex: 1 }}>
+                                <label className="adminLabel">Number</label>
+                                <input className="adminInput" value={drafts.number ?? ""} onChange={(e) => onChange(id, "number", e.target.value)} />
+                            </div>
+                        </div>
+
+                        {/* Row 4: Phone & Email */}
+                        <label className="adminLabel">
+                            Phone
+                            <input className="adminInput" value={drafts.phone ?? ""} onChange={(e) => onChange(id, "phone", e.target.value)} />
+                        </label>
+                        <label className="adminLabel">
+                            Email
+                            <input className="adminInput" value={drafts.email ?? ""} onChange={(e) => onChange(id, "email", e.target.value)} />
+                        </label>
+
+                        {/* Row 5: Website & Youtube */}
+                        <label className="adminLabel">
+                            Website
+                            <input className="adminInput" placeholder="https://..." value={drafts.website ?? ""} onChange={(e) => onChange(id, "website", e.target.value)} />
+                        </label>
+                        <label className="adminLabel">
+                            YouTube
+                            <input className="adminInput" placeholder="https://youtube.com/..." value={drafts.youtube ?? ""} onChange={(e) => onChange(id, "youtube", e.target.value)} />
+                        </label>
+
+                        {/* Row 6: Facebook & Instagram */}
+                        <label className="adminLabel">
+                            Facebook
+                            <input className="adminInput" placeholder="facebook.com/..." value={drafts.facebook ?? ""} onChange={(e) => onChange(id, "facebook", e.target.value)} />
+                        </label>
+                        <label className="adminLabel">
+                            Instagram
+                            <input className="adminInput" placeholder="instagram.com/..." value={drafts.instagram ?? ""} onChange={(e) => onChange(id, "instagram", e.target.value)} />
+                        </label>
                     </div>
 
 
@@ -224,65 +231,76 @@ function NewChurchCard({ drafts, setDraft, errorText, saveState, onCancel, onSav
                 {errorText ? <div className="adminAlert">{errorText}</div> : null}
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 16px" }}>
-                    {FIELDS.map((f) => {
-                        if (f.key === "number") return null;
-                        if (f.key === "street") {
-                            return (
-                                <div key="street-number" style={{ gridColumn: "span 2", display: "flex", gap: "12px" }}>
-                                    <div style={{ flex: 3 }}>
-                                        <label className="adminLabel">Street</label>
-                                        <input
-                                            className="adminInput"
-                                            value={drafts.street ?? ""}
-                                            onChange={(e) => setDraft("street", e.target.value)}
-                                        />
-                                    </div>
-                                    <div style={{ flex: 1 }}>
-                                        <label className="adminLabel">Number</label>
-                                        <input
-                                            className="adminInput"
-                                            value={drafts.number ?? ""}
-                                            onChange={(e) => setDraft("number", e.target.value)}
-                                        />
-                                    </div>
-                                </div>
-                            );
-                        }
-                        return (
-                            <label key={f.key} className="adminLabel" style={(f.key === "locationTitle" || f.key === "notes") ? { gridColumn: "span 2" } : {}}>
-                                {f.label}{f.required ? " *" : ""}
-                                {f.type === "select" ? (
-                                    <select
-                                        className="adminSelect"
-                                        style={{ width: "100%", marginTop: 4 }}
-                                        value={drafts[f.key] ?? ""}
-                                        onChange={(e) => setDraft(f.key, e.target.value)}
-                                    >
-                                        <option value="">-- Select Country --</option>
-                                        {f.options.map(opt => (
-                                            <option key={opt} value={opt}>{opt}</option>
-                                        ))}
-                                    </select>
-                                ) : f.type === "textarea" ? (
-                                    <textarea
-                                        className="adminInput"
-                                        rows="3"
-                                        style={{ resize: "vertical", marginTop: 4 }}
-                                        value={drafts[f.key] ?? ""}
-                                        onChange={(e) => setDraft(f.key, e.target.value)}
-                                    />
-                                ) : (
-                                    <input
-                                        className="adminInput"
-                                        type={f.type}
-                                        value={drafts[f.key] ?? ""}
-                                        onChange={(e) => setDraft(f.key, e.target.value)}
-                                        step={f.type === "number" ? "any" : undefined}
-                                    />
-                                )}
-                            </label>
-                        );
-                    })}
+                    {/* Row 0: Location Title (Directions) - Back to top */}
+                    <label className="adminLabel" style={{ gridColumn: "span 2" }}>
+                        Location Title (Directions)
+                        <input className="adminInput" value={drafts.locationTitle ?? ""} onChange={(e) => setDraft("locationTitle", e.target.value)} />
+                    </label>
+
+                    {/* Row 1: Name & City */}
+                    <label className="adminLabel">
+                        Name *
+                        <input className="adminInput" value={drafts.name ?? ""} onChange={(e) => setDraft("name", e.target.value)} />
+                    </label>
+                    <label className="adminLabel">
+                        City / Locality *
+                        <input className="adminInput" value={drafts.city ?? ""} onChange={(e) => setDraft("city", e.target.value)} />
+                    </label>
+
+                    {/* Row 2: Country & Postal Code */}
+                    <label className="adminLabel">
+                        Country
+                        <select className="adminSelect" style={{ width: "100%", marginTop: 4 }} value={drafts.country ?? ""} onChange={(e) => setDraft("country", e.target.value)}>
+                            <option value="">-- Select Country --</option>
+                            {COUNTRY_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                        </select>
+                    </label>
+                    <label className="adminLabel">
+                        Postal Code
+                        <input className="adminInput" value={drafts.zipCode ?? ""} onChange={(e) => setDraft("zipCode", e.target.value)} />
+                    </label>
+
+                    {/* Row 3: Street & Number */}
+                    <div style={{ gridColumn: "span 2", display: "flex", gap: "12px" }}>
+                        <div style={{ flex: 3 }}>
+                            <label className="adminLabel">Street</label>
+                            <input className="adminInput" value={drafts.street ?? ""} onChange={(e) => setDraft("street", e.target.value)} />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                            <label className="adminLabel">Number</label>
+                            <input className="adminInput" value={drafts.number ?? ""} onChange={(e) => setDraft("number", e.target.value)} />
+                        </div>
+                    </div>
+
+                    {/* Row 4: Phone & Email */}
+                    <label className="adminLabel">
+                        Phone
+                        <input className="adminInput" value={drafts.phone ?? ""} onChange={(e) => setDraft("phone", e.target.value)} />
+                    </label>
+                    <label className="adminLabel">
+                        Email
+                        <input className="adminInput" value={drafts.email ?? ""} onChange={(e) => setDraft("email", e.target.value)} />
+                    </label>
+
+                    {/* Row 5: Website & Youtube */}
+                    <label className="adminLabel">
+                        Website
+                        <input className="adminInput" placeholder="https://..." value={drafts.website ?? ""} onChange={(e) => setDraft("website", e.target.value)} />
+                    </label>
+                    <label className="adminLabel">
+                        YouTube
+                        <input className="adminInput" placeholder="https://youtube.com/..." value={drafts.youtube ?? ""} onChange={(e) => setDraft("youtube", e.target.value)} />
+                    </label>
+
+                    {/* Row 6: Facebook & Instagram */}
+                    <label className="adminLabel">
+                        Facebook
+                        <input className="adminInput" placeholder="facebook.com/..." value={drafts.facebook ?? ""} onChange={(e) => setDraft("facebook", e.target.value)} />
+                    </label>
+                    <label className="adminLabel">
+                        Instagram
+                        <input className="adminInput" placeholder="instagram.com/..." value={drafts.instagram ?? ""} onChange={(e) => setDraft("instagram", e.target.value)} />
+                    </label>
                 </div>
 
 
@@ -483,8 +501,8 @@ export default function ChurchesAdmin() {
     };
 
     const saveNew = async () => {
-        if (!newDrafts.name.trim()) {
-            setNewError("The Church Name field is required.");
+        if (!newDrafts.name.trim() || !newDrafts.city.trim()) {
+            setNewError("The Church Name and City fields are required.");
             return;
         }
         setNewError("");
@@ -555,8 +573,8 @@ export default function ChurchesAdmin() {
         const draft = draftsById[id];
         if (!draft) return;
 
-        if (!draft.name?.trim()) {
-            setErrorById((m) => ({ ...m, [id]: "The Church Name field is required." }));
+        if (!draft.name?.trim() || !draft.city?.trim()) {
+            setErrorById((m) => ({ ...m, [id]: "The Church Name and City fields are required." }));
             return;
         }
 

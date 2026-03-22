@@ -57,6 +57,20 @@ const COUNTRY_FLAGS = {
     Australia: "🇦🇺",
 };
 
+const COUNTRY_VIEWS = {
+    Belgium: { center: { lat: 50.5039, lng: 4.4699 }, zoom: 8 },
+    Romania: { center: { lat: 45.9432, lng: 24.9668 }, zoom: 7 },
+    France: { center: { lat: 46.2276, lng: 2.2137 }, zoom: 6 },
+    Germany: { center: { lat: 51.1657, lng: 10.4515 }, zoom: 6 },
+    Netherlands: { center: { lat: 52.1326, lng: 5.2913 }, zoom: 7 },
+    Italy: { center: { lat: 41.8719, lng: 12.5674 }, zoom: 6 },
+    Spain: { center: { lat: 40.4637, lng: -3.7492 }, zoom: 6 },
+    "United Kingdom": { center: { lat: 55.3781, lng: -3.4360 }, zoom: 6 },
+    USA: { center: { lat: 37.0902, lng: -95.7129 }, zoom: 4 },
+    Austria: { center: { lat: 47.5162, lng: 14.5501 }, zoom: 7 },
+    Switzerland: { center: { lat: 46.8182, lng: 8.2275 }, zoom: 8 },
+};
+
 
 
 
@@ -249,7 +263,7 @@ function MapController({ selectedChurch, requestedLocation, isInitialLoad, recen
     return null;
 }
 
-function FilterController({ filteredChurches, activeCountryFilter }) {
+function FilterController({ filteredChurches, activeCountryFilter, isMobile }) {
     const map = useMap();
     const prevFilterRef = useRef("");
 
@@ -265,6 +279,14 @@ function FilterController({ filteredChurches, activeCountryFilter }) {
             return;
         }
 
+        // Use predefined country view if available for better framing
+        if (COUNTRY_VIEWS[activeCountryFilter]) {
+            const { center, zoom } = COUNTRY_VIEWS[activeCountryFilter];
+            map.panTo(center);
+            map.setZoom(zoom);
+            return;
+        }
+
         if (filteredChurches.length === 0) return;
 
         if (filteredChurches.length === 1) {
@@ -276,12 +298,14 @@ function FilterController({ filteredChurches, activeCountryFilter }) {
         // Fit bounds to all filtered churches
         const bounds = new google.maps.LatLngBounds();
         filteredChurches.forEach((c) => bounds.extend({ lat: c.lat, lng: c.lng }));
-        map.fitBounds(bounds, { top: 100, right: 100, bottom: 100, left: 100 }); // Increased padding from 40 to 100
+        
+        const padding = isMobile ? 40 : 100;
+        map.fitBounds(bounds, { top: padding, right: padding, bottom: padding, left: padding });
 
         // Cap the zoom after fitting bounds by watching zoom_changed immediately
         const zoomListener = map.addListener("zoom_changed", () => {
-            if (map.getZoom() > 8) {
-                map.setZoom(8); // Relaxed from 10 to 8
+            if (map.getZoom() > 10) {
+                map.setZoom(10); // Relaxed from 8 to 10 for better country focus
             }
         });
 
@@ -454,11 +478,12 @@ const Markers = ({ churches, onMarkerClick, selectedChurchId, hoveredMarkerId, s
 
 function ChurchMap() {
     const searchParams = useSearchParams();
-
+    
+    const [isMobile, setIsMobile] = useState(false);
+    const [bottomSheetMode, setBottomSheetMode] = useState("collapsed"); // "hidden" | "collapsed" | "expanded"
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [showOtherCountries, setShowOtherCountries] = useState(false);
     const otherCountriesRef = useRef(null);
-
 
     const [churches, setChurches] = useState([]);
     const [churchesLoading, setChurchesLoading] = useState(true);
@@ -471,16 +496,21 @@ function ChurchMap() {
     const [hoveredMarker, setHoveredMarker] = useState(null);
     const [copied, setCopied] = useState(false);
     const [mobileShowMap, setMobileShowMap] = useState(false);
-    const [bottomSheetMode, setBottomSheetMode] = useState("collapsed"); // "hidden" | "collapsed" | "expanded"
     const [filterOpen, setFilterOpen] = useState(false);
     const filterRef = useRef(null);
     const touchStartY = useRef(null);
-    const [isMobile, setIsMobile] = useState(false);
     const [isExiting, setIsExiting] = useState(false);
     const [dragHeight, setDragHeight] = useState(null);
     const [isDragging, setIsDragging] = useState(false);
     const startHeight = useRef(null);
     const sheetRef = useRef(null);
+
+    // Auto-close bottom sheet on mobile when a country is selected
+    useEffect(() => {
+        if (activeCountryFilter && isMobile) {
+            setBottomSheetMode("hidden");
+        }
+    }, [activeCountryFilter, isMobile, setBottomSheetMode]);
 
 
     useEffect(() => {
@@ -1146,7 +1176,7 @@ function ChurchMap() {
                             <div className="bottomSheetDragHandle"></div>
                         </div>
 
-                        {isMobile && !selectedChurch && bottomSheetMode !== "hidden" && (
+                        {isMobile && !selectedChurch && (
                             <div className="mobileControlsInSheet">
                                 <div className="mobileSearchBox">
                                     <input
@@ -1181,7 +1211,13 @@ function ChurchMap() {
                                 <div className="mobileFilterAction" ref={filterRef}>
                                     <button
                                         className={`mobileHeaderFilterBtn ${activeCountryFilter ? "hasFilter" : ""}`}
-                                        onClick={() => setFilterOpen(!filterOpen)}
+                                        onClick={() => {
+                                            const nextOpen = !filterOpen;
+                                            setFilterOpen(nextOpen);
+                                            if (nextOpen && bottomSheetMode === "hidden") {
+                                                setBottomSheetMode("collapsed");
+                                            }
+                                        }}
                                     >
                                         <span className="mobileFlagIcon">{activeFilterIcon}</span>
                                         <span className="mobileFilterCount">({activeCountryFilter ? (countryCounts[activeCountryFilter] || 0) : (countryCounts.all || 0)})</span>
@@ -1493,6 +1529,7 @@ function ChurchMap() {
                         <FilterController
                             filteredChurches={filteredChurches}
                             activeCountryFilter={activeCountryFilter}
+                            isMobile={isMobile}
                         />
                     </Map>
 
