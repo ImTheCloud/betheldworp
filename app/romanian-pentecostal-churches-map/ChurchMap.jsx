@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useCallback, useRef, Suspense } from "react";
+import { flushSync } from "react-dom";
 import { APIProvider, Map, AdvancedMarker, useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
 import { MarkerClusterer } from "@googlemaps/markerclusterer";
 import { useSearchParams } from "next/navigation";
@@ -1196,20 +1197,20 @@ function ChurchMap() {
                                         onFocus={() => {
                                             setIsSearchFocused(true);
                                             if (isMobile) {
-                                                // Disable transition on the bottom sheet temporarily so it snaps instantly
-                                                // to the top, preventing iOS Safari from trying to 'scroll' the page
-                                                // while it's animating.
                                                 if (sheetRef.current) {
                                                     sheetRef.current.style.transition = 'none';
                                                 }
-                                                setBottomSheetMode("expanded");
+                                                // flushSync forces React to instantly update the DOM with the "expanded" state
+                                                // before Safari evaluates the visual viewport layout for the keyboard.
+                                                flushSync(() => {
+                                                    setBottomSheetMode("expanded");
+                                                });
                                                 
-                                                // Restore the CSS transition after the keyboard is fully deployed
                                                 setTimeout(() => {
                                                     if (sheetRef.current) {
                                                         sheetRef.current.style.transition = '';
                                                     }
-                                                }, 400);
+                                                }, 100);
                                             }
                                         }}
                                         onBlur={() => {
