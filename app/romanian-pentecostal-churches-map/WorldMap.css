@@ -2035,20 +2035,8 @@
     .churchMapBottomSheet[data-mode="hidden"] {
         height: var(--dynamic-height, 64px); /* Increased from 40px for better grab area on iPhone */
         opacity: 1;
-        overflow: hidden !important; /* Prevent content bleed when closed */
     }
 
-    /* Hide internal content in hidden mode to prevent bleed/overlap with handle */
-    .churchMapBottomSheet[data-mode="hidden"]:not(.is-dragging) .churchList {
-        opacity: 0;
-        pointer-events: none;
-        visibility: hidden;
-    }
-    
-    /* Completely remove footer in hidden mode for clean closure */
-    .churchMapBottomSheet[data-mode="hidden"]:not(.is-dragging) .churchSidebarFooter {
-        display: none;
-    }
 
     .churchMapBottomSheet[data-mode="expanded"] {
         height: var(--dynamic-height, calc(100dvh - var(--mobile-header-height) - 12px));
