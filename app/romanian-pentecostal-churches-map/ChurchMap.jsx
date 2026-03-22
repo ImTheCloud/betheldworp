@@ -489,6 +489,7 @@ function ChurchMap() {
     const [churchesLoading, setChurchesLoading] = useState(true);
     const [selectedChurch, setSelectedChurch] = useState(null);
     const [searchQuery, setSearchQuery] = useState("");
+    const [isSearchFocused, setIsSearchFocused] = useState(false);
     const [userLocation, setUserLocation] = useState(null);
     const [recenterTrigger, setRecenterTrigger] = useState(0);
     const [isInitialLoad, setIsInitialLoad] = useState(true);
@@ -898,10 +899,7 @@ function ChurchMap() {
             return;
         }
 
-        // Don't start drag on interactive elements to allow their default behavior
-        if (e.target.closest('button') || e.target.closest('a') || e.target.closest('input')) {
-            return;
-        }
+        // Removed the button/input guard to allow dragging from everywhere
 
         touchStartY.current = e.touches[0].clientY;
         if (sheetRef.current) {
@@ -916,7 +914,13 @@ function ChurchMap() {
         const deltaY = currentY - touchStartY.current;
 
         // Threshold check to avoid accidental micro-drags when wanting to tap
-        if (Math.abs(deltaY) < 5) return;
+        if (Math.abs(deltaY) < 10) return;
+
+        // If we are definitely dragging, blur any active element (closes keyboard)
+        if (document.activeElement instanceof HTMLElement && 
+           (e.target.closest('input') || e.target.closest('button'))) {
+            document.activeElement.blur();
+        }
 
         // Check for scrollable content conflict
         const scrollableContent = e.target.closest('.churchList');
@@ -1184,15 +1188,28 @@ function ChurchMap() {
                                         placeholder={t("searchPlaceholder")}
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
-                                        onFocus={() => isMobile && setBottomSheetMode("expanded")}
+                                        onFocus={() => {
+                                            setIsSearchFocused(true);
+                                            if (isMobile) setBottomSheetMode("expanded");
+                                        }}
                                         onBlur={() => {
+                                            // Delay to allow clear button click
+                                            setTimeout(() => setIsSearchFocused(false), 200);
                                             if (isMobile && !searchQuery.trim()) {
                                                 setBottomSheetMode("collapsed");
                                             }
                                         }}
                                     />
-                                    {searchQuery ? (
-                                        <button className="mobileSearchClear" onClick={() => setSearchQuery("")}>
+                                    {(searchQuery || isSearchFocused) ? (
+                                        <button 
+                                            className="mobileSearchClear" 
+                                            onClick={() => {
+                                                setSearchQuery("");
+                                                if (document.activeElement instanceof HTMLElement) {
+                                                    document.activeElement.blur();
+                                                }
+                                            }}
+                                        >
                                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                                 <line x1="18" y1="6" x2="6" y2="18"></line>
                                                 <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -1406,10 +1423,20 @@ function ChurchMap() {
                                 placeholder={t("searchPlaceholder")}
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
+                                onFocus={() => setIsSearchFocused(true)}
+                                onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
                             />
                             <div className="searchActions">
-                                {searchQuery ? (
-                                    <button className="searchClearBtn" onClick={() => setSearchQuery("")}>
+                                {(searchQuery || isSearchFocused) ? (
+                                    <button 
+                                        className="searchClearBtn" 
+                                        onClick={() => {
+                                            setSearchQuery("");
+                                            if (document.activeElement instanceof HTMLElement) {
+                                                document.activeElement.blur();
+                                            }
+                                        }}
+                                    >
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                             <line x1="18" y1="6" x2="6" y2="18"></line>
                                             <line x1="6" y1="6" x2="18" y2="18"></line>
