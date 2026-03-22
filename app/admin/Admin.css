@@ -1692,8 +1692,17 @@
     border: 1px solid rgba(10, 42, 67, 0.08);
 }
 
+.adminModalFooter {
+    padding: 16px 24px;
+    background: #f8f9fa;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
 .adminModalHeader {
     padding: 24px 24px 8px;
+    position: relative;
 }
 
 .adminModalTitle {
@@ -1715,16 +1724,31 @@
     font-weight: 500;
 }
 
-.adminModalFooter {
-    padding: 16px 24px;
-    background: #f8f9fa;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
+.adminModalClose {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    background: transparent;
+    border: none;
+    padding: 6px;
+    cursor: pointer;
+    color: rgba(10, 42, 67, 0.4);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.adminModalClose:hover {
+    background: rgba(10, 42, 67, 0.05);
+    color: #ef4444;
 }
 
 .adminModalBtn {
     height: 44px;
+    flex: 1;
+    min-width: 0;
     border-radius: 10px;
     font-weight: 700;
     font-size: 14px;
@@ -1733,6 +1757,8 @@
     border: none;
     display: grid;
     place-items: center;
+    white-space: nowrap;
+    padding: 0 8px;
 }
 
 .adminModalBtn--cancel {
@@ -1764,6 +1790,35 @@
 .adminModalBtn--primary:hover {
     background: #164678;
     box-shadow: 0 4px 12px rgba(10, 42, 67, 0.2);
+}
+
+/* Sober Variant */
+.adminModalBtn--accent {
+    background: #64748b !important;
+    color: #fff !important;
+}
+
+.adminModalBtn--accent:hover {
+    background: #475569 !important;
+    box-shadow: 0 4px 12px rgba(100, 116, 139, 0.2);
+}
+
+.adminModalBtn--secondary {
+    background: #fff !important;
+    border: 1px solid rgba(10, 42, 67, 0.15) !important;
+    color: #0a2a43 !important;
+}
+
+.adminModalBtn--secondary:hover {
+    background: #f9fafb !important;
+    border-color: #0a2a43 !important;
+}
+
+@media (max-width: 600px) {
+    .adminModalBtn {
+        font-size: 13px;
+        padding: 0 4px;
+    }
 }
 
 @keyframes modalScaleUp {

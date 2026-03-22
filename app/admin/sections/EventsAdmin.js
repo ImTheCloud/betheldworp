@@ -673,12 +673,27 @@ export default function EventsAdmin({ onCreateOverride }) {
         if (dateChanged) {
             setModal({
                 isOpen: true,
-                title: "Change Date?",
-                message: "Changing the date will create a NEW event for the new date and keep the original event unchanged. Continue?",
-                onConfirm: () => {
-                    setModal({ isOpen: false });
-                    executeSaveOne(id, draft, original, true);
-                }
+                title: "Update Date or Duplicate?",
+                message: "You have changed the date. Do you want to update the existing event's date, or create a new event and keep the original one as it is?",
+                cancelText: "Cancel",
+                actions: [
+                    {
+                        label: "Update",
+                        variant: "primary",
+                        onClick: () => {
+                            setModal({ isOpen: false });
+                            executeSaveOne(id, draft, original, false);
+                        }
+                    },
+                    {
+                        label: "Duplicate",
+                        variant: "secondary",
+                        onClick: () => {
+                            setModal({ isOpen: false });
+                            executeSaveOne(id, draft, original, true);
+                        }
+                    }
+                ]
             });
             return;
         }
@@ -901,9 +916,11 @@ export default function EventsAdmin({ onCreateOverride }) {
                         title={modal.title}
                         message={modal.message}
                         confirmText={modal.confirmText}
+                        cancelText={modal.cancelText}
                         variant={modal.variant}
                         onConfirm={modal.onConfirm}
                         onCancel={() => setModal({ ...modal, isOpen: false })}
+                        actions={modal.actions}
                     />
                 </div>
             )}
