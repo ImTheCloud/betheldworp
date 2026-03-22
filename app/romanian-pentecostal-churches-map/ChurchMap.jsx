@@ -895,17 +895,14 @@ function ChurchMap() {
 
     const handleTouchStart = (e) => {
         const isHeader = e.target.closest('.bottomSheetDragHandleArea') || e.target.closest('.mobileControlsInSheet');
-        isHeaderTouch.current = !!isHeader;
-
-        // If not header, check list scroll conflict
+        
         if (!isHeader) {
-            const scrollableContent = e.target.closest('.churchList');
-            if (scrollableContent && scrollableContent.scrollTop > 0) {
-                return;
-            }
+            isHeaderTouch.current = false;
+            setIsDragging(false);
+            return;
         }
 
-        // Removed the button/input guard to allow dragging from everywhere
+        isHeaderTouch.current = true;
         touchStartY.current = e.touches[0].clientY;
         if (sheetRef.current) {
             startHeight.current = sheetRef.current.offsetHeight;
@@ -914,7 +911,7 @@ function ChurchMap() {
     };
 
     const handleTouchMove = (e) => {
-        if (!isDragging || !startHeight.current) return;
+        if (!isDragging || !startHeight.current || !isHeaderTouch.current) return;
         const currentY = e.touches[0].clientY;
         const deltaY = currentY - touchStartY.current;
 
@@ -925,29 +922,6 @@ function ChurchMap() {
         if (document.activeElement instanceof HTMLElement && 
            (e.target.closest('input') || e.target.closest('button'))) {
             document.activeElement.blur();
-        }
-
-        const scrollableContent = e.target.closest('.churchList');
-        
-        // Header always drags, never scrolls
-        if (isHeaderTouch.current) {
-            // Drag on!
-        } else if (scrollableContent) {
-            const isSwipingDown = deltaY > 0;
-            const isSwipingUp = deltaY < 0;
-            const atTop = scrollableContent.scrollTop <= 0;
-
-            // If we are expanded, let the list scroll naturally for up-swipes
-            if (isSwipingUp && bottomSheetMode === "expanded") {
-                setIsDragging(false);
-                return;
-            }
-
-            // If swiping down and not at top of list, let list scroll
-            if (isSwipingDown && !atTop) {
-                setIsDragging(false);
-                return;
-            }
         }
 
         // If we reach here, we are dragging the SHEET, so prevent scroll

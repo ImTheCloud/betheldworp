@@ -2,8 +2,8 @@ import React, { Suspense } from "react";
 import ChurchMap from "./ChurchMap";
 
 export const metadata = {
-    title: "Harta Bisericilor Penticostale Române din Diaspora | Bethel Dworp",
-    description: "Explorează harta interactivă a bisericilor penticostale române din diaspora. Găsește adrese, contacte și detalii despre comunitățile creștine românești din întreaga lume.",
+    title: "Harta Bisericilor Penticostale Române din lume | Bethel Dworp",
+    description: "Explorează harta interactivă a bisericilor penticostale române din lume. Găsește adrese, contacte și detalii despre comunitățile creștine românești din întreaga lume.",
     robots: { index: true, follow: true },
 };
 
