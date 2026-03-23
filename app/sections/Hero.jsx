@@ -29,11 +29,22 @@ export default function Hero() {
     const [bgLoaded, setBgLoaded] = useState(false);
 
     const lastRef = useRef({ reference: "", text: "" });
+    const imgRef = useRef(null);
 
+    // Initial check in case the image is already downloaded/cached
     useEffect(() => {
-        const id = setTimeout(() => setEntered(true), 90);
-        return () => clearTimeout(id);
+        if (imgRef.current && imgRef.current.complete) {
+            setBgLoaded(true);
+        }
     }, []);
+
+    // Only start entry animations once the background is loaded
+    useEffect(() => {
+        if (bgLoaded) {
+            const id = setTimeout(() => setEntered(true), 90);
+            return () => clearTimeout(id);
+        }
+    }, [bgLoaded]);
 
     useEffect(() => {
         setLoading(true);
@@ -81,6 +92,7 @@ export default function Hero() {
             )}
             
             <img
+                ref={imgRef}
                 className={`hero-bgImg ${bgLoaded ? 'is-loaded' : ''}`}
                 src="/images/landing_page/drone.jpg"
                 alt=""
