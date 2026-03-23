@@ -321,7 +321,7 @@ function EventCard({ item, expanded, draft, saveState, errorText, activeLang, on
     );
 }
 
-function NewEventCard({ draft, saveState, errorText, activeLang, onLangChange, onChangeField, onCancel, onSave }) {
+function NewEventCard({ draft, saveState, errorText, activeLang, onLangChange, onChangeField, onCancel, onSave, templates = [], onSelectTemplate }) {
     const langKey = activeLang || "ro";
 
     return (
@@ -331,6 +331,30 @@ function NewEventCard({ draft, saveState, errorText, activeLang, onLangChange, o
             </div>
 
             <div className="adminAnnBody">
+                <div className="adminTemplateSelector" style={{ marginBottom: 16 }}>
+                    <label className="adminLabel" style={{ marginBottom: 4 }}>
+                        Create from Template (Existing Events)
+                    </label>
+                    <select 
+                        className="adminInput"
+                        onChange={(e) => {
+                            const selectedId = e.target.value;
+                            const template = templates.find(t => t.id === selectedId);
+                            if (template && onSelectTemplate) {
+                                onSelectTemplate(template);
+                            }
+                        }}
+                        defaultValue=""
+                    >
+                        <option value="" disabled>-- Select an existing event --</option>
+                        {templates.map((t) => (
+                            <option key={t.id} value={t.id}>
+                                {pickFallback(t.title)} ({t.dateEvent})
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
                 {errorText ? <div className="adminAlert">{errorText}</div> : null}
 
                 <div className="adminGrid2">
@@ -463,6 +487,35 @@ export default function EventsAdmin({ onCreateOverride }) {
     const [modal, setModal] = useState({ isOpen: false, title: "", message: "", onConfirm: () => { } });
 
     const [showHistory, setShowHistory] = useState(false);
+
+    const templates = useMemo(() => {
+        const sortedByDate = [...items].sort((a, b) => b.dateEvent.localeCompare(a.dateEvent));
+        const res = [];
+        const seenTitles = new Set();
+        let latestWedding = null;
+
+        for (const it of sortedByDate) {
+            const t = pickFallback(it.title).trim();
+            if (!t) continue;
+
+            const isWedding = t.toLowerCase().startsWith("nuntă") || t.toLowerCase().startsWith("mariage");
+            
+            if (isWedding) {
+                if (!latestWedding) {
+                    latestWedding = it;
+                }
+            } else {
+                if (!seenTitles.has(t)) {
+                    seenTitles.add(t);
+                    res.push(it);
+                }
+            }
+        }
+
+        if (latestWedding) res.push(latestWedding);
+
+        return res.sort((a, b) => pickFallback(a.title).localeCompare(pickFallback(b.title)));
+    }, [items]);
 
     const filteredItems = useMemo(() => {
         if (!searchQuery.trim()) return items;
@@ -611,6 +664,15 @@ export default function EventsAdmin({ onCreateOverride }) {
         setShowNew(false);
         setNewState("idle");
         setNewError("");
+    };
+
+    const applyTemplate = (templateItem) => {
+        if (!templateItem) return;
+        const d = normalizeEvent(templateItem);
+        setNewDraft((prev) => ({
+            ...d,
+            dateEvent: prev.dateEvent, // Keep the date if user already started picking it
+        }));
     };
 
     const saveNew = async () => {
@@ -844,6 +906,8 @@ export default function EventsAdmin({ onCreateOverride }) {
                                 onChangeField={changeNewField}
                                 onCancel={cancelNew}
                                 onSave={saveNew}
+                                templates={templates}
+                                onSelectTemplate={applyTemplate}
                             />
                         </div>
                     ) : null}
