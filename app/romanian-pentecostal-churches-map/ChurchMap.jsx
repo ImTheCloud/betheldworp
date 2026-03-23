@@ -295,9 +295,9 @@ function FilterController({ filteredChurches, activeCountryFilter, isMobile }) {
         prevFilterRef.current = activeCountryFilter;
 
         if (!activeCountryFilter) {
-            // Reset to default view (Belgium)
-            map.panTo(BELGIUM_CENTER);
-            map.setZoom(8);
+            // Reset to wide view of Europe (instead of just Belgium)
+            map.panTo({ lat: 48.0, lng: 15.0 });
+            map.setZoom(4);
             return;
         }
 
