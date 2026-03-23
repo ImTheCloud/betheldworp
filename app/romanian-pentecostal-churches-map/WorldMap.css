@@ -2043,10 +2043,6 @@
     }
 
     /* Bottom Sheet Overrides – Mobile */
-    :root {
-        --bottom-sheet-collapsed-height: 40vh;
-    }
-
     .churchMapBottomSheet {
         position: relative;
         pointer-events: none;
@@ -2054,7 +2050,7 @@
         border: none;
         border-radius: 0 !important;
         overflow: visible !important; /* Force visibility for dropdowns */
-        height: var(--dynamic-height, var(--bottom-sheet-collapsed-height)); /* Unified height */
+        height: var(--dynamic-height, 40vh); /* Reduced from 48vh for more map visibility */
         flex: none;
         transition: height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         flex-shrink: 0;
@@ -2077,7 +2073,7 @@
     }
 
     .churchMapBottomSheet:has(.mobileChurchDetails) {
-        height: var(--dynamic-height, var(--bottom-sheet-collapsed-height)); /* Match list view height */
+        height: var(--dynamic-height, 40vh); /* Match list view height */
         max-height: 95vh;
     }
 
@@ -2197,12 +2193,8 @@
 
 
 @media (max-width: 480px) {
-    :root {
-        --bottom-sheet-collapsed-height: 45vh; /* Larger for small phones */
-    }
-
     .churchMapBottomSheet {
-        height: var(--dynamic-height, var(--bottom-sheet-collapsed-height));
+        height: var(--dynamic-height, 45vh);
     }
 
     .churchDetailsCard {
