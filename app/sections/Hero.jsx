@@ -26,6 +26,7 @@ export default function Hero() {
     const [loading, setLoading] = useState(true);
     const [loadFailed, setLoadFailed] = useState(false);
     const [entered, setEntered] = useState(false);
+    const [bgLoaded, setBgLoaded] = useState(false);
 
     const lastRef = useRef({ reference: "", text: "" });
 
@@ -73,14 +74,21 @@ export default function Hero() {
 
     return (
         <section className="hero">
+            {!bgLoaded && (
+                <div className="hero-loader">
+                    <div className="hero-spinner"></div>
+                </div>
+            )}
+            
             <img
-                className="hero-bgImg"
+                className={`hero-bgImg ${bgLoaded ? 'is-loaded' : ''}`}
                 src="/images/landing_page/drone.jpg"
                 alt=""
                 aria-hidden="true"
                 loading="eager"
                 decoding="async"
                 fetchPriority="high"
+                onLoad={() => setBgLoaded(true)}
             />
 
             <div className={`hero-content ${entered ? "is-entered" : ""}`.trim()}>
