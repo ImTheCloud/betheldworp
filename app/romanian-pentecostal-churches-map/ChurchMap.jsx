@@ -434,7 +434,7 @@ const Markers = ({ churches, onMarkerClick, selectedChurchId, hoveredMarkerId, s
 
         if (tooltip) {
             tooltip.style.display = (isHovered && !isSelected) ? 'block' : 'none';
-            tooltip.textContent = `${church.name}${church.city ? ` - ${church.city}` : ''}`;
+            tooltip.textContent = `${church.name}${church.city ? ` ${church.city}` : ''}`;
         }
 
         marker.zIndex = isSelected ? 1000 : (isHovered ? 999 : 1);
@@ -751,7 +751,7 @@ function ChurchMap() {
             try {
                 const topic = "bethel_churches_notifications_f93k2n8";
                 const title = suggestionType === "new" ? t("suggestionNotificationNew") : t("suggestionNotificationEdit");
-                const message = `${suggestionForm.name} - ${suggestionForm.city} (${getCountryLabel(suggestionForm.country)})`;
+                const message = `${suggestionForm.name} ${suggestionForm.city} (${getCountryLabel(suggestionForm.country)})`;
                 
                 // Use query params instead of headers to avoid CORS preflight issues in browsers
                 const notifyUrl = `https://ntfy.sh/${topic}?title=${encodeURIComponent(title)}&priority=high&tags=church,pray`;
@@ -1297,7 +1297,7 @@ function ChurchMap() {
                                         <div className={`mobileChurchDetails ${isExiting ? "exiting" : ""}`}>
                                             <div className="mobileDetailsHeader">
                                                 <h2 className="churchDetailsTitle">
-                                                    {selectedChurch.name}{selectedChurch.city ? ` - ${selectedChurch.city}` : ''}
+                                                    {selectedChurch.name}{selectedChurch.city ? ` ${selectedChurch.city}` : ''}
                                                 </h2>
                                                 <div className="mobileDetailsHeaderActions">
                                                     <button className="mobileDetailsBack" onClick={deselectChurch} aria-label="Close">
@@ -1311,7 +1311,7 @@ function ChurchMap() {
 
                                             <div className="mobileDetailsBody">
                                                 <p className="churchDetailsAddress">
-                                                    {`${selectedChurch.street || ""} ${selectedChurch.number || ""}`.trim()}, {selectedChurch.zipCode ? `${selectedChurch.zipCode} ` : ""}{selectedChurch.city}, {getCountryLabel(selectedChurch.country)}
+                                                    {[(`${selectedChurch.street || ""} ${selectedChurch.number || ""}`.trim()), (`${selectedChurch.zipCode ? `${selectedChurch.zipCode} ` : ""}${selectedChurch.city || ""}`.trim()), getCountryLabel(selectedChurch.country)].filter(Boolean).join(", ")}
                                                 </p>
 
                                                 <ChurchInfoLinks church={selectedChurch} t={t} />
@@ -1344,8 +1344,8 @@ function ChurchMap() {
                                                                     </svg>
                                                                 </div>
                                                                 <div className="churchListItemContent">
-                                                                    <h3>{church.name}{church.city ? ` - ${church.city}` : ''}</h3>
-                                                                    <p>{`${church.street || ""} ${church.number || ""}`.trim()}, {church.zipCode ? `${church.zipCode} ` : ""}{church.city}, {getCountryLabel(church.country)}</p>
+                                                                    <h3>{church.name}{church.city ? ` ${church.city}` : ''}</h3>
+                                                                    <p>{[(`${church.street || ""} ${church.number || ""}`.trim()), (`${church.zipCode ? `${church.zipCode} ` : ""}${church.city || ""}`.trim()), getCountryLabel(church.country)].filter(Boolean).join(", ")}</p>
                                                                 </div>
                                                             </button>
                                                         );
@@ -1571,7 +1571,7 @@ function ChurchMap() {
                         <div className="churchDetailsCard">
                             <div className="churchDetailsHeader">
                                 <h2 className="churchDetailsTitle">
-                                    {selectedChurch.name}{selectedChurch.city ? ` - ${selectedChurch.city}` : ''}
+                                    {selectedChurch.name}{selectedChurch.city ? ` ${selectedChurch.city}` : ''}
                                 </h2>
                                 <div className="churchDetailsHeaderActions">
                                     <button className="churchDetailsClose" onClick={deselectChurch} aria-label="Close">
@@ -1584,7 +1584,7 @@ function ChurchMap() {
                             </div>
                             <div className="churchDetailsContent">
                                 <p className="churchDetailsAddress">
-                                    {`${selectedChurch.street || ""} ${selectedChurch.number || ""}`.trim()}, {selectedChurch.zipCode ? `${selectedChurch.zipCode} ` : ""}{selectedChurch.city}, {getCountryLabel(selectedChurch.country)}
+                                    {[(`${selectedChurch.street || ""} ${selectedChurch.number || ""}`.trim()), (`${selectedChurch.zipCode ? `${selectedChurch.zipCode} ` : ""}${selectedChurch.city || ""}`.trim()), getCountryLabel(selectedChurch.country)].filter(Boolean).join(", ")}
                                 </p>
                                 <ChurchInfoLinks church={selectedChurch} t={t} />
 
