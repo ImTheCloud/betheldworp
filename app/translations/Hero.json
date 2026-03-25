@@ -2,33 +2,33 @@
   "ro": {
     "title": "Vă așteptăm la biserica Bethel",
     "subtitle": "în casa lui Dumnezeu",
-    "monthly_verse": "Versetul lunii",
+    "monthly_verse": "Versetul lunii al bisericii",
     "loading": "(se încarcă...)",
-    "error_no_verse": "Nu există verset setat pentru luna curentă.",
-    "error_load_verse": "Nu am putut încărca versetul lunii."
+    "error_no_verse": "Momentan nu este setat niciun verset pentru această lună.",
+    "error_load_verse": "Eroare la încărcarea versetului de luna aceasta."
   },
   "fr": {
     "title": "Nous vous attendons à l’église Bethel",
     "subtitle": "dans la maison de Dieu",
-    "monthly_verse": "Verset du mois",
+    "monthly_verse": "Verset du mois de l’église",
     "loading": "(chargement...)",
-    "error_no_verse": "Aucun verset n’est défini pour le mois en cours.",
-    "error_load_verse": "Impossible de charger le verset du mois."
+    "error_no_verse": "Aucun verset n'est encore disponible pour ce mois.",
+    "error_load_verse": "Erreur lors du chargement du verset du mois."
   },
   "nl": {
     "title": "Welkom in de Bethelkerk",
     "subtitle": "in het huis van God",
-    "monthly_verse": "Vers van de maand",
+    "monthly_verse": "Vers van de maand van de kerk",
     "loading": "(laden...)",
-    "error_no_verse": "Er is geen vers ingesteld voor deze maand.",
-    "error_load_verse": "We konden het vers van de maand niet laden."
+    "error_no_verse": "Er is momenteel geen vers beschikbaar voor deze maand.",
+    "error_load_verse": "Fout bij het laden van het kerkvers van de maand."
   },
   "en": {
     "title": "Welcome to Bethel church",
     "subtitle": "in the house of God",
-    "monthly_verse": "Verse of the month",
+    "monthly_verse": "Church Verse of the Month",
     "loading": "(loading...)",
-    "error_no_verse": "No verse is set for the current month.",
-    "error_load_verse": "We couldn't load the verse of the month."
+    "error_no_verse": "No verse has been set for this month yet.",
+    "error_load_verse": "Failed to load the church's verse for this month."
   }
 }
