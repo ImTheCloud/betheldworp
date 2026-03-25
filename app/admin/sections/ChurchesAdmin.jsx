@@ -10,6 +10,16 @@ import AdminSearch from "../components/AdminSearch";
 
 const safeStr = (v) => String(v ?? "");
 
+const matchChurchSearch = (c, q) => {
+    if (!q) return true;
+    const fields = [
+        c.name, c.city, c.country, c.locationTitle, 
+        c.street, c.number, c.zipCode, 
+        c.phone, c.email, c.notes
+    ];
+    return fields.some(val => safeStr(val).toLowerCase().includes(q));
+};
+
 function IconPlus(props) {
     return (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
@@ -355,11 +365,7 @@ export default function ChurchesAdmin() {
 
         if (searchQuery.trim()) {
             const q = searchQuery.toLowerCase();
-            arr = arr.filter(it => 
-                safeStr(it.name).toLowerCase().includes(q) ||
-                safeStr(it.city).toLowerCase().includes(q) ||
-                safeStr(it.country).toLowerCase().includes(q)
-            );
+            arr = arr.filter(it => matchChurchSearch(it, q));
         }
         arr.sort((a, b) => {
             if (sortBy === "az") return a.name.localeCompare(b.name);
@@ -725,7 +731,7 @@ export default function ChurchesAdmin() {
                 <AdminSearch
                     value={searchQuery}
                     onChange={setSearchQuery}
-                    placeholder="Search by name, city, or country"
+                    placeholder="Search"
                 />
             </div>
 

@@ -170,7 +170,7 @@ function EventCard({ item, expanded, draft, saveState, errorText, activeLang, on
             <div className="adminAnnHeader" style={{ cursor: "pointer", justifyContent: "space-between" }} onClick={() => onToggle(id)}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
                     <div className="adminAnnIdChip">{date || "No date"}</div>
-                    <div className="adminSummary"><strong>{title || "No title"}</strong></div>
+                    <div className="adminSummary">{title || "No title"}</div>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     <button
@@ -885,7 +885,7 @@ export default function EventsAdmin({ onCreateOverride }) {
                 <AdminSearch
                     value={searchQuery}
                     onChange={setSearchQuery}
-                    placeholder="Search Events"
+                    placeholder="Search"
                 />
             </div>
 

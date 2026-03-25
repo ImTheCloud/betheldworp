@@ -583,7 +583,7 @@ export default function NewsletterAdmin() {
                 <AdminSearch
                     value={searchQuery}
                     onChange={setSearchQuery}
-                    placeholder="Search Email"
+                    placeholder="Search"
                 />
             </div>
 

@@ -744,7 +744,7 @@ export default function MonthlyVerseAdmin() {
                 <AdminSearch
                     value={searchQuery}
                     onChange={setSearchQuery}
-                    placeholder="Search History"
+                    placeholder="Search"
                 />
             </div>
 
@@ -807,7 +807,7 @@ export default function MonthlyVerseAdmin() {
                                     return (
                                         <VerseCard
                                             key={h.id}
-                                            label={h.id}
+                                            label={safeStr(h.id).split("-").slice(0, 3).join("-")}
                                             expanded={expanded}
                                             summary={makeSummary(h.reference, h.text)}
                                             draft={draft}

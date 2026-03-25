@@ -705,7 +705,7 @@ export default function StatsAdmin() {
                 <AdminSearch
                     value={search}
                     onChange={setSearch}
-                    placeholder={`Search ${nameLabel}`}
+                    placeholder="Search"
                 />
             </div>
 

@@ -58,6 +58,15 @@ const COUNTRY_CODES = {
     Australia: "au",
 };
 
+const matchChurchSearch = (c, q) => {
+    if (!q) return true;
+    const fields = [
+        c.name, c.city, c.country, c.locationTitle, 
+        c.street, c.number, c.zipCode, 
+        c.phone, c.email, c.notes
+    ];
+    return fields.some(val => (val || "").toLowerCase().includes(q));
+};
 const FlagImage = ({ country, className = "" }) => {
     const code = COUNTRY_CODES[country];
     if (!code) return <span className={className} style={{ fontSize: '1.1rem' }}>🌍</span>;
@@ -1219,12 +1228,7 @@ function ChurchMap() {
         let filteredForCounts = [...churches];
         if (searchQuery.trim()) {
             const q = searchQuery.toLowerCase();
-            filteredForCounts = filteredForCounts.filter(
-                (c) =>
-                    c.name.toLowerCase().includes(q) ||
-                    c.city.toLowerCase().includes(q) ||
-                    c.country.toLowerCase().includes(q)
-            );
+            filteredForCounts = filteredForCounts.filter(c => matchChurchSearch(c, q));
         }
 
         const counts = { all: filteredForCounts.length };
@@ -1272,12 +1276,7 @@ function ChurchMap() {
         }
         if (searchQuery.trim()) {
             const q = searchQuery.toLowerCase();
-            result = result.filter(
-                (c) =>
-                    c.name.toLowerCase().includes(q) ||
-                    c.city.toLowerCase().includes(q) ||
-                    c.country.toLowerCase().includes(q)
-            );
+            result = result.filter(c => matchChurchSearch(c, q));
         }
         result.sort((a, b) => a.name.localeCompare(b.name));
         return result;
@@ -1371,7 +1370,6 @@ function ChurchMap() {
                                 </button>
                                 <div className="sidebarBrand">
                                     <span className="sidebarTitle">{t("title")}</span>
-                                    <img src="/icon.png" alt="Logo" className="sidebarLogo" />
                                 </div>
                             </div>
                         ) : (
