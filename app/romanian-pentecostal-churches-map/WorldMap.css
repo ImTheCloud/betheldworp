@@ -2132,6 +2132,7 @@
     .countryFilterMenu.mobileVersion {
         position: absolute;
         top: calc(100% + 4px); /* Open downwards to stay within screen/sheet */
+        left: auto;
         right: 0;
         width: 190px;
         max-height: 220px;

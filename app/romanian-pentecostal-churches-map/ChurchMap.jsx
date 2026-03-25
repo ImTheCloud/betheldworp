@@ -1476,28 +1476,30 @@ function ChurchMap() {
                                     {filterOpen && (
                                         <div className="countryFilterMenu mobileVersion">
                                             <button
-                                                className={`countryFilterOption ${!activeCountryFilter ? "active" : ""}`}
+                                                className={`dropdownItem ${!activeCountryFilter ? "active" : ""}`}
                                                 onClick={() => {
                                                     setActiveCountryFilter("");
                                                     setFilterRecenterTrigger(prev => prev + 1);
                                                     setFilterOpen(false);
                                                 }}
                                             >
-                                                <span style={{ fontSize: '1.1rem', marginRight: '8px' }}>🌍</span> {t("allCountries")}
-                                                <span style={{ fontSize: '0.85rem', opacity: 0.7, marginLeft: 'auto' }}>({countryCounts.all || 0})</span>
+                                                <span style={{ fontSize: '1.2rem', marginRight: '8px' }}>🌍</span>
+                                                <span className="dropdownLabel">{t("allCountries")}</span>
+                                                <span className="dropdownCount">{countryCounts.all || 0}</span>
                                             </button>
-                                            {ALL_COUNTRIES.map((country) => (
+                                            {ALL_COUNTRIES.filter(c => countryCounts[c] > 0).map((country) => (
                                                 <button
                                                     key={country}
-                                                    className={`countryFilterOption ${activeCountryFilter === country ? "active" : ""}`}
+                                                    className={`dropdownItem ${activeCountryFilter === country ? "active" : ""}`}
                                                     onClick={() => {
                                                         setActiveCountryFilter(country);
                                                         setFilterRecenterTrigger(prev => prev + 1);
                                                         setFilterOpen(false);
                                                     }}
                                                 >
-                                                    <FlagImage country={country} /> {getCountryLabel(country)}
-                                                    <span style={{ fontSize: '0.85rem', opacity: 0.7, marginLeft: 'auto' }}>({countryCounts[country] || 0})</span>
+                                                    <FlagImage country={country} />
+                                                    <span className="dropdownLabel">{getCountryLabel(country)}</span>
+                                                    <span className="dropdownCount">{countryCounts[country] || 0}</span>
                                                 </button>
                                             ))}
                                         </div>
@@ -1739,9 +1741,7 @@ function ChurchMap() {
                                             <span className="dropdownLabel">{t("allCountries")}</span>
                                             <span className="dropdownCount">{countryCounts.all || 0}</span>
                                         </button>
-                                        {Object.keys(countryCounts).filter(c => c !== 'all' && countryCounts[c] > 0)
-                                            .sort((a, b) => getCountryLabel(a).localeCompare(getCountryLabel(b)))
-                                            .map((country) => (
+                                        {ALL_COUNTRIES.filter(c => countryCounts[c] > 0).map((country) => (
                                                 <button
                                                     key={country}
                                                     className={`dropdownItem ${activeCountryFilter === country ? "active" : ""}`}
