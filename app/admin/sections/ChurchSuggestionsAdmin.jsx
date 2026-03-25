@@ -63,21 +63,35 @@ const FIELDS = [
     { key: "instagram", label: "Instagram", type: "text" },
 ];
 
-const geocodeAddress = async (street, number, city, zipCode, country) => {
-    const query = [`${street || ""} ${number || ""}`.trim(), zipCode, city, country].map(s => (s || "").trim()).filter(Boolean).join(", ");
-    if (!query) return null;
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-    if (!apiKey) return null;
+const geocodeAddress = async (street, number, city, zipCode, country, locationTitle = "") => {
+    // 1. Try Places API via proxy if we have a locationTitle
+    if (locationTitle) {
+        try {
+            const placeQuery = [locationTitle, city, country].filter(Boolean).join(", ");
+            const res = await fetch(`/api/geocode?type=places&query=${encodeURIComponent(placeQuery)}`);
+            const data = await res.json();
+            if (data.results && data.results.length > 0) {
+                const loc = data.results[0].geometry.location;
+                return { lat: loc.lat, lng: loc.lng };
+            }
+        } catch (e) {
+            console.error("Places Proxy Search failed:", e);
+        }
+    }
+
+    // 2. Fallback to standard Geocoding API via proxy
+    const addressQuery = [`${street || ""} ${number || ""}`.trim(), zipCode, city, country].map(s => (s || "").trim()).filter(Boolean).join(", ");
+    if (!addressQuery) return null;
+    
     try {
-        const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(query)}&key=${apiKey}`;
-        const res = await fetch(url);
+        const res = await fetch(`/api/geocode?type=geocode&address=${encodeURIComponent(addressQuery)}`);
         const data = await res.json();
         if (data.results && data.results.length > 0) {
             const loc = data.results[0].geometry.location;
             return { lat: loc.lat, lng: loc.lng };
         }
     } catch (e) {
-        console.error("Geocoding failed:", e);
+        console.error("Geocoding Proxy failed:", e);
     }
     return null;
 };
@@ -165,7 +179,7 @@ export default function ChurchSuggestionsAdmin() {
             const { type, originalChurchId } = suggestion;
 
             // 1. Geocode
-            const coords = await geocodeAddress(draft.street, draft.number, draft.city, draft.zipCode, draft.country);
+            const coords = await geocodeAddress(draft.street, draft.number, draft.city, draft.zipCode, draft.country, draft.locationTitle);
             
             // 2. Attribution Info
             const submitter = suggestion.data?.submitter || {};
@@ -174,7 +188,8 @@ export default function ChurchSuggestionsAdmin() {
 
             const finalData = { 
                 ...draft, 
-                ...coords, 
+                lat: parseFloat(draft.lat) || coords?.lat || 0,
+                lng: parseFloat(draft.lng) || coords?.lng || 0,
                 isDraft: saveAsDraft,
                 updatedAt: serverTimestamp() 
             };
@@ -392,6 +407,39 @@ export default function ChurchSuggestionsAdmin() {
                                                         </label>
                                                     );
                                                 })}
+
+                                                {/* Coordinates Section */}
+                                                <div style={{ gridColumn: "span 2", marginTop: 12, padding: 12, backgroundColor: "rgba(10, 42, 67, 0.03)", borderRadius: 8, border: "1px solid rgba(10, 42, 67, 0.08)" }}>
+                                                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                                                        <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(10, 42, 67, 0.7)" }}>Coordinates</span>
+                                                        <button 
+                                                            type="button" 
+                                                            style={{ fontSize: 11, fontWeight: 700, color: "#134b7b", border: "none", background: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
+                                                            onClick={async () => {
+                                                                const coords = await geocodeAddress(draft.street, draft.number, draft.city, draft.zipCode, draft.country, draft.locationTitle);
+                                                                if (coords) {
+                                                                    changeDraft(s.id, "lat", coords.lat);
+                                                                    changeDraft(s.id, "lng", coords.lng);
+                                                                } else {
+                                                                    alert("Could not find coordinates automatically.");
+                                                                }
+                                                            }}
+                                                            disabled={isProcessed}
+                                                        >
+                                                            ✨ Find automatically
+                                                        </button>
+                                                    </div>
+                                                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                                                        <label className="adminLabel">
+                                                            Latitude
+                                                            <input className="adminInput" type="number" step="any" value={draft.lat ?? ""} onChange={(e) => changeDraft(s.id, "lat", e.target.value)} disabled={isProcessed} />
+                                                        </label>
+                                                        <label className="adminLabel">
+                                                            Longitude
+                                                            <input className="adminInput" type="number" step="any" value={draft.lng ?? ""} onChange={(e) => changeDraft(s.id, "lng", e.target.value)} disabled={isProcessed} />
+                                                        </label>
+                                                    </div>
+                                                </div>
                                             </div>
 
                                             <div style={{ marginTop: "24px", paddingTop: "20px", borderTop: "1px dashed rgba(10, 42, 67, 0.15)" }}>

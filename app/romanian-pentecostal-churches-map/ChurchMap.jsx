@@ -121,39 +121,58 @@ function newMapAnimationSignal() {
 }
 
 /**
- * Smoothly animate the map zoom level using requestAnimationFrame.
+ * Smoothly animate the map center and zoom level using requestAnimationFrame.
  */
-function animateZoom(map, fromZoom, toZoom, durationMs, abortSignal) {
+function animateMap(map, fromCenter, toCenter, fromZoom, toZoom, durationMs, abortSignal) {
     return new Promise((resolve) => {
         if (abortSignal?.aborted) { resolve(); return; }
-        if (Math.abs(fromZoom - toZoom) < 0.05) {
+        
+        const startCoords = { lat: fromCenter.lat(), lng: fromCenter.lng() };
+        const endCoords = (typeof toCenter.lat === 'function') 
+            ? { lat: toCenter.lat(), lng: toCenter.lng() } 
+            : { lat: toCenter.lat, lng: toCenter.lng };
+
+        if (isNaN(startCoords.lat) || isNaN(endCoords.lat)) {
+            map.setCenter(toCenter);
             map.setZoom(toZoom);
             resolve();
             return;
         }
 
         const startTime = performance.now();
+        
         function step(now) {
             if (abortSignal?.aborted) { resolve(); return; }
             const elapsed = now - startTime;
             const progress = Math.min(elapsed / durationMs, 1);
-            // Ease-in-out cubic for a natural feel
+            
+            // Ease-in-out cubic
             const eased = progress < 0.5
                 ? 4 * progress * progress * progress
                 : 1 - Math.pow(-2 * progress + 2, 3) / 2;
 
             const currentZoom = fromZoom + (toZoom - fromZoom) * eased;
+            const currentLat = startCoords.lat + (endCoords.lat - startCoords.lat) * eased;
+            const currentLng = startCoords.lng + (endCoords.lng - startCoords.lng) * eased;
+
             map.setZoom(currentZoom);
+            map.setCenter({ lat: currentLat, lng: currentLng });
 
             if (progress < 1) {
                 requestAnimationFrame(step);
             } else {
                 map.setZoom(toZoom);
+                map.setCenter(toCenter);
                 resolve();
             }
         }
         requestAnimationFrame(step);
     });
+}
+
+function animateZoom(map, fromZoom, toZoom, durationMs, abortSignal) {
+    const fromCenter = map.getCenter();
+    return animateMap(map, fromCenter, { lat: fromCenter.lat(), lng: fromCenter.lng() }, fromZoom, toZoom, durationMs, abortSignal);
 }
 
 /**
@@ -193,48 +212,22 @@ function smoothFlyTo(map, target, targetZoom, options = {}) {
         // Determine if we're currently zoomed in close (high zoom = close)
         const isZoomedIn = currentZoom >= 9;
 
+        // Calculate dynamic duration based on distance (km)
+        // Base 800ms + 1.2ms per km, capped at 2500ms total
+        const flyDuration = Math.min(800 + (distance * 1.2), 2500);
+
         if (options.noZoomOut || !isZoomedIn || distance < 30) {
             // Already zoomed out OR target is very close:
-            // Just pan to the target, then smoothly zoom in to targetZoom
-            map.panTo(target);
-            // Wait for pan to settle, then animate zoom
-            // Use a flag to prevent double-fire from idle + fallback timeout
-            let zoomStarted = false;
-            const doZoom = () => {
-                if (zoomStarted) return;
-                zoomStarted = true;
-                if (abortSignal?.aborted) { resolve(); return; }
-                animateZoom(map, map.getZoom(), targetZoom, 800, abortSignal).then(resolve);
-            };
-            const idleListener = google.maps.event.addListenerOnce(map, 'idle', doZoom);
-            // Fallback timeout — remove only OUR listener, not all idle listeners
-            setTimeout(() => {
-                if (!zoomStarted) {
-                    google.maps.event.removeListener(idleListener);
-                    doZoom();
-                }
-            }, 600);
+            // Fly directly to target (concurrent pan + zoom)
+            animateMap(map, currentCenter, target, currentZoom, targetZoom, flyDuration, abortSignal).then(resolve);
         } else {
             // Zoomed in close AND target is far away:
-            // Zoom out first → pan → zoom in (Google Maps style)
+            // Zoom out first → then fly to target (concludes with a concurrent pan + zoom)
             const midZoom = Math.max(Math.min(currentZoom, targetZoom) - 3, 3);
             animateZoom(map, currentZoom, midZoom, 500, abortSignal).then(() => {
                 if (abortSignal?.aborted) { resolve(); return; }
-                map.panTo(target);
-                let panDone = false;
-                const waitForPan = () => {
-                    if (panDone) return;
-                    panDone = true;
-                    if (abortSignal?.aborted) { resolve(); return; }
-                    animateZoom(map, midZoom, targetZoom, 700, abortSignal).then(resolve);
-                };
-                const idleListener = google.maps.event.addListenerOnce(map, 'idle', waitForPan);
-                setTimeout(() => {
-                    if (!panDone) {
-                        google.maps.event.removeListener(idleListener);
-                        waitForPan();
-                    }
-                }, 800);
+                // Now fly from mid position to final target + zoom level
+                animateMap(map, map.getCenter(), target, midZoom, targetZoom, flyDuration + 100, abortSignal).then(resolve);
             });
         }
     });
@@ -653,6 +646,9 @@ const Markers = ({ churches, onMarkerClick, selectedChurchId, hoveredMarkerId, s
             }
 
             // Always ensure content and visual state is correct
+            if (marker.position.lat !== church.lat || marker.position.lng !== church.lng) {
+                marker.position = { lat: church.lat, lng: church.lng };
+            }
             updateMarkerContent(marker, church, isSelected, isHovered);
         });
 
@@ -1413,8 +1409,23 @@ function ChurchMap() {
 
                         {isMobile && !selectedChurch && (
                             <div className="mobileControlsInSheet">
-                                <div className="mobileSearchBox">
+                                <div className="mobileSearchBox" style={{ position: "relative" }}>
+                                    {bottomSheetMode === "hidden" && (
+                                        <div 
+                                            style={{ position: "absolute", inset: 0, zIndex: 10, cursor: "text" }}
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                setBottomSheetMode("collapsed");
+                                                setTimeout(() => {
+                                                    const input = document.getElementById("mobileSearchInputAnim");
+                                                    if (input) input.focus();
+                                                }, 400); // 400ms is the duration of the bottom sheet height transition
+                                            }}
+                                        />
+                                    )}
                                     <input
+                                        id="mobileSearchInputAnim"
                                         type="text"
                                         placeholder={t("searchPlaceholder")}
                                         value={searchQuery}

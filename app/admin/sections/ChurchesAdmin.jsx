@@ -106,26 +106,40 @@ function emptyChurch() {
     return { name: "", locationTitle: "", street: "", number: "", city: "", country: "Belgium", zipCode: "", lat: "", lng: "", phone: "", email: "", website: "", youtube: "", facebook: "", instagram: "", notes: "", isDraft: false };
 }
 
-const geocodeAddress = async (street, number, city, zipCode, country) => {
-    const query = [`${street || ""} ${number || ""}`.trim(), zipCode, city, country].map(s => (s || "").trim()).filter(Boolean).join(", ");
-    if (!query) return null;
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-    if (!apiKey) return null;
+const geocodeAddress = async (street, number, city, zipCode, country, locationTitle = "") => {
+    // 1. Try Places API via proxy if we have a locationTitle
+    if (locationTitle) {
+        try {
+            const placeQuery = [locationTitle, city, country].filter(Boolean).join(", ");
+            const res = await fetch(`/api/geocode?type=places&query=${encodeURIComponent(placeQuery)}`);
+            const data = await res.json();
+            if (data.results && data.results.length > 0) {
+                const loc = data.results[0].geometry.location;
+                return { lat: loc.lat, lng: loc.lng };
+            }
+        } catch (e) {
+            console.error("Places Proxy Search failed:", e);
+        }
+    }
+
+    // 2. Fallback to standard Geocoding API via proxy
+    const addressQuery = [`${street || ""} ${number || ""}`.trim(), zipCode, city, country].map(s => (s || "").trim()).filter(Boolean).join(", ");
+    if (!addressQuery) return null;
+    
     try {
-        const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(query)}&key=${apiKey}`;
-        const res = await fetch(url);
+        const res = await fetch(`/api/geocode?type=geocode&address=${encodeURIComponent(addressQuery)}`);
         const data = await res.json();
         if (data.results && data.results.length > 0) {
             const loc = data.results[0].geometry.location;
             return { lat: loc.lat, lng: loc.lng };
         }
     } catch (e) {
-        console.error("Geocoding failed:", e);
+        console.error("Geocoding Proxy failed:", e);
     }
     return null;
 };
 
-function ChurchCard({ item, expanded, drafts, saveState, errorText, onToggle, onChange, onSave, onDelete }) {
+function ChurchCard({ item, expanded, drafts, saveState, errorText, onToggle, onChange, onSave, onDelete, setSaveStateById, setErrorById }) {
     const id = item.id;
     const isDraft = drafts.isDraft || false;
 
@@ -239,13 +253,44 @@ function ChurchCard({ item, expanded, drafts, saveState, errorText, onToggle, on
 
                         {/* Row 6: Facebook & Instagram */}
                         <label className="adminLabel">
-                            Facebook
-                            <input className="adminInput" placeholder="facebook.com/..." value={drafts.facebook ?? ""} onChange={(e) => onChange(id, "facebook", e.target.value)} />
-                        </label>
-                        <label className="adminLabel">
                             Instagram
                             <input className="adminInput" placeholder="instagram.com/..." value={drafts.instagram ?? ""} onChange={(e) => onChange(id, "instagram", e.target.value)} />
                         </label>
+                    </div>
+
+                    {/* Coordinates Section */}
+                    <div style={{ marginTop: 12, padding: 12, backgroundColor: "rgba(10, 42, 67, 0.03)", borderRadius: 8, border: "1px solid rgba(10, 42, 67, 0.08)" }}>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                            <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(10, 42, 67, 0.7)" }}>Coordinates</span>
+                            <button 
+                                type="button" 
+                                style={{ fontSize: 11, fontWeight: 700, color: "#134b7b", border: "none", background: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
+                                onClick={async () => {
+                                    setSaveStateById(m => ({ ...m, [id]: "saving" }));
+                                    const coords = await geocodeAddress(drafts.street, drafts.number, drafts.city, drafts.zipCode, drafts.country, drafts.locationTitle);
+                                    if (coords) {
+                                        onChange(id, "lat", coords.lat);
+                                        onChange(id, "lng", coords.lng);
+                                        setSaveStateById(m => ({ ...m, [id]: "idle" }));
+                                    } else {
+                                        setSaveStateById(m => ({ ...m, [id]: "error" }));
+                                        setErrorById(m => ({ ...m, [id]: "Could not find coordinates automatically." }));
+                                    }
+                                }}
+                            >
+                                ✨ Find automatically
+                            </button>
+                        </div>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                            <label className="adminLabel">
+                                Latitude
+                                <input className="adminInput" type="number" step="any" value={drafts.lat ?? ""} onChange={(e) => onChange(id, "lat", e.target.value)} />
+                            </label>
+                            <label className="adminLabel">
+                                Longitude
+                                <input className="adminInput" type="number" step="any" value={drafts.lng ?? ""} onChange={(e) => onChange(id, "lng", e.target.value)} />
+                            </label>
+                        </div>
                     </div>
 
 
@@ -360,13 +405,39 @@ function NewChurchCard({ drafts, setDraft, errorText, saveState, onCancel, onSav
 
                     {/* Row 6: Facebook & Instagram */}
                     <label className="adminLabel">
-                        Facebook
-                        <input className="adminInput" placeholder="facebook.com/..." value={drafts.facebook ?? ""} onChange={(e) => setDraft("facebook", e.target.value)} />
-                    </label>
-                    <label className="adminLabel">
                         Instagram
                         <input className="adminInput" placeholder="instagram.com/..." value={drafts.instagram ?? ""} onChange={(e) => setDraft("instagram", e.target.value)} />
                     </label>
+                </div>
+
+                {/* Coordinates Section */}
+                <div style={{ marginTop: 12, padding: 12, backgroundColor: "rgba(10, 42, 67, 0.03)", borderRadius: 8, border: "1px solid rgba(10, 42, 67, 0.08)" }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(10, 42, 67, 0.7)" }}>Coordinates</span>
+                        <button 
+                            type="button" 
+                            style={{ fontSize: 11, fontWeight: 700, color: "#134b7b", border: "none", background: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
+                            onClick={async () => {
+                                const coords = await geocodeAddress(drafts.street, drafts.number, drafts.city, drafts.zipCode, drafts.country, drafts.locationTitle);
+                                if (coords) {
+                                    setDraft("lat", coords.lat);
+                                    setDraft("lng", coords.lng);
+                                }
+                            }}
+                        >
+                            ✨ Find automatically
+                        </button>
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                        <label className="adminLabel">
+                            Latitude
+                            <input className="adminInput" type="number" step="any" value={drafts.lat ?? ""} onChange={(e) => setDraft("lat", e.target.value)} />
+                        </label>
+                        <label className="adminLabel">
+                            Longitude
+                            <input className="adminInput" type="number" step="any" value={drafts.lng ?? ""} onChange={(e) => setDraft("lng", e.target.value)} />
+                        </label>
+                    </div>
                 </div>
 
 
@@ -588,7 +659,7 @@ export default function ChurchesAdmin() {
         let lng = parseFloat(newDrafts.lng);
 
         if (isNaN(lat) || isNaN(lng)) {
-            const coords = await geocodeAddress(newDrafts.street, newDrafts.number, newDrafts.city, newDrafts.zipCode, newDrafts.country);
+            const coords = await geocodeAddress(newDrafts.street, newDrafts.number, newDrafts.city, newDrafts.zipCode, newDrafts.country, newDrafts.locationTitle);
             if (coords) {
                 lat = coords.lat;
                 lng = coords.lng;
@@ -671,11 +742,13 @@ export default function ChurchesAdmin() {
             original.street !== draft.street ||
             original.number !== draft.number ||
             original.city !== draft.city ||
-            original.country !== draft.country
+            original.country !== draft.country ||
+            original.zipCode !== draft.zipCode ||
+            original.locationTitle !== draft.locationTitle
         );
 
         if (isNaN(lat) || isNaN(lng) || addressChanged) {
-            const coords = await geocodeAddress(draft.street, draft.number, draft.city, draft.zipCode, draft.country);
+            const coords = await geocodeAddress(draft.street, draft.number, draft.city, draft.zipCode, draft.country, draft.locationTitle);
             if (coords) {
                 lat = coords.lat;
                 lng = coords.lng;
@@ -865,6 +938,8 @@ export default function ChurchesAdmin() {
                                     onChange={changeDraft}
                                     onSave={saveOne}
                                     onDelete={deleteOne}
+                                    setSaveStateById={setSaveStateById}
+                                    setErrorById={setErrorById}
                                 />
                             ))}
 
