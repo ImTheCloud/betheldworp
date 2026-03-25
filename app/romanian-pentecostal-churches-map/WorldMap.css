@@ -45,7 +45,7 @@
     
     .churchMapSearch.floating.google-style {
         height: 40px;
-        width: 220px;
+        width: clamp(140px, 12vw, 200px);
         padding: 0 6px 0 14px;
     }
     
@@ -63,6 +63,22 @@
     .pillCount {
         font-size: 0.7rem;
         padding: 1px 5px;
+    }
+
+    .mapReturnBtn {
+        width: 40px;
+        height: 40px;
+        padding: 0;
+        border-radius: 50%;
+    }
+
+    .mapSuggestBtn {
+        top: 12px;
+        right: 12px;
+        height: 40px;
+        padding: 0 14px;
+        font-size: 0.8rem;
+        border-radius: 20px;
     }
     
     .dropdownFlag .flag-img,
@@ -267,7 +283,7 @@
 }
 
 .churchMapSearch.floating.google-style {
-    width: 240px; /* Reduced from 320px to save space */
+    width: clamp(160px, 15vw, 240px); /* Responsive width to avoid collisions */
     background: #ffffff;
     box-shadow: 0 2px 6px rgba(0,0,0,0.3);
     border-radius: 24px; /* Rounded pill style */
@@ -276,6 +292,9 @@
     display: flex;
     align-items: center;
     height: 48px; /* Fixed height for consistency */
+    position: relative; /* Remove absolute, use flex flow from .desktopMapControls */
+    top: auto;
+    left: auto;
 }
 
 .churchMapSearch.floating.google-style input {
@@ -1078,9 +1097,9 @@
 
 /* Map Return/Back Button - Shared Styles with Suggest Button */
 .mapReturnBtn {
-    position: absolute;
-    top: 20px;
-    left: 20px;
+    position: relative; /* Changed from absolute to flow with desktopMapControls */
+    top: auto;
+    left: auto;
     background: #134b7b;
     color: #ffffff;
     border: none;
