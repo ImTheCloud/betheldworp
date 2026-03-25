@@ -18,9 +18,8 @@
 
 /* Medium Desktop Responsiveness for Header */
 @media (min-width: 769px) and (max-width: 1300px) {
-    .desktopMapControls {
+    .mapHeaderLeft {
         gap: 8px;
-        left: 15px;
     }
     .churchMapSearch.floating.google-style {
         width: 240px;
@@ -29,23 +28,23 @@
         padding: 0 10px;
         gap: 6px;
     }
-    .mapSuggestBtn {
-        right: 15px;
-        padding: 0 12px;
-    }
 }
 
 /* Landscape Laptops / Short Screens */
 @media (max-height: 768px) and (min-width: 769px) {
-    .desktopMapControls {
-        top: 12px;
-        left: 12px;
+    .mapFloatingHeader {
+        top: 12px !important;
+        left: 12px !important;
+        right: 12px !important;
+    }
+    
+    .mapHeaderLeft, .mapHeaderRight {
         gap: 6px;
     }
     
     .churchMapSearch.floating.google-style {
         height: 40px;
-        width: clamp(140px, 12vw, 200px);
+        width: 200px; /* Even narrower for short screens */
         padding: 0 6px 0 14px;
     }
     
@@ -64,26 +63,17 @@
         font-size: 0.7rem;
         padding: 1px 5px;
     }
-
-    .mapReturnBtn {
-        width: 40px;
-        height: 40px;
-        padding: 0;
-        border-radius: 50%;
-    }
-
-    .mapSuggestBtn {
-        top: 12px;
-        right: 12px;
-        height: 40px;
-        padding: 0 14px;
-        font-size: 0.8rem;
-        border-radius: 20px;
-    }
     
     .dropdownFlag .flag-img,
     .flag-img {
         width: 16px !important;
+    }
+    
+    .mapSuggestBtn {
+        height: 40px;
+        padding: 0 12px;
+        font-size: 0.75rem;
+        border-radius: 20px;
     }
 }
 
@@ -270,20 +260,28 @@
     gap: 6px;
 }
 
-/* Floating Controls */
-.desktopMapControls {
+/* Floating Header Container */
+.mapFloatingHeader {
     position: absolute;
     top: 20px;
     left: 20px;
+    right: 20px;
     display: flex;
     align-items: center;
-    gap: 8px; /* Reduced to prevent overlap */
+    justify-content: space-between;
     z-index: 1000;
-    pointer-events: auto;
+    pointer-events: none; /* Let clicks pass through empty spaces */
+}
+
+.mapHeaderLeft, .mapHeaderRight {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    pointer-events: auto; /* Re-enable clicks for the actual buttons */
 }
 
 .churchMapSearch.floating.google-style {
-    width: clamp(160px, 15vw, 240px); /* Responsive width to avoid collisions */
+    width: 240px; /* Reduced from 320px to save space */
     background: #ffffff;
     box-shadow: 0 2px 6px rgba(0,0,0,0.3);
     border-radius: 24px; /* Rounded pill style */
@@ -292,9 +290,6 @@
     display: flex;
     align-items: center;
     height: 48px; /* Fixed height for consistency */
-    position: relative; /* Remove absolute, use flex flow from .desktopMapControls */
-    top: auto;
-    left: auto;
 }
 
 .churchMapSearch.floating.google-style input {
@@ -1097,21 +1092,20 @@
 
 /* Map Return/Back Button - Shared Styles with Suggest Button */
 .mapReturnBtn {
-    position: relative; /* Changed from absolute to flow with desktopMapControls */
-    top: auto;
-    left: auto;
+    position: absolute;
+    top: 20px;
+    left: 20px;
     background: #134b7b;
     color: #ffffff;
     border: none;
-    padding: 8px 18px;
-    height: 48px; /* Fixed height for consistency */
-    border-radius: 24px;
+    width: 48px; /* Square for perfect circle */
+    height: 48px; /* Match height of search bar */
+    border-radius: 50%; /* Circle */
+    padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
     font-weight: 700;
-    font-size: 0.95rem;
     cursor: pointer;
     z-index: 1001;
     box-shadow: 0 10px 25px rgba(19, 75, 123, 0.3);
@@ -1130,9 +1124,13 @@
     transform: translateY(0);
 }
 
-.desktopMapControls .mapReturnBtn {
+.mapHeaderLeft .mapReturnBtn {
     position: static;
-    padding: 0 18px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+.mapHeaderRight .mapSuggestBtn {
+    position: static;
     box-shadow: 0 2px 6px rgba(0,0,0,0.3);
 }
 

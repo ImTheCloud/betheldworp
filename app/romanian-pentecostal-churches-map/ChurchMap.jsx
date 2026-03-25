@@ -1653,115 +1653,131 @@ function ChurchMap() {
                     </div>
                 )}
 
-                {/* Desktop Floating Search and Country Filter */}
+                {/* Desktop Floating Header containing all controls */}
                 {!isMobile && (
-                    <div className="desktopMapControls">
-                        <button
-                            className="mapReturnBtn"
-                            onClick={() => window.location.href = "/#harta-mondiala"}
-                            aria-label={t("backToWebsite")}
-                        >
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                <line x1="19" y1="12" x2="5" y2="12"></line>
-                                <polyline points="12 19 5 12 12 5"></polyline>
-                            </svg>
-                        </button>
-                        <div className="churchMapSearch floating google-style">
-                            <input
-                                type="text"
-                                placeholder={t("searchPlaceholder")}
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                onFocus={() => setIsSearchFocused(true)}
-                                onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
-                            />
-                            <div className="searchActions">
-                                {(searchQuery || isSearchFocused) ? (
-                                    <button 
-                                        className="searchClearBtn" 
+                    <div className="mapFloatingHeader">
+                        <div className="mapHeaderLeft">
+                            <button
+                                className="mapReturnBtn"
+                                onClick={() => window.location.href = "/#harta-mondiala"}
+                                aria-label={t("backToWebsite")}
+                            >
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                                    <polyline points="12 19 5 12 12 5"></polyline>
+                                </svg>
+                            </button>
+                            <div className="churchMapSearch floating google-style">
+                                <input
+                                    type="text"
+                                    placeholder={t("searchPlaceholder")}
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onFocus={() => setIsSearchFocused(true)}
+                                    onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
+                                />
+                                <div className="searchActions">
+                                    {(searchQuery || isSearchFocused) ? (
+                                        <button 
+                                            className="searchClearBtn" 
+                                            onClick={() => {
+                                                setSearchQuery("");
+                                                if (document.activeElement instanceof HTMLElement) {
+                                                    document.activeElement.blur();
+                                                }
+                                            }}
+                                        >
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                                            </svg>
+                                        </button>
+                                    ) : (
+                                        <button className="searchMainBtn">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                                <circle cx="11" cy="11" r="8"></circle>
+                                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                            </svg>
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="countryPillContainer">
+                                <button
+                                    className={`countryPill ${!activeCountryFilter ? "active" : ""}`}
+                                    onClick={() => {
+                                        setActiveCountryFilter("");
+                                        setFilterRecenterTrigger(prev => prev + 1);
+                                    }}
+                                >
+                                    <span style={{ fontSize: '1.1rem', marginRight: '6px' }}>🌍</span> <span className="pillLabel">{t("allCountries")}</span>
+                                    <span className="pillCount">{countryCounts.all || 0}</span>
+                                </button>
+                                {topCountries.map((country) => (
+                                    <button
+                                        key={country}
+                                        className={`countryPill ${activeCountryFilter === country ? "active" : ""}`}
                                         onClick={() => {
-                                            setSearchQuery("");
-                                            if (document.activeElement instanceof HTMLElement) {
-                                                document.activeElement.blur();
+                                            if (activeCountryFilter === country) {
+                                                setActiveCountryFilter("");
+                                            } else {
+                                                setActiveCountryFilter(country);
                                             }
+                                            setFilterRecenterTrigger(prev => prev + 1);
                                         }}
                                     >
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                                        </svg>
+                                        <FlagImage country={country} /> <span className="pillLabel">{getCountryLabel(country)}</span>
+                                        {countryCounts[country] > 0 && <span className="pillCount">{countryCounts[country]}</span>}
                                     </button>
-                                ) : (
-                                    <button className="searchMainBtn">
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                            <circle cx="11" cy="11" r="8"></circle>
-                                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                        </svg>
-                                    </button>
+                                ))}
+                                {otherCountries.length > 0 && (
+                                    <div className="otherCountriesWrapper" ref={otherCountriesRef}>
+                                        <button 
+                                            className={`countryPill otherBtn ${showOtherCountries ? "active" : ""} ${otherCountries.includes(activeCountryFilter) ? "selected" : ""}`}
+                                            onClick={() => setShowOtherCountries(!showOtherCountries)}
+                                        >
+                                            <span className="pillLabel">{t("othersFilter") || "Autres (+)"}</span>
+                                            {otherCountries.includes(activeCountryFilter) && (
+                                                <span className="pillCount">{countryCounts[activeCountryFilter]}</span>
+                                            )}
+                                        </button>
+                                        {showOtherCountries && (
+                                            <div className="otherCountriesDropdown">
+                                                {otherCountries.map((country) => (
+                                                    <button
+                                                        key={country}
+                                                        className={`dropdownItem ${activeCountryFilter === country ? "active" : ""}`}
+                                                        onClick={() => {
+                                                            setActiveCountryFilter(country);
+                                                            setFilterRecenterTrigger(prev => prev + 1);
+                                                            setShowOtherCountries(false);
+                                                        }}
+                                                    >
+                                                        <FlagImage country={country} className="dropdownFlag" />
+                                                        <span className="dropdownLabel">{getCountryLabel(country)}</span>
+                                                        <span className="dropdownCount">{countryCounts[country] || 0}</span>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
                                 )}
                             </div>
                         </div>
 
-                        <div className="countryPillContainer">
+                        <div className="mapHeaderRight">
                             <button
-                                className={`countryPill ${!activeCountryFilter ? "active" : ""}`}
-                                onClick={() => {
-                                    setActiveCountryFilter("");
-                                    setFilterRecenterTrigger(prev => prev + 1);
-                                }}
+                                className={`mapSuggestBtn ${activeCountryFilter && !isMobile ? 'compact' : ''}`}
+                                onClick={() => openSuggestionModal("new")}
+                                aria-label={t("suggestChurchLabel")}
                             >
-                                <span style={{ fontSize: '1.1rem', marginRight: '6px' }}>🌍</span> <span className="pillLabel">{t("allCountries")}</span>
-                                <span className="pillCount">{countryCounts.all || 0}</span>
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                                <span>{t("newChurch")}</span>
                             </button>
-                            {topCountries.map((country) => (
-                                <button
-                                    key={country}
-                                    className={`countryPill ${activeCountryFilter === country ? "active" : ""}`}
-                                    onClick={() => {
-                                        if (activeCountryFilter === country) {
-                                            setActiveCountryFilter("");
-                                        } else {
-                                            setActiveCountryFilter(country);
-                                        }
-                                        setFilterRecenterTrigger(prev => prev + 1);
-                                    }}
-                                >
-                                    <FlagImage country={country} /> <span className="pillLabel">{getCountryLabel(country)}</span>
-                                    {countryCounts[country] > 0 && <span className="pillCount">{countryCounts[country]}</span>}
-                                </button>
-                            ))}
-                            {otherCountries.length > 0 && (
-                                <div className="otherCountriesWrapper" ref={otherCountriesRef}>
-                                    <button 
-                                        className={`countryPill otherBtn ${showOtherCountries ? "active" : ""} ${otherCountries.includes(activeCountryFilter) ? "selected" : ""}`}
-                                        onClick={() => setShowOtherCountries(!showOtherCountries)}
-                                    >
-                                        <span className="pillLabel">{t("othersFilter") || "Autres (+)"}</span>
-                                        {otherCountries.includes(activeCountryFilter) && (
-                                            <span className="pillCount">{countryCounts[activeCountryFilter]}</span>
-                                        )}
-                                    </button>
-                                    {showOtherCountries && (
-                                        <div className="otherCountriesDropdown">
-                                            {otherCountries.map((country) => (
-                                                <button
-                                                    key={country}
-                                                    className={`dropdownItem ${activeCountryFilter === country ? "active" : ""}`}
-                                                    onClick={() => {
-                                                        setActiveCountryFilter(country);
-                                                        setFilterRecenterTrigger(prev => prev + 1);
-                                                        setShowOtherCountries(false);
-                                                    }}
-                                                >
-                                                    <FlagImage country={country} className="dropdownFlag" />
-                                                    <span className="dropdownLabel">{getCountryLabel(country)}</span>
-                                                    <span className="dropdownCount">{countryCounts[country] || 0}</span>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
                         </div>
                     </div>
                 )}
@@ -1788,21 +1804,23 @@ function ChurchMap() {
                                     <line x1="19" y1="12" x2="5" y2="12"></line>
                                     <polyline points="12 19 5 12 12 5"></polyline>
                                 </svg>
-                                <span>{t("backToWebsite")}</span>
                             </button>
                         )}
-                        {/* Suggest New Church Button (Top Right) */}
-                        <button
-                            className={`mapSuggestBtn ${activeCountryFilter && !isMobile ? 'compact' : ''}`}
-                            onClick={() => openSuggestionModal("new")}
-                            aria-label={t("suggestChurchLabel")}
-                        >
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                <line x1="12" y1="5" x2="12" y2="19"></line>
-                                <line x1="5" y1="12" x2="19" y2="12"></line>
-                            </svg>
-                            <span>{t("newChurch")}</span>
-                        </button>
+
+                        {isMobile && (
+                            <button
+                                className={`mapSuggestBtn ${activeCountryFilter && !isMobile ? 'compact' : ''}`}
+                                onClick={() => openSuggestionModal("new")}
+                                aria-label={t("suggestChurchLabel")}
+                            >
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                                <span>{t("newChurch")}</span>
+                            </button>
+                        )}
+
                         <Markers
                             churches={filteredChurches}
                             onMarkerClick={selectChurch}
