@@ -35,6 +35,42 @@
     }
 }
 
+/* Landscape Laptops / Short Screens */
+@media (max-height: 768px) and (min-width: 769px) {
+    .desktopMapControls {
+        top: 12px;
+        left: 12px;
+        gap: 6px;
+    }
+    
+    .churchMapSearch.floating.google-style {
+        height: 40px;
+        width: 220px;
+        padding: 0 6px 0 14px;
+    }
+    
+    .churchMapSearch.floating.google-style input {
+        font-size: 0.9rem;
+    }
+    
+    .countryPill {
+        height: 40px;
+        padding: 0 8px;
+        gap: 4px;
+        font-size: 0.75rem;
+    }
+    
+    .pillCount {
+        font-size: 0.7rem;
+        padding: 1px 5px;
+    }
+    
+    .dropdownFlag .flag-img,
+    .flag-img {
+        width: 16px !important;
+    }
+}
+
 /* Screen Reader Only - For SEO */
 .sr-only {
     position: absolute;
