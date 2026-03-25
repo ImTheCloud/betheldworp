@@ -1703,64 +1703,61 @@ function ChurchMap() {
                                 </div>
                             </div>
 
-                            <div className="countryPillContainer">
-                                <button
-                                    className={`countryPill ${!activeCountryFilter ? "active" : ""}`}
-                                    onClick={() => {
-                                        setActiveCountryFilter("");
-                                        setFilterRecenterTrigger(prev => prev + 1);
-                                    }}
+                            <div className="countryFilterDropdown" ref={otherCountriesRef}>
+                                <button 
+                                    className={`countryFilterBtn ${activeCountryFilter ? "active" : ""}`}
+                                    onClick={() => setShowOtherCountries(!showOtherCountries)}
                                 >
-                                    <span style={{ fontSize: '1.1rem', marginRight: '6px' }}>🌍</span> <span className="pillLabel">{t("allCountries")}</span>
-                                    <span className="pillCount">{countryCounts.all || 0}</span>
-                                </button>
-                                {topCountries.map((country) => (
-                                    <button
-                                        key={country}
-                                        className={`countryPill ${activeCountryFilter === country ? "active" : ""}`}
-                                        onClick={() => {
-                                            if (activeCountryFilter === country) {
-                                                setActiveCountryFilter("");
-                                            } else {
-                                                setActiveCountryFilter(country);
-                                            }
-                                            setFilterRecenterTrigger(prev => prev + 1);
-                                        }}
-                                    >
-                                        <FlagImage country={country} /> <span className="pillLabel">{getCountryLabel(country)}</span>
-                                        {countryCounts[country] > 0 && <span className="pillCount">{countryCounts[country]}</span>}
-                                    </button>
-                                ))}
-                                {otherCountries.length > 0 && (
-                                    <div className="otherCountriesWrapper" ref={otherCountriesRef}>
-                                        <button 
-                                            className={`countryPill otherBtn ${showOtherCountries ? "active" : ""} ${otherCountries.includes(activeCountryFilter) ? "selected" : ""}`}
-                                            onClick={() => setShowOtherCountries(!showOtherCountries)}
-                                        >
-                                            <span className="pillLabel">{t("othersFilter") || "Autres (+)"}</span>
-                                            {otherCountries.includes(activeCountryFilter) && (
-                                                <span className="pillCount">{countryCounts[activeCountryFilter]}</span>
-                                            )}
-                                        </button>
-                                        {showOtherCountries && (
-                                            <div className="otherCountriesDropdown">
-                                                {otherCountries.map((country) => (
-                                                    <button
-                                                        key={country}
-                                                        className={`dropdownItem ${activeCountryFilter === country ? "active" : ""}`}
-                                                        onClick={() => {
-                                                            setActiveCountryFilter(country);
-                                                            setFilterRecenterTrigger(prev => prev + 1);
-                                                            setShowOtherCountries(false);
-                                                        }}
-                                                    >
-                                                        <FlagImage country={country} className="dropdownFlag" />
-                                                        <span className="dropdownLabel">{getCountryLabel(country)}</span>
-                                                        <span className="dropdownCount">{countryCounts[country] || 0}</span>
-                                                    </button>
-                                                ))}
-                                            </div>
+                                    <div className="countryFilterMain">
+                                        {activeCountryFilter ? (
+                                            <>
+                                                <FlagImage country={activeCountryFilter} />
+                                                <span className="pillLabel">{getCountryLabel(activeCountryFilter)}</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span style={{ fontSize: '1.2rem' }}>🌍</span>
+                                                <span className="pillLabel">{t("allCountries")}</span>
+                                            </>
                                         )}
+                                    </div>
+                                    <svg className={`chevronIcon ${showOtherCountries ? "open" : ""}`} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                        <polyline points="6 9 12 15 18 9"></polyline>
+                                    </svg>
+                                </button>
+
+                                {showOtherCountries && (
+                                    <div className="countryFilterMenu">
+                                        <button
+                                            className={`dropdownItem ${!activeCountryFilter ? "active" : ""}`}
+                                            onClick={() => {
+                                                setActiveCountryFilter("");
+                                                setFilterRecenterTrigger(prev => prev + 1);
+                                                setShowOtherCountries(false);
+                                            }}
+                                        >
+                                            <span style={{ fontSize: '1.2rem', marginRight: '8px' }}>🌍</span>
+                                            <span className="dropdownLabel">{t("allCountries")}</span>
+                                            <span className="dropdownCount">{countryCounts.all || 0}</span>
+                                        </button>
+                                        {Object.keys(countryCounts).filter(c => c !== 'all' && countryCounts[c] > 0)
+                                            .sort((a, b) => getCountryLabel(a).localeCompare(getCountryLabel(b)))
+                                            .map((country) => (
+                                                <button
+                                                    key={country}
+                                                    className={`dropdownItem ${activeCountryFilter === country ? "active" : ""}`}
+                                                    onClick={() => {
+                                                        setActiveCountryFilter(country);
+                                                        setFilterRecenterTrigger(prev => prev + 1);
+                                                        setShowOtherCountries(false);
+                                                    }}
+                                                >
+                                                    <FlagImage country={country} className="dropdownFlag" />
+                                                    <span className="dropdownLabel">{getCountryLabel(country)}</span>
+                                                    <span className="dropdownCount">{countryCounts[country] || 0}</span>
+                                                </button>
+                                            ))
+                                        }
                                     </div>
                                 )}
                             </div>
