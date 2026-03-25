@@ -1317,9 +1317,19 @@ function ChurchMap() {
     }, [userLocation, churches]);
 
     const getGoogleMapsSearchUrl = (church) => {
-        const query = church.locationTitle
-            ? encodeURIComponent(church.locationTitle)
-            : encodeURIComponent(`${church.name} ${church.city}`);
+        // Use locationTitleDirection (or old locationTitle for compatibility) if provided,
+        // otherwise fallback to full address: street + number, city, postalCode, country
+        const directionQuery = church.locationTitleDirection || church.locationTitle;
+        
+        const query = directionQuery
+            ? encodeURIComponent(directionQuery)
+            : encodeURIComponent([
+                (`${church.street || ""} ${church.number || ""}`.trim()),
+                church.city || "",
+                church.zipCode || "",
+                getCountryLabel(church.country)
+            ].filter(Boolean).join(", "));
+            
         return `https://www.google.com/maps/search/?api=1&query=${query}`;
     };
 
