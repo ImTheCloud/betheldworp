@@ -68,6 +68,10 @@ export default function Admin() {
     }, []);
 
     useEffect(() => {
+        const resetTouch = () => {
+            touchStartX.current = null;
+        };
+        window.addEventListener("focus", resetTouch);
         const unsub = onAuthStateChanged(auth, (u) => {
             if (!mountedRef.current) return;
             // Pre-emptively set adminLoading when a user is detected to prevent
@@ -80,7 +84,10 @@ export default function Admin() {
             setUser(u || null);
             setAuthLoading(false);
         });
-        return () => unsub();
+        return () => {
+            unsub();
+            window.removeEventListener("focus", resetTouch);
+        };
     }, [auth]);
 
     useEffect(() => {

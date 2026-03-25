@@ -93,9 +93,167 @@ const COUNTRY_VIEWS = {
     Switzerland: { center: { lat: 46.8182, lng: 8.2275 }, zoom: 8 },
 };
 
+// ─── Smooth Animation Utilities ────────────────────────────────────────────
 
+// Global AbortController for map animations — shared across all navigation sources
+let _mapAnimationAbort = null;
 
+function cancelMapAnimation() {
+    if (_mapAnimationAbort) {
+        _mapAnimationAbort.abort();
+        _mapAnimationAbort = null;
+    }
+}
 
+function newMapAnimationSignal() {
+    cancelMapAnimation();
+    _mapAnimationAbort = new AbortController();
+    return _mapAnimationAbort.signal;
+}
+
+/**
+ * Smoothly animate the map zoom level using requestAnimationFrame.
+ */
+function animateZoom(map, fromZoom, toZoom, durationMs, abortSignal) {
+    return new Promise((resolve) => {
+        if (abortSignal?.aborted) { resolve(); return; }
+        if (Math.abs(fromZoom - toZoom) < 0.05) {
+            map.setZoom(toZoom);
+            resolve();
+            return;
+        }
+
+        const startTime = performance.now();
+        function step(now) {
+            if (abortSignal?.aborted) { resolve(); return; }
+            const elapsed = now - startTime;
+            const progress = Math.min(elapsed / durationMs, 1);
+            // Ease-in-out cubic for a natural feel
+            const eased = progress < 0.5
+                ? 4 * progress * progress * progress
+                : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
+            const currentZoom = fromZoom + (toZoom - fromZoom) * eased;
+            map.setZoom(currentZoom);
+
+            if (progress < 1) {
+                requestAnimationFrame(step);
+            } else {
+                map.setZoom(toZoom);
+                resolve();
+            }
+        }
+        requestAnimationFrame(step);
+    });
+}
+
+/**
+ * Smoothly fly the map to a target position.
+ * Logic is zoom-aware:
+ *   - If already zoomed out → just pan to target, then smoothly zoom in.
+ *   - If zoomed in close and target is far → zoom out first, pan, then zoom in.
+ *   - If zoomed in close and target is near → just pan + adjust zoom.
+ */
+function smoothFlyTo(map, target, targetZoom, options = {}) {
+    const { abortSignal, instant } = options;
+
+    // If instant (e.g. initial page load), just jump
+    if (instant) {
+        map.setCenter(target);
+        map.setZoom(targetZoom);
+        return Promise.resolve();
+    }
+
+    return new Promise((resolve) => {
+        if (abortSignal?.aborted) { resolve(); return; }
+
+        const currentCenter = map.getCenter();
+        if (!currentCenter) {
+            map.setCenter(target);
+            map.setZoom(targetZoom);
+            resolve();
+            return;
+        }
+
+        const currentZoom = map.getZoom() || 4;
+        const distance = haversineDistance(
+            currentCenter.lat(), currentCenter.lng(),
+            target.lat, target.lng
+        );
+
+        // Determine if we're currently zoomed in close (high zoom = close)
+        const isZoomedIn = currentZoom >= 9;
+
+        if (!isZoomedIn || distance < 30) {
+            // Already zoomed out OR target is very close:
+            // Just pan to the target, then smoothly zoom in to targetZoom
+            map.panTo(target);
+            // Wait for pan to settle, then animate zoom
+            // Use a flag to prevent double-fire from idle + fallback timeout
+            let zoomStarted = false;
+            const doZoom = () => {
+                if (zoomStarted) return;
+                zoomStarted = true;
+                if (abortSignal?.aborted) { resolve(); return; }
+                animateZoom(map, map.getZoom(), targetZoom, 800, abortSignal).then(resolve);
+            };
+            const idleListener = google.maps.event.addListenerOnce(map, 'idle', doZoom);
+            // Fallback timeout — remove only OUR listener, not all idle listeners
+            setTimeout(() => {
+                if (!zoomStarted) {
+                    google.maps.event.removeListener(idleListener);
+                    doZoom();
+                }
+            }, 600);
+        } else {
+            // Zoomed in close AND target is far away:
+            // Zoom out first → pan → zoom in (Google Maps style)
+            const midZoom = Math.max(Math.min(currentZoom, targetZoom) - 3, 3);
+            animateZoom(map, currentZoom, midZoom, 500, abortSignal).then(() => {
+                if (abortSignal?.aborted) { resolve(); return; }
+                map.panTo(target);
+                let panDone = false;
+                const waitForPan = () => {
+                    if (panDone) return;
+                    panDone = true;
+                    if (abortSignal?.aborted) { resolve(); return; }
+                    animateZoom(map, midZoom, targetZoom, 700, abortSignal).then(resolve);
+                };
+                const idleListener = google.maps.event.addListenerOnce(map, 'idle', waitForPan);
+                setTimeout(() => {
+                    if (!panDone) {
+                        google.maps.event.removeListener(idleListener);
+                        waitForPan();
+                    }
+                }, 800);
+            });
+        }
+    });
+}
+
+/**
+ * Smooth fitBounds: fits bounds then smoothly caps zoom if needed.
+ */
+function smoothFitBounds(map, bounds, padding, maxZoom, abortSignal) {
+    return new Promise((resolve) => {
+        if (abortSignal?.aborted) { resolve(); return; }
+        map.fitBounds(bounds, padding);
+
+        // After fitBounds settles, smoothly cap the zoom if needed
+        const idleHandler = () => {
+            if (abortSignal?.aborted) { resolve(); return; }
+            const currentZoom = map.getZoom();
+            if (currentZoom > maxZoom) {
+                animateZoom(map, currentZoom, maxZoom, 400, abortSignal).then(resolve);
+            } else {
+                resolve();
+            }
+        };
+        google.maps.event.addListenerOnce(map, 'idle', idleHandler);
+    });
+}
+
+// ─── End Smooth Animation Utilities ────────────────────────────────────────
 
 function getBoundsCenter(churches) {
     if (churches.length === 0) return { lat: 0, lng: 0 };
@@ -248,19 +406,24 @@ const ChurchInfoLinks = ({ church, t }) => {
 function MapController({ selectedChurch, requestedLocation, isInitialLoad, recenterTrigger }) {
     const map = useMap();
     const prevChurchRef = useRef(null);
+    const hasAnimatedRef = useRef(false);
 
     useEffect(() => {
         if (!map) return;
 
         let target = null;
         let targetZoom = 12;
+        let shouldAnimate = false;
 
         if (selectedChurch) {
             target = { lat: selectedChurch.lat, lng: selectedChurch.lng };
-            targetZoom = 11.5; // Adjusted from 10 to be slightly closer
+            targetZoom = 14; // Zoom in close enough to break clusters and show individual pins
+            // Animate if this is NOT the first render (i.e., user interaction)
+            shouldAnimate = hasAnimatedRef.current;
         } else if (requestedLocation && (isInitialLoad || recenterTrigger > 0)) {
             target = { lat: requestedLocation.lat, lng: requestedLocation.lng };
             targetZoom = 10;
+            shouldAnimate = hasAnimatedRef.current;
         } else if (!requestedLocation && !selectedChurch && isInitialLoad) {
             target = BELGIUM_CENTER;
             targetZoom = 7;
@@ -268,10 +431,19 @@ function MapController({ selectedChurch, requestedLocation, isInitialLoad, recen
 
         if (!target) return;
 
-        // Restore default instant jump (no animation)
-        map.setCenter(target);
-        map.setZoom(targetZoom);
         if (map.setTilt) map.setTilt(0);
+
+        if (shouldAnimate) {
+            // Smooth animated transition
+            const signal = newMapAnimationSignal();
+            smoothFlyTo(map, target, targetZoom, { abortSignal: signal });
+        } else {
+            // First load: instant jump
+            map.setCenter(target);
+            map.setZoom(targetZoom);
+        }
+
+        hasAnimatedRef.current = true;
 
         if (selectedChurch) {
             prevChurchRef.current = selectedChurch;
@@ -285,17 +457,20 @@ function MapController({ selectedChurch, requestedLocation, isInitialLoad, recen
     return null;
 }
 
-function FilterController({ filteredChurches, activeCountryFilter, isMobile }) {
+function FilterController({ filteredChurches, activeCountryFilter, isMobile, filterRecenterTrigger }) {
     const map = useMap();
     const prevFilterRef = useRef("");
 
     useEffect(() => {
         if (!map) return;
-        if (activeCountryFilter === prevFilterRef.current) return;
-        prevFilterRef.current = activeCountryFilter;
+        // The effect runs whenever the filter OR recenter trigger changes.
+        // This allows re-clicking "All" to re-center on Europe.
+
+        // Cancel any in-flight church animation when switching filters
+        cancelMapAnimation();
 
         if (!activeCountryFilter) {
-            // Reset to wide view of Europe (instead of just Belgium)
+            // Reset to wide view of Europe (instant)
             map.panTo({ lat: 48.0, lng: 15.0 });
             map.setZoom(4);
             return;
@@ -313,7 +488,7 @@ function FilterController({ filteredChurches, activeCountryFilter, isMobile }) {
 
         if (filteredChurches.length === 1) {
             map.panTo({ lat: filteredChurches[0].lat, lng: filteredChurches[0].lng });
-            map.setZoom(10); // Relaxed from 12 to 10
+            map.setZoom(10);
             return;
         }
 
@@ -324,18 +499,18 @@ function FilterController({ filteredChurches, activeCountryFilter, isMobile }) {
         const padding = isMobile ? 40 : 100;
         map.fitBounds(bounds, { top: padding, right: padding, bottom: padding, left: padding });
 
-        // Cap the zoom after fitting bounds by watching zoom_changed immediately
+        // Cap the zoom after fitting bounds
         const zoomListener = map.addListener("zoom_changed", () => {
             if (map.getZoom() > 10) {
-                map.setZoom(10); // Relaxed from 8 to 10 for better country focus
+                map.setZoom(10);
             }
         });
 
         // Remove listener once map reaches final position
-        const idleListener = google.maps.event.addListenerOnce(map, "idle", () => {
+        google.maps.event.addListenerOnce(map, "idle", () => {
             google.maps.event.removeListener(zoomListener);
         });
-    }, [map, filteredChurches, activeCountryFilter]);
+    }, [map, filteredChurches, activeCountryFilter, filterRecenterTrigger]);
 
     return null;
 }
@@ -381,19 +556,11 @@ const Markers = ({ churches, onMarkerClick, selectedChurchId, hoveredMarkerId, s
             onClusterClick: (event, cluster, map) => {
                 const bounds = new google.maps.LatLngBounds();
                 cluster.markers.forEach(m => bounds.extend(m.position));
-                map.fitBounds(bounds);
 
-                // Cap the zoom after fitting bounds by watching zoom_changed immediately
-                const zoomListener = map.addListener("zoom_changed", () => {
-                    if (map.getZoom() > 10) {
-                        map.setZoom(10);
-                    }
-                });
-
-                // Remove listener once map reaches final position
-                const idleListener = google.maps.event.addListenerOnce(map, "idle", () => {
-                    google.maps.event.removeListener(zoomListener);
-                });
+                // Smooth animated approach to cluster bounds — allow deep zoom to break clusters
+                const signal = newMapAnimationSignal();
+                const padding = window.innerWidth <= 768 ? 40 : 100;
+                smoothFitBounds(map, bounds, padding, 16, signal);
             }
         });
 
@@ -520,6 +687,7 @@ function ChurchMap() {
     const [copied, setCopied] = useState(false);
     const [mobileShowMap, setMobileShowMap] = useState(false);
     const [filterOpen, setFilterOpen] = useState(false);
+    const [filterRecenterTrigger, setFilterRecenterTrigger] = useState(0);
     const filterRef = useRef(null);
     const sheetRef = useRef(null);
     const startHeight = useRef(0);
@@ -529,12 +697,12 @@ function ChurchMap() {
     const [dragHeight, setDragHeight] = useState(null);
     const [isDragging, setIsDragging] = useState(false);
 
-    // Auto-close bottom sheet on mobile when a country is selected
+    // Auto-close bottom sheet on mobile when a country is selected (or when re-clicking "All")
     useEffect(() => {
-        if (activeCountryFilter && isMobile) {
+        if (isMobile && (activeCountryFilter || filterRecenterTrigger > 0)) {
             setBottomSheetMode("hidden");
         }
-    }, [activeCountryFilter, isMobile, setBottomSheetMode]);
+    }, [activeCountryFilter, filterRecenterTrigger, isMobile, setBottomSheetMode]);
 
 
     useEffect(() => {
@@ -828,15 +996,21 @@ function ChurchMap() {
 
     // Auto-locate
     useEffect(() => {
+        // Check if we already asked for geolocation in this browser
+        const hasAskedGeo = localStorage.getItem("bethel_map_geo_asked");
+        if (hasAskedGeo) return;
+
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
+                    localStorage.setItem("bethel_map_geo_asked", "true");
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
                     setUserLocation({ lat, lng });
                     trackWorldMapVisit("granted", { lat, lng });
                 },
                 (err) => {
+                    localStorage.setItem("bethel_map_geo_asked", "true");
                     console.warn("Geolocation denied or unavailable.", err);
                     trackWorldMapVisit("denied");
                 },
@@ -853,6 +1027,8 @@ function ChurchMap() {
         } else {
             // Re-request position if not available
             if (navigator.geolocation) {
+                // Also set the flag since the user is interacting with geolocation now
+                localStorage.setItem("bethel_map_geo_asked", "true");
                 navigator.geolocation.getCurrentPosition(
                     (position) => {
                         const lat = position.coords.latitude;
@@ -860,7 +1036,9 @@ function ChurchMap() {
                         setUserLocation({ lat, lng });
                         setRecenterTrigger(prev => prev + 1);
                     },
-                    null,
+                    (err) => {
+                        console.warn("Geolocation re-request failed", err);
+                    },
                     { timeout: 5000 }
                 );
             }
@@ -914,9 +1092,19 @@ function ChurchMap() {
             setTimeout(() => setCopied(false), 2000);
         }
     }, []);
+    const handleMapInteraction = useCallback(() => {
+        if (isMobile) {
+            setBottomSheetMode("hidden");
+        }
+    }, [isMobile, setBottomSheetMode]);
 
     const handleTouchStart = (e) => {
-        const isHeader = (e.target.closest('.bottomSheetDragHandleArea') || e.target.closest('.mobileControlsInSheet') || e.target.closest('.mobileDetailsHeader')) && !e.target.closest('.countryFilterMenu');
+        const isHeader = (
+            e.target.closest('.bottomSheetDragHandleArea') || 
+            e.target.closest('.mobileControlsInSheet') || 
+            e.target.closest('.mobileDetailsHeader') ||
+            e.target.closest('.churchSidebarFooter')
+        ) && !e.target.closest('.countryFilterMenu');
         
         if (!isHeader) {
             isHeaderTouch.current = false;
@@ -1148,21 +1336,22 @@ function ChurchMap() {
                     <div className="sidebarHeader">
                         {isSidebarOpen ? (
                             <div className="sidebarHeaderOpen">
-                                <div className="sidebarBrand">
-                                    <img src="/icon.png" alt="Bethel Logo" className="sidebarLogo" />
-                                    <span className="sidebarTitle">{t("title")}</span>
-                                </div>
-                                <button className="sidebarCloseBtn" onClick={() => setIsSidebarOpen(false)}>
+                                <button className="sidebarHamburgerBtn" onClick={() => setIsSidebarOpen(false)}>
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                                        <line x1="3" y1="18" x2="21" y2="18"></line>
                                     </svg>
                                 </button>
+                                <div className="sidebarBrand">
+                                    <span className="sidebarTitle">{t("title")}</span>
+                                    <img src="/icon.png" alt="Logo" className="sidebarLogo" />
+                                </div>
                             </div>
                         ) : (
                             <div className="sidebarHeaderCollapsed">
                                 <button className="sidebarHamburgerBtn" onClick={() => setIsSidebarOpen(true)}>
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                         <line x1="3" y1="12" x2="21" y2="12"></line>
                                         <line x1="3" y1="6" x2="21" y2="6"></line>
                                         <line x1="3" y1="18" x2="21" y2="18"></line>
@@ -1265,6 +1454,7 @@ function ChurchMap() {
                                                 className={`countryFilterOption ${!activeCountryFilter ? "active" : ""}`}
                                                 onClick={() => {
                                                     setActiveCountryFilter("");
+                                                    setFilterRecenterTrigger(prev => prev + 1);
                                                     setFilterOpen(false);
                                                 }}
                                             >
@@ -1277,6 +1467,7 @@ function ChurchMap() {
                                                     className={`countryFilterOption ${activeCountryFilter === country ? "active" : ""}`}
                                                     onClick={() => {
                                                         setActiveCountryFilter(country);
+                                                        setFilterRecenterTrigger(prev => prev + 1);
                                                         setFilterOpen(false);
                                                     }}
                                                 >
@@ -1380,7 +1571,12 @@ function ChurchMap() {
                         </div>
 
                         {isMobile && selectedChurch && (
-                            <div className="churchSidebarFooter">
+                            <div 
+                                className="churchSidebarFooter"
+                                onClick={() => {
+                                    if (bottomSheetMode === "hidden") setBottomSheetMode("collapsed");
+                                }}
+                            >
                                 <div className="mobileFooterActions">
                                     <button className="sidebarSuggestBtn editMode" onClick={() => openSuggestionModal("edit", selectedChurch)}>
                                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1434,6 +1630,16 @@ function ChurchMap() {
                 {/* Desktop Floating Search and Country Filter */}
                 {!isMobile && (
                     <div className="desktopMapControls">
+                        <button
+                            className="mapReturnBtn"
+                            onClick={() => window.location.href = "/#harta-mondiala"}
+                            aria-label={t("backToWebsite")}
+                        >
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="19" y1="12" x2="5" y2="12"></line>
+                                <polyline points="12 19 5 12 12 5"></polyline>
+                            </svg>
+                        </button>
                         <div className="churchMapSearch floating google-style">
                             <input
                                 type="text"
@@ -1473,7 +1679,10 @@ function ChurchMap() {
                         <div className="countryPillContainer">
                             <button
                                 className={`countryPill ${!activeCountryFilter ? "active" : ""}`}
-                                onClick={() => setActiveCountryFilter("")}
+                                onClick={() => {
+                                    setActiveCountryFilter("");
+                                    setFilterRecenterTrigger(prev => prev + 1);
+                                }}
                             >
                                 <span style={{ fontSize: '1.1rem', marginRight: '6px' }}>🌍</span> <span className="pillLabel">{t("allCountries")}</span>
                                 <span className="pillCount">{countryCounts.all || 0}</span>
@@ -1488,6 +1697,7 @@ function ChurchMap() {
                                         } else {
                                             setActiveCountryFilter(country);
                                         }
+                                        setFilterRecenterTrigger(prev => prev + 1);
                                     }}
                                 >
                                     <FlagImage country={country} /> <span className="pillLabel">{getCountryLabel(country)}</span>
@@ -1513,6 +1723,7 @@ function ChurchMap() {
                                                     className={`dropdownItem ${activeCountryFilter === country ? "active" : ""}`}
                                                     onClick={() => {
                                                         setActiveCountryFilter(country);
+                                                        setFilterRecenterTrigger(prev => prev + 1);
                                                         setShowOtherCountries(false);
                                                     }}
                                                 >
@@ -1537,7 +1748,23 @@ function ChurchMap() {
                         mapId={MAP_ID}
                         disableDefaultUI={true}
                         gestureHandling={"greedy"}
+                        onClick={handleMapInteraction}
+                        onDragstart={handleMapInteraction}
+                        onZoom_changed={handleMapInteraction}
                     >
+                        {isMobile && (
+                            <button
+                                className="mapReturnBtn"
+                                onClick={() => window.location.href = "/#harta-mondiala"}
+                                aria-label={t("backToWebsite")}
+                            >
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                                    <polyline points="12 19 5 12 12 5"></polyline>
+                                </svg>
+                                <span>{t("backToWebsite")}</span>
+                            </button>
+                        )}
                         {/* Suggest New Church Button (Top Right) */}
                         <button
                             className={`mapSuggestBtn ${activeCountryFilter && !isMobile ? 'compact' : ''}`}
@@ -1574,6 +1801,7 @@ function ChurchMap() {
                             filteredChurches={filteredChurches}
                             activeCountryFilter={activeCountryFilter}
                             isMobile={isMobile}
+                            filterRecenterTrigger={filterRecenterTrigger}
                         />
                     </Map>
 

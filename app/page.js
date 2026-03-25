@@ -9,6 +9,7 @@ import Events from "./sections/EventsCalendar";
 import Gallery from "./sections/Gallery";
 import Donations from "./sections/Donations";
 import WorldMapSection from "./sections/WorldMapSection";
+import BibleSection from "./sections/BibleSection";
 
 export default function Home() {
     return (
@@ -46,6 +47,10 @@ export default function Home() {
 
                 <section id="harta-mondiala">
                     <WorldMapSection />
+                </section>
+
+                <section id="biblia">
+                    <BibleSection />
                 </section>
 
                 <Footer />

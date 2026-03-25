@@ -1,0 +1,26 @@
+{
+  "ro": {
+    "title": "Biblia",
+    "subtitle": "Citește Sfânta Scriptură online versiunea Cornilescu (VDC)",
+    "description": "Accesează Biblia direct de pe site-ul nostru. Citește, meditează și descoperă Cuvântul lui Dumnezeu oricând și de oriunde.",
+    "cta": "Citește Biblia"
+  },
+  "fr": {
+    "title": "La Bible",
+    "subtitle": "Lisez les Saintes Écritures en ligne version Cornilescu (VDC)",
+    "description": "Accédez à la Bible directement depuis notre site. Lisez, méditez et découvrez la Parole de Dieu à tout moment et de n'importe où.",
+    "cta": "Lire la Bible"
+  },
+  "nl": {
+    "title": "De Bijbel",
+    "subtitle": "Lees de Heilige Schrift online Cornilescu versie (VDC)",
+    "description": "Toegang tot de Bijbel rechtstreeks vanaf onze website. Lees, mediteer en ontdek het Woord van God op elk moment en overal.",
+    "cta": "Lees de Bijbel"
+  },
+  "en": {
+    "title": "The Bible",
+    "subtitle": "Read the Holy Scriptures online Cornilescu version (VDC)",
+    "description": "Access the Bible directly from our website. Read, meditate, and discover the Word of God anytime, anywhere.",
+    "cta": "Read the Bible"
+  }
+}

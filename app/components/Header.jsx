@@ -1,13 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import "./Header.css";
 import { useLang } from "./LanguageProvider";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { makeT } from "../lib/i18n";
 import tr from "../translations/Header.json";
 
-const SECTION_IDS = ["acasa", "despre-noi", "program", "evenimente", "galerie", "donatii", "locatie", "harta-mondiala"];
+const SECTION_IDS = ["acasa", "despre-noi", "program", "evenimente", "galerie", "donatii", "biblia", "locatie", "harta-mondiala"];
 
 
 
@@ -29,8 +30,8 @@ export default function Header() {
             { id: "evenimente", labelKey: "nav_events", type: "section" },
             { id: "galerie", labelKey: "nav_gallery", type: "section" },
             { id: "donatii", labelKey: "nav_donations", type: "section" },
-            { id: "locatie", labelKey: "nav_location", type: "section" },
             { id: "harta-mondiala", labelKey: "nav_world_map", type: "section" },
+            { id: "biblia", labelKey: "nav_bible", type: "section" },
             { id: "contact", labelKey: "nav_contact", type: "contact" }
         ],
         []
@@ -142,16 +143,28 @@ export default function Header() {
     const isActive = (id) => (activeId === id ? "is-active" : "");
 
     const renderNavButtons = () =>
-        NAV_ITEMS.map((item) => (
-            <button
-                key={item.id}
-                type="button"
-                className={`navLink ${item.type === "section" ? isActive(item.id) : ""}`.trim()}
-                onClick={() => onNavClick(item)}
-            >
-                {t(item.labelKey)}
-            </button>
-        ));
+        NAV_ITEMS.map((item) =>
+            item.type === "link" ? (
+                <Link
+                    key={item.id}
+                    href={item.href}
+                    className="navLink"
+                    data-id={item.id}
+                >
+                    {t(item.labelKey)}
+                </Link>
+            ) : (
+                <button
+                    key={item.id}
+                    type="button"
+                    className={`navLink ${item.type === "section" ? isActive(item.id) : ""}`.trim()}
+                    onClick={() => onNavClick(item)}
+                    data-id={item.id}
+                >
+                    {t(item.labelKey)}
+                </button>
+            )
+        );
 
     return (
         <>

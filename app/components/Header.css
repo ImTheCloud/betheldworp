@@ -93,12 +93,12 @@
     width: 100%;
 }
 
-.nav .navLink.is-active {
-    color: rgba(19, 75, 123, 0.98);
-}
-
 .nav .navLink.is-active::after {
     width: 100%;
+}
+
+.nav .navLink[data-id="biblia"]::after {
+    display: none !important;
 }
 
 .headerRight {
@@ -254,6 +254,12 @@
     color: rgba(19, 75, 123, 0.98);
     background: rgba(19, 75, 123, 0.10);
     border-color: rgba(19, 75, 123, 0.18);
+}
+
+.mnav-links .navLink[data-id="biblia"].is-active {
+    background: transparent;
+    border-color: rgba(10, 42, 67, 0.10);
+    color: inherit;
 }
 
 .header.header-top .logo-text {

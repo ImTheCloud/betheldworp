@@ -1429,13 +1429,17 @@
         width: 260px;
         z-index: 40;
         transform: translateX(-100%);
-        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.3s linear;
         box-shadow: 4px 0 24px rgba(0, 0, 0, 0.1);
         height: 100%;
+        visibility: hidden;
+        pointer-events: none;
     }
 
     .adminLayout.sidebar-open .adminSidebarWrap {
         transform: translateX(0);
+        visibility: visible;
+        pointer-events: auto;
     }
 
     .adminSidebarOverlay {
@@ -1450,6 +1454,7 @@
         z-index: 30;
         opacity: 0;
         animation: fadeIn 0.3s forwards;
+        user-select: none;
     }
 
     .adminContent {
@@ -1457,7 +1462,9 @@
         /* Minimal padding on mobile */
         padding-bottom: 80px;
         height: auto;
-        overflow-y: visible;
+        overflow: visible;
+        position: relative;
+        z-index: 1;
     }
 
     .adminGrid2 {

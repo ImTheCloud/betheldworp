@@ -41,8 +41,8 @@ const COUNTRY_OPTIONS = [
 const FIELDS = [
     { key: "locationTitle", label: "Location Title (Directions)", type: "text" },
     { key: "name", label: "Name", type: "text", required: true },
+    { key: "city", label: "City / Locality", type: "text", required: true },
     { key: "country", label: "Country", type: "select", options: COUNTRY_OPTIONS },
-    { key: "city", label: "City / Locality", type: "text" },
     { key: "zipCode", label: "Postal Code", type: "text" },
     { key: "street", label: "Street", type: "text" },
     { key: "number", label: "Number", type: "text" },

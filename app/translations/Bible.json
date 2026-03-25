@@ -1,0 +1,42 @@
+{
+  "ro": {
+    "page_title": "Biblia Bethel Dworp",
+    "hero_title": "Biblia",
+    "hero_subtitle": "Citește Sfânta Scriptură online versiunea Cornilescu",
+    "back": "← Înapoi acasă",
+    "old_testament": "Vechiul Testament",
+    "new_testament": "Noul Testament",
+    "prev_chapter": "Capitolul anterior",
+    "next_chapter": "Capitolul următor"
+  },
+  "fr": {
+    "page_title": "La Bible Bethel Dworp",
+    "hero_title": "La Bible",
+    "hero_subtitle": "Lisez les Saintes Écritures en ligne version Cornilescu",
+    "back": "← Retour à l'accueil",
+    "old_testament": "Ancien Testament",
+    "new_testament": "Nouveau Testament",
+    "prev_chapter": "Chapitre précédent",
+    "next_chapter": "Chapitre suivant"
+  },
+  "nl": {
+    "page_title": "De Bijbel Bethel Dworp",
+    "hero_title": "De Bijbel",
+    "hero_subtitle": "Lees de Heilige Schrift online Cornilescu versie",
+    "back": "← Terug naar start",
+    "old_testament": "Oude Testament",
+    "new_testament": "Nieuwe Testament",
+    "prev_chapter": "Vorig hoofdstuk",
+    "next_chapter": "Volgend hoofdstuk"
+  },
+  "en": {
+    "page_title": "The Bible Bethel Dworp",
+    "hero_title": "The Bible",
+    "hero_subtitle": "Read the Holy Scriptures online Cornilescu version",
+    "back": "← Back home",
+    "old_testament": "Old Testament",
+    "new_testament": "New Testament",
+    "prev_chapter": "Previous chapter",
+    "next_chapter": "Next chapter"
+  }
+}
