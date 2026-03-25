@@ -8,7 +8,7 @@ import LanguageSwitcher from "./LanguageSwitcher";
 import { makeT } from "../lib/i18n";
 import tr from "../translations/Header.json";
 
-const SECTION_IDS = ["acasa", "despre-noi", "program", "evenimente", "galerie", "donatii", "biblia", "locatie", "harta-mondiala"];
+const SECTION_IDS = ["acasa", "despre-noi", "program", "evenimente", "galerie", "donatii", "locatie", "harta-mondiala"];
 
 
 
@@ -31,7 +31,6 @@ export default function Header() {
             { id: "galerie", labelKey: "nav_gallery", type: "section" },
             { id: "donatii", labelKey: "nav_donations", type: "section" },
             { id: "harta-mondiala", labelKey: "nav_world_map", type: "section" },
-            { id: "biblia", labelKey: "nav_bible", type: "section" },
             { id: "contact", labelKey: "nav_contact", type: "contact" }
         ],
         []
