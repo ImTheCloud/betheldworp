@@ -85,7 +85,7 @@ export default function WorldMapSection() {
     }, []);
 
     return (
-        <section className="worldmap-section" id="harta-mondiala">
+        <section className="worldmap-section">
             <div className="worldmap-bg-pattern"></div>
             <div className="worldmap-bg-glow"></div>
 

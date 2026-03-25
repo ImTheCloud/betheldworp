@@ -8,8 +8,6 @@ import LanguageSwitcher from "./LanguageSwitcher";
 import { makeT } from "../lib/i18n";
 import tr from "../translations/Header.json";
 
-const SECTION_IDS = ["acasa", "despre-noi", "program", "evenimente", "galerie", "donatii", "locatie", "harta-mondiala"];
-
 
 
 export default function Header() {
@@ -43,7 +41,6 @@ export default function Header() {
     useEffect(() => {
         const onScroll = () => {
             setScrolled(window.scrollY > 40);
-            if (window.scrollY < 60 && activeIdRef.current !== "acasa") setActiveId("acasa");
         };
 
         onScroll();
@@ -77,40 +74,8 @@ export default function Header() {
         };
     }, [menuOpen]);
 
-    useEffect(() => {
-        const header = document.querySelector(".header");
-        const headerHeight = header?.offsetHeight ?? 82;
-
-        const sections = SECTION_IDS.map((id) => document.getElementById(id)).filter(Boolean);
-        if (!sections.length) return;
-
-        const io = new IntersectionObserver(
-            (entries) => {
-                const visible = entries
-                    .filter((e) => e.isIntersecting)
-                    .sort((a, b) => (b.intersectionRatio || 0) - (a.intersectionRatio || 0));
-
-                if (!visible.length) return;
-
-                const id = visible[0].target.id;
-                if (id && id !== activeIdRef.current && window.scrollY >= 60) {
-                    setActiveId(id);
-                }
-            },
-            {
-                root: null,
-                rootMargin: `-${headerHeight + 24}px 0px -55% 0px`,
-                threshold: [0.08, 0.15, 0.25, 0.35, 0.5, 0.65]
-            }
-        );
-
-        sections.forEach((s) => io.observe(s));
-        return () => io.disconnect();
-    }, []);
-
     const scrollToSection = (id) => {
         setMenuOpen(false);
-        setActiveId(id);
 
         if (id === "acasa") {
             window.scrollTo({ top: 0, behavior: "smooth" });
@@ -139,7 +104,6 @@ export default function Header() {
 
     const headerClass = `header ${scrolled ? "header-scrolled" : "header-top"}`;
     const burgerClass = `burger ${menuOpen ? "is-open" : ""} ${scrolled ? "burger-scrolled" : "burger-top"}`;
-    const isActive = (id) => (activeId === id ? "is-active" : "");
 
     const renderNavButtons = () =>
         NAV_ITEMS.map((item) =>
@@ -156,7 +120,7 @@ export default function Header() {
                 <button
                     key={item.id}
                     type="button"
-                    className={`navLink ${item.type === "section" ? isActive(item.id) : ""}`.trim()}
+                    className="navLink"
                     onClick={() => onNavClick(item)}
                     data-id={item.id}
                 >

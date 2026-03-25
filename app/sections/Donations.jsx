@@ -65,7 +65,7 @@ export default function Donations() {
     };
 
     return (
-        <section id="donatii" className="don-section">
+        <section className="don-section">
             <div className="don-content">
                 <div className="don-header">
                     <h2 className="don-title">{t("title")}</h2>
