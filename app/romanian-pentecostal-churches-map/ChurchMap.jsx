@@ -121,48 +121,57 @@ function newMapAnimationSignal() {
 }
 
 /**
+ * Normalize any center value to a plain {lat, lng} object.
+ * Handles google.maps.LatLng (methods), plain objects, or mixed.
+ */
+function toLatLng(center) {
+    return {
+        lat: (typeof center.lat === 'function') ? center.lat() : center.lat,
+        lng: (typeof center.lng === 'function') ? center.lng() : center.lng,
+    };
+}
+
+/**
  * Smoothly animate the map center and zoom level using requestAnimationFrame.
+ * Uses map.moveCamera() for atomic center+zoom updates per frame, preventing
+ * Google Maps from batching or overriding separate setCenter/setZoom calls.
  */
 function animateMap(map, fromCenter, toCenter, fromZoom, toZoom, durationMs, abortSignal) {
     return new Promise((resolve) => {
         if (abortSignal?.aborted) { resolve(); return; }
-        
-        const startCoords = { lat: fromCenter.lat(), lng: fromCenter.lng() };
-        const endCoords = (typeof toCenter.lat === 'function') 
-            ? { lat: toCenter.lat(), lng: toCenter.lng() } 
-            : { lat: toCenter.lat, lng: toCenter.lng };
 
-        if (isNaN(startCoords.lat) || isNaN(endCoords.lat)) {
-            map.setCenter(toCenter);
-            map.setZoom(toZoom);
+        const start = toLatLng(fromCenter);
+        const end = toLatLng(toCenter);
+
+        if (isNaN(start.lat) || isNaN(end.lat) || isNaN(start.lng) || isNaN(end.lng)) {
+            map.moveCamera({ center: end, zoom: toZoom });
             resolve();
             return;
         }
 
+        // Ensure minimum duration so animation is always perceptible
+        const duration = Math.max(durationMs, 300);
         const startTime = performance.now();
-        
+
         function step(now) {
             if (abortSignal?.aborted) { resolve(); return; }
             const elapsed = now - startTime;
-            const progress = Math.min(elapsed / durationMs, 1);
-            
-            // Ease-in-out cubic
-            const eased = progress < 0.5
-                ? 4 * progress * progress * progress
-                : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+            const progress = Math.min(elapsed / duration, 1);
 
-            const currentZoom = fromZoom + (toZoom - fromZoom) * eased;
-            const currentLat = startCoords.lat + (endCoords.lat - startCoords.lat) * eased;
-            const currentLng = startCoords.lng + (endCoords.lng - startCoords.lng) * eased;
+            // Ease-in-out Sine — smooth velocity curve (peak 1.57× avg)
+            const eased = -(Math.cos(Math.PI * progress) - 1) / 2;
 
-            map.setZoom(currentZoom);
-            map.setCenter({ lat: currentLat, lng: currentLng });
+            const lat = start.lat + (end.lat - start.lat) * eased;
+            const lng = start.lng + (end.lng - start.lng) * eased;
+            const zoom = fromZoom + (toZoom - fromZoom) * eased;
+
+            // Atomic update — prevents GM internal batching issues
+            map.moveCamera({ center: { lat, lng }, zoom });
 
             if (progress < 1) {
                 requestAnimationFrame(step);
             } else {
-                map.setZoom(toZoom);
-                map.setCenter(toCenter);
+                map.moveCamera({ center: end, zoom: toZoom });
                 resolve();
             }
         }
@@ -171,24 +180,27 @@ function animateMap(map, fromCenter, toCenter, fromZoom, toZoom, durationMs, abo
 }
 
 function animateZoom(map, fromZoom, toZoom, durationMs, abortSignal) {
-    const fromCenter = map.getCenter();
-    return animateMap(map, fromCenter, { lat: fromCenter.lat(), lng: fromCenter.lng() }, fromZoom, toZoom, durationMs, abortSignal);
+    const center = map.getCenter();
+    const plain = toLatLng(center);
+    return animateMap(map, plain, plain, fromZoom, toZoom, durationMs, abortSignal);
 }
 
 /**
- * Smoothly fly the map to a target position.
- * Logic is zoom-aware:
- *   - If already zoomed out → just pan to target, then smoothly zoom in.
- *   - If zoomed in close and target is far → zoom out first, pan, then zoom in.
- *   - If zoomed in close and target is near → just pan + adjust zoom.
+ * Smoothly fly the map to a target position with a Mapbox-style arc effect.
+ *
+ * Strategy based on distance:
+ *   - Short (< 50 km) or noZoomOut: direct pan+zoom in one phase.
+ *   - Long (≥ 50 km): 3-phase arc animation:
+ *       Phase 1 — Zoom out to an overview level (20% of total duration)
+ *       Phase 2 — Pan across the map at overview zoom (50% of total duration)
+ *       Phase 3 — Zoom in to target (30% of total duration)
  */
 function smoothFlyTo(map, target, targetZoom, options = {}) {
     const { abortSignal, instant } = options;
 
-    // If instant (e.g. initial page load), just jump
+    // Instant jump (e.g. initial page load)
     if (instant) {
-        map.setCenter(target);
-        map.setZoom(targetZoom);
+        map.moveCamera({ center: target, zoom: targetZoom });
         return Promise.resolve();
     }
 
@@ -197,38 +209,56 @@ function smoothFlyTo(map, target, targetZoom, options = {}) {
 
         const currentCenter = map.getCenter();
         if (!currentCenter) {
-            map.setCenter(target);
-            map.setZoom(targetZoom);
+            map.moveCamera({ center: target, zoom: targetZoom });
             resolve();
             return;
         }
 
         const currentZoom = map.getZoom() || 4;
+        const targetLat = (typeof target.lat === 'function') ? target.lat() : target.lat;
+        const targetLng = (typeof target.lng === 'function') ? target.lng() : target.lng;
+        const targetCoords = { lat: targetLat, lng: targetLng };
+
         const distance = haversineDistance(
             currentCenter.lat(), currentCenter.lng(),
-            target.lat, target.lng
+            targetLat, targetLng
         );
 
-        // Determine if we're currently zoomed in close (high zoom = close)
-        const isZoomedIn = currentZoom >= 9;
+        // Dynamic total duration: 800ms base + 1.5ms/km, clamped [800, 3500]
+        const totalDuration = Math.max(800, Math.min(800 + distance * 1.5, 3500));
 
-        // Calculate dynamic duration based on distance (km)
-        // Base 800ms + 1.2ms per km, capped at 2500ms total
-        const flyDuration = Math.min(800 + (distance * 1.2), 2500);
-
-        if (options.noZoomOut || !isZoomedIn || distance < 30) {
-            // Already zoomed out OR target is very close:
-            // Fly directly to target (concurrent pan + zoom)
-            animateMap(map, currentCenter, target, currentZoom, targetZoom, flyDuration, abortSignal).then(resolve);
+        if (options.noZoomOut || distance < 50) {
+            // ── Short distance or explicit no-zoom-out: direct fly ──
+            animateMap(map, currentCenter, targetCoords, currentZoom, targetZoom, totalDuration, abortSignal)
+                .then(resolve);
         } else {
-            // Zoomed in close AND target is far away:
-            // Zoom out first → then fly to target (concludes with a concurrent pan + zoom)
-            const midZoom = Math.max(Math.min(currentZoom, targetZoom) - 3, 3);
-            animateZoom(map, currentZoom, midZoom, 500, abortSignal).then(() => {
-                if (abortSignal?.aborted) { resolve(); return; }
-                // Now fly from mid position to final target + zoom level
-                animateMap(map, map.getCenter(), target, midZoom, targetZoom, flyDuration + 100, abortSignal).then(resolve);
-            });
+            // ── Long distance: 3-phase arc animation ──
+            // Calculate overview zoom: go low enough to see both endpoints
+            // The further the distance, the lower we zoom out
+            const zoomDelta = Math.min(Math.ceil(distance / 200), 5); // 1–5 levels out
+            const midZoom = Math.max(Math.min(currentZoom, targetZoom) - zoomDelta, 3);
+
+            // Phase durations
+            const phase1 = totalDuration * 0.20; // zoom out
+            const phase2 = totalDuration * 0.50; // pan
+            const phase3 = totalDuration * 0.30; // zoom in
+
+            const startCoords = toLatLng(currentCenter);
+
+            // Phase 1: Zoom out (stay at current center)
+            animateMap(map, startCoords, startCoords, currentZoom, midZoom, phase1, abortSignal)
+                .then(() => {
+                    if (abortSignal?.aborted) { resolve(); return; }
+                    // Phase 2: Pan to target at overview zoom
+                    const midCenter = toLatLng(map.getCenter());
+                    return animateMap(map, midCenter, targetCoords, midZoom, midZoom, phase2, abortSignal);
+                })
+                .then(() => {
+                    if (abortSignal?.aborted) { resolve(); return; }
+                    // Phase 3: Zoom in to final level
+                    return animateMap(map, targetCoords, targetCoords, midZoom, targetZoom, phase3, abortSignal);
+                })
+                .then(resolve);
         }
     });
 }
@@ -419,8 +449,7 @@ function MapController({ selectedChurch, requestedLocation, isInitialLoad, recen
             smoothFlyTo(map, target, targetZoom, { abortSignal: signal });
         } else {
             // First load: instant jump
-            map.setCenter(target);
-            map.setZoom(targetZoom);
+            map.moveCamera({ center: target, zoom: targetZoom });
         }
 
         hasAnimatedRef.current = true;
