@@ -400,7 +400,7 @@ function MapController({ selectedChurch, requestedLocation, isInitialLoad, recen
             shouldAnimate = hasAnimatedRef.current;
         } else if (requestedLocation && (isInitialLoad || recenterTrigger > 0)) {
             target = { lat: requestedLocation.lat, lng: requestedLocation.lng };
-            targetZoom = 10;
+            targetZoom = 13; // Closer to Google Maps style (not too far, not too close)
             shouldAnimate = hasAnimatedRef.current;
         } else if (!requestedLocation && !selectedChurch && isInitialLoad) {
             target = BELGIUM_CENTER;
@@ -438,21 +438,35 @@ function MapController({ selectedChurch, requestedLocation, isInitialLoad, recen
 function FilterController({ filteredChurches, activeCountryFilter, isMobile, filterRecenterTrigger }) {
     const map = useMap();
     const prevFilterRef = useRef("");
+    const initialRunRef = useRef(true);
 
     useEffect(() => {
         if (!map) return;
         // The effect runs whenever the filter OR recenter trigger changes.
         // This allows re-clicking "All" to re-center on Europe.
+        
+        const filterChanged = prevFilterRef.current !== activeCountryFilter;
+        prevFilterRef.current = activeCountryFilter;
 
         // Cancel any in-flight church animation when switching filters
         cancelMapAnimation();
 
         if (!activeCountryFilter) {
-            // Reset to wide view of Europe (instant)
-            map.panTo({ lat: 48.0, lng: 15.0 });
-            map.setZoom(4);
+            // Reset to wide view of Europe ONLY if the user explicitly changed the filter
+            // or clicked the filter button. Avoid overriding userLocation on initial background load.
+            if (filterChanged || filterRecenterTrigger > 0 || (initialRunRef.current && filterRecenterTrigger === 0 && !window.location.search.includes('church='))) {
+                // Note: On absolute first run, we let MapController handle it, so we skip unless filterRecenterTrigger forces it
+                // Actually, just skipping on initial run entirely for empty filter is safer because MapController handles Europe/Belgium/User defaults.
+                if (!initialRunRef.current) {
+                    map.panTo({ lat: 48.0, lng: 15.0 });
+                    map.setZoom(4);
+                }
+            }
+            initialRunRef.current = false;
             return;
         }
+        
+        initialRunRef.current = false;
 
         // Use predefined country view if available for better framing
         if (COUNTRY_VIEWS[activeCountryFilter]) {
@@ -973,11 +987,13 @@ function ChurchMap() {
 
     // Auto-locate
     useEffect(() => {
-        // Check if we already asked for geolocation in this browser
         const hasAskedGeo = localStorage.getItem("bethel_map_geo_asked");
-        if (hasAskedGeo) return;
 
-        if (navigator.geolocation) {
+        const fetchPosition = () => {
+            if (!navigator.geolocation) {
+                trackWorldMapVisit("denied");
+                return;
+            }
             navigator.geolocation.getCurrentPosition(
                 (position) => {
                     localStorage.setItem("bethel_map_geo_asked", "true");
@@ -993,8 +1009,31 @@ function ChurchMap() {
                 },
                 { timeout: 5000 }
             );
+        };
+
+        if (navigator.permissions && navigator.permissions.query) {
+            navigator.permissions.query({ name: 'geolocation' })
+                .then((result) => {
+                    if (result.state === 'granted') {
+                        // Always fetch if we already have permission
+                        fetchPosition();
+                    } else if (result.state === 'prompt' && !hasAskedGeo) {
+                        // Only prompt if we haven't asked before
+                        fetchPosition();
+                    }
+                    
+                    // Listen for permission changes
+                    result.onchange = () => {
+                        if (result.state === 'granted') fetchPosition();
+                    };
+                })
+                .catch(() => {
+                    // Fallback if query fails
+                    if (!hasAskedGeo) fetchPosition();
+                });
         } else {
-            trackWorldMapVisit("denied");
+            // Fallback for browsers without permissions API
+            if (!hasAskedGeo) fetchPosition();
         }
     }, []);
 
