@@ -73,7 +73,7 @@
     position: relative;
     z-index: 2;
     height: 100%;
-    padding: 0 5%;
+    padding: calc(82px + 2vh) 5% 5vh; /* Account for fixed header plus some dynamic space */
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -81,13 +81,13 @@
     text-align: center;
     max-width: 1100px;
     margin: 0 auto;
-    gap: 34px;
+    gap: clamp(16px, 3vh, 34px);
 }
 
 .hero-title {
     margin: 0;
     color: #fff;
-    font-size: clamp(52px, 8vw, 96px);
+    font-size: clamp(42px, 7.5vw, 96px); /* Reduced min-size to flex better on small devices */
     font-weight: 900;
     line-height: 1.05;
     letter-spacing: -0.02em;
@@ -102,9 +102,9 @@
 }
 
 .hero-subtitle {
-    margin: -28px 0 0 0;
+    margin: clamp(-28px, -4vh, -16px) 0 0 0;
     color: #fff;
-    font-size: clamp(26px, 3.4vw, 44px);
+    font-size: clamp(22px, 3.2vw, 44px);
     font-weight: 800;
     letter-spacing: 0.02em;
     text-shadow:
@@ -120,7 +120,7 @@
 .hero-verse {
     width: 100%;
     max-width: 900px;
-    padding: 32px 40px;
+    padding: clamp(20px, 3vh, 32px) clamp(24px, 4vw, 40px);
     background: rgba(255, 255, 255, 0.66);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);

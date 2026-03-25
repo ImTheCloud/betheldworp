@@ -370,3 +370,27 @@
         width: 270px;
     }
 }
+
+/* Fix for landscape laptops / zoomed in screens with very small heights */
+@media (max-height: 768px) and (min-width: 1025px) {
+    .header {
+        height: 70px;
+        padding: 0 32px;
+    }
+    
+    .logo-img {
+        height: 42px;
+    }
+
+    .logo-text {
+        font-size: 14px;
+    }
+
+    .nav {
+        gap: 20px;
+    }
+
+    .nav .navLink {
+        font-size: 14px;
+    }
+}
