@@ -30,6 +30,15 @@ function IconChevronDown(props) {
     );
 }
 
+function IconEyeOff(props) {
+    return (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" {...props}>
+            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+            <line x1="1" y1="1" x2="23" y2="23" />
+        </svg>
+    );
+}
+
 const COUNTRY_OPTIONS = [
     "Austria", "Belgium", "Bulgaria", "Croatia", "Cyprus", "Czech Republic",
     "Denmark", "Estonia", "Finland", "France", "Germany", "Greece", "Hungary",
@@ -147,7 +156,7 @@ export default function ChurchSuggestionsAdmin() {
         }));
     };
 
-    const handleApprove = async (suggestion) => {
+    const handleApprove = async (suggestion, saveAsDraft = false) => {
         const draft = draftsById[suggestion.id];
         if (!draft) return;
 
@@ -166,6 +175,7 @@ export default function ChurchSuggestionsAdmin() {
             const finalData = { 
                 ...draft, 
                 ...coords, 
+                isDraft: saveAsDraft,
                 updatedAt: serverTimestamp() 
             };
 
@@ -291,7 +301,7 @@ export default function ChurchSuggestionsAdmin() {
                                                 </div>
                                             </div>
 
-                                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px 16px" }}>
+                                            <div className="adminForm">
                                                 {FIELDS.map((f) => {
                                                     const originalValue = s.type === "edit" && s.originalData ? (s.originalData[f.key] ?? "") : "";
                                                     const currentValue = draft[f.key] ?? "";
@@ -392,7 +402,7 @@ export default function ChurchSuggestionsAdmin() {
                                                     </svg>
                                                     Submitter Information
                                                 </h4>
-                                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", backgroundColor: "#f8fafc", padding: "12px", borderRadius: "8px", border: "1px solid rgba(10, 42, 67, 0.05)" }}>
+                                                <div className="adminForm" style={{ backgroundColor: "#f8fafc", padding: "12px", borderRadius: "8px", border: "1px solid rgba(10, 42, 67, 0.05)" }}>
                                                     <div>
                                                         <label className="adminLabel" style={{ fontSize: "10px", marginBottom: "2px" }}>First Name</label>
                                                         <div style={{ fontWeight: "600", color: "#0a2a43", fontSize: "13px" }}>{s.data?.submitter?.firstName || <span className="adminMuted">Not provided</span>}</div>
@@ -419,10 +429,10 @@ export default function ChurchSuggestionsAdmin() {
                                             </div>
 
                                             {!isProcessed && (
-                                                <div className="adminAnnActions" style={{ marginTop: "24px", display: "flex", gap: "12px" }}>
+                                                <div className="adminMsgActions adminMsgActions--3" style={{ marginTop: "24px" }}>
                                                     <button
-                                                        className="adminBtn"
-                                                        style={{ flex: 1, padding: "10px", backgroundColor: "#ffebee", color: "#c62828", border: "1px solid #ffcdd2" }}
+                                                        className="adminDeleteBtn"
+                                                        style={{ height: "100%", padding: "10px" }}
                                                         onClick={() => setModal({ 
                                                             isOpen: true, 
                                                             title: "Reject Suggestion", 
@@ -434,9 +444,17 @@ export default function ChurchSuggestionsAdmin() {
                                                         <IconX style={{ marginRight: 6 }} /> Reject
                                                     </button>
                                                     <button
+                                                        className="adminDraftBtn"
+                                                        style={{ height: "100%", padding: "10px" }}
+                                                        onClick={() => handleApprove(s, true)}
+                                                        disabled={processingId === s.id}
+                                                    >
+                                                        <IconEyeOff style={{ marginRight: 6 }} /> Draft
+                                                    </button>
+                                                    <button
                                                         className="adminBtn"
-                                                        style={{ flex: 1, padding: "10px", backgroundColor: "#e8f5e9", color: "#2e7d32", border: "1px solid #c8e6c9" }}
-                                                        onClick={() => handleApprove(s)}
+                                                        style={{ height: "100%", padding: "10px", backgroundColor: "#ecfdf5", color: "#065f46", border: "1px solid #a7f3d0", display: "flex", justifyContent: "center", width: "100%" }}
+                                                        onClick={() => handleApprove(s, false)}
                                                         disabled={processingId === s.id}
                                                     >
                                                         <IconCheck style={{ marginRight: 6 }} /> Approve
@@ -445,10 +463,10 @@ export default function ChurchSuggestionsAdmin() {
                                             )}
 
                                             {isProcessed && (
-                                                <div className="adminAnnActions" style={{ marginTop: "24px", display: "flex", gap: "12px" }}>
+                                                <div className="adminMsgActions" style={{ marginTop: "24px" }}>
                                                     <button
-                                                        className="adminBtn"
-                                                        style={{ flex: 1, padding: "10px", backgroundColor: "#ffebee", color: "#c62828", border: "1px solid #ffcdd2" }}
+                                                        className="adminDeleteBtn"
+                                                        style={{ height: "100%", padding: "10px" }}
                                                         onClick={() => setModal({ 
                                                             isOpen: true, 
                                                             title: "Delete Suggestion", 

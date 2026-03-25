@@ -143,6 +143,16 @@ function IconPlus(props) {
     );
 }
 
+function IconSave(props) {
+    return (
+        <svg fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" {...props}>
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+            <polyline points="17 21 17 13 7 13 7 21" />
+            <polyline points="7 3 7 8 15 8" />
+        </svg>
+    );
+}
+
 function IconTrash(props) {
     return (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
@@ -268,6 +278,7 @@ function VerseCard({
                             }}
                             disabled={!dirty || saveState === "saving"}
                         >
+                            <IconSave />
                             {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved ✓" : "Save"}
                         </button>
                     </div>
@@ -342,6 +353,7 @@ function NewVerseCard({ newDraft, setNewDraft, newError, newState, activeLang, o
                     </button>
 
                     <button type="button" className="adminMsgSaveBtn" onClick={onSave} disabled={newState === "saving"}>
+                        <IconSave />
                         {newState === "saving" ? "Saving…" : newState === "saved" ? "Saved ✓" : "Save"}
                     </button>
                 </div>

@@ -954,7 +954,8 @@ function ChurchMap() {
             collection(db, "churches"),
             (snap) => {
                 const list = snap.docs.map((d) => ({ ...d.data(), id: d.id }));
-                setChurches(list);
+                const published = list.filter(c => !c.isDraft);
+                setChurches(published);
                 setChurchesLoading(false);
             },
             (err) => {

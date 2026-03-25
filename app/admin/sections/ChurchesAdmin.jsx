@@ -47,6 +47,36 @@ function IconChevronDown(props) {
     );
 }
 
+function IconSave(props) {
+    return (
+        <svg fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" {...props}>
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+            <polyline points="17 21 17 13 7 13 7 21" />
+            <polyline points="7 3 7 8 15 8" />
+        </svg>
+    );
+}
+
+function IconEyeOff(props) {
+    return (
+        <svg fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" {...props}>
+            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+            <line x1="1" y1="1" x2="23" y2="23" />
+        </svg>
+    );
+}
+
+function IconEye(props) {
+    return (
+        <svg fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" {...props}>
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+            <circle cx="12" cy="12" r="3" />
+        </svg>
+    );
+}
+
+
+
 
 const COUNTRY_OPTIONS = [
     "Austria", "Belgium", "Bulgaria", "Croatia", "Cyprus", "Czech Republic",
@@ -73,7 +103,7 @@ const FIELDS = [
 ];
 
 function emptyChurch() {
-    return { name: "", locationTitle: "", street: "", number: "", city: "", country: "Belgium", zipCode: "", lat: "", lng: "", phone: "", email: "", website: "", youtube: "", facebook: "", instagram: "", notes: "" };
+    return { name: "", locationTitle: "", street: "", number: "", city: "", country: "Belgium", zipCode: "", lat: "", lng: "", phone: "", email: "", website: "", youtube: "", facebook: "", instagram: "", notes: "", isDraft: false };
 }
 
 const geocodeAddress = async (street, number, city, zipCode, country) => {
@@ -97,12 +127,26 @@ const geocodeAddress = async (street, number, city, zipCode, country) => {
 
 function ChurchCard({ item, expanded, drafts, saveState, errorText, onToggle, onChange, onSave, onDelete }) {
     const id = item.id;
+    const isDraft = drafts.isDraft || false;
 
     return (
-        <div className="adminAnnCard">
+        <div className={`adminAnnCard ${isDraft ? "is-draft" : ""}`} style={isDraft ? { backgroundColor: "#fffbeb" } : {}}>
             <div className="adminAnnHeader" style={{ cursor: "pointer", justifyContent: "space-between" }} onClick={() => onToggle(id)}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <strong>{item.name}</strong>
+                    <span className="adminSummary">{item.name}</span>
+                    {item.isDraft && (
+                        <span style={{ 
+                            fontSize: "0.7rem", 
+                            fontWeight: 800, 
+                            color: "#92400e", 
+                            backgroundColor: "#fef3c7", 
+                            padding: "2px 6px", 
+                            borderRadius: "4px",
+                            textTransform: "uppercase"
+                        }}>
+                            Draft
+                        </span>
+                    )}
                     <span className="adminMuted" style={{ fontSize: "0.8rem", marginLeft: 8 }}>
                         • {item.city}, {item.country}
                     </span>
@@ -205,7 +249,7 @@ function ChurchCard({ item, expanded, drafts, saveState, errorText, onToggle, on
                     </div>
 
 
-                    <div className="adminMsgActions" style={{ marginTop: "20px" }}>
+                    <div className="adminMsgActions adminMsgActions--3" style={{ marginTop: "20px" }}>
                         <button
                             type="button"
                             className="adminDeleteBtn"
@@ -215,12 +259,24 @@ function ChurchCard({ item, expanded, drafts, saveState, errorText, onToggle, on
                             <IconTrash />
                             Delete
                         </button>
+
+                        <button
+                            type="button"
+                            className="adminDraftBtn"
+                            onClick={(e) => { e.stopPropagation(); onSave(id, !drafts.isDraft); }}
+                            disabled={saveState === "saving"}
+                        >
+                            {drafts.isDraft ? <IconEye /> : <IconEyeOff />}
+                            {drafts.isDraft ? "Undraft" : "Draft"}
+                        </button>
+
                         <button
                             type="button"
                             className="adminMsgSaveBtn"
                             onClick={(e) => { e.stopPropagation(); onSave(id); }}
                             disabled={saveState === "saving"}
                         >
+                            <IconSave />
                             {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved ✓" : "Save"}
                         </button>
                     </div>
@@ -314,11 +370,18 @@ function NewChurchCard({ drafts, setDraft, errorText, saveState, onCancel, onSav
                 </div>
 
 
-                <div className="adminMsgActions" style={{ marginTop: "20px" }}>
+                <div className="adminMsgActions adminMsgActions--3" style={{ marginTop: "20px" }}>
                     <button type="button" className="adminDeleteBtn" onClick={onCancel} disabled={saveState === "saving"}>
                         Cancel
                     </button>
-                    <button type="button" className="adminMsgSaveBtn" onClick={onSave} disabled={saveState === "saving"}>
+
+                    <button type="button" className="adminDraftBtn" onClick={() => onSave(true)} disabled={saveState === "saving"}>
+                        <IconEyeOff />
+                        Draft
+                    </button>
+
+                    <button type="button" className="adminMsgSaveBtn" onClick={() => onSave()} disabled={saveState === "saving"}>
+                        <IconSave />
                         {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved ✓" : "Save"}
                     </button>
                 </div>
@@ -350,11 +413,16 @@ export default function ChurchesAdmin() {
     const [newDrafts, setNewDrafts] = useState(emptyChurch());
     const [newError, setNewError] = useState("");
     const [newState, setNewState] = useState("idle");
+    const [showDraftsOnly, setShowDraftsOnly] = useState(false);
 
     const [modal, setModal] = useState({ isOpen: false, title: "", message: "", onConfirm: () => { } });
 
     const sortedItems = useMemo(() => {
         let arr = [...items];
+
+        if (showDraftsOnly) {
+            arr = arr.filter(it => it.isDraft === true);
+        }
 
         if (selectedCountry) {
             arr = arr.filter(it => safeStr(it.country).toLowerCase() === selectedCountry.toLowerCase());
@@ -375,7 +443,7 @@ export default function ChurchesAdmin() {
             return 0;
         });
         return arr;
-    }, [items, sortBy, searchQuery, selectedCountry, selectedCity]);
+    }, [items, sortBy, searchQuery, selectedCountry, selectedCity, showDraftsOnly]);
 
     const { page, setPage, totalPages, paginatedItems, nextPage, prevPage, totalItems } = usePagination(sortedItems, PAGE_SIZE);
 
@@ -506,7 +574,9 @@ export default function ChurchesAdmin() {
         if (newError) setNewError("");
     };
 
-    const saveNew = async () => {
+    const saveNew = async (forcedDraftStatus = null) => {
+        let isDraftValue = forcedDraftStatus !== null ? forcedDraftStatus : (newDrafts.isDraft || false);
+        
         if (!newDrafts.name.trim() || !newDrafts.city.trim()) {
             setNewError("The Church Name and City fields are required.");
             return;
@@ -546,12 +616,16 @@ export default function ChurchesAdmin() {
                 youtube: newDrafts.youtube.trim(),
                 facebook: (newDrafts.facebook || "").trim(),
                 instagram: (newDrafts.instagram || "").trim(),
+                isDraft: isDraftValue,
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp(),
                 createdBy: { name: "Popadiuc Claudiu", at: serverTimestamp() }
             });
 
             if (!mountedRef.current) return;
+            if (forcedDraftStatus !== null) {
+                setNewDrafts((prev) => ({ ...prev, isDraft: isDraftValue }));
+            }
             setNewState("saved");
             setTimeout(() => {
                 if (!mountedRef.current) return;
@@ -575,9 +649,11 @@ export default function ChurchesAdmin() {
         setErrorById((m) => ({ ...m, [id]: "" }));
     };
 
-    const saveOne = async (id) => {
-        const draft = draftsById[id];
+    const saveOne = async (id, forcedDraftStatus = null) => {
+        let draft = draftsById[id];
         if (!draft) return;
+
+        let isDraftValue = forcedDraftStatus !== null ? forcedDraftStatus : (draft.isDraft || false);
 
         if (!draft.name?.trim() || !draft.city?.trim()) {
             setErrorById((m) => ({ ...m, [id]: "The Church Name and City fields are required." }));
@@ -628,10 +704,14 @@ export default function ChurchesAdmin() {
                 youtube: (draft.youtube || "").trim(),
                 facebook: (draft.facebook || "").trim(),
                 instagram: (draft.instagram || "").trim(),
+                isDraft: isDraftValue,
                 updatedAt: serverTimestamp(),
             });
 
             if (!mountedRef.current) return;
+            if (forcedDraftStatus !== null) {
+                changeDraft(id, "isDraft", isDraftValue);
+            }
             setTransientState(id, "saved");
         } catch (err) {
             console.error(err);
@@ -671,13 +751,28 @@ export default function ChurchesAdmin() {
     return (
         <div className="adminFullPage">
             <div className="adminFullTop">
-                <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", height: 40 }}>
-                    <h2 className="adminTitle" style={{ margin: 0, lineHeight: 1 }}>Churches</h2>
-                    <span style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "rgba(10, 42, 67, 0.6)", fontWeight: 600, height: "100%" }}>
-                        <span className="adminCountDot" aria-hidden="true" style={{ width: 6, height: 6, opacity: 0.3 }} />
-                        {totalItems} church{totalItems === 1 ? "" : "es"}
-                    </span>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", flexWrap: "wrap" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                        <h2 className="adminTitle" style={{ margin: 0, lineHeight: 1 }}>Churches</h2>
+                        <span style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "rgba(10, 42, 67, 0.6)", fontWeight: 600 }}>
+                            <span className="adminCountDot" aria-hidden="true" style={{ width: 6, height: 6, opacity: 0.3 }} />
+                            {totalItems} church{totalItems === 1 ? "" : "es"}
+                        </span>
+                    </div>
+
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <span style={{ fontSize: "13px", fontWeight: 700, color: "#475569" }}>Draft</span>
+                        <label className="adminSwitch">
+                            <input 
+                                type="checkbox" 
+                                checked={showDraftsOnly} 
+                                onChange={(e) => setShowDraftsOnly(e.target.checked)}
+                            />
+                            <span className="adminSlider" />
+                        </label>
+                    </div>
                 </div>
+
                 <div className="adminActions" style={{ flexWrap: "wrap", justifyContent: "flex-end", gap: "12px" }}>
                     <select
                         className="adminSelect"
@@ -721,6 +816,8 @@ export default function ChurchesAdmin() {
                         <option value="date-asc">Oldest first</option>
                         <option value="az">Alphabetical</option>
                     </select>
+
+
 
                     <button className="adminBtn adminBtn--new" type="button" onClick={startNew} disabled={loading || showNew}>
                         <span className="adminBtnIcon" aria-hidden="true"><IconPlus /></span>
