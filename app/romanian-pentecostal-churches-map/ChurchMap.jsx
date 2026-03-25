@@ -184,7 +184,7 @@ function smoothFlyTo(map, target, targetZoom, options = {}) {
         // Determine if we're currently zoomed in close (high zoom = close)
         const isZoomedIn = currentZoom >= 9;
 
-        if (!isZoomedIn || distance < 30) {
+        if (options.noZoomOut || !isZoomedIn || distance < 30) {
             // Already zoomed out OR target is very close:
             // Just pan to the target, then smoothly zoom in to targetZoom
             map.panTo(target);
@@ -228,28 +228,6 @@ function smoothFlyTo(map, target, targetZoom, options = {}) {
                 }, 800);
             });
         }
-    });
-}
-
-/**
- * Smooth fitBounds: fits bounds then smoothly caps zoom if needed.
- */
-function smoothFitBounds(map, bounds, padding, maxZoom, abortSignal) {
-    return new Promise((resolve) => {
-        if (abortSignal?.aborted) { resolve(); return; }
-        map.fitBounds(bounds, padding);
-
-        // After fitBounds settles, smoothly cap the zoom if needed
-        const idleHandler = () => {
-            if (abortSignal?.aborted) { resolve(); return; }
-            const currentZoom = map.getZoom();
-            if (currentZoom > maxZoom) {
-                animateZoom(map, currentZoom, maxZoom, 400, abortSignal).then(resolve);
-            } else {
-                resolve();
-            }
-        };
-        google.maps.event.addListenerOnce(map, 'idle', idleHandler);
     });
 }
 
@@ -554,13 +532,12 @@ const Markers = ({ churches, onMarkerClick, selectedChurchId, hoveredMarkerId, s
                 }
             },
             onClusterClick: (event, cluster, map) => {
-                const bounds = new google.maps.LatLngBounds();
-                cluster.markers.forEach(m => bounds.extend(m.position));
-
-                // Smooth animated approach to cluster bounds — allow deep zoom to break clusters
+                // Instead of unpredictable fitBounds, we directly zoom in by 3 to break the cluster
                 const signal = newMapAnimationSignal();
-                const padding = window.innerWidth <= 768 ? 40 : 100;
-                smoothFitBounds(map, bounds, padding, 16, signal);
+                const currentZoom = map.getZoom() || 4;
+                const targetZoom = Math.min(currentZoom + 3, 16);
+                
+                smoothFlyTo(map, cluster.position, targetZoom, { abortSignal: signal, noZoomOut: true });
             }
         });
 
