@@ -722,6 +722,7 @@ function ChurchMap() {
     const [isExiting, setIsExiting] = useState(false);
     const [dragHeight, setDragHeight] = useState(null);
     const [isDragging, setIsDragging] = useState(false);
+    const touchStartTime = useRef(0);
 
     // Auto-close bottom sheet on mobile when a country is selected (or when re-clicking "All")
     useEffect(() => {
@@ -1165,6 +1166,7 @@ function ChurchMap() {
         isHeaderTouch.current = isHeader;
         isFilterMenuTouch.current = !!target.closest('.countryFilterMenu');
         touchStartY.current = e.touches[0].clientY;
+        touchStartTime.current = Date.now();
         if (sheetRef.current) {
             startHeight.current = sheetRef.current.offsetHeight;
         }
@@ -1247,6 +1249,31 @@ function ChurchMap() {
         }
 
         setDragHeight(newHeight);
+
+        // Instant snap on direction detection (Feedback-driven fluidity)
+        const absDeltaY = Math.abs(deltaY);
+        const snapThreshold = 30; 
+        const largeSnapThreshold = 150;
+
+        if (absDeltaY > snapThreshold) {
+            let nextMode = null;
+            if (deltaY < 0) { // UP
+                if (absDeltaY > largeSnapThreshold) nextMode = "expanded";
+                else if (bottomSheetMode === "hidden") nextMode = "collapsed";
+                else if (bottomSheetMode === "collapsed") nextMode = "expanded";
+            } else { // DOWN
+                if (absDeltaY > largeSnapThreshold) nextMode = "hidden";
+                else if (bottomSheetMode === "expanded") nextMode = "collapsed";
+                else if (bottomSheetMode === "collapsed") nextMode = "hidden";
+            }
+
+            if (nextMode && nextMode !== bottomSheetMode) {
+                setBottomSheetMode(nextMode);
+                setDragHeight(null);
+                setIsDragging(false);
+                startHeight.current = null;
+            }
+        }
     };
 
     const handleTouchEnd = (e) => {
@@ -1262,14 +1289,29 @@ function ChurchMap() {
         if (dragHeight) {
             const vh = window.innerHeight / 100;
             const hInVh = dragHeight / vh;
+            
+            const duration = Math.max(Date.now() - touchStartTime.current, 1);
+            const deltaY = e.changedTouches[0].clientY - touchStartY.current;
+            const velocity = deltaY / duration; // px/ms. Negative = up, Positive = down.
+            const flickThreshold = 0.5;
 
-            // Snap logic based on height
-            if (hInVh < 25) {
-                setBottomSheetMode("hidden");
-            } else if (hInVh < 55) {
-                setBottomSheetMode("collapsed");
-            } else {
+            // Velocity-based snapping (Flicks)
+            if (velocity < -flickThreshold) {
+                // Flick UP: Always go to expanded
                 setBottomSheetMode("expanded");
+            } else if (velocity > flickThreshold) {
+                // Flick DOWN: From expanded go to collapsed, from collapsed go to hidden
+                if (hInVh > 55) setBottomSheetMode("collapsed");
+                else setBottomSheetMode("hidden");
+            } else {
+                // Normal distance-based snapping (Slow drag)
+                if (hInVh < 25) {
+                    setBottomSheetMode("hidden");
+                } else if (hInVh < 55) {
+                    setBottomSheetMode("collapsed");
+                } else {
+                    setBottomSheetMode("expanded");
+                }
             }
         }
 
