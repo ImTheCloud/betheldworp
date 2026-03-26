@@ -16,6 +16,22 @@
     overscroll-behavior: none; /* Prevent pull-to-refresh */
 }
 
+.churchMapLayout.loading {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background-color: #f8fafc; /* Premium off-white */
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    z-index: 99999;
+}
+
+.churchMapLayout.loading .loaderContainer {
+    padding: 0;
+}
+
 /* Medium Desktop Responsiveness for Header */
 @media (min-width: 769px) and (max-width: 1300px) {
     .mapHeaderLeft {

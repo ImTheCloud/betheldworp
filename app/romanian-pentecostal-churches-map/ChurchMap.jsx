@@ -693,7 +693,7 @@ const Markers = ({ churches, onMarkerClick, selectedChurchId, hoveredMarkerId, s
 function ChurchMap() {
     const searchParams = useSearchParams();
     
-    const [isMobile, setIsMobile] = useState(false);
+    const [isMobile, setIsMobile] = useState(null);
     const [bottomSheetMode, setBottomSheetMode] = useState("collapsed"); // "hidden" | "collapsed" | "expanded"
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [showOtherCountries, setShowOtherCountries] = useState(false);
@@ -1427,6 +1427,23 @@ function ChurchMap() {
         );
     }
 
+    if (isMobile === null || churchesLoading) {
+        return (
+            <div className="churchMapLayout loading">
+                <div className="loaderContainer">
+                    <div className="premiumLoader">
+                        <div className="loaderRing"></div>
+                        <div className="loaderRing"></div>
+                        <div className="loaderLogo">
+                            <img src="/icon.png" alt="Bethel Logo" />
+                        </div>
+                    </div>
+                    <span className="loaderText">{t("loadingChurches") || "Încărcare..."}</span>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div 
             className={`churchMapLayout ${mobileShowMap ? "mapFocused" : ""} ${!isSidebarOpen ? "sidebar-closed" : ""}`}
@@ -1604,89 +1621,73 @@ function ChurchMap() {
                         )}
 
                         <div className="churchList">
-                            {churchesLoading ? (
-                                <div className="loaderContainer">
-                                    <div className="premiumLoader">
-                                        <div className="loaderRing"></div>
-                                        <div className="loaderRing"></div>
-                                        <div className="loaderLogo">
-                                            <img src="/icon.png" alt="Bethel Logo" />
+                            {isMobile && (selectedChurch || isExiting) ? (
+                                <div className={`mobileChurchDetails ${isExiting ? "exiting" : ""}`}>
+                                    <div className="mobileDetailsHeader">
+                                        <h2 className="churchDetailsTitle">
+                                            {selectedChurch.name}{selectedChurch.city ? ` ${selectedChurch.city}` : ''}
+                                        </h2>
+                                        <div className="mobileDetailsHeaderActions">
+                                            <button className="mobileDetailsBack" onClick={deselectChurch} aria-label="Close">
+                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                                </svg>
+                                            </button>
                                         </div>
                                     </div>
-                                    <span className="loaderText">{t("loadingChurches") || "Încărcare..."}</span>
+
+                                    <div className="mobileDetailsBody">
+                                        <p className="churchDetailsAddress">
+                                            {[(`${selectedChurch.street || ""} ${selectedChurch.number || ""}`.trim()), (`${selectedChurch.zipCode ? `${selectedChurch.zipCode} ` : ""}${selectedChurch.city || ""}`.trim()), getCountryLabel(selectedChurch.country)].filter(Boolean).join(", ")}
+                                        </p>
+
+                                        <ChurchInfoLinks church={selectedChurch} t={t} />
+
+                                    </div>
                                 </div>
                             ) : (
                                 <>
-                                    {isMobile && (selectedChurch || isExiting) ? (
-                                        <div className={`mobileChurchDetails ${isExiting ? "exiting" : ""}`}>
-                                            <div className="mobileDetailsHeader">
-                                                <h2 className="churchDetailsTitle">
-                                                    {selectedChurch.name}{selectedChurch.city ? ` ${selectedChurch.city}` : ''}
-                                                </h2>
-                                                <div className="mobileDetailsHeaderActions">
-                                                    <button className="mobileDetailsBack" onClick={deselectChurch} aria-label="Close">
-                                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                                                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                                                        </svg>
+                                    {Object.entries(groupedChurches).map(([country, items]) => (
+                                        <div key={country} className="churchCountryGroup">
+                                            <h2 className="churchCountryHeader">
+                                                <FlagImage country={country} className="countryFlag" />
+                                                {t(`country_${country}`) === `country_${country}` ? country : t(`country_${country}`)}
+                                                <span className="countryCount">{items.length}</span>
+                                            </h2>
+                                            {items.map((church, idx) => {
+                                                const isSelected = selectedChurch?.id === church.id;
+                                                return (
+                                                    <button
+                                                        key={idx}
+                                                        className={`churchListItem ${isSelected ? "active" : ""}`}
+                                                        onClick={() => {
+                                                            selectChurch(church);
+                                                        }}
+                                                    >
+                                                        <div className="churchListItemIcon">
+                                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                                                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+                                                            </svg>
+                                                        </div>
+                                                        <div className="churchListItemContent">
+                                                            <h3>{church.name}{church.city ? ` ${church.city}` : ''}</h3>
+                                                            <p>{[(`${church.street || ""} ${church.number || ""}`.trim()), (`${church.zipCode ? `${church.zipCode} ` : ""}${church.city || ""}`.trim()), getCountryLabel(church.country)].filter(Boolean).join(", ")}</p>
+                                                        </div>
                                                     </button>
-                                                </div>
-                                            </div>
-
-                                            <div className="mobileDetailsBody">
-                                                <p className="churchDetailsAddress">
-                                                    {[(`${selectedChurch.street || ""} ${selectedChurch.number || ""}`.trim()), (`${selectedChurch.zipCode ? `${selectedChurch.zipCode} ` : ""}${selectedChurch.city || ""}`.trim()), getCountryLabel(selectedChurch.country)].filter(Boolean).join(", ")}
-                                                </p>
-
-                                                <ChurchInfoLinks church={selectedChurch} t={t} />
-
-                                            </div>
+                                                );
+                                            })}
                                         </div>
-                                    ) : (
-                                        <>
-                                            {Object.entries(groupedChurches).map(([country, items]) => (
-                                                <div key={country} className="churchCountryGroup">
-                                                    <h2 className="churchCountryHeader">
-                                                        <FlagImage country={country} className="countryFlag" />
-                                                        {t(`country_${country}`) === `country_${country}` ? country : t(`country_${country}`)}
-                                                        <span className="countryCount">{items.length}</span>
-                                                    </h2>
-                                                    {items.map((church, idx) => {
-                                                        const isSelected = selectedChurch?.id === church.id;
-                                                        const dist = distanceMap[church.id];
-                                                        return (
-                                                            <button
-                                                                key={idx}
-                                                                className={`churchListItem ${isSelected ? "active" : ""}`}
-                                                                onClick={() => {
-                                                                    selectChurch(church);
-                                                                }}
-                                                            >
-                                                                <div className="churchListItemIcon">
-                                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                                                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-                                                                    </svg>
-                                                                </div>
-                                                                <div className="churchListItemContent">
-                                                                    <h3>{church.name}{church.city ? ` ${church.city}` : ''}</h3>
-                                                                    <p>{[(`${church.street || ""} ${church.number || ""}`.trim()), (`${church.zipCode ? `${church.zipCode} ` : ""}${church.city || ""}`.trim()), getCountryLabel(church.country)].filter(Boolean).join(", ")}</p>
-                                                                </div>
-                                                            </button>
-                                                        );
-                                                    })}
-                                                </div>
-                                            ))}
+                                    ))}
 
-                                            {filteredChurches.length === 0 && (
-                                                <div className="churchListEmpty">
-                                                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                                                        <circle cx="11" cy="11" r="8"></circle>
-                                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                                    </svg>
-                                                    <p>{t("noChurchFound")}</p>
-                                                </div>
-                                            )}
-                                        </>
+                                    {filteredChurches.length === 0 && (
+                                        <div className="churchListEmpty">
+                                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                                <circle cx="11" cy="11" r="8"></circle>
+                                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                            </svg>
+                                            <p>{t("noChurchFound")}</p>
+                                        </div>
                                     )}
                                 </>
                             )}
