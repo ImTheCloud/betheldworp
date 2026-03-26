@@ -1150,20 +1150,15 @@ function ChurchMap() {
     }, [isMobile, setBottomSheetMode]);
 
     const handleTouchStart = (e) => {
-        const isHeader = (
-            e.target.closest('.bottomSheetDragHandleArea') || 
-            e.target.closest('.mobileControlsInSheet') || 
-            e.target.closest('.mobileDetailsHeader') ||
-            e.target.closest('.churchSidebarFooter')
-        ) && !e.target.closest('.countryFilterMenu');
+        const target = e.target;
+        const isHeader = !!(
+            target.closest('.bottomSheetDragHandleArea') || 
+            target.closest('.mobileControlsInSheet') || 
+            target.closest('.mobileDetailsHeader') ||
+            target.closest('.churchSidebarFooter')
+        ) && !target.closest('.countryFilterMenu');
         
-        if (!isHeader) {
-            isHeaderTouch.current = false;
-            setIsDragging(false);
-            return;
-        }
-
-        isHeaderTouch.current = true;
+        isHeaderTouch.current = isHeader;
         touchStartY.current = e.touches[0].clientY;
         if (sheetRef.current) {
             startHeight.current = sheetRef.current.offsetHeight;
@@ -1172,34 +1167,54 @@ function ChurchMap() {
     };
 
     const handleTouchMove = (e) => {
-        if (!isDragging || !startHeight.current || !isHeaderTouch.current) return;
+        if (!isDragging || !startHeight.current) return;
         const currentY = e.touches[0].clientY;
         const deltaY = currentY - touchStartY.current;
 
         // Threshold check to avoid accidental micro-drags when wanting to tap
-        if (Math.abs(deltaY) < 10) return;
+        if (Math.abs(deltaY) < 5) return;
 
-        // If we are definitely dragging, blur any active element (closes keyboard)
+        // Determine if we should drag the sheet or allow content scrolling
+        let shouldIntercept = isHeaderTouch.current;
+        
+        // Broad dragging (from any content) is only enabled in the Church Details view
+        // In the list view, we prioritize scrolling to avoid accidental sheet drags
+        if (!shouldIntercept && selectedChurch) {
+            const scrollContainer = e.target.closest('.churchList');
+            const isAtTop = !scrollContainer || scrollContainer.scrollTop <= 0;
+            
+            // Dragging DOWN from top of content drags the sheet
+            if (deltaY > 0 && isAtTop) {
+                shouldIntercept = true;
+            }
+            // Dragging UP only drags the sheet if it's NOT already expanded
+            else if (deltaY < 0 && bottomSheetMode !== "expanded") {
+                shouldIntercept = true;
+            }
+        }
+
+        if (!shouldIntercept) return;
+
+        // If we reach here, we are dragging the SHEET, so prevent scroll and blur inputs
+        if (e.cancelable) e.preventDefault();
+
         if (document.activeElement instanceof HTMLElement && 
            (e.target.closest('input') || e.target.closest('button'))) {
             document.activeElement.blur();
         }
 
-        // If we reach here, we are dragging the SHEET, so prevent scroll
-        if (e.cancelable) e.preventDefault();
-
-        // Calculate new height (dragging up reduces deltaY, so we subtract it)
+        // Calculate new height
         let newHeight = startHeight.current - deltaY;
 
-        // Respect limits (min 48px, max height leaving room for header)
-        const headerH = 110; // Safe approximation of mobileTopHeader content + padding
+        // Respect limits
+        const headerH = 110;
         const minH = 48;
         const maxH = window.innerHeight - headerH - 10;
 
         if (newHeight < minH) {
-            newHeight = minH + (newHeight - minH) * 0.2; // Resistance
+            newHeight = minH + (newHeight - minH) * 0.2;
         } else if (newHeight > maxH) {
-            newHeight = maxH + (newHeight - maxH) * 0.2; // Resistance
+            newHeight = maxH + (newHeight - maxH) * 0.2;
         }
 
         setDragHeight(newHeight);
