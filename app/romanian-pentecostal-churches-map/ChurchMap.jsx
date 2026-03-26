@@ -718,6 +718,7 @@ function ChurchMap() {
     const startHeight = useRef(0);
     const touchStartY = useRef(0);
     const isHeaderTouch = useRef(false);
+    const isFilterMenuTouch = useRef(false);
     const [isExiting, setIsExiting] = useState(false);
     const [dragHeight, setDragHeight] = useState(null);
     const [isDragging, setIsDragging] = useState(false);
@@ -1159,6 +1160,7 @@ function ChurchMap() {
         ) && !target.closest('.countryFilterMenu');
         
         isHeaderTouch.current = isHeader;
+        isFilterMenuTouch.current = !!target.closest('.countryFilterMenu');
         touchStartY.current = e.touches[0].clientY;
         if (sheetRef.current) {
             startHeight.current = sheetRef.current.offsetHeight;
@@ -1169,6 +1171,9 @@ function ChurchMap() {
         if (!startHeight.current) return;
         const currentY = e.touches[0].clientY;
         const deltaY = currentY - touchStartY.current;
+
+        // Isolate country filter menu from sheet dragging
+        if (isFilterMenuTouch.current) return;
 
         // Threshold check to avoid accidental micro-drags when wanting to tap
         if (Math.abs(deltaY) < 5) return;
@@ -1242,6 +1247,9 @@ function ChurchMap() {
     };
 
     const handleTouchEnd = (e) => {
+        if (isFilterMenuTouch.current) {
+            isFilterMenuTouch.current = false;
+        }
         if (!isDragging) {
             startHeight.current = null;
             return;
