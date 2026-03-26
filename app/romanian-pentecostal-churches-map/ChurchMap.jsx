@@ -1257,11 +1257,14 @@ function ChurchMap() {
 
             // Velocity-based snapping (Flicks)
             if (velocity < -flickThreshold) {
-                // Flick UP: Always go to expanded
-                setBottomSheetMode("expanded");
+                // Flick UP: Go to next level
+                if (bottomSheetMode === "hidden") setBottomSheetMode("collapsed");
+                else if (bottomSheetMode === "collapsed") setBottomSheetMode("expanded");
+                else setBottomSheetMode("expanded");
             } else if (velocity > flickThreshold) {
-                // Flick DOWN: From expanded go to collapsed, from collapsed go to hidden
-                if (hInVh > 55) setBottomSheetMode("collapsed");
+                // Flick DOWN: Go to previous level
+                if (bottomSheetMode === "expanded") setBottomSheetMode("collapsed");
+                else if (bottomSheetMode === "collapsed") setBottomSheetMode("hidden");
                 else setBottomSheetMode("hidden");
             } else {
                 // Normal distance-based snapping (Slow drag)
