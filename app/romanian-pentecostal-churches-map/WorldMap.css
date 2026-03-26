@@ -2346,10 +2346,10 @@
         background: #ffffff;
         box-shadow: 0 8px 24px rgba(0,0,0,0.12);
         border: 1px solid rgba(226, 232, 240, 0.8);
-        border-radius: 28px;
-        height: 56px; /* Slightly taller for better touch targets */
+        border-radius: 22px;
+        height: 44px; /* Reduced from 56px for a more compact look */
         pointer-events: auto;
-        padding: 0 2px;
+        padding: 0 4px;
         overflow: visible;
         animation: headerSlideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     }
@@ -2360,8 +2360,8 @@
     }
 
     .unifiedReturnBtn {
-        width: 38px;
-        height: 38px;
+        width: 34px;
+        height: 34px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -2389,7 +2389,7 @@
         flex: 1;
         border: none;
         padding: 0;
-        font-size: 1rem;
+        font-size: 0.95rem;
         background: transparent;
         color: #1e293b;
         font-weight: 500;
@@ -2403,8 +2403,8 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 40px;
-        height: 40px;
+        width: 34px;
+        height: 34px;
         flex-shrink: 0;
     }
 
@@ -2416,8 +2416,8 @@
     .unifiedSearchClear {
         background: transparent;
         border: none;
-        width: 38px;
-        height: 38px;
+        width: 32px;
+        height: 32px;
         color: #94a3b8;
         display: flex;
         align-items: center;
@@ -2443,13 +2443,13 @@
         display: flex;
         align-items: center;
         gap: 4px;
-        height: 40px;
-        padding: 0 4px;
+        height: 34px;
+        padding: 0 6px;
         background: transparent;
         border: none;
         cursor: pointer;
         transition: all 0.2s;
-        border-radius: 22px;
+        border-radius: 17px;
     }
 
     .unifiedFilterToggle:active {
