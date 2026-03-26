@@ -1234,31 +1234,6 @@ function ChurchMap() {
         }
 
         setDragHeight(newHeight);
-
-        // Instant snap on direction detection (Feedback-driven fluidity)
-        const absDeltaY = Math.abs(deltaY);
-        const snapThreshold = 30; 
-        const largeSnapThreshold = 150;
-
-        if (absDeltaY > snapThreshold) {
-            let nextMode = null;
-            if (deltaY < 0) { // UP
-                if (absDeltaY > largeSnapThreshold) nextMode = "expanded";
-                else if (bottomSheetMode === "hidden") nextMode = "collapsed";
-                else if (bottomSheetMode === "collapsed") nextMode = "expanded";
-            } else { // DOWN
-                if (absDeltaY > largeSnapThreshold) nextMode = "hidden";
-                else if (bottomSheetMode === "expanded") nextMode = "collapsed";
-                else if (bottomSheetMode === "collapsed") nextMode = "hidden";
-            }
-
-            if (nextMode && nextMode !== bottomSheetMode) {
-                setBottomSheetMode(nextMode);
-                setDragHeight(null);
-                setIsDragging(false);
-                startHeight.current = null;
-            }
-        }
     };
 
     const handleTouchEnd = (e) => {
