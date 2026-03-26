@@ -1163,11 +1163,10 @@ function ChurchMap() {
         if (sheetRef.current) {
             startHeight.current = sheetRef.current.offsetHeight;
         }
-        setIsDragging(true);
     };
 
     const handleTouchMove = (e) => {
-        if (!isDragging || !startHeight.current) return;
+        if (!startHeight.current) return;
         const currentY = e.touches[0].clientY;
         const deltaY = currentY - touchStartY.current;
 
@@ -1201,6 +1200,9 @@ function ChurchMap() {
 
         if (!shouldIntercept) return;
 
+        // Visual feedback and CSS classes only when we actually start dragging the sheet
+        if (!isDragging) setIsDragging(true);
+
         // If we reach here, we are dragging the SHEET, so prevent scroll and blur inputs
         if (e.cancelable) e.preventDefault();
 
@@ -1227,7 +1229,10 @@ function ChurchMap() {
     };
 
     const handleTouchEnd = (e) => {
-        if (!isDragging) return;
+        if (!isDragging) {
+            startHeight.current = null;
+            return;
+        }
         setIsDragging(false);
 
         if (dragHeight) {
