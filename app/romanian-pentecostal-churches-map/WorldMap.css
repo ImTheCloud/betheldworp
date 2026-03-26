@@ -2872,28 +2872,65 @@
 
 /* Actions */
 .suggestionFormActions {
-    padding: 16px 24px;
+    padding: 12px 24px;
     background: #ffffff;
     border-top: 1px solid #f1f5f9;
 }
 
+/* Step 1: Cancel (left) + Next (right) */
+.suggestionStep1Actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.suggestionStep1Actions .suggestionCancelBtn,
+.suggestionStep1Actions .suggestionSubmitBtn {
+    flex: 1;
+    width: auto;
+}
+
+/* Cancel button — grey with dark border */
+.suggestionCancelBtn {
+    height: 36px;
+    padding: 0 16px;
+    background: #f1f5f9;
+    color: #1e293b;
+    border: 1.5px solid #334155;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.01em;
+}
+
+.suggestionCancelBtn:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+    border-color: #0f172a;
+}
+
+/* Next / Send button — blue, compact */
 .suggestionSubmitBtn {
-    width: 100%;
-    height: 48px;
+    height: 36px;
+    padding: 0 18px;
     background: #134b7b;
     background: linear-gradient(135deg, #134b7b 0%, #1e5c8a 100%);
     color: #ffffff;
     border: none;
-    border-radius: 14px;
-    font-size: 1rem;
+    border-radius: 20px;
+    font-size: 0.82rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
+    letter-spacing: 0.01em;
+    width: auto;
 }
 
 .suggestionSubmitBtn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(19, 75, 123, 0.2);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(19, 75, 123, 0.25);
 }
 
 .suggestionSubmitBtn:disabled {
@@ -2902,23 +2939,28 @@
     transform: none;
 }
 
+/* Step 2: Back (left) + Send (right) */
 .step2Actions {
     display: flex;
     gap: 8px;
+    justify-content: flex-end;
 }
 
 .step2Actions .suggestionSubmitBtn,
 .step2Actions .suggestionSkipBtn {
     flex: 1;
+    width: auto;
 }
 
+/* Back button — same style as Cancel */
 .suggestionSkipBtn {
-    height: 48px;
+    height: 36px;
+    padding: 0 16px;
     background: #f1f5f9;
     color: #475569;
     border: none;
-    border-radius: 14px;
-    font-size: 0.95rem;
+    border-radius: 20px;
+    font-size: 0.82rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
@@ -2926,7 +2968,9 @@
 
 .suggestionSkipBtn:hover {
     background: #e2e8f0;
+    color: #1e293b;
 }
+
 
 @keyframes slideIn {
     from { opacity: 0; transform: translateY(10px); }

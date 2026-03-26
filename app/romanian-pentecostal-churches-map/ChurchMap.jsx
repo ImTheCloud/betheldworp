@@ -1943,7 +1943,6 @@ function ChurchMap() {
                     <div className="suggestionModal">
                         <div className="suggestionModalHeader">
                             <h3>{suggestionType === "new" ? t("suggestionTitleNew") : t("suggestionTitleEdit")}</h3>
-                            <button className="suggestionModalClose" onClick={() => setShowSuggestionModal(false)}>&times;</button>
                         </div>
 
                         {suggestionSuccess ? (
@@ -2158,13 +2157,22 @@ function ChurchMap() {
 
                                 <div className="suggestionFormActions">
                                     {suggestionStep === 1 ? (
-                                        <button
-                                            type="submit"
-                                            className="suggestionSubmitBtn"
-                                            disabled={isSubmitting || (suggestionType === "edit" && !hasChanges)}
-                                        >
-                                            {isSubmitting ? "..." : t("nextStep")}
-                                        </button>
+                                        <div className="suggestionStep1Actions">
+                                            <button
+                                                type="button"
+                                                className="suggestionCancelBtn"
+                                                onClick={() => setShowSuggestionModal(false)}
+                                            >
+                                                {t("cancel")}
+                                            </button>
+                                            <button
+                                                type="submit"
+                                                className="suggestionSubmitBtn"
+                                                disabled={isSubmitting || (suggestionType === "edit" && !hasChanges)}
+                                            >
+                                                {isSubmitting ? "..." : t("nextStep")}
+                                            </button>
+                                        </div>
                                     ) : (
                                         <div className="step2Actions">
                                             <button
