@@ -1074,6 +1074,9 @@ function ChurchMap() {
     }, []);
 
     const handleRecenter = () => {
+        // Deselect any active church first
+        deselectChurch();
+
         if (userLocation) {
             setRecenterTrigger(prev => prev + 1);
         } else {
@@ -1425,7 +1428,12 @@ function ChurchMap() {
     }
 
     return (
-        <div className={`churchMapLayout ${mobileShowMap ? "mapFocused" : ""} ${!isSidebarOpen ? "sidebar-closed" : ""}`}>
+        <div 
+            className={`churchMapLayout ${mobileShowMap ? "mapFocused" : ""} ${!isSidebarOpen ? "sidebar-closed" : ""}`}
+            style={isMobile ? { 
+                "--dynamic-height": dragHeight ? `${dragHeight}px` : undefined 
+            } : {}}
+        >
 
             {/* Mobile Top Header (Search, Filters, Settings) */}
             {/* Sidebar */}
@@ -1930,6 +1938,22 @@ function ChurchMap() {
                             isMobile={isMobile}
                             filterRecenterTrigger={filterRecenterTrigger}
                         />
+
+                        {/* Recentering button (follows bottom sheet on mobile) */}
+                        <button
+                            className="mapRecenterBtn"
+                            onClick={handleRecenter}
+                            aria-label={t("recenterLabel") || "Centrat pe poziția mea"}
+                        >
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <line x1="12" y1="1" x2="12" y2="4"></line>
+                                <line x1="12" y1="20" x2="12" y2="23"></line>
+                                <line x1="1" y1="12" x2="4" y2="12"></line>
+                                <line x1="20" y1="12" x2="23" y2="12"></line>
+                            </svg>
+                        </button>
                     </Map>
 
                     {/* Church Details Card (Desktop Only) */}

@@ -1657,6 +1657,41 @@
     animation: userDotPulse 2s infinite;
 }
 
+/* User Location Center Button */
+.mapRecenterBtn {
+    position: absolute;
+    right: 24px;
+    bottom: 24px;
+    width: 48px;
+    height: 48px;
+    background: white;
+    border: none;
+    border-radius: 50%;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    z-index: 1000;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mapRecenterBtn:hover {
+    background: #f8fafc;
+    color: #0284c7;
+    transform: scale(1.05);
+}
+
+.mapRecenterBtn:active {
+    transform: scale(0.95);
+}
+
+.mapRecenterBtn svg {
+    width: 24px;
+    height: 24px;
+}
+
 @keyframes userDotPulse {
     0% { transform: scale(1); opacity: 0.8; }
     100% { transform: scale(3); opacity: 0; }
@@ -2289,8 +2324,34 @@
         font-size: 1.35rem;
     }
 
-    .churchListItem {
-        padding: 6px 12px; /* Reduced further for compactness */
+    .mapRecenterBtn {
+        right: 16px;
+        bottom: calc(var(--dynamic-height, 100px) + 16px);
+        width: 44px;
+        height: 44px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Disable transition while dragging for instant feedback */
+    .churchMapLayout:has(.churchMapBottomSheet.is-dragging) .mapRecenterBtn {
+        transition: none !important;
+    }
+
+    /* Adjust base height for the button when sheet is in specific modes and NOT dragging */
+    .churchMapLayout:not(:has(.churchMapBottomSheet.is-dragging)) .mapRecenterBtn {
+        transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .churchMapLayout:has(.churchMapBottomSheet[data-mode="hidden"]) {
+        --dynamic-height: 64px;
+    }
+
+    .churchMapLayout:has(.churchMapBottomSheet[data-mode="collapsed"]) {
+        --dynamic-height: 40vh;
+    }
+
+    .churchMapLayout:has(.churchMapBottomSheet[data-mode="expanded"]) {
+        --dynamic-height: calc(100dvh - 120px);
     }
 
     .churchDetailsCard {
