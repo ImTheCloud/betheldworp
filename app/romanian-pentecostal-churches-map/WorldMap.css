@@ -2894,9 +2894,9 @@
 .suggestionCancelBtn {
     height: 36px;
     padding: 0 16px;
-    background: #f1f5f9;
+    background: #f8fafc;
     color: #1e293b;
-    border: 1.5px solid #334155;
+    border: 1px solid #64748b;
     border-radius: 20px;
     font-size: 0.82rem;
     font-weight: 600;
@@ -2906,9 +2906,9 @@
 }
 
 .suggestionCancelBtn:hover {
-    background: #e2e8f0;
-    color: #0f172a;
-    border-color: #0f172a;
+    background: #f1f5f9;
+    color: #134b7b;
+    border-color: #334155;
 }
 
 /* Next / Send button — blue, compact */
