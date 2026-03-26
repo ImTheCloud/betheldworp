@@ -1784,7 +1784,7 @@
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background: rgba(0, 0, 0, 0.05);
+    background: transparent; /* Removed gray background */
     color: #0f172a;
     border: none;
     display: flex;
@@ -1796,8 +1796,8 @@
 }
 
 .churchDetailsClose:hover {
-    background: rgba(0, 0, 0, 0.1);
-    transform: scale(1.05);
+    background: rgba(19, 75, 123, 0.05); /* Very subtle theme blue tint instead of gray */
+    transform: scale(1.1);
 }
 
 .churchDetailsContent {
