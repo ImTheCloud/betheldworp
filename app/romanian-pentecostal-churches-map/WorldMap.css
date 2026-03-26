@@ -2238,12 +2238,21 @@
         background: #ffffff;
         border-radius: 32px 32px 0 0;
         border-top: none !important;
-        box-shadow: none !important;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
         position: relative;
-        overflow: visible !important; /* Allow filter menu to pop out */
+        overflow: hidden !important; /* Contain the sticky header corners */
         display: flex;
         flex-direction: column;
         height: 100%;
+    }
+
+    .mobileStickyHeader {
+        background: #ffffff;
+        border-radius: 32px 32px 0 0;
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        flex-shrink: 0;
     }
 
     .churchMapBottomSheet:has(.mobileChurchDetails) {
@@ -2271,6 +2280,7 @@
     .bottomSheetDragHandleArea {
         width: 100%;
         height: 12px;
+        border-radius: 32px 32px 0 0;
         /* Reduced from 24px to move content higher */
         display: flex;
         align-items: center;
@@ -2287,16 +2297,16 @@
     }
 
     .mobileControlsInSheet {
-        padding: 2px 12px; /* Reduced from 6px 12px */
+        padding: 2px 12px 10px 12px; /* Bottom padding for breathing room */
         display: flex;
         flex-direction: row;
         align-items: center;
         gap: 8px;
-        background: #ffffff;
-        position: sticky;
-        top: 0;
-        z-index: 1000; /* Boosted to stay above list content */
-        overflow: visible !important; /* Allow dropdowns to pop out over list */
+        background: transparent; /* Let sticky header background show through */
+        border-radius: 0;
+        position: relative;
+        z-index: 10;
+        overflow: visible !important;
     }
 
     .mobileSearchBox {
@@ -2578,13 +2588,11 @@
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    padding: 0 16px 8px 16px; /* Moved to very top by removing top padding */
+    padding: 0 16px 8px 16px; 
     border-bottom: 1px solid rgba(19, 75, 123, 0.08);
-    background: #ffffff; /* Unified solid white */
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    position: sticky;
-    top: 0;
+    background: transparent;
+    border-radius: 0;
+    position: relative;
     z-index: 5;
 }
 

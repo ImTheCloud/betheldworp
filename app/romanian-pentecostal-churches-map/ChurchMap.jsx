@@ -1500,132 +1500,131 @@ function ChurchMap() {
                     onTouchMove={isMobile ? handleTouchMove : undefined}
                     onTouchEnd={isMobile ? handleTouchEnd : undefined}
                 >
-
                     <div className="bottomSheetInner">
-                        <div
-                            className="bottomSheetDragHandleArea"
-                            onClick={() => {
-                                if (bottomSheetMode === "hidden") setBottomSheetMode("collapsed");
-                                else if (bottomSheetMode === "collapsed") setBottomSheetMode("expanded");
-                                else setBottomSheetMode("collapsed");
-                            }}
-                        >
-                            <div className="bottomSheetDragHandle"></div>
-                        </div>
+                        <div className="mobileStickyHeader">
+                            <div
+                                className="bottomSheetDragHandleArea"
+                                onClick={() => {
+                                    if (bottomSheetMode === "hidden") setBottomSheetMode("collapsed");
+                                    else if (bottomSheetMode === "collapsed") setBottomSheetMode("expanded");
+                                    else setBottomSheetMode("collapsed");
+                                }}
+                            >
+                                <div className="bottomSheetDragHandle"></div>
+                            </div>
 
-                        {isMobile && !selectedChurch && (
-                            <div className="mobileControlsInSheet">
-                                <div className="mobileSearchBox" style={{ position: "relative" }}>
-                                    {bottomSheetMode === "hidden" && (
-                                        <div 
-                                            style={{ position: "absolute", inset: 0, zIndex: 10, cursor: "text" }}
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                e.stopPropagation();
-                                                setBottomSheetMode("collapsed");
-                                                // Focus immediately to trigger keyboard on iOS synchronously
-                                                const input = document.getElementById("mobileSearchInputAnim");
-                                                if (input) input.focus();
+                            {isMobile && !selectedChurch && (
+                                <div className="mobileControlsInSheet">
+                                    <div className="mobileSearchBox" style={{ position: "relative" }}>
+                                        {bottomSheetMode === "hidden" && (
+                                            <div 
+                                                style={{ position: "absolute", inset: 0, zIndex: 10, cursor: "text" }}
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    setBottomSheetMode("collapsed");
+                                                    // Focus immediately to trigger keyboard on iOS synchronously
+                                                    const input = document.getElementById("mobileSearchInputAnim");
+                                                    if (input) input.focus();
+                                                }}
+                                            />
+                                        )}
+                                        <input
+                                            id="mobileSearchInputAnim"
+                                            type="text"
+                                            placeholder={t("searchPlaceholder")}
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            onFocus={() => {
+                                                setIsSearchFocused(true);
+                                                if (bottomSheetMode === "hidden") {
+                                                    setBottomSheetMode("collapsed");
+                                                }
+                                            }}
+                                            onBlur={() => {
+                                                // Delay to allow clear button click
+                                                setTimeout(() => setIsSearchFocused(false), 200);
+                                                // Removed auto-collapse to match the removal of auto-expand
                                             }}
                                         />
-                                    )}
-                                    <input
-                                        id="mobileSearchInputAnim"
-                                        type="text"
-                                        placeholder={t("searchPlaceholder")}
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                        onFocus={() => {
-                                            setIsSearchFocused(true);
-                                            if (bottomSheetMode === "hidden") {
-                                                setBottomSheetMode("collapsed");
-                                            }
-                                        }}
-                                        onBlur={() => {
-                                            // Delay to allow clear button click
-                                            setTimeout(() => setIsSearchFocused(false), 200);
-                                            // Removed auto-collapse to match the removal of auto-expand
-                                        }}
-                                    />
-                                    {(searchQuery || isSearchFocused) ? (
-                                        <button 
-                                            className="mobileSearchClear" 
+                                        {(searchQuery || isSearchFocused) ? (
+                                            <button 
+                                                className="mobileSearchClear" 
+                                                onClick={() => {
+                                                    setSearchQuery("");
+                                                    if (document.activeElement instanceof HTMLElement) {
+                                                        document.activeElement.blur();
+                                                    }
+                                                }}
+                                            >
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                                </svg>
+                                            </button>
+                                        ) : (
+                                            <div className="mobileSearchIconWrapper">
+                                                <svg className="mobileSearchIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <circle cx="11" cy="11" r="8"></circle>
+                                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                                </svg>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="mobileFilterAction" ref={filterRef}>
+                                        <button
+                                            className={`mobileHeaderFilterBtn ${activeCountryFilter ? "hasFilter" : ""}`}
                                             onClick={() => {
-                                                setSearchQuery("");
-                                                if (document.activeElement instanceof HTMLElement) {
-                                                    document.activeElement.blur();
+                                                const nextOpen = !filterOpen;
+                                                setFilterOpen(nextOpen);
+                                                if (nextOpen && bottomSheetMode === "hidden") {
+                                                    setBottomSheetMode("collapsed");
                                                 }
                                             }}
                                         >
-                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                                <line x1="18" y1="6" x2="6" y2="18"></line>
-                                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                                            <span className="mobileFlagIcon" style={{ display: 'flex', alignItems: 'center' }}>{activeFilterIcon}</span>
+                                            <span className="mobileFilterCount">({activeCountryFilter ? (countryCounts[activeCountryFilter] || 0) : (countryCounts.all || 0)})</span>
+                                            <svg className={`mobileFilterChevron ${filterOpen ? "open" : ""}`} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                                <polyline points="6 9 12 15 18 9"></polyline>
                                             </svg>
                                         </button>
-                                    ) : (
-                                        <div className="mobileSearchIconWrapper">
-                                            <svg className="mobileSearchIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                <circle cx="11" cy="11" r="8"></circle>
-                                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                            </svg>
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div className="mobileFilterAction" ref={filterRef}>
-                                    <button
-                                        className={`mobileHeaderFilterBtn ${activeCountryFilter ? "hasFilter" : ""}`}
-                                        onClick={() => {
-                                            const nextOpen = !filterOpen;
-                                            setFilterOpen(nextOpen);
-                                            if (nextOpen && bottomSheetMode === "hidden") {
-                                                setBottomSheetMode("collapsed");
-                                            }
-                                        }}
-                                    >
-                                        <span className="mobileFlagIcon" style={{ display: 'flex', alignItems: 'center' }}>{activeFilterIcon}</span>
-                                        <span className="mobileFilterCount">({activeCountryFilter ? (countryCounts[activeCountryFilter] || 0) : (countryCounts.all || 0)})</span>
-                                        <svg className={`mobileFilterChevron ${filterOpen ? "open" : ""}`} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                                            <polyline points="6 9 12 15 18 9"></polyline>
-                                        </svg>
-                                    </button>
-                                    {filterOpen && (
-                                        <div className="countryFilterMenu mobileVersion">
-                                            <button
-                                                className={`dropdownItem ${!activeCountryFilter ? "active" : ""}`}
-                                                onClick={() => {
-                                                    setActiveCountryFilter("");
-                                                    setFilterRecenterTrigger(prev => prev + 1);
-                                                    setFilterOpen(false);
-                                                }}
-                                            >
-                                                <span style={{ fontSize: '1.2rem', marginRight: '8px' }}>🌍</span>
-                                                <span className="dropdownLabel">{t("allCountries")}</span>
-                                                <span className="dropdownCount">{countryCounts.all || 0}</span>
-                                            </button>
-                                            {ALL_COUNTRIES.filter(c => countryCounts[c] > 0).map((country) => (
+                                        {filterOpen && (
+                                            <div className="countryFilterMenu mobileVersion">
                                                 <button
-                                                    key={country}
-                                                    className={`dropdownItem ${activeCountryFilter === country ? "active" : ""}`}
+                                                    className={`dropdownItem ${!activeCountryFilter ? "active" : ""}`}
                                                     onClick={() => {
-                                                        setActiveCountryFilter(country);
+                                                        setActiveCountryFilter("");
                                                         setFilterRecenterTrigger(prev => prev + 1);
                                                         setFilterOpen(false);
                                                     }}
                                                 >
-                                                    <FlagImage country={country} />
-                                                    <span className="dropdownLabel">{getCountryLabel(country)}</span>
-                                                    <span className="dropdownCount">{countryCounts[country] || 0}</span>
+                                                    <span style={{ fontSize: '1.2rem', marginRight: '8px' }}>🌍</span>
+                                                    <span className="dropdownLabel">{t("allCountries")}</span>
+                                                    <span className="dropdownCount">{countryCounts.all || 0}</span>
                                                 </button>
-                                            ))}
-                                        </div>
-                                    )}
+                                                {ALL_COUNTRIES.filter(c => countryCounts[c] > 0).map((country) => (
+                                                    <button
+                                                        key={country}
+                                                        className={`dropdownItem ${activeCountryFilter === country ? "active" : ""}`}
+                                                        onClick={() => {
+                                                            setActiveCountryFilter(country);
+                                                            setFilterRecenterTrigger(prev => prev + 1);
+                                                            setFilterOpen(false);
+                                                        }}
+                                                    >
+                                                        <FlagImage country={country} />
+                                                        <span className="dropdownLabel">{getCountryLabel(country)}</span>
+                                                        <span className="dropdownCount">{countryCounts[country] || 0}</span>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        )}
+                            )}
 
-                        <div className="churchList">
-                            {isMobile && (selectedChurch || isExiting) ? (
+                            {isMobile && (selectedChurch || isExiting) && (
                                 <div className={`mobileChurchDetails ${isExiting ? "exiting" : ""}`}>
                                     <div className="mobileDetailsHeader">
                                         <h2 className="churchDetailsTitle">
@@ -1640,7 +1639,13 @@ function ChurchMap() {
                                             </button>
                                         </div>
                                     </div>
+                                </div>
+                            )}
+                        </div>
 
+                        <div className="churchList">
+                            {isMobile && (selectedChurch || isExiting) ? (
+                                <div className={`mobileChurchDetails ${isExiting ? "exiting" : ""}`}>
                                     <div className="mobileDetailsBody">
                                         <p className="churchDetailsAddress">
                                             {[(`${selectedChurch.street || ""} ${selectedChurch.number || ""}`.trim()), (`${selectedChurch.zipCode ? `${selectedChurch.zipCode} ` : ""}${selectedChurch.city || ""}`.trim()), getCountryLabel(selectedChurch.country)].filter(Boolean).join(", ")}
@@ -1696,6 +1701,8 @@ function ChurchMap() {
                                 </>
                             )}
                         </div>
+
+
 
                         {isMobile && selectedChurch && (
                             <div 
