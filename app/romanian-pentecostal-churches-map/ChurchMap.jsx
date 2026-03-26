@@ -60,11 +60,7 @@ const COUNTRY_CODES = {
 
 const matchChurchSearch = (c, q) => {
     if (!q) return true;
-    const fields = [
-        c.name, c.city, c.country, c.locationTitle, 
-        c.street, c.number, c.zipCode, 
-        c.phone, c.email, c.notes
-    ];
+    const fields = [c.name, c.city];
     return fields.some(val => (val || "").toLowerCase().includes(q));
 };
 const FlagImage = ({ country, className = "" }) => {
@@ -1349,6 +1345,17 @@ function ChurchMap() {
     }, [churches, getCountryLabel, lang, searchQuery, activeCountryFilter]);
 
 
+    // Distance map
+    const distanceMap = useMemo(() => {
+        if (!userLocation) return {};
+        const map = {};
+        for (const c of churches) {
+            map[c.id] = haversineDistance(userLocation.lat, userLocation.lng, c.lat, c.lng);
+        }
+        return map;
+    }, [userLocation, churches]);
+
+
     // Filter + sort alphabetically by name
     const filteredChurches = useMemo(() => {
         let result = [...churches];
@@ -1359,9 +1366,20 @@ function ChurchMap() {
             const q = searchQuery.toLowerCase();
             result = result.filter(c => matchChurchSearch(c, q));
         }
-        result.sort((a, b) => a.name.localeCompare(b.name));
+
+        // Sort by distance if user location is available, otherwise alphabetical
+        if (userLocation) {
+            result.sort((a, b) => {
+                const distA = distanceMap[a.id] ?? Infinity;
+                const distB = distanceMap[b.id] ?? Infinity;
+                return distA - distB;
+            });
+        } else {
+            result.sort((a, b) => a.name.localeCompare(b.name));
+        }
+        
         return result;
-    }, [searchQuery, activeCountryFilter, churches]);
+    }, [searchQuery, activeCountryFilter, churches, userLocation, distanceMap]);
 
     // Group by country only, sorted alphabetically
     const groupedChurches = useMemo(() => {
@@ -1372,10 +1390,25 @@ function ChurchMap() {
             }
             groups[church.country].push(church);
         }
-        // Sort country keys by church count (primary), then translated name (secondary)
+        
+        // Helper to get min distance for a country group
+        const getMinDist = (items) => {
+            if (!userLocation) return Infinity;
+            return Math.min(...items.map(it => distanceMap[it.id] ?? Infinity));
+        };
+
+        // Sort country keys
         const sorted = {};
         Object.keys(groups)
             .sort((a, b) => {
+                // If searching and location available, sort countries by proximity
+                if (searchQuery.trim() && userLocation) {
+                    const distA = getMinDist(groups[a]);
+                    const distB = getMinDist(groups[b]);
+                    if (distA !== distB) return distA - distB;
+                }
+                
+                // Otherwise sort by church count (primary), then translated name (secondary)
                 const countDiff = groups[b].length - groups[a].length;
                 if (countDiff !== 0) return countDiff;
                 return getCountryLabel(a).localeCompare(getCountryLabel(b), lang);
@@ -1384,17 +1417,8 @@ function ChurchMap() {
                 sorted[key] = groups[key];
             });
         return sorted;
-    }, [filteredChurches, getCountryLabel, lang]);
+    }, [filteredChurches, getCountryLabel, lang, userLocation, distanceMap, searchQuery]);
 
-    // Distance map
-    const distanceMap = useMemo(() => {
-        if (!userLocation) return {};
-        const map = {};
-        for (const c of churches) {
-            map[c.id] = haversineDistance(userLocation.lat, userLocation.lng, c.lat, c.lng);
-        }
-        return map;
-    }, [userLocation, churches]);
 
     const getGoogleMapsSearchUrl = (church) => {
         // Use locationTitleDirection (or old locationTitle for compatibility) if provided,
@@ -1680,7 +1704,14 @@ function ChurchMap() {
                                                             </svg>
                                                         </div>
                                                         <div className="churchListItemContent">
-                                                            <h3>{church.name}{church.city ? ` ${church.city}` : ''}</h3>
+                                                            <div className="churchListItemMain">
+                                                                <h3>{church.name}{church.city ? ` ${church.city}` : ''}</h3>
+                                                                {userLocation && distanceMap[church.id] && (
+                                                                    <span className="churchDistanceBadge">
+                                                                        {formatDistance(distanceMap[church.id])}
+                                                                    </span>
+                                                                )}
+                                                            </div>
                                                             <p>{[(`${church.street || ""} ${church.number || ""}`.trim()), (`${church.zipCode ? `${church.zipCode} ` : ""}${church.city || ""}`.trim()), getCountryLabel(church.country)].filter(Boolean).join(", ")}</p>
                                                         </div>
                                                     </button>

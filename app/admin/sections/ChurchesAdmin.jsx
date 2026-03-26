@@ -12,12 +12,7 @@ const safeStr = (v) => String(v ?? "");
 
 const matchChurchSearch = (c, q) => {
     if (!q) return true;
-    const fields = [
-        c.name, c.city, c.country, c.locationTitle, 
-        c.street, c.number, c.zipCode, 
-        c.phone, c.email, c.notes,
-        c.website, c.youtube, c.facebook, c.instagram
-    ];
+    const fields = [c.name, c.city];
     return fields.some(val => safeStr(val).toLowerCase().includes(q));
 };
 
