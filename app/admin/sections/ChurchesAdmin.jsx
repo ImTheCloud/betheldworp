@@ -110,8 +110,11 @@ const geocodeAddress = async (street, number, city, zipCode, country, locationTi
             const res = await fetch(`/api/geocode?type=places&query=${encodeURIComponent(placeQuery)}`);
             const data = await res.json();
             if (data.results && data.results.length > 0) {
-                const loc = data.results[0].geometry.location;
-                return { lat: loc.lat, lng: loc.lng };
+                const loc = data.results[0].geometry?.location;
+                return { 
+                    lat: loc?.lat ?? null, 
+                    lng: loc?.lng ?? null 
+                };
             }
         } catch (e) {
             console.error("Places Proxy Search failed:", e);
@@ -133,6 +136,118 @@ const geocodeAddress = async (street, number, city, zipCode, country, locationTi
         console.error("Geocoding Proxy failed:", e);
     }
     return null;
+};
+
+const fetchGooglePlaceData = async (query, city = "", country = "") => {
+    if (!query) return null;
+    console.log("Searching Google for:", query, city, country);
+    
+    try {
+        // 1. If country is "Belgium" (default), try searching with just the query first
+        // to avoid restricting Romanian/other churches to Belgium.
+        let results = [];
+        let status = "ZERO_RESULTS";
+        let fallbackUsed = false;
+        let googleError = null;
+
+        const performSearch = async (q) => {
+            const res = await fetch(`/api/geocode?type=places&query=${encodeURIComponent(q)}`);
+            return await res.json();
+        };
+
+        // Try with provided context first only if it's NOT the default Belgium
+        if (country && country !== "Belgium") {
+            const q = [query, city, country].filter(Boolean).join(", ");
+            const data = await performSearch(q);
+            results = data.results || [];
+            status = data.status;
+            googleError = data._googleError;
+            fallbackUsed = data._fallback || false;
+        }
+
+        // 2. Fallback or primary search with just the query
+        if (results.length === 0) {
+            console.log("Searching with just query:", query);
+            const data = await performSearch(query);
+            results = data.results || [];
+            status = data.status;
+            googleError = data._googleError;
+            fallbackUsed = data._fallback || false;
+        }
+        
+        if (results.length === 0) {
+            console.warn("No results found for query:", query);
+            return null;
+        }
+
+        const firstResult = results[0];
+        const processData = (res, components) => {
+            const getComp = (types) => {
+                const comp = components.find(c => types.some(t => c.types.includes(t)));
+                return comp ? comp.long_name : "";
+            };
+
+            const cityName = getComp(["locality", "postal_town"]);
+            let countryName = getComp(["country"]);
+            // Normalize country name to match our COUNTRY_OPTIONS if possible
+            if (countryName) {
+                const matched = COUNTRY_OPTIONS.find(c => c.toLowerCase() === countryName.toLowerCase());
+                if (matched) countryName = matched;
+            }
+
+            // Clean church name (remove "Biserica", city name, etc.)
+            let rawName = res.name || query;
+            const noise = [
+                "Biserica", "Penticostala", "Penticostală", "Penticostal", 
+                "Crestina", "Creștină", "Crestin", "Creștin",
+                "Christian", "Church", "Pentecostal"
+            ];
+            if (cityName) noise.push(cityName);
+            
+            const normalize = (s) => s ? s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : "";
+            const noiseNormalized = new Set(noise.map(normalize));
+            
+            const words = rawName.split(/[\s,.;:„”"()\-–—\/]+/);
+            let cleanedName = words
+                .filter(w => w && !noiseNormalized.has(normalize(w)))
+                .join(" ")
+                .trim();
+
+            // Fallback if name becomes too short
+            if (cleanedName.length < 2) cleanedName = rawName;
+
+            return {
+                name: cleanedName,
+                street: getComp(["route"]),
+                number: getComp(["street_number"]),
+                city: cityName,
+                zipCode: getComp(["postal_code"]),
+                country: countryName,
+                phone: res.international_phone_number || "",
+                website: res.website || "",
+                lat: res.geometry?.location?.lat ?? null,
+                lng: res.geometry?.location?.lng ?? null,
+                _partial: fallbackUsed,
+                _googleError: googleError
+            };
+        };
+
+        if (firstResult.address_components || fallbackUsed) {
+            console.log("Using Geocoding/fallback data directly");
+            return processData(firstResult, firstResult.address_components || []);
+        }
+        
+        console.log("Found results, fetching details for:", firstResult.name);
+        const detailsRes = await fetch(`/api/geocode?type=details&place_id=${firstResult.place_id}`);
+        const detailsData = await detailsRes.json();
+        
+        if (!detailsData.result) return null;
+        return processData(detailsData.result, detailsData.result.address_components || []);
+
+    } catch (e) {
+        console.error("Fetch Google Place Data failed:", e);
+        return null;
+    }
 };
 
 function ChurchCard({ item, expanded, drafts, saveState, errorText, onToggle, onChange, onSave, onDelete, setSaveStateById, setErrorById }) {
@@ -187,10 +302,37 @@ function ChurchCard({ item, expanded, drafts, saveState, errorText, onToggle, on
 
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 16px" }}>
                         {/* Row 0: Location Title (Directions) - Back to top */}
-                        <label className="adminLabel" style={{ gridColumn: "span 2" }}>
-                            Location Title (Directions)
+                        <div style={{ gridColumn: "span 2" }}>
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+                                <label className="adminLabel" style={{ marginBottom: 0 }}>Location Title (Directions)</label>
+                                <button 
+                                    type="button" 
+                                    style={{ fontSize: 11, fontWeight: 700, color: "#134b7b", border: "none", background: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
+                                    onClick={async () => {
+                                        setSaveStateById(m => ({ ...m, [id]: "saving" }));
+                                        const data = await fetchGooglePlaceData(drafts.locationTitle, drafts.city, drafts.country);
+                                        if (data) {
+                                            // Batch update fields
+                                            Object.entries(data).forEach(([k, v]) => {
+                                                if (v) onChange(id, k, v);
+                                            });
+                                            if (data._partial) {
+                                                setSaveStateById(m => ({ ...m, [id]: "error" }));
+                                                setErrorById(m => ({ ...m, [id]: "Address & Coordinates set! Note: To get Phone/Website automatically, you MUST enable 'Places API (New)' in Google Console." }));
+                                            } else {
+                                                setSaveStateById(m => ({ ...m, [id]: "idle" }));
+                                            }
+                                        } else {
+                                            setSaveStateById(m => ({ ...m, [id]: "error" }));
+                                            setErrorById(m => ({ ...m, [id]: "Could not find church data on Google Maps. Try a more general Location Title." }));
+                                        }
+                                    }}
+                                >
+                                    ✨ Auto-fill from Google
+                                </button>
+                            </div>
                             <input className="adminInput" value={drafts.locationTitle ?? ""} onChange={(e) => onChange(id, "locationTitle", e.target.value)} />
-                        </label>
+                        </div>
 
                         {/* Row 1: Name & City */}
                         <label className="adminLabel">
@@ -260,26 +402,8 @@ function ChurchCard({ item, expanded, drafts, saveState, errorText, onToggle, on
 
                     {/* Coordinates Section */}
                     <div style={{ marginTop: 12, padding: 12, backgroundColor: "rgba(10, 42, 67, 0.03)", borderRadius: 8, border: "1px solid rgba(10, 42, 67, 0.08)" }}>
-                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                        <div style={{ marginBottom: 8 }}>
                             <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(10, 42, 67, 0.7)" }}>Coordinates</span>
-                            <button 
-                                type="button" 
-                                style={{ fontSize: 11, fontWeight: 700, color: "#134b7b", border: "none", background: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
-                                onClick={async () => {
-                                    setSaveStateById(m => ({ ...m, [id]: "saving" }));
-                                    const coords = await geocodeAddress(drafts.street, drafts.number, drafts.city, drafts.zipCode, drafts.country, drafts.locationTitle);
-                                    if (coords) {
-                                        onChange(id, "lat", coords.lat);
-                                        onChange(id, "lng", coords.lng);
-                                        setSaveStateById(m => ({ ...m, [id]: "idle" }));
-                                    } else {
-                                        setSaveStateById(m => ({ ...m, [id]: "error" }));
-                                        setErrorById(m => ({ ...m, [id]: "Could not find coordinates automatically." }));
-                                    }
-                                }}
-                            >
-                                ✨ Find automatically
-                            </button>
                         </div>
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                             <label className="adminLabel">
@@ -343,10 +467,26 @@ function NewChurchCard({ drafts, setDraft, errorText, saveState, onCancel, onSav
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 16px" }}>
                     {/* Row 0: Location Title (Directions) - Back to top */}
-                    <label className="adminLabel" style={{ gridColumn: "span 2" }}>
-                        Location Title (Directions)
+                    <div style={{ gridColumn: "span 2" }}>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+                            <label className="adminLabel" style={{ marginBottom: 0 }}>Location Title (Directions)</label>
+                            <button 
+                                type="button" 
+                                style={{ fontSize: 11, fontWeight: 700, color: "#134b7b", border: "none", background: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
+                                onClick={async () => {
+                                    const data = await fetchGooglePlaceData(drafts.locationTitle, drafts.city, drafts.country);
+                                    if (data) {
+                                        Object.entries(data).forEach(([k, v]) => {
+                                            if (v) setDraft(k, v);
+                                        });
+                                    }
+                                }}
+                            >
+                                ✨ Auto-fill from Google
+                            </button>
+                        </div>
                         <input className="adminInput" value={drafts.locationTitle ?? ""} onChange={(e) => setDraft("locationTitle", e.target.value)} />
-                    </label>
+                    </div>
 
                     {/* Row 1: Name & City */}
                     <label className="adminLabel">
@@ -416,21 +556,8 @@ function NewChurchCard({ drafts, setDraft, errorText, saveState, onCancel, onSav
 
                 {/* Coordinates Section */}
                 <div style={{ marginTop: 12, padding: 12, backgroundColor: "rgba(10, 42, 67, 0.03)", borderRadius: 8, border: "1px solid rgba(10, 42, 67, 0.08)" }}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                    <div style={{ marginBottom: 8 }}>
                         <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(10, 42, 67, 0.7)" }}>Coordinates</span>
-                        <button 
-                            type="button" 
-                            style={{ fontSize: 11, fontWeight: 700, color: "#134b7b", border: "none", background: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
-                            onClick={async () => {
-                                const coords = await geocodeAddress(drafts.street, drafts.number, drafts.city, drafts.zipCode, drafts.country, drafts.locationTitle);
-                                if (coords) {
-                                    setDraft("lat", coords.lat);
-                                    setDraft("lng", coords.lng);
-                                }
-                            }}
-                        >
-                            ✨ Find automatically
-                        </button>
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                         <label className="adminLabel">

@@ -65,7 +65,22 @@ const matchChurchSearch = (c, q) => {
 };
 const FlagImage = ({ country, className = "" }) => {
     const code = COUNTRY_CODES[country];
-    if (!code) return <span className={className} style={{ fontSize: '1.1rem' }}>🌍</span>;
+    if (!code) return (
+        <span 
+            className={className} 
+            style={{ 
+                width: '18px', 
+                height: '18px', 
+                display: 'inline-flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                fontSize: '1rem',
+                lineHeight: 1
+            }}
+        >
+            🌍
+        </span>
+    );
     return (
         <img 
             src={`https://flagcdn.com/w40/${code}.png`} 
@@ -77,7 +92,6 @@ const FlagImage = ({ country, className = "" }) => {
                 display: 'inline-block', 
                 verticalAlign: 'middle', 
                 borderRadius: '2px',
-                marginRight: '8px',
                 boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
             }}
         />
@@ -1519,9 +1533,257 @@ function ChurchMap() {
                 "--dynamic-height": dragHeight ? `${dragHeight}px` : undefined 
             } : {}}
         >
+            {/* 1. Top Floating Header (Unified Search & Filters) - Now at the Root to avoid z-index conflicts */}
+            <div className={`mapFloatingHeader ${isMobile ? "mobileHeader" : ""}`}>
+                {isMobile ? (
+                    <div className="mobileUnifiedHeader">
+                        <button
+                            className="unifiedReturnBtn"
+                            onClick={() => window.location.href = "/#harta-mondiala"}
+                            aria-label={t("backToWebsite")}
+                        >
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="19" y1="12" x2="5" y2="12"></line>
+                                <polyline points="12 19 5 12 12 5"></polyline>
+                            </svg>
+                        </button>
 
-            {/* Mobile Top Header (Search, Filters, Settings) */}
-            {/* Sidebar */}
+                        <div className="unifiedSearchContainer">
+                            <input
+                                id="mobileSearchInputAnim"
+                                type="text"
+                                placeholder={t("searchPlaceholder")}
+                                value={searchQuery}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    setSearchQuery(val);
+                                    if (isMobile && val.trim().length > 0 && bottomSheetMode !== "expanded") {
+                                        setBottomSheetMode("expanded");
+                                    }
+                                }}
+                                onFocus={() => {
+                                    setIsSearchFocused(true);
+                                    if (isMobile) {
+                                        setBottomSheetMode("expanded");
+                                    }
+                                }}
+                                onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
+                            />
+                            <div className="unifiedSearchActionWrapper">
+                                {searchQuery ? (
+                                    <button 
+                                        className="unifiedSearchClear" 
+                                        onClick={() => {
+                                            setSearchQuery("");
+                                            if (isMobile) {
+                                                setBottomSheetMode("collapsed");
+                                            }
+                                        }}
+                                        aria-label="Clear search"
+                                    >
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                                        </svg>
+                                    </button>
+                                ) : (
+                                    <div className="unifiedSearchIcon">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                            <circle cx="11" cy="11" r="8"></circle>
+                                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                        </svg>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        
+                        <div className="unifiedFilterAction" ref={filterRef}>
+                            <button
+                                className={`unifiedFilterToggle ${activeCountryFilter ? "hasFilter" : ""}`}
+                                onClick={() => setFilterOpen(!filterOpen)}
+                            >
+                                <div className="unifiedFilterLabel">
+                                    {activeCountryFilter ? (
+                                        <FlagImage country={activeCountryFilter} />
+                                    ) : (
+                                        <span style={{ fontSize: '1.2rem' }}>🌍</span>
+                                    )}
+                                    <span className="unifiedFilterCount">
+                                        {activeCountryFilter ? (countryCounts[activeCountryFilter] || 0) : (countryCounts.all || 0)}
+                                    </span>
+                                </div>
+                                <svg className={`unifiedFilterChevron ${filterOpen ? 'is-open' : ''}`} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
+                            </button>
+                            {filterOpen && (
+                                <div className="countryFilterMenu mobileVersion">
+                                    <button
+                                        className={`dropdownItem ${!activeCountryFilter ? "active" : ""}`}
+                                        onClick={() => {
+                                            setActiveCountryFilter("");
+                                            setFilterRecenterTrigger(prev => prev + 1);
+                                            setFilterOpen(false);
+                                        }}
+                                    >
+                                        <span style={{ 
+                                            width: '18px', 
+                                            height: '18px', 
+                                            display: 'inline-flex', 
+                                            alignItems: 'center', 
+                                            justifyContent: 'center',
+                                            fontSize: '1rem',
+                                            lineHeight: 1
+                                        }}>🌍</span>
+                                        <span className="dropdownLabel">{t("allCountries")}</span>
+                                        <span className="dropdownCount">{countryCounts.all || 0}</span>
+                                    </button>
+                                    {ALL_COUNTRIES.filter(c => countryCounts[c] > 0).map((country) => (
+                                        <button
+                                            key={country}
+                                            className={`dropdownItem ${activeCountryFilter === country ? "active" : ""}`}
+                                            onClick={() => {
+                                                setActiveCountryFilter(country);
+                                                setFilterRecenterTrigger(prev => prev + 1);
+                                                setFilterOpen(false);
+                                            }}
+                                        >
+                                            <FlagImage country={country} />
+                                            <span className="dropdownLabel">{getCountryLabel(country)}</span>
+                                            <span className="dropdownCount">{countryCounts[country] || 0}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                ) : (
+                    <>
+                        <div className="mapHeaderLeft">
+                            <button
+                                className="mapReturnBtn"
+                                onClick={() => window.location.href = "/#harta-mondiala"}
+                                aria-label={t("backToWebsite")}
+                            >
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                                    <polyline points="12 19 5 12 12 5"></polyline>
+                                </svg>
+                            </button>
+                            <div className="churchMapSearch floating google-style">
+                                <input
+                                    type="text"
+                                    placeholder={t("searchPlaceholder")}
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onFocus={() => setIsSearchFocused(true)}
+                                    onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
+                                />
+                                <div className="searchActions">
+                                    {(searchQuery || isSearchFocused) ? (
+                                        <button
+                                            className="searchClearBtn"
+                                            onClick={() => {
+                                                setSearchQuery("");
+                                                if (document.activeElement instanceof HTMLElement) {
+                                                    document.activeElement.blur();
+                                                }
+                                            }}
+                                        >
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                                            </svg>
+                                        </button>
+                                    ) : (
+                                        <button className="searchMainBtn">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                                <circle cx="11" cy="11" r="8"></circle>
+                                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                            </svg>
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="countryFilterDropdown" ref={otherCountriesRef}>
+                                <button
+                                    className={`countryFilterBtn ${activeCountryFilter ? "active" : ""}`}
+                                    onClick={() => setShowOtherCountries(!showOtherCountries)}
+                                >
+                                    <div className="countryFilterMain">
+                                        {activeCountryFilter ? (
+                                            <>
+                                                <FlagImage country={activeCountryFilter} />
+                                                <span className="pillLabel">{getCountryLabel(activeCountryFilter)}</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span style={{ 
+                                                    width: '18px', 
+                                                    height: '18px', 
+                                                    display: 'inline-flex', 
+                                                    alignItems: 'center', 
+                                                    justifyContent: 'center',
+                                                    fontSize: '1rem',
+                                                    lineHeight: 1
+                                                }}>🌍</span>
+                                                <span className="pillLabel">{t("allCountries")}</span>
+                                            </>
+                                        )}
+                                    </div>
+                                    <svg className={`chevronIcon ${showOtherCountries ? "open" : ""}`} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                        <polyline points="6 9 12 15 18 9"></polyline>
+                                    </svg>
+                                </button>
+
+                                {showOtherCountries && (
+                                    <div className="countryFilterMenu">
+                                        <button
+                                            className={`dropdownItem ${!activeCountryFilter ? "active" : ""}`}
+                                            onClick={() => {
+                                                setActiveCountryFilter("");
+                                                setFilterRecenterTrigger(prev => prev + 1);
+                                                setShowOtherCountries(false);
+                                            }}
+                                        >
+                                            <span style={{ 
+                                                width: '18px', 
+                                                height: '18px', 
+                                                display: 'inline-flex', 
+                                                alignItems: 'center', 
+                                                justifyContent: 'center',
+                                                fontSize: '1rem',
+                                                lineHeight: 1
+                                            }}>🌍</span>
+                                            <span className="dropdownLabel">{t("allCountries")}</span>
+                                            <span className="dropdownCount">{countryCounts.all || 0}</span>
+                                        </button>
+                                        {ALL_COUNTRIES.filter(c => countryCounts[c] > 0).map((country) => (
+                                                <button
+                                                    key={country}
+                                                    className={`dropdownItem ${activeCountryFilter === country ? "active" : ""}`}
+                                                    onClick={() => {
+                                                        setActiveCountryFilter(country);
+                                                        setFilterRecenterTrigger(prev => prev + 1);
+                                                        setShowOtherCountries(false);
+                                                    }}
+                                                >
+                                                    <FlagImage country={country} className="dropdownFlag" />
+                                                    <span className="dropdownLabel">{getCountryLabel(country)}</span>
+                                                    <span className="dropdownCount">{countryCounts[country] || 0}</span>
+                                                </button>
+                                            ))
+                                        }
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </>
+                )}
+            </div>
+
+            {/* 2. Sidebar & Bottom Sheet */}
             <aside className={`churchMapSidebar ${!isSidebarOpen ? "collapsed" : ""}`}>
                 {!isMobile && (
                     <div className="sidebarHeader">
@@ -1575,7 +1837,6 @@ function ChurchMap() {
                             >
                                 <div className="bottomSheetDragHandle"></div>
                             </div>
-
 
                             {isMobile && (selectedChurch || isExiting) && (
                                 <div className={`mobileChurchDetails ${isExiting ? "exiting" : ""}`}>
@@ -1665,12 +1926,7 @@ function ChurchMap() {
                             )}
                         </div>
 
-
-
-                        <div 
-                            className="churchSidebarFooter"
-                            ref={footerRef}
-                        >
+                        <div className="churchSidebarFooter" ref={footerRef}>
                             <div className="mobileFooterActions">
                                 {(selectedChurch || isExiting) ? (
                                     <>
@@ -1722,247 +1978,8 @@ function ChurchMap() {
                 )}
             </aside>
 
-            {/* Map */}
+            {/* 3. Map Container */}
             <div className="churchMapContainer">
-                {/* Desktop Back Button (Floating on Map) */}
-
-                {/* Map Overlay Title - SR Only for SEO */}
-                {!isMobile && (
-                    <div className="mapOverlayTitle sr-only">
-                        <div className="mapOverlayTitleContent">
-                            <h1 className="mapOverlayHeading">{t("subtitle")}</h1>
-                        </div>
-                    </div>
-                )}
-
-                {/* Desktop Floating Header containing all controls */}
-                <div className={`mapFloatingHeader ${isMobile ? "mobileHeader" : ""}`}>
-                    {isMobile ? (
-                        <div className="mobileUnifiedHeader">
-                            <button
-                                className="unifiedReturnBtn"
-                                onClick={() => window.location.href = "/#harta-mondiala"}
-                                aria-label={t("backToWebsite")}
-                            >
-                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                    <line x1="19" y1="12" x2="5" y2="12"></line>
-                                    <polyline points="12 19 5 12 12 5"></polyline>
-                                </svg>
-                            </button>
-
-                            <div className="unifiedSearchContainer">
-                                <input
-                                    id="mobileSearchInputAnim"
-                                    type="text"
-                                    placeholder={t("searchPlaceholder")}
-                                    value={searchQuery}
-                                    onChange={(e) => {
-                                        const val = e.target.value;
-                                        setSearchQuery(val);
-                                        // Auto-expand on type
-                                        if (isMobile && val.trim().length > 0 && bottomSheetMode !== "expanded") {
-                                            setBottomSheetMode("expanded");
-                                        }
-                                    }}
-                                    onFocus={() => {
-                                        setIsSearchFocused(true);
-                                        // Auto-expand to show results immediately
-                                        if (isMobile) {
-                                            setBottomSheetMode("expanded");
-                                        }
-                                    }}
-                                    onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
-                                />
-                                <div className="unifiedSearchActionWrapper">
-                                    {searchQuery ? (
-                                        <button 
-                                            className="unifiedSearchClear" 
-                                            onClick={() => {
-                                                setSearchQuery("");
-                                                if (isMobile) {
-                                                    setBottomSheetMode("collapsed");
-                                                }
-                                            }}
-                                            aria-label="Clear search"
-                                        >
-                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                                <line x1="18" y1="6" x2="6" y2="18"></line>
-                                                <line x1="6" y1="6" x2="18" y2="18"></line>
-                                            </svg>
-                                        </button>
-                                    ) : (
-                                        <div className="unifiedSearchIcon">
-                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                                                <circle cx="11" cy="11" r="8"></circle>
-                                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                            </svg>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                            
-                            <div className="unifiedFilterAction" ref={filterRef}>
-                                <button
-                                    className={`unifiedFilterToggle ${activeCountryFilter ? "hasFilter" : ""}`}
-                                    onClick={() => setFilterOpen(!filterOpen)}
-                                >
-                                    <div className="unifiedFilterLabel">
-                                        {activeCountryFilter ? (
-                                            <FlagImage country={activeCountryFilter} />
-                                        ) : (
-                                            <span style={{ fontSize: '1.2rem' }}>🌍</span>
-                                        )}
-                                        <span className="unifiedFilterCount">
-                                            {activeCountryFilter ? (countryCounts[activeCountryFilter] || 0) : (countryCounts.all || 0)}
-                                        </span>
-                                    </div>
-                                    <svg className={`unifiedFilterChevron ${filterOpen ? 'is-open' : ''}`} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                                        <polyline points="6 9 12 15 18 9"></polyline>
-                                    </svg>
-                                </button>
-                                {filterOpen && (
-                                    <div className="countryFilterMenu mobileVersion">
-                                        <button
-                                            className={`dropdownItem ${!activeCountryFilter ? "active" : ""}`}
-                                            onClick={() => {
-                                                setActiveCountryFilter("");
-                                                setFilterRecenterTrigger(prev => prev + 1);
-                                                setFilterOpen(false);
-                                            }}
-                                        >
-                                            <span style={{ fontSize: '1.2rem', marginRight: '8px' }}>🌍</span>
-                                            <span className="dropdownLabel">{t("allCountries")}</span>
-                                            <span className="dropdownCount">{countryCounts.all || 0}</span>
-                                        </button>
-                                        {ALL_COUNTRIES.filter(c => countryCounts[c] > 0).map((country) => (
-                                            <button
-                                                key={country}
-                                                className={`dropdownItem ${activeCountryFilter === country ? "active" : ""}`}
-                                                onClick={() => {
-                                                    setActiveCountryFilter(country);
-                                                    setFilterRecenterTrigger(prev => prev + 1);
-                                                    setFilterOpen(false);
-                                                }}
-                                            >
-                                                <FlagImage country={country} />
-                                                <span className="dropdownLabel">{getCountryLabel(country)}</span>
-                                                <span className="dropdownCount">{countryCounts[country] || 0}</span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    ) : (
-                        <>
-                            <div className="mapHeaderLeft">
-                                <button
-                                    className="mapReturnBtn"
-                                    onClick={() => window.location.href = "/#harta-mondiala"}
-                                    aria-label={t("backToWebsite")}
-                                >
-                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                        <line x1="19" y1="12" x2="5" y2="12"></line>
-                                        <polyline points="12 19 5 12 12 5"></polyline>
-                                    </svg>
-                                </button>
-                                <div className="churchMapSearch floating google-style">
-                                    <input
-                                        type="text"
-                                        placeholder={t("searchPlaceholder")}
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                        onFocus={() => setIsSearchFocused(true)}
-                                        onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
-                                    />
-                                    <div className="searchActions">
-                                        {(searchQuery || isSearchFocused) ? (
-                                            <button
-                                                className="searchClearBtn"
-                                                onClick={() => {
-                                                    setSearchQuery("");
-                                                    if (document.activeElement instanceof HTMLElement) {
-                                                        document.activeElement.blur();
-                                                    }
-                                                }}
-                                            >
-                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                                                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                                                </svg>
-                                            </button>
-                                        ) : (
-                                            <button className="searchMainBtn">
-                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                                    <circle cx="11" cy="11" r="8"></circle>
-                                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                                </svg>
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div className="countryFilterDropdown" ref={otherCountriesRef}>
-                                    <button
-                                        className={`countryFilterBtn ${activeCountryFilter ? "active" : ""}`}
-                                        onClick={() => setShowOtherCountries(!showOtherCountries)}
-                                    >
-                                        <div className="countryFilterMain">
-                                            {activeCountryFilter ? (
-                                                <>
-                                                    <FlagImage country={activeCountryFilter} />
-                                                    <span className="pillLabel">{getCountryLabel(activeCountryFilter)}</span>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <span style={{ fontSize: '1.2rem' }}>🌍</span>
-                                                    <span className="pillLabel">{t("allCountries")}</span>
-                                                </>
-                                            )}
-                                        </div>
-                                        <svg className={`chevronIcon ${showOtherCountries ? "open" : ""}`} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                            <polyline points="6 9 12 15 18 9"></polyline>
-                                        </svg>
-                                    </button>
-
-                                    {showOtherCountries && (
-                                        <div className="countryFilterMenu">
-                                            <button
-                                                className={`dropdownItem ${!activeCountryFilter ? "active" : ""}`}
-                                                onClick={() => {
-                                                    setActiveCountryFilter("");
-                                                    setFilterRecenterTrigger(prev => prev + 1);
-                                                    setShowOtherCountries(false);
-                                                }}
-                                            >
-                                                <span style={{ fontSize: '1.2rem', marginRight: '8px' }}>🌍</span>
-                                                <span className="dropdownLabel">{t("allCountries")}</span>
-                                                <span className="dropdownCount">{countryCounts.all || 0}</span>
-                                            </button>
-                                            {ALL_COUNTRIES.filter(c => countryCounts[c] > 0).map((country) => (
-                                                    <button
-                                                        key={country}
-                                                        className={`dropdownItem ${activeCountryFilter === country ? "active" : ""}`}
-                                                        onClick={() => {
-                                                            setActiveCountryFilter(country);
-                                                            setFilterRecenterTrigger(prev => prev + 1);
-                                                            setShowOtherCountries(false);
-                                                        }}
-                                                    >
-                                                        <FlagImage country={country} className="dropdownFlag" />
-                                                        <span className="dropdownLabel">{getCountryLabel(country)}</span>
-                                                        <span className="dropdownCount">{countryCounts[country] || 0}</span>
-                                                    </button>
-                                                ))
-                                            }
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                        </>
-                    )}
-                </div>
 
 
                 <APIProvider apiKey={API_KEY}>

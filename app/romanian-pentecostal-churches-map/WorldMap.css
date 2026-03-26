@@ -14,6 +14,7 @@
     top: 0;
     left: 0;
     overscroll-behavior: none; /* Prevent pull-to-refresh */
+    --sidebar-width: 380px; /* Default desktop sidebar width */
 }
 
 .churchMapLayout.loading {
@@ -124,9 +125,16 @@
 
 /* Responsive sidebar for mid-size desktop screens (e.g. 14 inch with scaling) */
 @media (min-width: 769px) and (max-width: 1350px) {
+    .churchMapLayout {
+        --sidebar-width: 320px;
+    }
     .churchMapSidebar {
         width: 320px;
     }
+}
+
+.churchMapLayout.sidebar-closed {
+    --sidebar-width: 60px;
 }
 
 .churchMapSidebar.collapsed {
@@ -316,13 +324,14 @@
 .mapFloatingHeader {
     position: absolute;
     top: 20px;
-    left: 20px;
+    left: calc(var(--sidebar-width, 380px) + 20px);
     right: 20px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    z-index: 1000;
+    z-index: 3000;
     pointer-events: none; /* Let clicks pass through empty spaces */
+    transition: left 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .mapHeaderLeft {
@@ -496,7 +505,7 @@
     display: flex;
     align-items: center;
     padding: 10px 12px;
-    border-radius: 8px;
+    border-radius: 10px;
     background: transparent;
     border: none;
     cursor: pointer;
@@ -504,6 +513,8 @@
     font-weight: 500;
     color: #1e293b;
     gap: 12px;
+    width: 100%;
+    text-align: left;
 }
 
 .dropdownItem:hover {
@@ -533,15 +544,15 @@
 .dropdownCount {
     font-size: 0.75rem;
     font-weight: 700;
-    color: #64748b;
-    background: #f1f5f9;
+    color: #134b7b;
+    background: #e0f2fe;
     padding: 2px 8px;
     border-radius: 10px;
 }
 
 .dropdownItem.active .dropdownCount {
-    background: #bae6fd;
-    color: #0369a1;
+    background: #134b7b;
+    color: white;
 }
 
 .pillLabel {
@@ -580,19 +591,7 @@
     gap: 2px;
 }
 
-.dropdownItem {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 14px;
-    background: none;
-    border: none;
-    border-radius: 10px;
-    width: 100%;
-    cursor: pointer;
-    transition: all 0.2s;
-    text-align: left;
-}
+
 
 .dropdownItem:hover {
     background: #f1f5f9;
@@ -626,8 +625,8 @@
 
 .dropdownCount {
     font-size: 0.75rem;
-    color: #64748b;
-    background: #f1f5f9;
+    color: #134b7b;
+    background: #e0f2fe;
     padding: 2px 6px;
     border-radius: 8px;
     font-weight: 600;
@@ -901,9 +900,9 @@
 
 .countryCount {
     margin-left: auto;
-    background: #ffffff;
-    border: 1px solid #f1f5f9;
-    color: #94a3b8;
+    background: #134b7b;
+    border: 1px solid transparent;
+    color: white;
     font-size: 0.7rem;
     font-weight: 700;
     padding: 2px 7px;
@@ -2321,22 +2320,14 @@
     }
 
     /* New Mobile Floating Header */
+    /* Unified Mobile Floating Header - Polished & High Z-Index */
     .mapFloatingHeader.mobileHeader {
-        top: constant(safe-area-inset-top, 12px);
-        top: env(safe-area-inset-top, 12px);
+        top: calc(env(safe-area-inset-top, 0px) + 20px); 
         left: 12px;
         right: 12px;
-        z-index: 1000;
+        z-index: 3000;
         pointer-events: none;
-    }
-
-    /* Unified Mobile Floating Header - Polished Version */
-    .mapFloatingHeader.mobileHeader {
-        top: calc(env(safe-area-inset-top, 0px) + 20px); /* Lowered as requested */
-        left: 12px;
-        right: 12px;
-        z-index: 1000;
-        pointer-events: none;
+        transition: none; /* No side-bar based transition on mobile */
     }
 
     .mobileUnifiedHeader {
@@ -2367,7 +2358,7 @@
         justify-content: center;
         background: transparent;
         border: none;
-        color: #475569;
+        color: #134b7b;
         flex-shrink: 0;
         position: relative;
         transition: background 0.2s;
@@ -2466,12 +2457,13 @@
     .unifiedFilterCount {
         font-size: 0.85rem;
         font-weight: 700;
-        color: #134b7b;
-        background: #e0f2fe;
+        color: white;
+        background: #134b7b;
         padding: 2px 6px;
         border-radius: 10px;
         min-width: 24px;
         text-align: center;
+        box-shadow: 0 2px 6px rgba(19, 75, 123, 0.15);
     }
 
     .unifiedFilterChevron {
@@ -2485,7 +2477,7 @@
     }
 
     .unifiedFilterToggle.hasFilter .unifiedFilterCount {
-        background: #134b7b;
+        background: #134b7b; /* Same as default, keeping it simple as requested */
         color: white;
     }
 
@@ -2908,7 +2900,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 2000;
+    z-index: 4000;
     padding: 20px;
     animation: fadeIn 0.3s ease;
 }
