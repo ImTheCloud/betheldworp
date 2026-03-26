@@ -1695,7 +1695,6 @@
 
 .mapRecenterBtn:hover {
     background: #f8fafc;
-    color: #0284c7;
     transform: scale(1.05);
 }
 
@@ -2253,7 +2252,7 @@
     }
 
     .churchMapBottomSheet[data-mode="hidden"] {
-        height: var(--dynamic-height, 64px); /* Increased from 40px for better grab area on iPhone */
+        height: var(--dynamic-height, 100px); /* Final minimalist height (100px) */
         opacity: 1;
     }
 
@@ -2364,7 +2363,7 @@
     }
 
     .churchMapLayout:has(.churchMapBottomSheet[data-mode="hidden"]) {
-        --dynamic-height: 64px;
+        --dynamic-height: 100px;
     }
 
     .churchMapLayout:has(.churchMapBottomSheet[data-mode="collapsed"]) {
@@ -2486,25 +2485,25 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
-    background: #ffffff;
+    background: #134b7b; /* Changed to primary blue */
     border: 1px solid #134b7b;
     border-radius: 24px;
-    color: #134b7b;
+    color: #ffffff; /* Changed to white text */
     font-weight: 700;
     text-decoration: none;
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 12px rgba(13, 75, 123, 0.2); /* Added more shadow for primary button */
 }
 
 .sidebarDirectionsBtn:hover {
-    background: rgba(19, 75, 123, 0.05);
+    background: #0d345a; /* Darker blue on hover */
     transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 6px 15px rgba(13, 75, 123, 0.3);
 }
 
 .sidebarDirectionsBtn:active {
-    background: rgba(19, 75, 123, 0.08);
+    background: #0a2641;
     transform: scale(0.98);
 }
 
@@ -2519,37 +2518,36 @@
     height: auto;
     min-height: 38px;
     padding: 6px 12px;
-    background: #134b7b;
+    background: #ffffff; /* Changed to secondary white */
     border: 1px solid #134b7b;
-    border-radius: 20px; /* Standardize with mobile buttons */
-    color: #ffffff;
-    font-size: 0.75rem; /* Reduced from 0.85rem */
+    border-radius: 20px;
+    color: #134b7b; /* Changed to blue text */
+    font-size: 0.75rem;
     font-weight: 700;
     line-height: 1.1;
     white-space: normal;
     text-align: center;
     cursor: pointer;
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-    box-shadow: 0 4px 12px rgba(13, 75, 123, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* Reduced shadow for secondary button */
 }
 
 .sidebarSuggestBtn:hover {
-    background: #0d345a;
+    background: rgba(19, 75, 123, 0.05); /* Light blue tint on hover */
     transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(13, 75, 123, 0.3);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
 }
 
 .sidebarSuggestBtn.editMode {
-    /* Same as default now, but keeping class for potential logic */
-    background: #134b7b;
-    color: #ffffff;
+    background: #ffffff;
+    color: #134b7b;
     border-color: #134b7b;
 }
 
 .sidebarSuggestBtn.editMode:hover {
-    background: #0d345a;
+    background: rgba(19, 75, 123, 0.1);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(13, 52, 90, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 /* Mobile Details inside Bottom Sheet */
@@ -2580,7 +2578,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    padding: 8px 16px;
+    padding: 0 16px 8px 16px; /* Moved to very top by removing top padding */
     border-bottom: 1px solid rgba(19, 75, 123, 0.08);
     background: #ffffff; /* Unified solid white */
     backdrop-filter: blur(8px);
@@ -2608,7 +2606,7 @@
     margin: 0;
     font-size: 1.1rem;
     font-weight: 800;
-    color: #0f172a;
+    color: #0f172a; /* Reverted to original dark color as requested */
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -2623,7 +2621,7 @@
     border-radius: 50%;
     border: none;
     background: transparent;
-    color: #475569;
+    color: #134b7b; /* Changed to theme blue as requested */
     cursor: pointer;
     transition: all 0.2s ease;
     margin-right: -8px; /* Push to the very edge of padding */

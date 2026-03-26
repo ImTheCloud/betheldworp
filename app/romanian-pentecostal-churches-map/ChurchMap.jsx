@@ -1230,7 +1230,7 @@ function ChurchMap() {
 
         // Respect limits
         const headerH = 110;
-        const minH = 48;
+        const minH = 100; // Final minimalist height (100px)
         const maxH = window.innerHeight - headerH - 10;
 
         if (newHeight > maxH) {
