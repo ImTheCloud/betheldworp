@@ -862,7 +862,7 @@
 }
 
 .churchCountryGroup {
-    margin-bottom: 8px;
+    margin-bottom: 4px;
 }
 
 .churchCountryHeader {
@@ -871,14 +871,14 @@
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    padding: 8px 16px;
+    padding: 6px 16px;
     margin: 0;
     font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: #64748b;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: none;
     z-index: 5;
     display: flex;
     align-items: center;
@@ -919,7 +919,7 @@
     padding: 8px 16px; /* Reduced from 10px 24px */
     background: transparent;
     border: none;
-    border-bottom: 1px solid transparent;
+    border-bottom: none;
     cursor: pointer;
     text-align: left;
     transition: all 0.2s ease;
@@ -1794,8 +1794,8 @@
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    padding: 12px 20px;
-    border-bottom: 1px solid rgba(19, 75, 123, 0.08);
+    padding: 12px 20px 4px 20px;
+    border-bottom: none;
 }
 
 .churchDetailsHeaderActions {
@@ -2275,7 +2275,7 @@
         border-radius: 32px 32px 0 0;
         position: sticky;
         top: 0;
-        z-index: 20;
+        z-index: 20; /* Higher than list (10), lower than footer (30) */
         flex-shrink: 0;
     }
 
@@ -2285,7 +2285,7 @@
     }
 
     .churchMapBottomSheet[data-mode="hidden"] {
-        height: var(--dynamic-height, 100px); /* Final minimalist height (100px) */
+        height: var(--dynamic-height, 100px); /* Fallback value, overridden by JS measurement */
         opacity: 1;
     }
 
@@ -2320,29 +2320,194 @@
         border-radius: 4px;
     }
 
-    .mobileControlsInSheet {
-        padding: 2px 12px 10px 12px; /* Bottom padding for breathing room */
+    /* New Mobile Floating Header */
+    .mapFloatingHeader.mobileHeader {
+        top: constant(safe-area-inset-top, 12px);
+        top: env(safe-area-inset-top, 12px);
+        left: 12px;
+        right: 12px;
+        z-index: 1000;
+        pointer-events: none;
+    }
+
+    /* Unified Mobile Floating Header - Polished Version */
+    .mapFloatingHeader.mobileHeader {
+        top: calc(env(safe-area-inset-top, 0px) + 20px); /* Lowered as requested */
+        left: 12px;
+        right: 12px;
+        z-index: 1000;
+        pointer-events: none;
+    }
+
+    .mobileUnifiedHeader {
         display: flex;
-        flex-direction: row;
         align-items: center;
-        gap: 8px;
-        background: transparent; /* Let sticky header background show through */
-        border-radius: 0;
+        width: 100%;
+        background: #ffffff;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        border-radius: 28px;
+        height: 56px; /* Slightly taller for better touch targets */
+        pointer-events: auto;
+        padding: 0 2px;
+        overflow: visible;
+        animation: headerSlideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes headerSlideDown {
+        from { transform: translateY(-20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+
+    .unifiedReturnBtn {
+        width: 38px;
+        height: 38px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: transparent;
+        border: none;
+        color: #475569;
+        flex-shrink: 0;
         position: relative;
-        z-index: 10;
-        overflow: visible !important;
+        transition: background 0.2s;
+        border-radius: 50%;
+    }
+    
+    .unifiedReturnBtn:active { background: #f1f5f9; }
+
+    .unifiedSearchContainer {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        min-width: 0;
+        padding: 0 4px 0 4px;
+        height: 100%;
     }
 
-    .mobileSearchBox {
-        height: 40px; /* Reduced from 44px (implicit from prev restructures) */
-        border-radius: 10px;
-        padding: 0 4px 0 10px;
+    .unifiedSearchContainer input {
+        flex: 1;
+        border: none;
+        padding: 0;
+        font-size: 1rem;
+        background: transparent;
+        color: #1e293b;
+        font-weight: 500;
+        height: 100%;
+        min-width: 0;
     }
 
-    .mobileHeaderFilterBtn {
-        height: 40px; /* Reduced from 44px */
+    .unifiedSearchContainer input:focus { outline: none; }
+
+    .unifiedSearchActionWrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        flex-shrink: 0;
+    }
+
+    .unifiedSearchIcon {
+        color: #94a3b8;
+        display: flex;
+    }
+
+    .unifiedSearchClear {
+        background: transparent;
+        border: none;
+        width: 38px;
+        height: 38px;
+        color: #94a3b8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+
+    .unifiedSearchClear:active {
+        background: rgba(0, 0, 0, 0.05);
+        transform: scale(0.9);
+        border-radius: 50%;
+    }
+
+    .unifiedFilterAction {
+        position: relative;
+        display: flex;
+        align-items: center;
+        flex-shrink: 0;
+        padding-right: 4px;
+    }
+
+    .unifiedFilterToggle {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        height: 40px;
+        padding: 0 4px;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+        border-radius: 22px;
+    }
+
+    .unifiedFilterToggle:active {
+        background: #f1f5f9;
+        transform: scale(0.96);
+    }
+
+    .unifiedFilterLabel {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .unifiedFilterCount {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #134b7b;
+        background: #e0f2fe;
+        padding: 2px 6px;
         border-radius: 10px;
-        padding: 0 10px;
+        min-width: 24px;
+        text-align: center;
+    }
+
+    .unifiedFilterChevron {
+        color: #94a3b8;
+        transition: transform 0.3s ease;
+    }
+
+    .unifiedFilterChevron.is-open {
+        transform: rotate(180deg);
+        color: #134b7b;
+    }
+
+    .unifiedFilterToggle.hasFilter .unifiedFilterCount {
+        background: #134b7b;
+        color: white;
+    }
+
+    .countryFilterMenu.mobileVersion {
+        position: absolute;
+        top: calc(100% + 12px);
+        right: -8px;
+        width: 220px;
+        max-height: 320px;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        overflow-y: auto;
+        padding: 8px;
+        z-index: 2000;
+        border: 1px solid #e2e8f0;
+        animation: mobileFilterPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes mobileFilterPop {
+        from { opacity: 0; transform: scale(0.9) translateY(-10px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
     }
 
 
@@ -2352,6 +2517,8 @@
         padding-bottom: 20px;
         touch-action: pan-y;
         border-bottom: none !important;
+        position: relative;
+        z-index: 10; /* Lowest layer */
         /* Crucial for allowing scroll inside a touch listener container */
         pointer-events: auto;
 
@@ -2367,6 +2534,12 @@
     .churchMapBottomSheet:has(.mobileChurchDetails) .churchList {
         flex: 1;
         padding-bottom: 0;
+    }
+
+    /* ONLY allow scrolling when fully expanded. In all other modes, touch-drag moves the sheet. */
+    .churchMapBottomSheet:not([data-mode="expanded"]) .churchList,
+    .churchMapBottomSheet:not([data-mode="expanded"]) .mobileDetailsBody {
+        overflow: hidden !important;
     }
 
     .churchMapTitle {
@@ -2394,10 +2567,6 @@
     /* Adjust base height for the button when sheet is in specific modes and NOT dragging */
     .churchMapLayout:not(:has(.churchMapBottomSheet.is-dragging)) .mapRecenterBtn {
         transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .churchMapLayout:has(.churchMapBottomSheet[data-mode="hidden"]) {
-        --dynamic-height: 100px;
     }
 
     .churchMapLayout:has(.churchMapBottomSheet[data-mode="collapsed"]) {
@@ -2461,33 +2630,41 @@
     box-shadow: none !important;
     position: sticky;
     bottom: 0;
-    z-index: 10;
+    z-index: 30; /* Highest layer to ensure buttons are always clickable */
 }
 
 @media (max-width: 768px) {
     .churchSidebarFooter {
         padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 8px);
         padding-top: 10px;
-        /* Dynamic stickiness: move with sheet during closure */
-        position: relative;
-        bottom: auto;
-    }
-
-    /* Only sticky when fully open */
-    .churchMapBottomSheet[data-mode="expanded"] .churchSidebarFooter {
         position: sticky;
         bottom: 0;
-        border-top: 1px solid #e5e7eb !important;
+    }
+
+    /* sticky in detail view always */
+    .churchMapBottomSheet[data-mode="expanded"] .churchSidebarFooter {
+        border-top: none !important;
     }
 
     .churchMapBottomSheet:has(.mobileChurchDetails) .churchSidebarFooter {
         border-top: none !important;
-        padding-top: 0;
-        position: relative;
+        padding: 4px 16px calc(env(safe-area-inset-bottom, 20px) + 4px) 16px; /* Tightened padding for hidden mode */
+        position: sticky;
+        bottom: 0;
+        background: #ffffff;
         box-shadow: none !important;
-        padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 12px);
-        padding-left: 12px;
-        padding-right: 12px;
+    }
+
+    .sidebarSuggestBtn.fullWidth {
+        width: 100%;
+        justify-content: center;
+        height: 40px; /* Reduced from 48px to match detail buttons */
+        border-radius: 20px; /* Changed to pill shape to match detail buttons */
+        font-weight: 600;
+        background: #134b7b;
+        color: white;
+        box-shadow: 0 2px 8px rgba(19, 75, 123, 0.2);
+        border: none;
     }
 }
 
@@ -2502,9 +2679,10 @@
     flex: 1;
     min-width: 0;
     height: auto;
-    min-height: 40px; /* Standardized to match .mapSuggestBtn height on mobile */
+    height: 40px; /* Standardized to match .mapSuggestBtn height on mobile */
     padding: 0 16px;
-    font-size: 0.75rem; /* Standardized small font */
+    font-size: 0.8rem; /* Slightly larger for better readability */
+    font-weight: 600;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2521,9 +2699,9 @@
     gap: 8px;
     background: #134b7b; /* Changed to primary blue */
     border: 1px solid #134b7b;
-    border-radius: 24px;
+    border-radius: 20px;
     color: #ffffff; /* Changed to white text */
-    font-weight: 700;
+    font-weight: 600;
     text-decoration: none;
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     cursor: pointer;
@@ -2552,10 +2730,10 @@
     height: auto;
     min-height: 38px;
     padding: 6px 12px;
-    background: #ffffff; /* Changed to secondary white */
+    background: #134b7b; /* Changed to primary blue */
     border: 1px solid #134b7b;
     border-radius: 20px;
-    color: #134b7b; /* Changed to blue text */
+    color: #ffffff; /* Changed to white text */
     font-size: 0.75rem;
     font-weight: 700;
     line-height: 1.1;
@@ -2563,13 +2741,13 @@
     text-align: center;
     cursor: pointer;
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* Reduced shadow for secondary button */
+    box-shadow: 0 4px 12px rgba(19, 75, 123, 0.2);
 }
 
 .sidebarSuggestBtn:hover {
-    background: rgba(19, 75, 123, 0.05); /* Light blue tint on hover */
+    background: #0d345a; /* Darker blue on hover */
     transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 6px 15px rgba(19, 75, 123, 0.3);
 }
 
 .sidebarSuggestBtn.editMode {
@@ -2609,11 +2787,11 @@
 
 .mobileDetailsHeader {
     display: flex;
-    align-items: center;
+    align-items: flex-start; /* Changed from center to align with stacked text */
     justify-content: space-between;
     gap: 12px;
-    padding: 0 16px 8px 16px; 
-    border-bottom: 1px solid rgba(19, 75, 123, 0.08);
+    padding: 8px 16px 4px 16px; /* Added 8px top padding to clear drag handle */
+    border-bottom: none;
     background: transparent;
     border-radius: 0;
     position: relative;
@@ -2628,20 +2806,20 @@
 
 .mobileDetailsTitleArea {
     display: flex;
-    align-items: center;
-    gap: 8px;
+    flex-direction: column; /* Stack name and address */
+    align-items: flex-start;
+    gap: 2px; /* Minimal gap between name and address */
     flex: 1;
-    min-width: 0; /* Allow shrinking */
+    min-width: 0;
 }
 
 .mobileChurchDetails .churchDetailsTitle {
     margin: 0;
     font-size: 1.1rem;
     font-weight: 800;
-    color: #0f172a; /* Reverted to original dark color as requested */
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    color: #0f172a;
+    width: 100%;
+    line-height: 1.2;
 }
 
 .mobileDetailsBack {
@@ -2653,10 +2831,11 @@
     border-radius: 50%;
     border: none;
     background: transparent;
-    color: #134b7b; /* Changed to theme blue as requested */
+    color: #134b7b;
     cursor: pointer;
     transition: all 0.2s ease;
-    margin-right: -8px; /* Push to the very edge of padding */
+    margin-right: -8px;
+    margin-top: 0px; /* Aligned with new 8px padding */
 }
 
 .mobileDetailsBack:active {
@@ -2666,16 +2845,18 @@
 
 .mobileDetailsBody {
     flex: 1; /* Stretch to fill space */
-    overflow-y: auto;
-    padding: 1.5vh 20px 20px 20px;
     display: flex;
     flex-direction: column;
+    padding: 0 20px 20px 20px;
+    overflow-y: auto;
+    min-height: 0; /* Allow shrinking */
 }
 
 .mobileChurchDetails .churchDetailsAddress {
-    font-size: 0.82rem;
+    font-size: 0.8rem; /* Slightly smaller for header integration */
     color: #64748b;
-    margin-bottom: clamp(6px, 1.8vh, 10px); /* Reduced margin to bring links closer */
+    margin: 0;
+    padding: 0;
     white-space: normal;
     overflow: visible;
     text-overflow: clip;
@@ -2685,10 +2866,13 @@
 
 .mobileChurchDetails .churchDetailsInfoList {
     flex: 1;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
     margin-bottom: 0;
     align-content: space-evenly; /* Spread rows vertically to fill the sheet in COLLAPSED mode */
-    gap: 12px 20px;
+    gap: 16px 20px;
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    min-height: 180px; /* Minimum height to ensure it feels "spaced" even with few items */
 }
 
 /* When EXPANDED, links should NOT stretch; they should stay at the top with white space below */

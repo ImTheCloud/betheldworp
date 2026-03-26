@@ -77,7 +77,9 @@
         "firstName": "Prenume",
         "lastName": "Nume",
         "backToWebsite": "Site",
-        "locationTitle": "Titlu locație (Google Maps)"
+        "locationTitle": "Titlu locație (Google Maps)",
+        "churchesFound": "biserici găsite",
+        "seeList": "Vezi lista completă"
     },
     "fr": {
         "title": "Églises Pentecôtistes Roumaines",
@@ -157,7 +159,9 @@
         "firstName": "Prénom",
         "lastName": "Nom",
         "backToWebsite": "Site",
-        "locationTitle": "Titre du lieu (Google Maps)"
+        "locationTitle": "Titre du lieu (Google Maps)",
+        "churchesFound": "églises trouvées",
+        "seeList": "Voir la liste complète"
     },
     "en": {
         "title": "Romanian Pentecostal Churches",
@@ -237,7 +241,9 @@
         "firstName": "First Name",
         "lastName": "Last Name",
         "backToWebsite": "Website",
-        "locationTitle": "Location Title (Google Maps)"
+        "locationTitle": "Location Title (Google Maps)",
+        "churchesFound": "churches found",
+        "seeList": "See full list"
     },
     "nl": {
         "title": "Roemeense Pinksterkerken",
