@@ -1022,57 +1022,56 @@ function ChurchMap() {
         trackWorldMapVisit("initial");
     }, []);
 
-    // Auto-locate
+    const fetchUserLocation = useCallback((isManual = false) => {
+        if (!navigator.geolocation) {
+            trackWorldMapVisit("denied");
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                localStorage.setItem("bethel_map_geo_asked", "true");
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                setUserLocation({ lat, lng });
+                trackWorldMapVisit("granted", { lat, lng });
+                if (isManual) {
+                    setRecenterTrigger(prev => prev + 1);
+                }
+            },
+            (err) => {
+                localStorage.setItem("bethel_map_geo_asked", "true");
+                console.warn("Geolocation denied or unavailable.", err);
+                trackWorldMapVisit("denied");
+            },
+            { timeout: 5000 }
+        );
+    }, []);
+
+    // Auto-locate on load or permission change
     useEffect(() => {
         const hasAskedGeo = localStorage.getItem("bethel_map_geo_asked");
-
-        const fetchPosition = () => {
-            if (!navigator.geolocation) {
-                trackWorldMapVisit("denied");
-                return;
-            }
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    localStorage.setItem("bethel_map_geo_asked", "true");
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-                    setUserLocation({ lat, lng });
-                    trackWorldMapVisit("granted", { lat, lng });
-                },
-                (err) => {
-                    localStorage.setItem("bethel_map_geo_asked", "true");
-                    console.warn("Geolocation denied or unavailable.", err);
-                    trackWorldMapVisit("denied");
-                },
-                { timeout: 5000 }
-            );
-        };
 
         if (navigator.permissions && navigator.permissions.query) {
             navigator.permissions.query({ name: 'geolocation' })
                 .then((result) => {
                     if (result.state === 'granted') {
-                        // Always fetch if we already have permission
-                        fetchPosition();
+                        fetchUserLocation();
                     } else if (result.state === 'prompt' && !hasAskedGeo) {
-                        // Only prompt if we haven't asked before
-                        fetchPosition();
+                        fetchUserLocation();
                     }
                     
-                    // Listen for permission changes
                     result.onchange = () => {
-                        if (result.state === 'granted') fetchPosition();
+                        if (result.state === 'granted') fetchUserLocation();
                     };
                 })
                 .catch(() => {
-                    // Fallback if query fails
-                    if (!hasAskedGeo) fetchPosition();
+                    if (!hasAskedGeo) fetchUserLocation();
                 });
         } else {
-            // Fallback for browsers without permissions API
-            if (!hasAskedGeo) fetchPosition();
+            if (!hasAskedGeo) fetchUserLocation();
         }
-    }, []);
+    }, [fetchUserLocation]);
 
     const handleRecenter = () => {
         // Deselect any active church first
@@ -1081,23 +1080,9 @@ function ChurchMap() {
         if (userLocation) {
             setRecenterTrigger(prev => prev + 1);
         } else {
-            // Re-request position if not available
-            if (navigator.geolocation) {
-                // Also set the flag since the user is interacting with geolocation now
-                localStorage.setItem("bethel_map_geo_asked", "true");
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        const lat = position.coords.latitude;
-                        const lng = position.coords.longitude;
-                        setUserLocation({ lat, lng });
-                        setRecenterTrigger(prev => prev + 1);
-                    },
-                    (err) => {
-                        console.warn("Geolocation re-request failed", err);
-                    },
-                    { timeout: 5000 }
-                );
-            }
+            // Re-request position if not available — this forces a browser prompt
+            // if it was previously dismissed or not yet decided.
+            fetchUserLocation(true);
         }
     };
 
