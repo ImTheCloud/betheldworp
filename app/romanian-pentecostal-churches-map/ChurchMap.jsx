@@ -350,7 +350,7 @@ const ChurchInfoLinks = ({ church, t }) => {
                 </svg>
                 {church.website ? (
                     <a href={church.website} target="_blank" rel="noopener noreferrer">
-                        {church.website.replace(/^https?:\/\//, '')}
+                        {t("website")}
                     </a>
                 ) : (
                     <span>{t("website")} {t("notSpecified")}</span>
