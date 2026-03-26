@@ -1545,10 +1545,9 @@ function ChurchMap() {
                                                 e.preventDefault();
                                                 e.stopPropagation();
                                                 setBottomSheetMode("collapsed");
-                                                setTimeout(() => {
-                                                    const input = document.getElementById("mobileSearchInputAnim");
-                                                    if (input) input.focus();
-                                                }, 400); // 400ms is the duration of the bottom sheet height transition
+                                                // Focus immediately to trigger keyboard on iOS synchronously
+                                                const input = document.getElementById("mobileSearchInputAnim");
+                                                if (input) input.focus();
                                             }}
                                         />
                                     )}
@@ -1560,9 +1559,9 @@ function ChurchMap() {
                                         onChange={(e) => setSearchQuery(e.target.value)}
                                         onFocus={() => {
                                             setIsSearchFocused(true);
-                                            // On iOS Safari, expanding a container upward concurrently with the keyboard
-                                            // natively forces a scroll jump that hides the input. We keep the sheet at its 
-                                            // current height (e.g. collapsed) so the input stays perfectly visible.
+                                            if (bottomSheetMode === "hidden") {
+                                                setBottomSheetMode("collapsed");
+                                            }
                                         }}
                                         onBlur={() => {
                                             // Delay to allow clear button click
