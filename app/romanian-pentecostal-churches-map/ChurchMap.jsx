@@ -1177,19 +1177,25 @@ function ChurchMap() {
         // Determine if we should drag the sheet or allow content scrolling
         let shouldIntercept = isHeaderTouch.current;
         
-        // Broad dragging (from any content) is only enabled in the Church Details view
-        // In the list view, we prioritize scrolling to avoid accidental sheet drags
-        if (!shouldIntercept && selectedChurch) {
+        if (!shouldIntercept) {
             const scrollContainer = e.target.closest('.churchList');
             const isAtTop = !scrollContainer || scrollContainer.scrollTop <= 0;
             
-            // Dragging DOWN from top of content drags the sheet
-            if (deltaY > 0 && isAtTop) {
-                shouldIntercept = true;
-            }
-            // Dragging UP only drags the sheet if it's NOT already expanded
-            else if (deltaY < 0 && bottomSheetMode !== "expanded") {
-                shouldIntercept = true;
+            if (selectedChurch) {
+                // Church Details View: Broad dragging (from any content) enabled for convenience
+                if (deltaY > 0 && isAtTop) shouldIntercept = true;
+                else if (deltaY < 0 && bottomSheetMode !== "expanded") shouldIntercept = true;
+            } else {
+                // Church List View: Smart differentiation
+                // 1. If collapsed, any swipe UP anywhere should expand the sheet
+                if (bottomSheetMode === "collapsed" && deltaY < 0) {
+                    shouldIntercept = true;
+                }
+                // 2. If expanded, swipe DOWN only drags the sheet if at the TOP of the list
+                //    (Otherwise, we let the list scroll naturally)
+                else if (bottomSheetMode === "expanded" && deltaY > 0 && isAtTop) {
+                    shouldIntercept = true;
+                }
             }
         }
 
