@@ -59,8 +59,8 @@ const FIELDS = [
     { key: "email", label: "Email", type: "text" },
     { key: "website", label: "Website", type: "text" },
     { key: "youtube", label: "YouTube", type: "text" },
-    { key: "facebook", label: "Facebook", type: "text" },
     { key: "instagram", label: "Instagram", type: "text" },
+    { key: "facebook", label: "Facebook", type: "text" },
 ];
 
 const geocodeAddress = async (street, number, city, zipCode, country, locationTitle = "") => {

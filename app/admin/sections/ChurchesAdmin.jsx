@@ -15,7 +15,8 @@ const matchChurchSearch = (c, q) => {
     const fields = [
         c.name, c.city, c.country, c.locationTitle, 
         c.street, c.number, c.zipCode, 
-        c.phone, c.email, c.notes
+        c.phone, c.email, c.notes,
+        c.website, c.youtube, c.facebook, c.instagram
     ];
     return fields.some(val => safeStr(val).toLowerCase().includes(q));
 };
@@ -96,10 +97,10 @@ const FIELDS = [
     { key: "number", label: "Number", type: "text" },
     { key: "phone", label: "Phone", type: "text" },
     { key: "email", label: "Email", type: "text" },
-    { key: "website", label: "Website", type: "text" },
+    {key: "website", label: "Website", type: "text" },
     { key: "youtube", label: "YouTube", type: "text" },
-    { key: "facebook", label: "Facebook", type: "text" },
     { key: "instagram", label: "Instagram", type: "text" },
+    { key: "facebook", label: "Facebook", type: "text" },
 ];
 
 function emptyChurch() {
@@ -251,10 +252,14 @@ function ChurchCard({ item, expanded, drafts, saveState, errorText, onToggle, on
                             <input className="adminInput" placeholder="https://youtube.com/..." value={drafts.youtube ?? ""} onChange={(e) => onChange(id, "youtube", e.target.value)} />
                         </label>
 
-                        {/* Row 6: Facebook & Instagram */}
+                        {/* Row 6: Instagram & Facebook */}
                         <label className="adminLabel">
                             Instagram
                             <input className="adminInput" placeholder="instagram.com/..." value={drafts.instagram ?? ""} onChange={(e) => onChange(id, "instagram", e.target.value)} />
+                        </label>
+                        <label className="adminLabel">
+                            Facebook
+                            <input className="adminInput" placeholder="facebook.com/..." value={drafts.facebook ?? ""} onChange={(e) => onChange(id, "facebook", e.target.value)} />
                         </label>
                     </div>
 
@@ -403,10 +408,14 @@ function NewChurchCard({ drafts, setDraft, errorText, saveState, onCancel, onSav
                         <input className="adminInput" placeholder="https://youtube.com/..." value={drafts.youtube ?? ""} onChange={(e) => setDraft("youtube", e.target.value)} />
                     </label>
 
-                    {/* Row 6: Facebook & Instagram */}
+                    {/* Row 6: Instagram & Facebook */}
                     <label className="adminLabel">
                         Instagram
                         <input className="adminInput" placeholder="instagram.com/..." value={drafts.instagram ?? ""} onChange={(e) => setDraft("instagram", e.target.value)} />
+                    </label>
+                    <label className="adminLabel">
+                        Facebook
+                        <input className="adminInput" placeholder="facebook.com/..." value={drafts.facebook ?? ""} onChange={(e) => setDraft("facebook", e.target.value)} />
                     </label>
                 </div>
 
