@@ -1180,8 +1180,8 @@ function ChurchMap() {
                 if (deltaY > 0 && isAtTop) shouldIntercept = true;
                 else if (deltaY < 0 && bottomSheetMode !== "expanded") shouldIntercept = true;
             } else {
-                // 1. If collapsed or hidden, any swipe UP anywhere should expand the sheet
-                if ((bottomSheetMode === "collapsed" || bottomSheetMode === "hidden") && deltaY < 0) {
+                // 1. If collapsed or hidden, any swipe anywhere should move the sheet (since scrolling is disabled)
+                if (bottomSheetMode === "collapsed" || bottomSheetMode === "hidden") {
                     shouldIntercept = true;
                 }
                 // 2. If expanded, swipe DOWN only drags the sheet if at the TOP of the list
