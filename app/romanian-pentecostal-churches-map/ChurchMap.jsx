@@ -1194,6 +1194,9 @@ function ChurchMap() {
                 //    (Otherwise, we let the list scroll naturally)
                 else if (bottomSheetMode === "expanded" && deltaY > 0 && isAtTop) {
                     shouldIntercept = true;
+                    // SEAMLESS HANDOVER: Reset coordinates to avoid jumping when switching from scroll to sheet drag
+                    touchStartY.current = e.touches[0].clientY;
+                    startHeight.current = sheetRef.current.offsetHeight;
                 }
             }
         }
@@ -1212,17 +1215,27 @@ function ChurchMap() {
         }
 
         // Calculate new height
-        let newHeight = startHeight.current - deltaY;
+        let rawNewHeight = startHeight.current - deltaY;
+        let newHeight = rawNewHeight;
 
         // Respect limits
         const headerH = 110;
         const minH = 48;
         const maxH = window.innerHeight - headerH - 10;
 
-        if (newHeight < minH) {
-            newHeight = minH + (newHeight - minH) * 0.2;
-        } else if (newHeight > maxH) {
-            newHeight = maxH + (newHeight - maxH) * 0.2;
+        if (newHeight > maxH) {
+            // Seamless handover: if we are in the list view and sheet is at max, 
+            // the remaining drag distance goes to the list's scroll position.
+            const scrollContainer = e.target.closest('.churchList');
+            if (scrollContainer && !selectedChurch) {
+                const overflow = rawNewHeight - maxH;
+                scrollContainer.scrollTop = overflow;
+                newHeight = maxH;
+            } else {
+                newHeight = maxH + (newHeight - maxH) * 0.2; // Resistance
+            }
+        } else if (newHeight < minH) {
+            newHeight = minH + (newHeight - minH) * 0.2; // Resistance
         }
 
         setDragHeight(newHeight);
