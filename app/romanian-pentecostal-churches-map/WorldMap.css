@@ -51,7 +51,7 @@
 @media (max-height: 768px) and (min-width: 769px) {
     .mapFloatingHeader {
         top: 12px !important;
-        left: 12px !important;
+        left: calc(var(--sidebar-width, 380px) + 12px) !important;
         right: 12px !important;
     }
     
