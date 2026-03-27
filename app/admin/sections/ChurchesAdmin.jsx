@@ -647,6 +647,8 @@ export default function ChurchesAdmin() {
         return arr;
     }, [items, sortBy, searchQuery, selectedCountry, selectedCity, showDraftsOnly]);
 
+    const draftCount = useMemo(() => items.filter(it => it.isDraft === true).length, [items]);
+
     const { page, setPage, totalPages, paginatedItems, nextPage, prevPage, totalItems } = usePagination(sortedItems, PAGE_SIZE);
 
     const uniqueCountries = useMemo(() => {
@@ -966,6 +968,19 @@ export default function ChurchesAdmin() {
 
                     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                         <span style={{ fontSize: "13px", fontWeight: 700, color: "#475569" }}>Draft</span>
+                        {draftCount > 0 && (
+                            <span style={{ 
+                                fontSize: "11px", 
+                                fontWeight: 800, 
+                                backgroundColor: "#fef3c7", 
+                                color: "#92400e", 
+                                padding: "1px 6px", 
+                                borderRadius: "10px",
+                                marginRight: "2px"
+                            }}>
+                                {draftCount}
+                            </span>
+                        )}
                         <label className="adminSwitch">
                             <input 
                                 type="checkbox" 
