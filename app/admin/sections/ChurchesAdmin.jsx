@@ -183,7 +183,7 @@ const fetchGooglePlaceData = async (query, city = "", country = "") => {
         const firstResult = results[0];
         const processData = (res, components) => {
             const getComp = (types) => {
-                const comp = components.find(c => types.some(t => c.types.includes(t)));
+                const comp = components.find(c => c.types && types.some(t => c.types.includes(t)));
                 return comp ? comp.long_name : "";
             };
 
