@@ -1668,14 +1668,35 @@ function ChurchMap() {
                                 onChange={(e) => {
                                     const val = e.target.value;
                                     setSearchQuery(val);
-                                    if (isMobile && val.trim().length > 0 && bottomSheetMode !== "expanded") {
-                                        setBottomSheetMode("expanded");
+                                    
+                                    if (isMobile) {
+                                        // If a church was selected, deselect it immediately to show the list/search results
+                                        if (selectedChurch) {
+                                            setSelectedChurch(null);
+                                            setIsExiting(false);
+                                            const url = new URL(window.location.href);
+                                            url.searchParams.delete("church");
+                                            window.history.replaceState({}, "", url.toString());
+                                        }
+                                        
+                                        // Ensure bottom sheet is expanded to see results
+                                        if (bottomSheetMode !== "expanded") {
+                                            setBottomSheetMode("expanded");
+                                        }
                                     }
                                 }}
                                 onFocus={() => {
                                     setIsSearchFocused(true);
                                     if (isMobile) {
                                         setBottomSheetMode("expanded");
+                                        // If we were looking at a church, deselect to show the list
+                                        if (selectedChurch) {
+                                            setSelectedChurch(null);
+                                            setIsExiting(false);
+                                            const url = new URL(window.location.href);
+                                            url.searchParams.delete("church");
+                                            window.history.replaceState({}, "", url.toString());
+                                        }
                                     }
                                 }}
                                 onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
