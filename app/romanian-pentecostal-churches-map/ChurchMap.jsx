@@ -788,18 +788,27 @@ function ChurchMap() {
 
 
 
-    // Close "Autres" country dropdown when clicking outside
+    // Close filters and "Autres" dropdown when clicking outside
     useEffect(() => {
         function handleClickOutside(e) {
+            // Handle "Autres" dropdown (Desktop)
             if (otherCountriesRef.current && !otherCountriesRef.current.contains(e.target)) {
                 setShowOtherCountries(false);
             }
+            // Handle Mobile Filter
+            if (filterRef.current && !filterRef.current.contains(e.target)) {
+                setFilterOpen(false);
+            }
         }
-        if (showOtherCountries) {
-            document.addEventListener("mousedown", handleClickOutside);
-        }
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, [showOtherCountries]);
+        
+        document.addEventListener("mousedown", handleClickOutside);
+        document.addEventListener("touchstart", handleClickOutside); // More responsive on mobile
+        
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener("touchstart", handleClickOutside);
+        };
+    }, []);
 
 
     const [suggestionForm, setSuggestionForm] = useState({
@@ -1007,16 +1016,6 @@ function ChurchMap() {
         return () => unsub();
     }, []);
 
-    // Load churches from Firestore
-    useEffect(() => {
-        function handleClickOutside(e) {
-            if (filterRef.current && !filterRef.current.contains(e.target)) {
-                setFilterOpen(false);
-            }
-        }
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
 
     // Auto-select church from URL param
     useEffect(() => {
@@ -1151,6 +1150,9 @@ function ChurchMap() {
         if (isMobile) {
             setBottomSheetMode("hidden");
         }
+        // Always close filters when interacting with the map
+        setFilterOpen(false);
+        setShowOtherCountries(false);
     }, [isMobile, setBottomSheetMode]);
 
     const handleTouchStart = (e) => {
