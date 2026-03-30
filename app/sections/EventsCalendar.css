@@ -508,6 +508,47 @@
     opacity: 1;
 }
 
+.ev-share-btn {
+    position: absolute;
+    top: 10px;
+    right: 56px; /* Positioned to the left of the close button */
+    height: 38px;
+    min-width: 38px;
+    padding: 0 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(10, 42, 67, 0.08);
+    background: rgba(255, 255, 255, 0.75);
+    color: rgba(10, 42, 67, 0.7);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    opacity: 0.85;
+}
+
+.ev-share-btn:hover {
+    transform: scale(1.04);
+    background: rgba(255, 255, 255, 0.92);
+    color: #0a2a43;
+    opacity: 1;
+    border-color: rgba(10, 42, 67, 0.15);
+}
+
+.ev-share-btn.is-copied {
+    background: #0a2a43;
+    color: #ffffff;
+    border-color: #0a2a43;
+    opacity: 1;
+}
+
+.ev-share-label {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+}
+
 .ev-modal-nav {
     display: flex;
     align-items: center;

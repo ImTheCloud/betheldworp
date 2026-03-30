@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { collection, onSnapshot, serverTimestamp, setDoc, doc } from "firebase/firestore";
 import { db } from "../lib/Firebase";
 import "./EventsCalendar.css";
@@ -53,6 +54,10 @@ export default function EventsCalendar() {
     const { lang } = useLang();
     const t = useMemo(() => makeT(tr, lang), [lang]);
     const locale = useMemo(() => getLocale(lang), [lang]);
+
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const pathname = usePathname();
 
     const weekdayLabels = useMemo(() => {
         const map = tr?.[lang]?.weekday_labels || tr?.ro?.weekday_labels;
@@ -163,19 +168,29 @@ export default function EventsCalendar() {
 
     const [eventOpen, setEventOpen] = useState(false);
 
-    const openEvent = (date, index = 0) => {
+    const openEvent = useCallback((date, index = 0, eventIdOverride = null) => {
         setSelectedDate(date);
         setEventIndex(index);
         setEventOpen(true);
-    };
 
-    // Listen for "open-event" dispatched from WeeklyProgram
+        const dateEvents = eventsByDate.get(date) || [];
+        const ev = eventIdOverride ? { id: eventIdOverride } : dateEvents[index];
+
+        if (ev?.id) {
+            const params = new URLSearchParams(searchParams.toString());
+            params.set("event", ev.id);
+            router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+        }
+    }, [eventsByDate, searchParams, router, pathname]);
+
+    // Handle deep-linking on load
     useEffect(() => {
-        const handler = (e) => {
-            const eventId = e?.detail?.eventId;
-            if (!eventId) return;
-            const ev = eventsSorted.find((x) => x.id === eventId);
-            if (!ev) return;
+        if (eventsLoading || !eventsSorted.length) return;
+        const eventId = searchParams.get("event");
+        if (!eventId) return;
+
+        const ev = eventsSorted.find((x) => x.id === eventId);
+        if (ev) {
             // Navigate calendar to the event's month
             const d = new Date(`${ev.dateEvent}T00:00:00`);
             if (!Number.isNaN(d.getTime())) {
@@ -186,10 +201,36 @@ export default function EventsCalendar() {
             const idx = dateEvents.findIndex(x => x.id === eventId);
             setEventIndex(idx >= 0 ? idx : 0);
             setEventOpen(true);
+
+            // Scroll to the events section
+            setTimeout(() => {
+                const section = document.getElementById("evenimente");
+                if (section) section.scrollIntoView({ behavior: "smooth" });
+            }, 500);
+        }
+    }, [eventsLoading, eventsSorted, eventsByDate, searchParams]);
+
+    // Listen for "open-event" dispatched from WeeklyProgram
+    useEffect(() => {
+        const handler = (e) => {
+            const eventId = e?.detail?.eventId;
+            if (!eventId) return;
+            const ev = eventsSorted.find((x) => x.id === eventId);
+            if (!ev) return;
+
+            // Navigate calendar to the event's month
+            const d = new Date(`${ev.dateEvent}T00:00:00`);
+            if (!Number.isNaN(d.getTime())) {
+                setMonth(new Date(d.getFullYear(), d.getMonth(), 1));
+            }
+
+            const dateEvents = eventsByDate.get(ev.dateEvent) || [];
+            const idx = dateEvents.findIndex(x => x.id === eventId);
+            openEvent(ev.dateEvent, idx >= 0 ? idx : 0, eventId);
         };
         window.addEventListener("open-event", handler);
         return () => window.removeEventListener("open-event", handler);
-    }, [eventsSorted]);
+    }, [eventsSorted, eventsByDate, openEvent]);
 
     useEffect(() => {
         if (!eventOpen) return;
@@ -317,15 +358,64 @@ export default function EventsCalendar() {
     const goPrevMonth = () => setMonth((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1));
     const goNextMonth = () => setMonth((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1));
 
-    const nextEventInList = () => {
-        setEventIndex((prev) => (prev + 1) % eventsForSelectedDate.length);
-    };
-
     const prevEventInList = () => {
-        setEventIndex((prev) => (prev - 1 + eventsForSelectedDate.length) % eventsForSelectedDate.length);
+        const nextIdx = (eventIndex - 1 + eventsForSelectedDate.length) % eventsForSelectedDate.length;
+        setEventIndex(nextIdx);
+
+        const ev = eventsForSelectedDate[nextIdx];
+        if (ev?.id) {
+            const params = new URLSearchParams(searchParams.toString());
+            params.set("event", ev.id);
+            router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+        }
     };
 
-    const closeEvent = () => setEventOpen(false);
+    const nextEventInList = () => {
+        const nextIdx = (eventIndex + 1) % eventsForSelectedDate.length;
+        setEventIndex(nextIdx);
+
+        const ev = eventsForSelectedDate[nextIdx];
+        if (ev?.id) {
+            const params = new URLSearchParams(searchParams.toString());
+            params.set("event", ev.id);
+            router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+        }
+    };
+
+    const closeEvent = () => {
+        setEventOpen(false);
+        const params = new URLSearchParams(searchParams.toString());
+        params.delete("event");
+        router.replace(`${pathname}${params.toString() ? "?" + params.toString() : ""}`, { scroll: false });
+    };
+
+    const [copied, setCopied] = useState(false);
+    const handleShare = async () => {
+        if (!selectedEvent) return;
+        const url = `${window.location.origin}${pathname}?event=${selectedEvent.id}`;
+
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: selectedEvent.title || t("event"),
+                    text: selectedEvent.description || "",
+                    url: url,
+                });
+                return;
+            } catch (err) {
+                // If sharing was cancelled or failed, fallback to copy
+                console.log("Web Share cancelled/failed, falling back to copy.");
+            }
+        }
+
+        try {
+            await navigator.clipboard.writeText(url);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch (err) {
+            console.error("Clipboard copy failed:", err);
+        }
+    };
 
     const mapQuery = selectedEvent ? encodeURIComponent([selectedEvent.place, selectedEvent.address].filter(Boolean).join(", ")) : "";
 
@@ -449,6 +539,23 @@ export default function EventsCalendar() {
 
                             <button type="button" className="ev-close" onClick={closeEvent} aria-label={t("close")}>
                                 ×
+                            </button>
+
+                            <button
+                                type="button"
+                                className={`ev-share-btn ${copied ? "is-copied" : ""}`}
+                                onClick={handleShare}
+                                aria-label={t("share") || "Share"}
+                            >
+                                {copied ? (
+                                    <span className="ev-share-label">{t("copied") || "Copied!"}</span>
+                                ) : (
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+                                        <polyline points="16 6 12 2 8 6" />
+                                        <line x1="12" y1="2" x2="12" y2="15" />
+                                    </svg>
+                                )}
                             </button>
 
                             {eventsForSelectedDate.length > 1 && (
