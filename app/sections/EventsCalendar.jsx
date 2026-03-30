@@ -534,7 +534,6 @@ export default function EventsCalendar() {
                         <header className="ev-header">
                             <div className="ev-headText">
                                 <h2 className="ev-title">{selectedEvent.title || t("event")}</h2>
-                                {selectedEvent.description ? <p className="ev-desc">{selectedEvent.description}</p> : null}
                             </div>
 
                             <button type="button" className="ev-close" onClick={closeEvent} aria-label={t("close")}>
@@ -574,6 +573,7 @@ export default function EventsCalendar() {
                         </header>
 
                         <div className="ev-body">
+                            {selectedEvent.description ? <p className="ev-desc" style={{ marginBottom: 20 }}>{selectedEvent.description}</p> : null}
                             <div className="ev-layout">
                                 <div className="ev-media">
                                     <div className="ev-heroImgWrap">
