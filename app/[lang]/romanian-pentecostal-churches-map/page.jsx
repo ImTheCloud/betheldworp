@@ -7,7 +7,7 @@ import LanguageSwitcher from "../../components/LanguageSwitcher";
 export default function WorldMapPage() {
     return (
         <main className="w-full h-full bg-black font-sans relative">
-            <div style={{
+            <div className="mapLanguageSwitcherWrapper" style={{
                 position: 'fixed',
                 top: '12px',
                 right: '12px',

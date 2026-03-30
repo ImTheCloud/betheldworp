@@ -223,6 +223,7 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: center 15%; /* Prioritize top part (heads) */
     display: block;
     opacity: 0;
     transition: opacity 0.8s ease, transform 0.3s ease;
@@ -635,18 +636,24 @@
 }
 
 .ev-heroImgWrap {
-    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: transparent;
+    overflow: visible; /* Allow shadow of image to show */
+}
+
+.ev-heroImg {
+    max-width: 100%;
+    max-height: clamp(350px, 45vh, 500px);
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    display: block;
     border-radius: 20px;
     border: 1px solid rgba(10, 42, 67, 0.08);
     box-shadow: 0 12px 40px rgba(10, 42, 67, 0.12);
     background: #fff;
-}
-
-.ev-heroImg {
-    width: 100%;
-    height: clamp(240px, 24vw, 340px);
-    object-fit: cover;
-    display: block;
 }
 
 @media (min-width: 901px) {
@@ -760,7 +767,9 @@
     }
 
     .ev-heroImg {
-        height: 250px;
+        max-height: 380px;
+        width: auto;
+        height: auto;
     }
 
     .ev-map {
@@ -826,7 +835,9 @@
     }
 
     .ev-heroImg {
-        height: 210px;
+        max-height: 320px;
+        width: auto;
+        height: auto;
     }
 
     .ev-map {
@@ -928,6 +939,7 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
+        object-position: center 15%; /* Show heads better on mobile grid too */
     }
 
     .nl-section {
@@ -952,7 +964,9 @@
     }
 
     .ev-heroImg {
-        height: 190px;
+        max-height: 280px;
+        width: auto;
+        height: auto;
     }
 
     .ev-map {

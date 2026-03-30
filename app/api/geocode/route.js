@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 export async function GET(request) {
     const { searchParams } = new URL(request.url);
-    const type = searchParams.get('type'); // 'places' or 'geocode'
+    const type = searchParams.get('type'); // 'places', 'details', 'geocode', or 'photo'
     const query = searchParams.get('query');
     const address = searchParams.get('address');
     const apiKey = process.env.GOOGLE_MAPS_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
@@ -19,7 +19,7 @@ export async function GET(request) {
                 headers: {
                     'Content-Type': 'application/json',
                     'X-Goog-Api-Key': apiKey,
-                    'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.location,places.internationalPhoneNumber,places.websiteUri'
+                    'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.location,places.internationalPhoneNumber,places.websiteUri,places.regularOpeningHours,places.photos,places.googleMapsUri,places.rating'
                 },
                 body: JSON.stringify({ textQuery: query })
             });
@@ -27,12 +27,11 @@ export async function GET(request) {
             if (!response.ok) {
                 const errorBody = await response.json();
                 if (response.status === 403) {
-                    // Fallback to Geocoding API if Places is disabled
                     console.log("Places API disabled, falling back to Geocoding...");
                     const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(query)}&key=${apiKey}`;
                     const geoRes = await fetch(geocodeUrl);
                     data = await geoRes.json();
-                    data._fallback = true; // Mark as fallback for UI
+                    data._fallback = true;
                     data._googleError = errorBody.error?.message;
                     return NextResponse.json(data);
                 }
@@ -52,7 +51,11 @@ export async function GET(request) {
                         }
                     },
                     international_phone_number: p.internationalPhoneNumber,
-                    website: p.websiteUri
+                    website: p.websiteUri,
+                    openingHours: p.regularOpeningHours?.weekdayDescriptions || [],
+                    photos: (p.photos || []).slice(0, 5).map(photo => photo.name),
+                    googleMapsUri: p.googleMapsUri,
+                    rating: p.rating
                 })),
                 status: result.places?.length > 0 ? "OK" : "ZERO_RESULTS"
             };
@@ -63,7 +66,7 @@ export async function GET(request) {
                 headers: {
                     'Content-Type': 'application/json',
                     'X-Goog-Api-Key': apiKey,
-                    'X-Goog-FieldMask': 'id,displayName,formattedAddress,addressComponents,internationalPhoneNumber,websiteUri,location'
+                    'X-Goog-FieldMask': 'id,displayName,formattedAddress,addressComponents,internationalPhoneNumber,websiteUri,location,regularOpeningHours,photos,googleMapsUri,rating'
                 }
             });
 
@@ -75,6 +78,7 @@ export async function GET(request) {
             const p = await response.json();
             data = {
                 result: {
+                    place_id: p.id,
                     name: p.displayName?.text,
                     formatted_address: p.formattedAddress,
                     address_components: (p.addressComponents || []).map(c => ({
@@ -84,6 +88,10 @@ export async function GET(request) {
                     })),
                     international_phone_number: p.internationalPhoneNumber,
                     website: p.websiteUri,
+                    openingHours: p.regularOpeningHours?.weekdayDescriptions || [],
+                    photos: (p.photos || []).slice(0, 10).map(photo => photo.name),
+                    googleMapsUri: p.googleMapsUri,
+                    rating: p.rating,
                     geometry: { 
                         location: {
                             lat: p.location?.latitude,
@@ -93,6 +101,16 @@ export async function GET(request) {
                 },
                 status: p.id ? "OK" : "NOT_FOUND"
             };
+        } else if (type === 'photo') {
+            const photoName = searchParams.get('photo_name'); // e.g., 'places/PLACE_ID/photos/PHOTO_ID'
+            if (!photoName) return NextResponse.json({ error: "Missing photo_name" }, { status: 400 });
+
+            // We use the media endpoint which returns the image itself
+            const photoUrl = `https://places.googleapis.com/v1/${photoName}/media?key=${apiKey}&maxWidthPx=800`;
+            
+            // Redirect to the Google image URL
+            return NextResponse.redirect(photoUrl);
+
         } else {
             const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${apiKey}`;
             const res = await fetch(geocodeUrl);

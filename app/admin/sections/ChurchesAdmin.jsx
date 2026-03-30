@@ -10,10 +10,18 @@ import AdminSearch from "../components/AdminSearch";
 
 const safeStr = (v) => String(v ?? "");
 
+const normalizeText = (text) => {
+    return (text || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
+};
+
 const matchChurchSearch = (c, q) => {
     if (!q) return true;
+    const normalizedQuery = normalizeText(q);
     const fields = [c.name, c.city];
-    return fields.some(val => safeStr(val).toLowerCase().includes(q));
+    return fields.some(val => normalizeText(val).includes(normalizedQuery));
 };
 
 function IconPlus(props) {
@@ -99,7 +107,7 @@ const FIELDS = [
 ];
 
 function emptyChurch() {
-    return { name: "", locationTitle: "", street: "", number: "", city: "", country: "Belgium", zipCode: "", lat: "", lng: "", phone: "", email: "", website: "", youtube: "", facebook: "", instagram: "", notes: "", isDraft: false };
+    return { name: "", locationTitle: "", street: "", number: "", city: "", country: "Belgium", zipCode: "", lat: "", lng: "", phone: "", email: "", website: "", youtube: "", facebook: "", instagram: "", notes: "", isDraft: false, place_id: "", openingHours: [], photos: [], googleMapsUri: "", rating: null };
 }
 
 const geocodeAddress = async (street, number, city, zipCode, country, locationTitle = "") => {
@@ -227,6 +235,11 @@ const fetchGooglePlaceData = async (query, city = "", country = "") => {
                 website: res.website || "",
                 lat: res.geometry?.location?.lat ?? null,
                 lng: res.geometry?.location?.lng ?? null,
+                place_id: res.place_id,
+                openingHours: res.openingHours || [],
+                photos: res.photos || [],
+                googleMapsUri: res.googleMapsUri || "",
+                rating: res.rating || null,
                 _partial: fallbackUsed,
                 _googleError: googleError
             };
@@ -238,7 +251,7 @@ const fetchGooglePlaceData = async (query, city = "", country = "") => {
         }
         
         console.log("Found results, fetching details for:", firstResult.name);
-        const detailsRes = await fetch(`/api/geocode?type=details&place_id=${firstResult.place_id}`);
+        const detailsRes = await fetch(`/api/geocode?type=details&place_id=${firstResult.place_id || firstResult.id}`);
         const detailsData = await detailsRes.json();
         
         if (!detailsData.result) return null;
@@ -417,6 +430,120 @@ function ChurchCard({ item, expanded, drafts, saveState, errorText, onToggle, on
                         </div>
                     </div>
 
+                    {/* Google Enrichment Section: Hours & Photos */}
+                    {(drafts.place_id || drafts.openingHours?.length > 0 || drafts.photos?.length > 0) && (
+                        <div style={{ marginTop: 16, borderTop: "1px dashed rgba(10, 42, 67, 0.1)", paddingTop: 16 }}>
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+                                <h4 style={{ margin: 0, fontSize: 14, color: "#134b7b", display: "flex", alignItems: "center", gap: 6 }}>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                                    </svg>
+                                    Google Places Data
+                                </h4>
+                                {drafts.place_id && (
+                                    <button 
+                                        type="button" 
+                                        style={{ fontSize: 11, fontWeight: 700, color: "#059669", border: "1px solid #059669", background: "#ecfdf5", padding: "4px 8px", borderRadius: 4, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
+                                        onClick={async () => {
+                                            setSaveStateById(m => ({ ...m, [id]: "saving" }));
+                                            try {
+                                                const res = await fetch(`/api/geocode?type=details&place_id=${drafts.place_id}`);
+                                                const data = await res.json();
+                                                if (data.result) {
+                                                    // Map API result to our field structure
+                                                    const mapped = {
+                                                        place_id: data.result.place_id,
+                                                        name: data.result.name,
+                                                        street: data.result.address_components?.find(c => c.types.includes("route"))?.long_name || "",
+                                                        number: data.result.address_components?.find(c => c.types.includes("street_number"))?.long_name || "",
+                                                        city: data.result.name, // Usually city/locality should be extracted more carefully but we have processData helper for that
+                                                        phone: data.result.international_phone_number || "",
+                                                        website: data.result.website || "",
+                                                        lat: data.result.geometry?.location?.lat,
+                                                        lng: data.result.geometry?.location?.lng,
+                                                        openingHours: data.result.openingHours || [],
+                                                        photos: data.result.photos || [],
+                                                        googleMapsUri: data.result.googleMapsUri || ""
+                                                    };
+                                                    
+                                                    // Use the helper logic from fetchGooglePlaceData instead of manual mapping
+                                                    // Actually, let's just re-run the whole thing with the placeId context
+                                                    const fullData = await fetchGooglePlaceData(drafts.locationTitle || drafts.name, drafts.city, drafts.country);
+                                                    if (fullData) {
+                                                        Object.entries(fullData).forEach(([k, v]) => {
+                                                            if (v !== undefined) onChange(id, k, v);
+                                                        });
+                                                        setSaveStateById(m => ({ ...m, [id]: "saved" }));
+                                                        setTimeout(() => setSaveStateById(m => ({ ...m, [id]: "idle" })), 1000);
+                                                    }
+                                                }
+                                            } catch (e) {
+                                                console.error("Sync failed:", e);
+                                                setSaveStateById(m => ({ ...m, [id]: "error" }));
+                                                setErrorById(m => ({ ...m, [id]: "Synchronization failed." }));
+                                            }
+                                        }}
+                                    >
+                                        🔄 Sync with Google
+                                    </button>
+                                )}
+                            </div>
+
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+                                {/* Schedule */}
+                                <div>
+                                    <span style={{ fontSize: 12, fontWeight: 700, opacity: 0.6, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Schedule / Hours</span>
+                                    {drafts.openingHours && drafts.openingHours.length > 0 ? (
+                                        <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                                            {drafts.openingHours.map((line, idx) => (
+                                                <div key={idx} style={{ fontSize: 12, color: "#134b7b", fontWeight: 500 }}>{line}</div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <span style={{ fontSize: 12, fontStyle: "italic", opacity: 0.5 }}>Not available on Google</span>
+                                    )}
+                                </div>
+
+                                {/* Link */}
+                                <div>
+                                    <span style={{ fontSize: 12, fontWeight: 700, opacity: 0.6, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Maps Context</span>
+                                    {drafts.googleMapsUri ? (
+                                        <a href={drafts.googleMapsUri} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: "#3b82f6", fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
+                                            View on Google Maps
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3" />
+                                            </svg>
+                                        </a>
+                                    ) : (
+                                        <span style={{ fontSize: 12, fontStyle: "italic", opacity: 0.5 }}>Link not available</span>
+                                    )}
+                                    {drafts.place_id && (
+                                        <div style={{ marginTop: 4, fontSize: 10, opacity: 0.4, fontFamily: "monospace" }}>ID: {drafts.place_id}</div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Photos Gallery */}
+                            {drafts.photos && drafts.photos.length > 0 && (
+                                <div style={{ marginTop: 16 }}>
+                                    <span style={{ fontSize: 12, fontWeight: 700, opacity: 0.6, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Photos</span>
+                                    <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 10, scrollbarWidth: "thin" }}>
+                                        {drafts.photos.map((p, idx) => (
+                                            <div key={idx} style={{ flex: "0 0 120px", height: 80, borderRadius: 6, overflow: "hidden", backgroundColor: "#f0f0f0" }}>
+                                                <img 
+                                                    src={`/api/geocode?type=photo&photo_name=${encodeURIComponent(p)}`} 
+                                                    alt={`Church ${idx}`} 
+                                                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                                    loading="lazy"
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
 
                     <div className="adminMsgActions adminMsgActions--3" style={{ marginTop: "20px" }}>
                         <button
@@ -570,6 +697,60 @@ function NewChurchCard({ drafts, setDraft, errorText, saveState, onCancel, onSav
                         </label>
                     </div>
                 </div>
+
+                {/* Google Enrichment Section: Hours & Photos */}
+                {(drafts.place_id || drafts.openingHours?.length > 0 || drafts.photos?.length > 0) && (
+                    <div style={{ marginTop: 16, borderTop: "1px dashed rgba(10, 42, 67, 0.1)", paddingTop: 16 }}>
+                        <h4 style={{ margin: "0 0 12px 0", fontSize: 14, color: "#134b7b", display: "flex", alignItems: "center", gap: 6 }}>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                            </svg>
+                            Google Places Enrichment
+                        </h4>
+
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+                            <div>
+                                <span style={{ fontSize: 12, fontWeight: 700, opacity: 0.6, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Schedule</span>
+                                {drafts.openingHours && drafts.openingHours.length > 0 ? (
+                                    <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                                        {drafts.openingHours.map((line, idx) => (
+                                            <div key={idx} style={{ fontSize: 12, color: "#134b7b", fontWeight: 500 }}>{line}</div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <span style={{ fontSize: 12, fontStyle: "italic", opacity: 0.5 }}>Not available</span>
+                                )}
+                            </div>
+                            <div>
+                                <span style={{ fontSize: 12, fontWeight: 700, opacity: 0.6, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Maps Link</span>
+                                {drafts.googleMapsUri ? (
+                                    <a href={drafts.googleMapsUri} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: "#3b82f6", fontWeight: 600 }}>
+                                        View Listing
+                                    </a>
+                                ) : (
+                                    <span style={{ fontSize: 12, fontStyle: "italic", opacity: 0.5 }}>None</span>
+                                )}
+                            </div>
+                        </div>
+
+                        {drafts.photos && drafts.photos.length > 0 && (
+                            <div style={{ marginTop: 16 }}>
+                                <span style={{ fontSize: 12, fontWeight: 700, opacity: 0.6, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Photos Preview</span>
+                                <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 10 }}>
+                                    {drafts.photos.slice(0, 5).map((p, idx) => (
+                                        <div key={idx} style={{ flex: "0 0 100px", height: 60, borderRadius: 4, overflow: "hidden", backgroundColor: "#f0f0f0" }}>
+                                            <img 
+                                                src={`/api/geocode?type=photo&photo_name=${encodeURIComponent(p)}`} 
+                                                alt={`Preview ${idx}`} 
+                                                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
 
 
                 <div className="adminMsgActions adminMsgActions--3" style={{ marginTop: "20px" }}>
@@ -820,6 +1001,11 @@ export default function ChurchesAdmin() {
                 youtube: newDrafts.youtube.trim(),
                 facebook: (newDrafts.facebook || "").trim(),
                 instagram: (newDrafts.instagram || "").trim(),
+                place_id: newDrafts.place_id || "",
+                openingHours: newDrafts.openingHours || [],
+                photos: newDrafts.photos || [],
+                googleMapsUri: newDrafts.googleMapsUri || "",
+                rating: newDrafts.rating || null,
                 isDraft: isDraftValue,
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp(),
@@ -910,6 +1096,11 @@ export default function ChurchesAdmin() {
                 youtube: (draft.youtube || "").trim(),
                 facebook: (draft.facebook || "").trim(),
                 instagram: (draft.instagram || "").trim(),
+                place_id: draft.place_id || "",
+                openingHours: draft.openingHours || [],
+                photos: draft.photos || [],
+                googleMapsUri: draft.googleMapsUri || "",
+                rating: draft.rating || null,
                 isDraft: isDraftValue,
                 updatedAt: serverTimestamp(),
             });
@@ -962,25 +1153,16 @@ export default function ChurchesAdmin() {
                         <h2 className="adminTitle" style={{ margin: 0, lineHeight: 1 }}>Churches</h2>
                         <span style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "rgba(10, 42, 67, 0.6)", fontWeight: 600 }}>
                             <span className="adminCountDot" aria-hidden="true" style={{ width: 6, height: 6, opacity: 0.3 }} />
-                            {totalItems} church{totalItems === 1 ? "" : "es"}
+                            {showDraftsOnly ? (
+                                <>{draftCount} draft{draftCount === 1 ? "" : "s"}</>
+                            ) : (
+                                <>{totalItems} church{totalItems === 1 ? "" : "es"}</>
+                            )}
                         </span>
                     </div>
 
                     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                        <span style={{ fontSize: "13px", fontWeight: 700, color: "#475569" }}>Draft</span>
-                        {draftCount > 0 && (
-                            <span style={{ 
-                                fontSize: "11px", 
-                                fontWeight: 800, 
-                                backgroundColor: "#fef3c7", 
-                                color: "#92400e", 
-                                padding: "1px 6px", 
-                                borderRadius: "10px",
-                                marginRight: "2px"
-                            }}>
-                                {draftCount}
-                            </span>
-                        )}
+                        <span style={{ fontSize: "13px", fontWeight: 700, color: "#475569" }}>Drafts</span>
                         <label className="adminSwitch">
                             <input 
                                 type="checkbox" 

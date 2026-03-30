@@ -3560,3 +3560,10 @@
         font-size: 16px !important;
     }
 }
+
+/* Hide language switcher on mobile maps to save screen space */
+@media (max-width: 768px) {
+  .mapLanguageSwitcherWrapper {
+    display: none !important;
+  }
+}

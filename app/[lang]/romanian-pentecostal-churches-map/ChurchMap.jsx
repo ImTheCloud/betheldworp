@@ -58,10 +58,34 @@ const COUNTRY_CODES = {
     Australia: "au",
 };
 
+/**
+ * Ensures a link is treated as an external URL by prepending https:// if no protocol is present.
+ */
+const ensureExternalLink = (url) => {
+    if (!url) return "";
+    const trimmed = String(url).trim();
+    if (!trimmed) return "";
+    if (/^(https?:\/\/|mailto:|tel:)/i.test(trimmed)) {
+        return trimmed;
+    }
+    return `https://${trimmed}`;
+};
+
+/**
+ * Normalizes text for search by removing accents and converting to lowercase.
+ */
+const normalizeText = (text) => {
+    return (text || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
+};
+
 const matchChurchSearch = (c, q) => {
     if (!q) return true;
+    const normalizedQuery = normalizeText(q);
     const fields = [c.name, c.city];
-    return fields.some(val => (val || "").toLowerCase().includes(q));
+    return fields.some(val => normalizeText(val).includes(normalizedQuery));
 };
 const FlagImage = ({ country, className = "" }) => {
     const code = COUNTRY_CODES[country];
@@ -359,7 +383,7 @@ const ChurchInfoLinks = ({ church, t }) => {
                     </g>
                 </svg>
                 {church.website ? (
-                    <a href={church.website} target="_blank" rel="noopener noreferrer">
+                    <a href={ensureExternalLink(church.website)} target="_blank" rel="noopener noreferrer">
                         {t("website")}
                     </a>
                 ) : (
@@ -372,7 +396,7 @@ const ChurchInfoLinks = ({ church, t }) => {
                     <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
                 </svg>
                 {church.youtube ? (
-                    <a href={church.youtube} target="_blank" rel="noopener noreferrer">
+                    <a href={ensureExternalLink(church.youtube)} target="_blank" rel="noopener noreferrer">
                         YouTube
                     </a>
                 ) : (
@@ -385,7 +409,7 @@ const ChurchInfoLinks = ({ church, t }) => {
                     <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                 </svg>
                 {church.facebook ? (
-                    <a href={church.facebook} target="_blank" rel="noopener noreferrer">
+                    <a href={ensureExternalLink(church.facebook)} target="_blank" rel="noopener noreferrer">
                         Facebook
                     </a>
                 ) : (
@@ -412,7 +436,7 @@ const ChurchInfoLinks = ({ church, t }) => {
                     </g>
                 </svg>
                 {church.instagram ? (
-                    <a href={church.instagram} target="_blank" rel="noopener noreferrer">
+                    <a href={ensureExternalLink(church.instagram)} target="_blank" rel="noopener noreferrer">
                         Instagram
                     </a>
                 ) : (
@@ -425,49 +449,61 @@ const ChurchInfoLinks = ({ church, t }) => {
 
 function MapController({ selectedChurch, requestedLocation, isInitialLoad, recenterTrigger }) {
     const map = useMap();
-    const prevChurchRef = useRef(null);
     const hasAnimatedRef = useRef(false);
+    const prevTriggerRef = useRef(recenterTrigger);
+    const pendingRecenterRef = useRef(false);
 
     useEffect(() => {
         if (!map) return;
+
+        // Detect if recenter was explicitly triggered via button click
+        const triggerChanged = recenterTrigger > prevTriggerRef.current;
+        prevTriggerRef.current = recenterTrigger;
+
+        if (triggerChanged) {
+            pendingRecenterRef.current = true;
+        }
 
         let target = null;
         let targetZoom = 12;
         let shouldAnimate = false;
 
-        if (selectedChurch) {
-            target = { lat: selectedChurch.lat, lng: selectedChurch.lng };
-            targetZoom = 14; // Zoom in close enough to break clusters and show individual pins
-            // Animate if this is NOT the first render (i.e., user interaction)
-            shouldAnimate = hasAnimatedRef.current;
-        } else if (requestedLocation && (isInitialLoad || recenterTrigger > 0)) {
+        // Priority 1: Explicit manual recenter (button click or pending location for a previous click)
+        if (pendingRecenterRef.current && requestedLocation) {
             target = { lat: requestedLocation.lat, lng: requestedLocation.lng };
-            targetZoom = 13; // Closer to Google Maps style (not too far, not too close)
+            targetZoom = 13;
+            shouldAnimate = true;
+            pendingRecenterRef.current = false; // Successfully handled
+        } 
+        // Priority 2: A church is selected
+        else if (selectedChurch) {
+            target = { lat: selectedChurch.lat, lng: selectedChurch.lng };
+            targetZoom = 14;
             shouldAnimate = hasAnimatedRef.current;
-        } else if (!requestedLocation && !selectedChurch && isInitialLoad) {
+            pendingRecenterRef.current = false; // Selecting a church cancels a pending recenter
+        } 
+        // Priority 3: Initial auto-recenter or passive location updates
+        else if (requestedLocation && (isInitialLoad || recenterTrigger > 0)) {
+            target = { lat: requestedLocation.lat, lng: requestedLocation.lng };
+            targetZoom = 13;
+            shouldAnimate = hasAnimatedRef.current;
+        } 
+        // Priority 4: Default view
+        else if (!requestedLocation && !selectedChurch && isInitialLoad) {
             target = BELGIUM_CENTER;
             targetZoom = 7;
         }
 
-        if (!target) return;
+        if (target) {
+            if (map.setTilt) map.setTilt(0);
 
-        if (map.setTilt) map.setTilt(0);
-
-        if (shouldAnimate) {
-            // Smooth animated transition
-            const signal = newMapAnimationSignal();
-            smoothFlyTo(map, target, targetZoom, { abortSignal: signal });
-        } else {
-            // First load: instant jump
-            map.moveCamera({ center: target, zoom: targetZoom });
-        }
-
-        hasAnimatedRef.current = true;
-
-        if (selectedChurch) {
-            prevChurchRef.current = selectedChurch;
-        } else {
-            prevChurchRef.current = null;
+            if (shouldAnimate) {
+                const signal = newMapAnimationSignal();
+                smoothFlyTo(map, target, targetZoom, { abortSignal: signal });
+            } else {
+                map.moveCamera({ center: target, zoom: targetZoom });
+            }
+            hasAnimatedRef.current = true;
         }
 
         return () => { };
@@ -2296,7 +2332,7 @@ function ChurchMap() {
                                                 <div className="suggestionFormGroup">
                                                     <label>{t("website")}</label>
                                                     <input
-                                                        type="url"
+                                                        type="text"
                                                         placeholder="https://..."
                                                         value={suggestionForm.website}
                                                         onChange={(e) => setSuggestionForm({ ...suggestionForm, website: e.target.value })}
@@ -2305,7 +2341,7 @@ function ChurchMap() {
                                                 <div className="suggestionFormGroup">
                                                     <label>{t("youtube")}</label>
                                                     <input
-                                                        type="url"
+                                                        type="text"
                                                         placeholder="https://youtube.com/..."
                                                         value={suggestionForm.youtube}
                                                         onChange={(e) => setSuggestionForm({ ...suggestionForm, youtube: e.target.value })}
@@ -2317,7 +2353,7 @@ function ChurchMap() {
                                                 <div className="suggestionFormGroup">
                                                     <label>{t("instagram")}</label>
                                                     <input
-                                                        type="url"
+                                                        type="text"
                                                         placeholder="instagram.com/..."
                                                         value={suggestionForm.instagram}
                                                         onChange={(e) => setSuggestionForm({ ...suggestionForm, instagram: e.target.value })}
@@ -2326,7 +2362,7 @@ function ChurchMap() {
                                                 <div className="suggestionFormGroup">
                                                     <label>{t("facebook")}</label>
                                                     <input
-                                                        type="url"
+                                                        type="text"
                                                         placeholder="facebook.com/..."
                                                         value={suggestionForm.facebook}
                                                         onChange={(e) => setSuggestionForm({ ...suggestionForm, facebook: e.target.value })}
