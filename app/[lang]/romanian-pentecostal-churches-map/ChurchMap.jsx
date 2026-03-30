@@ -1622,6 +1622,11 @@ function ChurchMap() {
 
     const getGoogleMapsSearchUrl = (church) => {
         // Use locationTitleDirection (or old locationTitle for compatibility) if provided,
+        // If we have a place_id, link directly to the Google Maps listing (100% accurate)
+        if (church.place_id) {
+            return `https://www.google.com/maps/place/?q=place_id:${church.place_id}`;
+        }
+
         // otherwise fallback to full address: street + number, city, postalCode, country
         const directionQuery = church.locationTitleDirection || church.locationTitle;
         

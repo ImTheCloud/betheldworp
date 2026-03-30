@@ -1,244 +1,43 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import { collection, doc, onSnapshot, updateDoc, addDoc, serverTimestamp, deleteDoc } from "firebase/firestore";
+import { collection, doc, onSnapshot, updateDoc, setDoc, serverTimestamp, deleteDoc } from "firebase/firestore";
 import { db } from "../../lib/Firebase";
 import ConfirmModal from "../components/ConfirmModal";
-
-function IconCheck(props) {
-    return (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" {...props}>
-            <polyline points="20 6 9 17 4 12" />
-        </svg>
-    );
-}
-
-function IconX(props) {
-    return (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" {...props}>
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-        </svg>
-    );
-}
-
-function IconChevronDown(props) {
-    return (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
-            <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-    );
-}
-
-function IconEyeOff(props) {
-    return (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" {...props}>
-            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-            <line x1="1" y1="1" x2="23" y2="23" />
-        </svg>
-    );
-}
-
-const COUNTRY_OPTIONS = [
-    "Austria", "Belgium", "Bulgaria", "Croatia", "Cyprus", "Czech Republic",
-    "Denmark", "Estonia", "Finland", "France", "Germany", "Greece", "Hungary",
-    "Ireland", "Italy", "Latvia", "Lithuania", "Luxembourg", "Malta", "Moldova",
-    "Netherlands", "Norway", "Poland", "Portugal", "Romania", "Slovakia", "Slovenia",
-    "Spain", "Sweden", "Switzerland", "Ukraine", "United Kingdom", "United States", "Canada", "Australia"
-].sort();
-
-const FIELDS = [
-    { key: "locationTitle", label: "Location Title (Directions)", type: "text" },
-    { key: "name", label: "Name", type: "text", required: true },
-    { key: "city", label: "City / Locality", type: "text", required: true },
-    { key: "country", label: "Country", type: "select", options: COUNTRY_OPTIONS },
-    { key: "zipCode", label: "Postal Code", type: "text" },
-    { key: "street", label: "Street", type: "text" },
-    { key: "number", label: "Number", type: "text" },
-    { key: "phone", label: "Phone", type: "text" },
-    { key: "email", label: "Email", type: "text" },
-    { key: "website", label: "Website", type: "text" },
-    { key: "youtube", label: "YouTube", type: "text" },
-    { key: "instagram", label: "Instagram", type: "text" },
-    { key: "facebook", label: "Facebook", type: "text" },
-];
-
-const geocodeAddress = async (street, number, city, zipCode, country, locationTitle = "") => {
-    // 1. Try Places API via proxy if we have a locationTitle
-    if (locationTitle) {
-        try {
-            const placeQuery = [locationTitle, city, country].filter(Boolean).join(", ");
-            const res = await fetch(`/api/geocode?type=places&query=${encodeURIComponent(placeQuery)}`);
-            const data = await res.json();
-            if (data.results && data.results.length > 0) {
-                const loc = data.results[0].geometry?.location;
-                return { 
-                    lat: loc?.lat ?? null, 
-                    lng: loc?.lng ?? null 
-                };
-            }
-        } catch (e) {
-            console.error("Places Proxy Search failed:", e);
-        }
-    }
-
-    // 2. Fallback to standard Geocoding API via proxy
-    const addressQuery = [`${street || ""} ${number || ""}`.trim(), zipCode, city, country].map(s => (s || "").trim()).filter(Boolean).join(", ");
-    if (!addressQuery) return null;
-    
-    try {
-        const res = await fetch(`/api/geocode?type=geocode&address=${encodeURIComponent(addressQuery)}`);
-        const data = await res.json();
-        if (data.results && data.results.length > 0) {
-            const loc = data.results[0].geometry.location;
-            return { lat: loc.lat, lng: loc.lng };
-        }
-    } catch (e) {
-        console.error("Geocoding Proxy failed:", e);
-    }
-    return null;
-};
-
-const fetchGooglePlaceData = async (query, city = "", country = "") => {
-    if (!query) return null;
-    console.log("Searching Google for:", query, city, country);
-    
-    try {
-        // 1. If country is "Belgium" (default), try searching with just the query first
-        // to avoid restricting Romanian/other churches to Belgium.
-        let results = [];
-        let status = "ZERO_RESULTS";
-        let fallbackUsed = false;
-        let googleError = null;
-
-        const performSearch = async (q) => {
-            const res = await fetch(`/api/geocode?type=places&query=${encodeURIComponent(q)}`);
-            return await res.json();
-        };
-
-        // Try with provided context first only if it's NOT the default Belgium
-        if (country && country !== "Belgium") {
-            const q = [query, city, country].filter(Boolean).join(", ");
-            const data = await performSearch(q);
-            results = data.results || [];
-            status = data.status;
-            googleError = data._googleError;
-            fallbackUsed = data._fallback || false;
-        }
-
-        // 2. Fallback or primary search with just the query
-        if (results.length === 0) {
-            console.log("Searching with just query:", query);
-            const data = await performSearch(query);
-            results = data.results || [];
-            status = data.status;
-            googleError = data._googleError;
-            fallbackUsed = data._fallback || false;
-        }
-        
-        if (results.length === 0) {
-            console.warn("No results found for query:", query);
-            return null;
-        }
-
-        const firstResult = results[0];
-        const processData = (res, components) => {
-            const getComp = (types) => {
-                const comp = components.find(c => types.some(t => c.types.includes(t)));
-                return comp ? comp.long_name : "";
-            };
-
-            const cityName = getComp(["locality", "postal_town"]);
-            let countryName = getComp(["country"]);
-            // Normalize country name to match our COUNTRY_OPTIONS if possible
-            if (countryName) {
-                const matched = COUNTRY_OPTIONS.find(c => c.toLowerCase() === countryName.toLowerCase());
-                if (matched) countryName = matched;
-            }
-
-            // Clean church name (remove "Biserica", city name, etc.)
-            let rawName = res.name || query;
-            const noise = [
-                "Biserica", "Penticostala", "Penticostală", "Penticostal", 
-                "Crestina", "Creștină", "Crestin", "Creștin",
-                "Christian", "Church", "Pentecostal"
-            ];
-            if (cityName) noise.push(cityName);
-            
-            const normalize = (s) => s ? s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : "";
-            const noiseNormalized = new Set(noise.map(normalize));
-            
-            const words = rawName.split(/[\s,.;:„”"()\-–—\/]+/);
-            let cleanedName = words
-                .filter(w => w && !noiseNormalized.has(normalize(w)))
-                .join(" ")
-                .trim();
-
-            // Fallback if name becomes too short
-            if (cleanedName.length < 2) cleanedName = rawName;
-
-            return {
-                name: cleanedName,
-                street: getComp(["route"]),
-                number: getComp(["street_number"]),
-                city: cityName,
-                zipCode: getComp(["postal_code"]),
-                country: countryName,
-                phone: res.international_phone_number || "",
-                website: res.website || "",
-                lat: res.geometry?.location?.lat ?? null,
-                lng: res.geometry?.location?.lng ?? null,
-                _partial: fallbackUsed,
-                _googleError: googleError
-            };
-        };
-
-        if (firstResult.address_components || fallbackUsed) {
-            console.log("Using Geocoding/fallback data directly");
-            return processData(firstResult, firstResult.address_components || []);
-        }
-        
-        console.log("Found results, fetching details for:", firstResult.name);
-        const detailsRes = await fetch(`/api/geocode?type=details&place_id=${firstResult.place_id}`);
-        const detailsData = await detailsRes.json();
-        
-        if (!detailsData.result) return null;
-        return processData(detailsData.result, detailsData.result.address_components || []);
-
-    } catch (e) {
-        console.error("Fetch Google Place Data failed:", e);
-        return null;
-    }
-};
-
-function IconHistory(props) {
-    return (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-            <path d="M12 8v4l3 3" />
-            <path d="M3.05 11a9 9 0 1 1 .5 9m-.5-9v-5.5h-5.5" />
-        </svg>
-    );
-}
-
-function IconTrash(props) {
-    return (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-            <path d="M3 6h18" />
-            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-        </svg>
-    );
-}
+import ChurchFormFields from "../components/ChurchFormFields";
+import { PhotoLightbox } from "../components/SyncDiffLabel";
+import { IconCheck, IconX, IconChevronDown, IconEyeOff, IconHistory, IconTrash } from "../components/ChurchIcons";
+import { geocodeAddress, fetchGooglePlaceData, uploadPhotosIfNeeded } from "../utils/churchHelpers";
 
 export default function ChurchSuggestionsAdmin() {
     const [suggestions, setSuggestions] = useState([]);
     const [processedSuggestions, setProcessedSuggestions] = useState([]);
+    const [churchesById, setChurchesById] = useState({});
     const [loading, setLoading] = useState(true);
     const [processingId, setProcessingId] = useState(null);
     const [expandedIds, setExpandedIds] = useState(new Set());
     const [draftsById, setDraftsById] = useState({});
+    const [syncedFieldsById, setSyncedFieldsById] = useState({});
+    const [syncingById, setSyncingById] = useState({});
+    const [syncSuccessById, setSyncSuccessById] = useState({});
     const [modal, setModal] = useState({ isOpen: false, title: "", message: "", onConfirm: () => {} });
     const [showHistory, setShowHistory] = useState(false);
+    const [lightboxUrl, setLightboxUrl] = useState(null);
+    const [diffRecomputeTrigger, setDiffRecomputeTrigger] = useState(0);
 
+    const FIELDS_TO_COMPARE = ["name", "locationTitle", "city", "country", "zipCode", "street", "number", "phone", "email", "website", "youtube", "instagram", "facebook", "lat", "lng"];
+
+    // Load churches (needed to compare with suggestions)
+    useEffect(() => {
+        const unsub = onSnapshot(collection(db, "churches"), (snap) => {
+            const map = {};
+            snap.docs.forEach(d => { map[d.id] = { id: d.id, ...d.data() }; });
+            setChurchesById(map);
+        });
+        return () => unsub();
+    }, []);
+
+    // Load suggestions
     useEffect(() => {
         const unsub = onSnapshot(collection(db, "church_suggestions"), (snap) => {
             const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -270,19 +69,153 @@ export default function ChurchSuggestionsAdmin() {
         return () => unsub();
     }, []);
 
+    // Compute diffs: compare suggestion data vs current DB church data
+    // This runs whenever suggestions or churches change
+    useEffect(() => {
+        const newSyncedFields = {};
+        suggestions.forEach(s => {
+            if (s.type !== "edit" || !s.originalChurchId) return;
+            
+            // Always compare against the LIVE database value
+            const currentChurch = churchesById[s.originalChurchId];
+            if (!currentChurch) return;
+
+            const syncMap = {};
+            FIELDS_TO_COMPARE.forEach(f => {
+                const dbVal = String(currentChurch[f] ?? "").trim();
+                const suggestionVal = String(s.data[f] ?? "").trim();
+                if (dbVal !== suggestionVal && suggestionVal !== "") {
+                    syncMap[f] = { old: dbVal };
+                }
+            });
+
+            // Compare opening hours
+            const dbHours = JSON.stringify(currentChurch.openingHours || []);
+            const sugHours = JSON.stringify(s.data.openingHours || []);
+            if (dbHours !== sugHours) {
+                syncMap["openingHours"] = { old: currentChurch.openingHours || [] };
+            }
+
+            // Compare photos by count (Google URLs change every request)
+            const dbPhotoCount = (currentChurch.photos || []).length;
+            const sugPhotoCount = (s.data.photos || []).length;
+            if (dbPhotoCount !== sugPhotoCount) {
+                syncMap["photos"] = { old: currentChurch.photos || [] };
+            }
+
+            if (Object.keys(syncMap).length > 0) {
+                newSyncedFields[s.id] = syncMap;
+            }
+        });
+        setSyncedFieldsById(prev => {
+            // Merge: keep any manually-added sync fields (from clicking Sync button), 
+            // but reset computed ones
+            const next = {};
+            Object.keys(prev).forEach(id => {
+                // Keep entries for IDs that aren't in the auto-computed set (e.g. manual sync)
+                if (!suggestions.find(s => s.id === id && s.type === "edit")) {
+                    next[id] = prev[id];
+                }
+            });
+            // Apply computed diffs
+            Object.assign(next, newSyncedFields);
+            return next;
+        });
+    }, [suggestions, churchesById, diffRecomputeTrigger]);
+
     const toggleExpand = useCallback((id) => {
         setExpandedIds((prev) => {
             const next = new Set(prev);
-            next.has(id) ? next.delete(id) : next.add(id);
+            const isClosing = next.has(id);
+
+            if (isClosing) {
+                const suggestion = suggestions.find(s => s.id === id);
+                const draft = draftsById[id];
+                if (suggestion && draft) {
+                    // Check if draft was modified compared to original suggestion data
+                    const original = suggestion.data;
+                    const fieldsToCheck = ["name", "locationTitle", "city", "country", "zipCode", "street", "number", "phone", "email", "website", "youtube", "facebook", "instagram", "lat", "lng"];
+                    const hasChanges = fieldsToCheck.some(f => 
+                        String(draft[f] ?? "") !== String(original[f] ?? "")
+                    );
+                    if (hasChanges) {
+                        setModal({
+                            isOpen: true,
+                            title: "Unsaved Changes",
+                            message: "Are you sure you want to cancel all changes?",
+                            onConfirm: () => {
+                                setModal(m => ({ ...m, isOpen: false }));
+                                // Revert draft to original suggestion data
+                                setDraftsById(d => ({ ...d, [id]: { ...original } }));
+                                // Trigger diff recomputation
+                                setDiffRecomputeTrigger(c => c + 1);
+                                setExpandedIds(curr => {
+                                    const n = new Set(curr);
+                                    n.delete(id);
+                                    return n;
+                                });
+                            }
+                        });
+                        return prev; // Don't close until confirmed
+                    }
+                }
+                next.delete(id);
+            } else {
+                next.add(id);
+            }
             return next;
         });
-    }, []);
+    }, [suggestions, draftsById]);
 
     const changeDraft = (id, key, value) => {
         setDraftsById(prev => ({
             ...prev,
             [id]: { ...prev[id], [key]: value }
         }));
+    };
+
+    const handleRestore = (id, field, oldValue) => {
+        changeDraft(id, field, oldValue);
+        setSyncedFieldsById(prev => {
+            const next = { ...prev };
+            if (next[id]) {
+                const fieldMap = { ...next[id] };
+                delete fieldMap[field];
+                next[id] = fieldMap;
+            }
+            return next;
+        });
+    };
+
+    const handleSync = async (id) => {
+        const draft = draftsById[id];
+        if (!draft) return;
+
+        setSyncingById(prev => ({ ...prev, [id]: true }));
+        setSyncSuccessById(prev => ({ ...prev, [id]: false }));
+
+        try {
+            const query = draft.locationTitle || draft.name;
+            const data = await fetchGooglePlaceData(query, draft.city, draft.country, draft.place_id);
+            
+            if (data) {
+                const newSyncMap = { ...(syncedFieldsById[id] || {}) };
+                Object.entries(data).forEach(([k, v]) => {
+                    if (v !== undefined && v !== null) {
+                        const currentVal = draft[k];
+                        if (String(currentVal || "") !== String(v || "")) {
+                            newSyncMap[k] = { old: String(currentVal || "") };
+                        }
+                        changeDraft(id, k, v);
+                    }
+                });
+                setSyncedFieldsById(prev => ({ ...prev, [id]: newSyncMap }));
+                setSyncSuccessById(prev => ({ ...prev, [id]: true }));
+                setTimeout(() => setSyncSuccessById(prev => ({ ...prev, [id]: false })), 3000);
+            }
+        } finally {
+            setSyncingById(prev => ({ ...prev, [id]: false }));
+        }
     };
 
     const handleApprove = async (suggestion, saveAsDraft = false) => {
@@ -301,17 +234,27 @@ export default function ChurchSuggestionsAdmin() {
             const submitterName = `${submitter.firstName || ""} ${submitter.lastName || ""}`.trim() || "Unknown";
             const attribution = { name: submitterName, at: serverTimestamp() };
 
+            let targetId = originalChurchId;
+            let newDocRef = null;
+            if (type === "new") {
+                newDocRef = doc(collection(db, "churches"));
+                targetId = newDocRef.id;
+            }
+
+            const finalPhotos = await uploadPhotosIfNeeded(draft.photos, targetId || "temp_id");
+
             const finalData = { 
                 ...draft, 
                 lat: parseFloat(draft.lat) || coords?.lat || 0,
                 lng: parseFloat(draft.lng) || coords?.lng || 0,
+                photos: finalPhotos,
                 isDraft: saveAsDraft,
                 updatedAt: serverTimestamp() 
             };
 
             if (type === "new") {
                 finalData.createdBy = attribution;
-                await addDoc(collection(db, "churches"), finalData);
+                await setDoc(newDocRef, finalData);
             } else if (type === "edit" && originalChurchId) {
                 await updateDoc(doc(db, "churches", originalChurchId), finalData);
             }
@@ -394,6 +337,7 @@ export default function ChurchSuggestionsAdmin() {
                             const draft = draftsById[s.id] || s.data;
                             const isProcessed = s.status !== "pending";
                             const cardBg = s.status === "approved" ? "#e8f5e9" : s.status === "rejected" ? "#ffebee" : "";
+                            const syncedFields = syncedFieldsById[s.id] || {};
 
                             return (
                                 <div key={s.id} className="adminAnnCard" style={isProcessed ? { backgroundColor: cardBg } : {}}>
@@ -431,138 +375,19 @@ export default function ChurchSuggestionsAdmin() {
                                                 </div>
                                             </div>
 
-                                            <div className="adminForm">
-                                                {FIELDS.map((f) => {
-                                                    const originalValue = s.type === "edit" && s.originalData ? (s.originalData[f.key] ?? "") : "";
-                                                    const currentValue = draft[f.key] ?? "";
-                                                    const isModified = s.type === "edit" && String(originalValue).trim() !== String(currentValue).trim();
-                                                    const modifiedStyle = isModified ? { border: "2px solid #f59e0b", backgroundColor: "#fffbeb" } : {};
-
-                                                    if (f.key === "number") return null;
-                                                    if (f.key === "street") {
-                                                        const origNum = s.type === "edit" && s.originalData ? (s.originalData.number ?? "") : "";
-                                                        const curNum = draft.number ?? "";
-                                                        const isNumModified = s.type === "edit" && String(origNum).trim() !== String(curNum).trim();
-                                                        const numModifiedStyle = isNumModified ? { border: "2px solid #f59e0b", backgroundColor: "#fffbeb" } : {};
-
-                                                        return (
-                                                            <div key="street-number" style={{ gridColumn: "span 2", display: "flex", gap: "12px" }}>
-                                                                <div style={{ flex: 3 }}>
-                                                                    <label className="adminLabel">
-                                                                        Street
-                                                                        {isModified && <span style={{ color: "#d97706", marginLeft: 8, fontSize: "0.80rem", fontWeight: "normal" }}>(Modified)</span>}
-                                                                    </label>
-                                                                    {isModified && <div style={{ fontSize: "0.75rem", color: "#6b7280", marginBottom: 4, fontWeight: "normal" }}>Original: <s>{originalValue || "empty"}</s></div>}
-                                                                    <input
-                                                                        className="adminInput"
-                                                                        style={modifiedStyle}
-                                                                        value={draft.street ?? ""}
-                                                                        onChange={(e) => changeDraft(s.id, "street", e.target.value)}
-                                                                        disabled={isProcessed}
-                                                                    />
-                                                                </div>
-                                                                <div style={{ flex: 1 }}>
-                                                                    <label className="adminLabel">
-                                                                        Number
-                                                                        {isNumModified && <span style={{ color: "#d97706", marginLeft: 8, fontSize: "0.80rem", fontWeight: "normal" }}>(Modified)</span>}
-                                                                    </label>
-                                                                    {isNumModified && <div style={{ fontSize: "0.75rem", color: "#6b7280", marginBottom: 4, fontWeight: "normal" }}>Original: <s>{origNum || "empty"}</s></div>}
-                                                                    <input
-                                                                        className="adminInput"
-                                                                        style={numModifiedStyle}
-                                                                        value={draft.number ?? ""}
-                                                                        onChange={(e) => changeDraft(s.id, "number", e.target.value)}
-                                                                        disabled={isProcessed}
-                                                                    />
-                                                                </div>
-                                                            </div>
-                                                        );
-                                                    }
-                                                    return (
-                                                        <div key={f.key} style={(f.key === "locationTitle" || f.key === "notes") ? { gridColumn: "span 2" } : {}}>
-                                                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
-                                                                <label className="adminLabel" style={{ marginBottom: 0 }}>
-                                                                    {f.label}{f.required ? " *" : ""}
-                                                                    {isModified && <span style={{ color: "#d97706", marginLeft: 8, fontSize: "0.80rem", fontWeight: "normal" }}>(Modified)</span>}
-                                                                </label>
-                                                                {f.key === "locationTitle" && !isProcessed && (
-                                                                    <button 
-                                                                        type="button" 
-                                                                        style={{ fontSize: 11, fontWeight: 700, color: "#134b7b", border: "none", background: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
-                                                                        onClick={async () => {
-                                                                            const data = await fetchGooglePlaceData(draft.locationTitle, draft.city, draft.country);
-                                                                            if (data) {
-                                                                                Object.entries(data).forEach(([k, v]) => {
-                                                                                    if (v) changeDraft(s.id, k, v);
-                                                                                });
-                                                                                if (data._partial) {
-                                                                                    alert("Address & Coordinates set! \n\nNote: To get Phone and Website automatically, you MUST enable the 'Places API (New)' in your Google Cloud Console.");
-                                                                                }
-                                                                            } else {
-                                                                                alert("Could not find church data on Google Maps. Try a more general Location Title.");
-                                                                            }
-                                                                        }}
-                                                                    >
-                                                                        ✨ Auto-fill from Google
-                                                                    </button>
-                                                                )}
-                                                            </div>
-
-                                                            {isModified && <div style={{ fontSize: "0.75rem", color: "#6b7280", marginBottom: 4, marginTop: 2, fontWeight: "normal", whiteSpace: "pre-wrap" }}>Original: <s>{originalValue || "empty"}</s></div>}
-
-                                                            {f.type === "select" ? (
-                                                                <select
-                                                                    className="adminSelect"
-                                                                    style={{ width: "100%", marginTop: 4, ...modifiedStyle }}
-                                                                    value={draft[f.key] ?? ""}
-                                                                    onChange={(e) => changeDraft(s.id, f.key, e.target.value)}
-                                                                    disabled={isProcessed}
-                                                                >
-                                                                    <option value="">-- Select Country --</option>
-                                                                    {f.options.map(opt => (
-                                                                        <option key={opt} value={opt}>{opt}</option>
-                                                                    ))}
-                                                                </select>
-                                                            ) : f.type === "textarea" ? (
-                                                                <textarea
-                                                                    className="adminInput"
-                                                                    rows="3"
-                                                                    style={{ resize: "vertical", marginTop: 4, ...modifiedStyle }}
-                                                                    value={draft[f.key] ?? ""}
-                                                                    onChange={(e) => changeDraft(s.id, f.key, e.target.value)}
-                                                                    disabled={isProcessed}
-                                                                />
-                                                            ) : (
-                                                                <input
-                                                                    className="adminInput"
-                                                                    type={f.type}
-                                                                    style={{ ...modifiedStyle, marginTop: 4 }}
-                                                                    value={draft[f.key] ?? ""}
-                                                                    onChange={(e) => changeDraft(s.id, f.key, e.target.value)}
-                                                                    disabled={isProcessed}
-                                                                />
-                                                            )}
-                                                        </div>
-                                                    );
-                                                })}
-
-                                                {/* Coordinates Section */}
-                                                <div style={{ gridColumn: "span 2", marginTop: 12, padding: 12, backgroundColor: "rgba(10, 42, 67, 0.03)", borderRadius: 8, border: "1px solid rgba(10, 42, 67, 0.08)" }}>
-                                                    <div style={{ marginBottom: 8 }}>
-                                                        <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(10, 42, 67, 0.7)" }}>Coordinates</span>
-                                                    </div>
-                                                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                                                        <label className="adminLabel">
-                                                            Latitude
-                                                            <input className="adminInput" type="number" step="any" value={draft.lat ?? ""} onChange={(e) => changeDraft(s.id, "lat", e.target.value)} disabled={isProcessed} />
-                                                        </label>
-                                                        <label className="adminLabel">
-                                                            Longitude
-                                                            <input className="adminInput" type="number" step="any" value={draft.lng ?? ""} onChange={(e) => changeDraft(s.id, "lng", e.target.value)} disabled={isProcessed} />
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            <ChurchFormFields
+                                                drafts={draft}
+                                                onChange={(field, value) => changeDraft(s.id, field, value)}
+                                                syncedFields={syncedFields}
+                                                onRestore={(field, oldValue) => handleRestore(s.id, field, oldValue)}
+                                                getHighlightClass={(field) => syncedFields[field] ? "is-synced-highlight" : ""}
+                                                onSync={!isProcessed ? () => handleSync(s.id) : undefined}
+                                                isSyncing={syncingById[s.id] || false}
+                                                syncSuccess={syncSuccessById[s.id] || false}
+                                                disabled={isProcessed}
+                                                onPhotoClick={setLightboxUrl}
+                                                showGoogleEnrichment={true}
+                                            />
 
                                             <div style={{ marginTop: "24px", paddingTop: "20px", borderTop: "1px dashed rgba(10, 42, 67, 0.15)" }}>
                                                 <h4 style={{ fontSize: "0.85rem", fontWeight: "800", color: "#0a2a43", textTransform: "uppercase", marginBottom: "12px", display: "flex", alignItems: "center", gap: "8px" }}>
@@ -664,6 +489,11 @@ export default function ChurchSuggestionsAdmin() {
                 message={modal.message}
                 onConfirm={modal.onConfirm}
                 onCancel={() => setModal({ ...modal, isOpen: false })}
+            />
+
+            <PhotoLightbox 
+                url={lightboxUrl} 
+                onClose={() => setLightboxUrl(null)} 
             />
         </div>
     );
