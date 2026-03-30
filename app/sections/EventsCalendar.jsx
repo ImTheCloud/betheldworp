@@ -298,6 +298,7 @@ export default function EventsCalendar() {
 
             const isToday = iso === todayIso;
             const inCurrentMonth = d.getFullYear() === year && d.getMonth() === m;
+            const isNextMonth = d.getTime() > lastOfMonth.getTime();
 
             cells.push({
                 key: iso,
@@ -305,6 +306,7 @@ export default function EventsCalendar() {
                 day: d.getDate(),
                 isToday,
                 inCurrentMonth,
+                isNextMonth,
                 dateEvents,
             });
         }
@@ -366,7 +368,7 @@ export default function EventsCalendar() {
                                             "ec-cell",
                                             cell.isToday ? "is-today" : "",
                                             cell.dateEvents.length > 0 ? "has-events" : "",
-                                            !cell.inCurrentMonth ? "is-outside" : "",
+                                            (!cell.inCurrentMonth && !cell.isNextMonth) ? "is-outside" : "",
                                         ]
                                             .filter(Boolean)
                                             .join(" ")}
