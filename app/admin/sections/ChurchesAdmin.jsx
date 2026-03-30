@@ -79,6 +79,14 @@ function IconEye(props) {
     );
 }
 
+function IconSync(props) {
+    return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" {...props}>
+            <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+        </svg>
+    );
+}
+
 
 
 
@@ -132,7 +140,7 @@ const geocodeAddress = async (street, number, city, zipCode, country, locationTi
     // 2. Fallback to standard Geocoding API via proxy
     const addressQuery = [`${street || ""} ${number || ""}`.trim(), zipCode, city, country].map(s => (s || "").trim()).filter(Boolean).join(", ");
     if (!addressQuery) return null;
-    
+
     try {
         const res = await fetch(`/api/geocode?type=geocode&address=${encodeURIComponent(addressQuery)}`);
         const data = await res.json();
@@ -146,7 +154,99 @@ const geocodeAddress = async (street, number, city, zipCode, country, locationTi
     return null;
 };
 
-const fetchGooglePlaceData = async (query, city = "", country = "") => {
+const hasDraftChanges = (item, draft) => {
+    if (!item || !draft) return false;
+    const fields = ["name", "locationTitle", "street", "number", "city", "country", "zipCode", "phone", "email", "website", "youtube", "facebook", "instagram", "lat", "lng", "place_id"];
+    for (const f of fields) {
+        if (String(item[f] || "") !== String(draft[f] || "")) return true;
+    }
+    // Also check hours & photos
+    if (JSON.stringify(item.openingHours || []) !== JSON.stringify(draft.openingHours || [])) return true;
+    if (JSON.stringify(item.photos || []) !== JSON.stringify(draft.photos || [])) return true;
+    return false;
+};
+
+const processGoogleData = (res, components, originalQuery = "", placeId = "", fallbackUsed = false, googleError = null) => {
+    const getComp = (types) => {
+        const comp = components.find(c => c.types && types.some(t => c.types.includes(t)));
+        return comp ? comp.long_name : null; // Return null if not found
+    };
+
+    const cityName = getComp(["locality", "postal_town"]);
+    let countryName = getComp(["country"]);
+    if (countryName) {
+        const matched = COUNTRY_OPTIONS.find(c => c.toLowerCase() === countryName.toLowerCase());
+        if (matched) countryName = matched;
+    }
+
+    let rawName = res.name || originalQuery || "";
+    const noise = [
+        "Biserica", "Penticostala", "Penticostală", "Penticostal", 
+        "Crestina", "Creștină", "Crestin", "Creștin",
+        "Christian", "Church", "Pentecostal"
+    ];
+    if (cityName) noise.push(cityName);
+    
+    const normalize = (s) => s ? s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : "";
+    const noiseNormalized = new Set(noise.map(normalize));
+    
+    const words = rawName.split(/[\s,.;:„”"()\-–—\/]+/);
+    let cleanedName = words
+        .filter(w => w && !noiseNormalized.has(normalize(w)))
+        .join(" ")
+        .trim();
+
+    if (cleanedName.length < 2) cleanedName = rawName;
+
+    // Use a helper to only add defined/non-empty properties
+    const result = {};
+    const setIf = (key, val) => {
+        if (val !== undefined && val !== null && val !== "") {
+            result[key] = val;
+        }
+    };
+
+    setIf("name", cleanedName);
+    setIf("street", getComp(["route"]));
+    setIf("number", getComp(["street_number"]));
+    setIf("city", cityName);
+    setIf("zipCode", getComp(["postal_code"]));
+    setIf("country", countryName);
+    setIf("phone", res.international_phone_number);
+    setIf("website", res.website);
+    setIf("lat", res.geometry?.location?.lat);
+    setIf("lng", res.geometry?.location?.lng);
+    setIf("place_id", res.place_id || placeId);
+    
+    // Always include these as we want to know if they are empty on Google
+    // but only if they were actually fetched (details/places search)
+    if (res.openingHours !== undefined) result.openingHours = res.openingHours || [];
+    if (res.photos !== undefined) result.photos = res.photos || [];
+    if (res.googleMapsUri !== undefined) result.googleMapsUri = res.googleMapsUri || "";
+    if (res.rating !== undefined) result.rating = res.rating || null;
+
+    result._partial = fallbackUsed;
+    result._googleError = googleError;
+
+    return result;
+};
+
+const fetchGooglePlaceData = async (query, city = "", country = "", placeId = "") => {
+    // If we have a placeId, we go STRAIGHT to details (saves cost and is more accurate)
+    if (placeId) {
+        console.log("Syncing via Place ID (Priority):", placeId);
+        try {
+            const detailsRes = await fetch(`/api/geocode?type=details&place_id=${placeId}`);
+            const detailsData = await detailsRes.json();
+            
+            if (detailsData.result) {
+                return processGoogleData(detailsData.result, detailsData.result.address_components || [], query, placeId);
+            }
+        } catch (e) {
+            console.error("Fetch by Place ID failed, will try search as fallback:", e);
+        }
+    }
+
     if (!query) return null;
     console.log("Searching Google for:", query, city, country);
     
@@ -189,65 +289,10 @@ const fetchGooglePlaceData = async (query, city = "", country = "") => {
         }
 
         const firstResult = results[0];
-        const processData = (res, components) => {
-            const getComp = (types) => {
-                const comp = components.find(c => c.types && types.some(t => c.types.includes(t)));
-                return comp ? comp.long_name : "";
-            };
-
-            const cityName = getComp(["locality", "postal_town"]);
-            let countryName = getComp(["country"]);
-            // Normalize country name to match our COUNTRY_OPTIONS if possible
-            if (countryName) {
-                const matched = COUNTRY_OPTIONS.find(c => c.toLowerCase() === countryName.toLowerCase());
-                if (matched) countryName = matched;
-            }
-
-            // Clean church name (remove "Biserica", city name, etc.)
-            let rawName = res.name || query;
-            const noise = [
-                "Biserica", "Penticostala", "Penticostală", "Penticostal", 
-                "Crestina", "Creștină", "Crestin", "Creștin",
-                "Christian", "Church", "Pentecostal"
-            ];
-            if (cityName) noise.push(cityName);
-            
-            const normalize = (s) => s ? s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : "";
-            const noiseNormalized = new Set(noise.map(normalize));
-            
-            const words = rawName.split(/[\s,.;:„”"()\-–—\/]+/);
-            let cleanedName = words
-                .filter(w => w && !noiseNormalized.has(normalize(w)))
-                .join(" ")
-                .trim();
-
-            // Fallback if name becomes too short
-            if (cleanedName.length < 2) cleanedName = rawName;
-
-            return {
-                name: cleanedName,
-                street: getComp(["route"]),
-                number: getComp(["street_number"]),
-                city: cityName,
-                zipCode: getComp(["postal_code"]),
-                country: countryName,
-                phone: res.international_phone_number || "",
-                website: res.website || "",
-                lat: res.geometry?.location?.lat ?? null,
-                lng: res.geometry?.location?.lng ?? null,
-                place_id: res.place_id,
-                openingHours: res.openingHours || [],
-                photos: res.photos || [],
-                googleMapsUri: res.googleMapsUri || "",
-                rating: res.rating || null,
-                _partial: fallbackUsed,
-                _googleError: googleError
-            };
-        };
 
         if (firstResult.address_components || fallbackUsed) {
             console.log("Using Geocoding/fallback data directly");
-            return processData(firstResult, firstResult.address_components || []);
+            return processGoogleData(firstResult, firstResult.address_components || [], query, "", fallbackUsed, googleError);
         }
         
         console.log("Found results, fetching details for:", firstResult.name);
@@ -255,7 +300,7 @@ const fetchGooglePlaceData = async (query, city = "", country = "") => {
         const detailsData = await detailsRes.json();
         
         if (!detailsData.result) return null;
-        return processData(detailsData.result, detailsData.result.address_components || []);
+        return processGoogleData(detailsData.result, detailsData.result.address_components || [], query, "", fallbackUsed, googleError);
 
     } catch (e) {
         console.error("Fetch Google Place Data failed:", e);
@@ -263,9 +308,110 @@ const fetchGooglePlaceData = async (query, city = "", country = "") => {
     }
 };
 
-function ChurchCard({ item, expanded, drafts, saveState, errorText, onToggle, onChange, onSave, onDelete, setSaveStateById, setErrorById }) {
+const SyncDiffLabel = ({ field, syncedFields }) => {
+    if (!syncedFields || !syncedFields[field]) return null;
+    const { old } = syncedFields[field];
+    return (
+        <span 
+            className="adminSyncDiffLabel" 
+            title={old || "(vide)"}
+            style={{ 
+                backgroundColor: "rgba(239, 68, 68, 0.05)", 
+                padding: "2px 6px", 
+                borderRadius: "4px", 
+                border: "1px solid rgba(239, 68, 68, 0.2)",
+                marginLeft: "8px",
+                maxWidth: "80px",
+                display: "inline-block",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                verticalAlign: "middle",
+                fontSize: "10px"
+            }}
+        >
+            <span style={{ textDecoration: "line-through", color: "#ef4444", opacity: 0.6 }}>{old || "(vide)"}</span>
+        </span>
+    );
+};
+
+const SyncableIcon = () => (
+    <span title="Synchronisable avec Google" style={{ 
+        display: "inline-flex", 
+        alignItems: "center", 
+        justifyContent: "center",
+        width: "18px",
+        height: "18px",
+        marginLeft: "8px",
+        borderRadius: "4px",
+        background: "transparent",
+        color: "#2563eb",
+        cursor: "help"
+    }}>
+        <IconSync style={{ width: 10, height: 10 }} />
+    </span>
+);
+
+const PhotoLightbox = ({ url, onClose }) => {
+    if (!url) return null;
+    return (
+        <div className="adminLightbox" onClick={onClose}>
+            <img src={url} alt="Enlarged view" className="adminLightboxImage" onClick={(e) => e.stopPropagation()} />
+        </div>
+    );
+};
+
+function ChurchCard({ item, expanded, drafts, saveState, errorText, onToggle, onChange, onSave, onDelete, setSaveStateById, setErrorById, onPhotoClick }) {
     const id = item.id;
     const isDraft = drafts.isDraft || false;
+    const [syncedFields, setSyncedFields] = useState({});
+    const [photoIndex, setPhotoIndex] = useState(0);
+    const [isSyncing, setIsSyncing] = useState(false);
+    const [syncSuccess, setSyncSuccess] = useState(false);
+    const photoRef = useRef(null);
+
+    // Reset highlights on toggle/collapse to avoid stale visual cues
+    useEffect(() => {
+        if (!expanded) {
+            setSyncedFields({});
+            setPhotoIndex(0);
+            setSyncSuccess(false);
+        }
+    }, [expanded]);
+
+    // Clear highlights on successful save
+    useEffect(() => {
+        if (saveState === "saved") {
+            setSyncedFields({});
+        }
+    }, [saveState]);
+
+    const handleSync = async () => {
+        const query = drafts.locationTitle || drafts.name;
+        const data = await fetchGooglePlaceData(query, drafts.city, drafts.country, drafts.place_id);
+        
+        if (data) {
+            const newSyncMap = {};
+            Object.entries(data).forEach(([k, v]) => {
+                if (v !== undefined && v !== null) {
+                    const currentVal = drafts[k];
+                    // Compare values (simplified string compare for most fields)
+                    if (String(currentVal || "") !== String(v || "")) {
+                        newSyncMap[k] = { old: String(currentVal || "") };
+                    }
+                    onChange(id, k, v);
+                }
+            });
+            setSyncedFields(newSyncMap);
+        }
+    };
+
+    const handleFieldChange = (field, value) => {
+        // Keep the highlight as requested by the user, even if modified manually
+        onChange(id, field, value);
+    };
+
+    const getHighlightClass = (field) => syncedFields[field] ? "is-synced-highlight" : "";
 
     return (
         <div className={`adminAnnCard ${isDraft ? "is-draft" : ""}`} style={isDraft ? { backgroundColor: "#fffbeb" } : {}}>
@@ -317,99 +463,215 @@ function ChurchCard({ item, expanded, drafts, saveState, errorText, onToggle, on
                         {/* Row 0: Location Title (Directions) - Back to top */}
                         <div style={{ gridColumn: "span 2" }}>
                             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
-                                <label className="adminLabel" style={{ marginBottom: 0 }}>Location Title (Directions)</label>
+                                <label className="adminLabel" style={{ marginBottom: 0 }}>
+                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 8 }}>
+                                        <span>Location Title (Directions)</span>
+                                        <SyncDiffLabel field="locationTitle" syncedFields={syncedFields} />
+                                    </div>
+                                </label>
                                 <button 
                                     type="button" 
-                                    style={{ fontSize: 11, fontWeight: 700, color: "#134b7b", border: "none", background: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
+                                    style={{ fontSize: 11, fontWeight: 700, color: "#2563eb", border: "none", background: "transparent", padding: "4px 0", borderRadius: 6, cursor: isSyncing ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 6, transition: "all 0.2s", opacity: isSyncing ? 0.5 : 1 }}
+                                    disabled={isSyncing}
                                     onClick={async () => {
                                         setSaveStateById(m => ({ ...m, [id]: "saving" }));
-                                        const data = await fetchGooglePlaceData(drafts.locationTitle, drafts.city, drafts.country);
-                                        if (data) {
-                                            // Batch update fields
-                                            Object.entries(data).forEach(([k, v]) => {
-                                                if (v) onChange(id, k, v);
-                                            });
-                                            if (data._partial) {
-                                                setSaveStateById(m => ({ ...m, [id]: "error" }));
-                                                setErrorById(m => ({ ...m, [id]: "Address & Coordinates set! Note: To get Phone/Website automatically, you MUST enable 'Places API (New)' in Google Console." }));
-                                            } else {
-                                                setSaveStateById(m => ({ ...m, [id]: "idle" }));
-                                            }
-                                        } else {
+                                        setIsSyncing(true);
+                                        setSyncSuccess(false);
+                                        try {
+                                            await handleSync();
+                                            // Don't set state to "saved" here as it clears the highlights!
+                                            // Just return to idle so user can review the green fields.
+                                            setSaveStateById(m => ({ ...m, [id]: "idle" }));
+                                            setSyncSuccess(true);
+                                            setTimeout(() => setSyncSuccess(false), 3000);
+                                        } catch (e) {
+                                            console.error("Sync failed:", e);
                                             setSaveStateById(m => ({ ...m, [id]: "error" }));
-                                            setErrorById(m => ({ ...m, [id]: "Could not find church data on Google Maps. Try a more general Location Title." }));
+                                            setErrorById(m => ({ ...m, [id]: "Synchronization failed." }));
+                                        } finally {
+                                            setIsSyncing(false);
                                         }
                                     }}
                                 >
-                                    ✨ Auto-fill from Google
+                                    {isSyncing ? (
+                                        <div className="adminSpinner" style={{ width: 12, height: 12, border: "2px solid #2563eb", borderTopColor: "transparent" }} />
+                                    ) : syncSuccess ? (
+                                        <span className="adminSyncSuccess">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><path d="M20 6L9 17l-5-5" /></svg>
+                                            Done
+                                        </span>
+                                    ) : (
+                                        <>
+                                            <IconSync style={{ width: 12, height: 12 }} />
+                                            Synchronisation
+                                        </>
+                                    )}
                                 </button>
                             </div>
-                            <input className="adminInput" value={drafts.locationTitle ?? ""} onChange={(e) => onChange(id, "locationTitle", e.target.value)} />
+                            <input 
+                                className={`adminInput ${getHighlightClass("locationTitle")}`} 
+                                value={drafts.locationTitle ?? ""} 
+                                onChange={(e) => handleFieldChange("locationTitle", e.target.value)} 
+                                placeholder="Search by name, address or place ID..."
+                                disabled={isSyncing}
+                            />
                         </div>
 
                         {/* Row 1: Name & City */}
                         <label className="adminLabel">
-                            Name *
-                            <input className="adminInput" value={drafts.name ?? ""} onChange={(e) => onChange(id, "name", e.target.value)} />
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                                <span>Name * <SyncableIcon /></span>
+                                <SyncDiffLabel field="name" syncedFields={syncedFields} />
+                            </div>
+                            <input 
+                                className={`adminInput ${getHighlightClass("name")}`} 
+                                value={drafts.name ?? ""} 
+                                onChange={(e) => handleFieldChange("name", e.target.value)} 
+                            />
                         </label>
                         <label className="adminLabel">
-                            City / Locality *
-                            <input className="adminInput" value={drafts.city ?? ""} onChange={(e) => onChange(id, "city", e.target.value)} />
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                                <span>City / Locality * <SyncableIcon /></span>
+                                <SyncDiffLabel field="city" syncedFields={syncedFields} />
+                            </div>
+                            <input 
+                                className={`adminInput ${getHighlightClass("city")}`} 
+                                value={drafts.city ?? ""} 
+                                onChange={(e) => handleFieldChange("city", e.target.value)} 
+                            />
                         </label>
 
                         {/* Row 2: Country & Postal Code */}
                         <label className="adminLabel">
-                            Country
-                            <select className="adminSelect" style={{ width: "100%", marginTop: 4 }} value={drafts.country ?? ""} onChange={(e) => onChange(id, "country", e.target.value)}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                                <span>Country <SyncableIcon /></span>
+                                <SyncDiffLabel field="country" syncedFields={syncedFields} />
+                            </div>
+                            <select 
+                                className={`adminSelect ${getHighlightClass("country")}`} 
+                                style={{ width: "100%", marginTop: 4 }} 
+                                value={drafts.country ?? ""} 
+                                onChange={(e) => handleFieldChange("country", e.target.value)}
+                            >
                                 <option value="">-- Select Country --</option>
                                 {COUNTRY_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                             </select>
                         </label>
                         <label className="adminLabel">
-                            Postal Code
-                            <input className="adminInput" value={drafts.zipCode ?? ""} onChange={(e) => onChange(id, "zipCode", e.target.value)} />
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                                <span>Postal Code <SyncableIcon /></span>
+                                <SyncDiffLabel field="zipCode" syncedFields={syncedFields} />
+                            </div>
+                            <input 
+                                className={`adminInput ${getHighlightClass("zipCode")}`} 
+                                value={drafts.zipCode ?? ""} 
+                                onChange={(e) => handleFieldChange("zipCode", e.target.value)} 
+                            />
                         </label>
 
                         {/* Row 3: Street & Number */}
                         <div style={{ gridColumn: "span 2", display: "flex", gap: "12px" }}>
                             <div style={{ flex: 3 }}>
-                                <label className="adminLabel">Street</label>
-                                <input className="adminInput" value={drafts.street ?? ""} onChange={(e) => onChange(id, "street", e.target.value)} />
+                                <label className="adminLabel">
+                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                                        <span>Street <SyncableIcon /></span>
+                                        <SyncDiffLabel field="street" syncedFields={syncedFields} />
+                                    </div>
+                                    <input 
+                                        className={`adminInput ${getHighlightClass("street")}`} 
+                                        value={drafts.street ?? ""} 
+                                        onChange={(e) => handleFieldChange("street", e.target.value)} 
+                                    />
+                                </label>
                             </div>
                             <div style={{ flex: 1 }}>
-                                <label className="adminLabel">Number</label>
-                                <input className="adminInput" value={drafts.number ?? ""} onChange={(e) => onChange(id, "number", e.target.value)} />
+                                <label className="adminLabel">
+                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                                        <span>Number <SyncableIcon /></span>
+                                        <SyncDiffLabel field="number" syncedFields={syncedFields} />
+                                    </div>
+                                    <input 
+                                        className={`adminInput ${getHighlightClass("number")}`} 
+                                        value={drafts.number ?? ""} 
+                                        onChange={(e) => handleFieldChange("number", e.target.value)} 
+                                    />
+                                </label>
                             </div>
                         </div>
 
                         {/* Row 4: Phone & Email */}
                         <label className="adminLabel">
-                            Phone
-                            <input className="adminInput" value={drafts.phone ?? ""} onChange={(e) => onChange(id, "phone", e.target.value)} />
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                                <span>Phone <SyncableIcon /></span>
+                                <SyncDiffLabel field="phone" syncedFields={syncedFields} />
+                            </div>
+                            <input 
+                                className={`adminInput ${getHighlightClass("phone")}`} 
+                                value={drafts.phone ?? ""} 
+                                onChange={(e) => handleFieldChange("phone", e.target.value)} 
+                            />
                         </label>
                         <label className="adminLabel">
-                            Email
-                            <input className="adminInput" value={drafts.email ?? ""} onChange={(e) => onChange(id, "email", e.target.value)} />
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                                <span>Email</span>
+                                <SyncDiffLabel field="email" syncedFields={syncedFields} />
+                            </div>
+                            <input 
+                                className={`adminInput ${getHighlightClass("email")}`} 
+                                value={drafts.email ?? ""} 
+                                onChange={(e) => handleFieldChange("email", e.target.value)} 
+                            />
                         </label>
 
                         {/* Row 5: Website & Youtube */}
                         <label className="adminLabel">
-                            Website
-                            <input className="adminInput" placeholder="https://..." value={drafts.website ?? ""} onChange={(e) => onChange(id, "website", e.target.value)} />
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                                <span>Website <SyncableIcon /></span>
+                                <SyncDiffLabel field="website" syncedFields={syncedFields} />
+                            </div>
+                            <input 
+                                className={`adminInput ${getHighlightClass("website")}`} 
+                                placeholder="https://..." 
+                                value={drafts.website ?? ""} 
+                                onChange={(e) => handleFieldChange("website", e.target.value)} 
+                            />
                         </label>
                         <label className="adminLabel">
-                            YouTube
-                            <input className="adminInput" placeholder="https://youtube.com/..." value={drafts.youtube ?? ""} onChange={(e) => onChange(id, "youtube", e.target.value)} />
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                                <span>YouTube</span>
+                                <SyncDiffLabel field="youtube" syncedFields={syncedFields} />
+                            </div>
+                            <input 
+                                className={`adminInput ${getHighlightClass("youtube")}`} 
+                                placeholder="https://youtube.com/..." 
+                                value={drafts.youtube ?? ""} 
+                                onChange={(e) => handleFieldChange("youtube", e.target.value)} 
+                            />
                         </label>
 
-                        {/* Row 6: Instagram & Facebook */}
                         <label className="adminLabel">
-                            Instagram
-                            <input className="adminInput" placeholder="instagram.com/..." value={drafts.instagram ?? ""} onChange={(e) => onChange(id, "instagram", e.target.value)} />
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                                <span>Instagram</span>
+                                <SyncDiffLabel field="instagram" syncedFields={syncedFields} />
+                            </div>
+                            <input 
+                                className={`adminInput ${getHighlightClass("instagram")}`} 
+                                placeholder="instagram.com/..." 
+                                value={drafts.instagram ?? ""} 
+                                onChange={(e) => handleFieldChange("instagram", e.target.value)} 
+                            />
                         </label>
                         <label className="adminLabel">
-                            Facebook
-                            <input className="adminInput" placeholder="facebook.com/..." value={drafts.facebook ?? ""} onChange={(e) => onChange(id, "facebook", e.target.value)} />
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                                <span>Facebook</span>
+                                <SyncDiffLabel field="facebook" syncedFields={syncedFields} />
+                            </div>
+                            <input 
+                                className={`adminInput ${getHighlightClass("facebook")}`} 
+                                placeholder="facebook.com/..." 
+                                value={drafts.facebook ?? ""} 
+                                onChange={(e) => handleFieldChange("facebook", e.target.value)} 
+                            />
                         </label>
                     </div>
 
@@ -420,12 +682,30 @@ function ChurchCard({ item, expanded, drafts, saveState, errorText, onToggle, on
                         </div>
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                             <label className="adminLabel">
-                                Latitude
-                                <input className="adminInput" type="number" step="any" value={drafts.lat ?? ""} onChange={(e) => onChange(id, "lat", e.target.value)} />
+                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                                    <span>Latitude <SyncableIcon /></span>
+                                    <SyncDiffLabel field="lat" syncedFields={syncedFields} />
+                                </div>
+                                <input 
+                                    className={`adminInput ${getHighlightClass("lat")}`} 
+                                    type="number" 
+                                    step="any" 
+                                    value={drafts.lat ?? ""} 
+                                    onChange={(e) => handleFieldChange("lat", e.target.value)} 
+                                />
                             </label>
                             <label className="adminLabel">
-                                Longitude
-                                <input className="adminInput" type="number" step="any" value={drafts.lng ?? ""} onChange={(e) => onChange(id, "lng", e.target.value)} />
+                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                                    <span>Longitude <SyncableIcon /></span>
+                                    <SyncDiffLabel field="lng" syncedFields={syncedFields} />
+                                </div>
+                                <input 
+                                    className={`adminInput ${getHighlightClass("lng")}`} 
+                                    type="number" 
+                                    step="any" 
+                                    value={drafts.lng ?? ""} 
+                                    onChange={(e) => handleFieldChange("lng", e.target.value)} 
+                                />
                             </label>
                         </div>
                     </div>
@@ -440,53 +720,6 @@ function ChurchCard({ item, expanded, drafts, saveState, errorText, onToggle, on
                                     </svg>
                                     Google Places Data
                                 </h4>
-                                {drafts.place_id && (
-                                    <button 
-                                        type="button" 
-                                        style={{ fontSize: 11, fontWeight: 700, color: "#059669", border: "1px solid #059669", background: "#ecfdf5", padding: "4px 8px", borderRadius: 4, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
-                                        onClick={async () => {
-                                            setSaveStateById(m => ({ ...m, [id]: "saving" }));
-                                            try {
-                                                const res = await fetch(`/api/geocode?type=details&place_id=${drafts.place_id}`);
-                                                const data = await res.json();
-                                                if (data.result) {
-                                                    // Map API result to our field structure
-                                                    const mapped = {
-                                                        place_id: data.result.place_id,
-                                                        name: data.result.name,
-                                                        street: data.result.address_components?.find(c => c.types.includes("route"))?.long_name || "",
-                                                        number: data.result.address_components?.find(c => c.types.includes("street_number"))?.long_name || "",
-                                                        city: data.result.name, // Usually city/locality should be extracted more carefully but we have processData helper for that
-                                                        phone: data.result.international_phone_number || "",
-                                                        website: data.result.website || "",
-                                                        lat: data.result.geometry?.location?.lat,
-                                                        lng: data.result.geometry?.location?.lng,
-                                                        openingHours: data.result.openingHours || [],
-                                                        photos: data.result.photos || [],
-                                                        googleMapsUri: data.result.googleMapsUri || ""
-                                                    };
-                                                    
-                                                    // Use the helper logic from fetchGooglePlaceData instead of manual mapping
-                                                    // Actually, let's just re-run the whole thing with the placeId context
-                                                    const fullData = await fetchGooglePlaceData(drafts.locationTitle || drafts.name, drafts.city, drafts.country);
-                                                    if (fullData) {
-                                                        Object.entries(fullData).forEach(([k, v]) => {
-                                                            if (v !== undefined) onChange(id, k, v);
-                                                        });
-                                                        setSaveStateById(m => ({ ...m, [id]: "saved" }));
-                                                        setTimeout(() => setSaveStateById(m => ({ ...m, [id]: "idle" })), 1000);
-                                                    }
-                                                }
-                                            } catch (e) {
-                                                console.error("Sync failed:", e);
-                                                setSaveStateById(m => ({ ...m, [id]: "error" }));
-                                                setErrorById(m => ({ ...m, [id]: "Synchronization failed." }));
-                                            }
-                                        }}
-                                    >
-                                        🔄 Sync with Google
-                                    </button>
-                                )}
                             </div>
 
                             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
@@ -526,18 +759,51 @@ function ChurchCard({ item, expanded, drafts, saveState, errorText, onToggle, on
                             {/* Photos Gallery */}
                             {drafts.photos && drafts.photos.length > 0 && (
                                 <div style={{ marginTop: 16 }}>
-                                    <span style={{ fontSize: 12, fontWeight: 700, opacity: 0.6, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Photos</span>
-                                    <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 10, scrollbarWidth: "thin" }}>
-                                        {drafts.photos.map((p, idx) => (
-                                            <div key={idx} style={{ flex: "0 0 120px", height: 80, borderRadius: 6, overflow: "hidden", backgroundColor: "#f0f0f0" }}>
-                                                <img 
-                                                    src={`/api/geocode?type=photo&photo_name=${encodeURIComponent(p)}`} 
-                                                    alt={`Church ${idx}`} 
-                                                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                                                    loading="lazy"
-                                                />
+                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                                        <span style={{ fontSize: 12, fontWeight: 700, opacity: 0.6, textTransform: "uppercase" }}>Photos</span>
+                                        {drafts.photos.length > 2 && (
+                                            <div className="adminPhotoNav">
+                                                <button 
+                                                    type="button" 
+                                                    className="adminPhotoNavBtn" 
+                                                    onClick={(e) => { 
+                                                        e.stopPropagation(); 
+                                                        photoRef.current?.scrollBy({ left: -200, behavior: "smooth" }); 
+                                                    }}
+                                                >
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M15 18l-6-6 6-6" /></svg>
+                                                </button>
+                                                <button 
+                                                    type="button" 
+                                                    className="adminPhotoNavBtn" 
+                                                    onClick={(e) => { 
+                                                        e.stopPropagation(); 
+                                                        photoRef.current?.scrollBy({ left: 200, behavior: "smooth" }); 
+                                                    }}
+                                                >
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M9 18l6-6-6-6" /></svg>
+                                                </button>
                                             </div>
-                                        ))}
+                                        )}
+                                    </div>
+                                    <div className="adminPhotoScrollContainer" ref={photoRef}>
+                                        {drafts.photos.map((p, idx) => {
+                                            const photoUrl = `/api/geocode?type=photo&photo_name=${encodeURIComponent(p)}`;
+                                            return (
+                                                <div 
+                                                    key={idx} 
+                                                    className="adminPhotoThumbnail adminPhotoItem"
+                                                    onClick={() => onPhotoClick?.(photoUrl)}
+                                                >
+                                                    <img 
+                                                        src={photoUrl} 
+                                                        alt={`Church ${idx}`} 
+                                                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                                        loading="lazy"
+                                                    />
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             )}
@@ -582,7 +848,25 @@ function ChurchCard({ item, expanded, drafts, saveState, errorText, onToggle, on
     );
 }
 
-function NewChurchCard({ drafts, setDraft, errorText, saveState, onCancel, onSave }) {
+function NewChurchCard({ drafts, setDraft, errorText, saveState, onCancel, onSave, onPhotoClick }) {
+    const [syncedFields, setSyncedFields] = useState({});
+    const [isSyncing, setIsSyncing] = useState(false);
+    const [syncSuccess, setSyncSuccess] = useState(false);
+    const photoRef = useRef(null);
+
+    // Clear highlights on successful save
+    useEffect(() => {
+        if (saveState === "saved") {
+            setSyncedFields({});
+        }
+    }, [saveState]);
+
+    const handleFieldChange = (field, value) => {
+        // Keep the highlight
+        setDraft(field, value);
+    };
+    const getHighlightClass = (field) => syncedFields[field] ? "is-synced-highlight" : "";
+
     return (
         <div className="adminAnnCard is-active">
             <div className="adminAnnHeader">
@@ -596,88 +880,215 @@ function NewChurchCard({ drafts, setDraft, errorText, saveState, onCancel, onSav
                     {/* Row 0: Location Title (Directions) - Back to top */}
                     <div style={{ gridColumn: "span 2" }}>
                         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
-                            <label className="adminLabel" style={{ marginBottom: 0 }}>Location Title (Directions)</label>
+                            <label className="adminLabel" style={{ marginBottom: 0 }}>
+                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                                    <span>Location Title (Directions)</span>
+                                    <SyncDiffLabel field="locationTitle" syncedFields={syncedFields} />
+                                </div>
+                            </label>
                             <button 
                                 type="button" 
-                                style={{ fontSize: 11, fontWeight: 700, color: "#134b7b", border: "none", background: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
+                                style={{ fontSize: 11, fontWeight: 700, color: "#2563eb", border: "none", background: "transparent", padding: "4px 0", borderRadius: 6, cursor: isSyncing ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 6, transition: "all 0.2s", opacity: isSyncing ? 0.5 : 1 }}
+                                disabled={isSyncing}
                                 onClick={async () => {
-                                    const data = await fetchGooglePlaceData(drafts.locationTitle, drafts.city, drafts.country);
-                                    if (data) {
-                                        Object.entries(data).forEach(([k, v]) => {
-                                            if (v) setDraft(k, v);
-                                        });
+                                    setIsSyncing(true);
+                                    setSyncSuccess(false);
+                                    try {
+                                        const data = await fetchGooglePlaceData(drafts.locationTitle || drafts.name, drafts.city, drafts.country, drafts.place_id);
+                                        if (data) {
+                                            const newSyncMap = {};
+                                            Object.entries(data).forEach(([k, v]) => {
+                                                if (v !== undefined) {
+                                                    if (String(drafts[k] || "") !== String(v || "")) {
+                                                        newSyncMap[k] = { old: String(drafts[k] || "") };
+                                                    }
+                                                    setDraft(k, v);
+                                                }
+                                            });
+                                            setSyncedFields(newSyncMap);
+                                            setSyncSuccess(true);
+                                            setTimeout(() => setSyncSuccess(false), 3000);
+                                        }
+                                    } finally {
+                                        setIsSyncing(false);
                                     }
                                 }}
                             >
-                                ✨ Auto-fill from Google
+                                {isSyncing ? (
+                                    <div className="adminSpinner" style={{ width: 12, height: 12, border: "2px solid #2563eb", borderTopColor: "transparent" }} />
+                                ) : syncSuccess ? (
+                                    <span className="adminSyncSuccess">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><path d="M20 6L9 17l-5-5" /></svg>
+                                        Done
+                                    </span>
+                                ) : (
+                                    <>
+                                        <IconSync style={{ width: 12, height: 12 }} />
+                                        Synchronisation
+                                    </>
+                                )}
                             </button>
                         </div>
-                        <input className="adminInput" value={drafts.locationTitle ?? ""} onChange={(e) => setDraft("locationTitle", e.target.value)} />
+                        <input 
+                            className={`adminInput ${getHighlightClass("locationTitle")}`} 
+                            value={drafts.locationTitle ?? ""} 
+                            onChange={(e) => handleFieldChange("locationTitle", e.target.value)} 
+                        />
                     </div>
 
                     {/* Row 1: Name & City */}
                     <label className="adminLabel">
-                        Name *
-                        <input className="adminInput" value={drafts.name ?? ""} onChange={(e) => setDraft("name", e.target.value)} />
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                            <span>Name * <SyncableIcon /></span>
+                            <SyncDiffLabel field="name" syncedFields={syncedFields} />
+                        </div>
+                        <input 
+                            className={`adminInput ${getHighlightClass("name")}`} 
+                            value={drafts.name ?? ""} 
+                            onChange={(e) => handleFieldChange("name", e.target.value)} 
+                        />
                     </label>
                     <label className="adminLabel">
-                        City / Locality *
-                        <input className="adminInput" value={drafts.city ?? ""} onChange={(e) => setDraft("city", e.target.value)} />
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                            <span>City / Locality * <SyncableIcon /></span>
+                            <SyncDiffLabel field="city" syncedFields={syncedFields} />
+                        </div>
+                        <input 
+                            className={`adminInput ${getHighlightClass("city")}`} 
+                            value={drafts.city ?? ""} 
+                            onChange={(e) => handleFieldChange("city", e.target.value)} 
+                        />
                     </label>
 
-                    {/* Row 2: Country & Postal Code */}
                     <label className="adminLabel">
-                        Country
-                        <select className="adminSelect" style={{ width: "100%", marginTop: 4 }} value={drafts.country ?? ""} onChange={(e) => setDraft("country", e.target.value)}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                            <span>Country <SyncableIcon /></span>
+                            <SyncDiffLabel field="country" syncedFields={syncedFields} />
+                        </div>
+                        <select 
+                            className={`adminSelect ${getHighlightClass("country")}`} 
+                            style={{ width: "100%", marginTop: 4 }} 
+                            value={drafts.country ?? ""} 
+                            onChange={(e) => handleFieldChange("country", e.target.value)}
+                        >
                             <option value="">-- Select Country --</option>
                             {COUNTRY_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                         </select>
                     </label>
                     <label className="adminLabel">
-                        Postal Code
-                        <input className="adminInput" value={drafts.zipCode ?? ""} onChange={(e) => setDraft("zipCode", e.target.value)} />
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                            <span>Postal Code <SyncableIcon /></span>
+                            <SyncDiffLabel field="zipCode" syncedFields={syncedFields} />
+                        </div>
+                        <input 
+                            className={`adminInput ${getHighlightClass("zipCode")}`} 
+                            value={drafts.zipCode ?? ""} 
+                            onChange={(e) => handleFieldChange("zipCode", e.target.value)} 
+                        />
                     </label>
 
-                    {/* Row 3: Street & Number */}
                     <div style={{ gridColumn: "span 2", display: "flex", gap: "12px" }}>
                         <div style={{ flex: 3 }}>
-                            <label className="adminLabel">Street</label>
-                            <input className="adminInput" value={drafts.street ?? ""} onChange={(e) => setDraft("street", e.target.value)} />
+                            <label className="adminLabel">
+                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                                    <span>Street <SyncableIcon /></span>
+                                    <SyncDiffLabel field="street" syncedFields={syncedFields} />
+                                </div>
+                                <input 
+                                    className={`adminInput ${getHighlightClass("street")}`} 
+                                    value={drafts.street ?? ""} 
+                                    onChange={(e) => handleFieldChange("street", e.target.value)} 
+                                />
+                            </label>
                         </div>
                         <div style={{ flex: 1 }}>
-                            <label className="adminLabel">Number</label>
-                            <input className="adminInput" value={drafts.number ?? ""} onChange={(e) => setDraft("number", e.target.value)} />
+                            <label className="adminLabel">
+                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                                    <span>Number <SyncableIcon /></span>
+                                    <SyncDiffLabel field="number" syncedFields={syncedFields} />
+                                </div>
+                                <input 
+                                    className={`adminInput ${getHighlightClass("number")}`} 
+                                    value={drafts.number ?? ""} 
+                                    onChange={(e) => handleFieldChange("number", e.target.value)} 
+                                />
+                            </label>
                         </div>
                     </div>
 
                     {/* Row 4: Phone & Email */}
                     <label className="adminLabel">
-                        Phone
-                        <input className="adminInput" value={drafts.phone ?? ""} onChange={(e) => setDraft("phone", e.target.value)} />
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                            <span>Phone <SyncableIcon /></span>
+                            <SyncDiffLabel field="phone" syncedFields={syncedFields} />
+                        </div>
+                        <input 
+                            className={`adminInput ${getHighlightClass("phone")}`} 
+                            value={drafts.phone ?? ""} 
+                            onChange={(e) => handleFieldChange("phone", e.target.value)} 
+                        />
                     </label>
                     <label className="adminLabel">
-                        Email
-                        <input className="adminInput" value={drafts.email ?? ""} onChange={(e) => setDraft("email", e.target.value)} />
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                            <span>Email</span>
+                            <SyncDiffLabel field="email" syncedFields={syncedFields} />
+                        </div>
+                        <input 
+                            className={`adminInput ${getHighlightClass("email")}`} 
+                            value={drafts.email ?? ""} 
+                            onChange={(e) => handleFieldChange("email", e.target.value)} 
+                        />
                     </label>
 
                     {/* Row 5: Website & Youtube */}
                     <label className="adminLabel">
-                        Website
-                        <input className="adminInput" placeholder="https://..." value={drafts.website ?? ""} onChange={(e) => setDraft("website", e.target.value)} />
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                            <span>Website <SyncableIcon /></span>
+                            <SyncDiffLabel field="website" syncedFields={syncedFields} />
+                        </div>
+                        <input 
+                            className={`adminInput ${getHighlightClass("website")}`} 
+                            placeholder="https://..." 
+                            value={drafts.website ?? ""} 
+                            onChange={(e) => handleFieldChange("website", e.target.value)} 
+                        />
                     </label>
                     <label className="adminLabel">
-                        YouTube
-                        <input className="adminInput" placeholder="https://youtube.com/..." value={drafts.youtube ?? ""} onChange={(e) => setDraft("youtube", e.target.value)} />
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                            <span>YouTube</span>
+                            <SyncDiffLabel field="youtube" syncedFields={syncedFields} />
+                        </div>
+                        <input 
+                            className={`adminInput ${getHighlightClass("youtube")}`} 
+                            placeholder="https://youtube.com/..." 
+                            value={drafts.youtube ?? ""} 
+                            onChange={(e) => handleFieldChange("youtube", e.target.value)} 
+                        />
                     </label>
 
-                    {/* Row 6: Instagram & Facebook */}
                     <label className="adminLabel">
-                        Instagram
-                        <input className="adminInput" placeholder="instagram.com/..." value={drafts.instagram ?? ""} onChange={(e) => setDraft("instagram", e.target.value)} />
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                            <span>Instagram</span>
+                            <SyncDiffLabel field="instagram" syncedFields={syncedFields} />
+                        </div>
+                        <input 
+                            className={`adminInput ${getHighlightClass("instagram")}`} 
+                            placeholder="instagram.com/..." 
+                            value={drafts.instagram ?? ""} 
+                            onChange={(e) => handleFieldChange("instagram", e.target.value)} 
+                        />
                     </label>
                     <label className="adminLabel">
-                        Facebook
-                        <input className="adminInput" placeholder="facebook.com/..." value={drafts.facebook ?? ""} onChange={(e) => setDraft("facebook", e.target.value)} />
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                            <span>Facebook</span>
+                            <SyncDiffLabel field="facebook" syncedFields={syncedFields} />
+                        </div>
+                        <input 
+                            className={`adminInput ${getHighlightClass("facebook")}`} 
+                            placeholder="facebook.com/..." 
+                            value={drafts.facebook ?? ""} 
+                            onChange={(e) => handleFieldChange("facebook", e.target.value)} 
+                        />
                     </label>
                 </div>
 
@@ -688,12 +1099,30 @@ function NewChurchCard({ drafts, setDraft, errorText, saveState, onCancel, onSav
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                         <label className="adminLabel">
-                            Latitude
-                            <input className="adminInput" type="number" step="any" value={drafts.lat ?? ""} onChange={(e) => setDraft("lat", e.target.value)} />
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                                <span>Latitude <SyncableIcon /></span>
+                                <SyncDiffLabel field="lat" syncedFields={syncedFields} />
+                            </div>
+                            <input 
+                                className={`adminInput ${getHighlightClass("lat")}`} 
+                                type="number" 
+                                step="any" 
+                                value={drafts.lat ?? ""} 
+                                onChange={(e) => handleFieldChange("lat", e.target.value)} 
+                            />
                         </label>
                         <label className="adminLabel">
-                            Longitude
-                            <input className="adminInput" type="number" step="any" value={drafts.lng ?? ""} onChange={(e) => setDraft("lng", e.target.value)} />
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                                <span>Longitude <SyncableIcon /></span>
+                                <SyncDiffLabel field="lng" syncedFields={syncedFields} />
+                            </div>
+                            <input 
+                                className={`adminInput ${getHighlightClass("lng")}`} 
+                                type="number" 
+                                step="any" 
+                                value={drafts.lng ?? ""} 
+                                onChange={(e) => handleFieldChange("lng", e.target.value)} 
+                            />
                         </label>
                     </div>
                 </div>
@@ -735,17 +1164,50 @@ function NewChurchCard({ drafts, setDraft, errorText, saveState, onCancel, onSav
 
                         {drafts.photos && drafts.photos.length > 0 && (
                             <div style={{ marginTop: 16 }}>
-                                <span style={{ fontSize: 12, fontWeight: 700, opacity: 0.6, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Photos Preview</span>
-                                <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 10 }}>
-                                    {drafts.photos.slice(0, 5).map((p, idx) => (
-                                        <div key={idx} style={{ flex: "0 0 100px", height: 60, borderRadius: 4, overflow: "hidden", backgroundColor: "#f0f0f0" }}>
-                                            <img 
-                                                src={`/api/geocode?type=photo&photo_name=${encodeURIComponent(p)}`} 
-                                                alt={`Preview ${idx}`} 
-                                                style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                                            />
+                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                                    <span style={{ fontSize: 12, fontWeight: 700, opacity: 0.6, textTransform: "uppercase" }}>Photos Preview</span>
+                                    {drafts.photos.length > 2 && (
+                                        <div className="adminPhotoNav">
+                                            <button 
+                                                type="button" 
+                                                className="adminPhotoNavBtn" 
+                                                onClick={(e) => { 
+                                                    e.stopPropagation(); 
+                                                    photoRef.current?.scrollBy({ left: -200, behavior: "smooth" }); 
+                                                }}
+                                            >
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M15 18l-6-6 6-6" /></svg>
+                                            </button>
+                                            <button 
+                                                type="button" 
+                                                className="adminPhotoNavBtn" 
+                                                onClick={(e) => { 
+                                                    e.stopPropagation(); 
+                                                    photoRef.current?.scrollBy({ left: 200, behavior: "smooth" }); 
+                                                }}
+                                            >
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M9 18l6-6-6-6" /></svg>
+                                            </button>
                                         </div>
-                                    ))}
+                                    )}
+                                </div>
+                                <div className="adminPhotoScrollContainer" ref={photoRef}>
+                                    {drafts.photos.map((p, idx) => {
+                                        const photoUrl = `/api/geocode?type=photo&photo_name=${encodeURIComponent(p)}`;
+                                        return (
+                                            <div 
+                                                key={idx} 
+                                                className="adminPhotoThumbnail adminPhotoItem"
+                                                onClick={() => onPhotoClick?.(photoUrl)}
+                                            >
+                                                <img 
+                                                    src={photoUrl} 
+                                                    alt={`Preview ${idx}`} 
+                                                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                                />
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         )}
@@ -799,6 +1261,7 @@ export default function ChurchesAdmin() {
     const [showDraftsOnly, setShowDraftsOnly] = useState(false);
 
     const [modal, setModal] = useState({ isOpen: false, title: "", message: "", onConfirm: () => { } });
+    const [lightboxUrl, setLightboxUrl] = useState(null);
 
     const sortedItems = useMemo(() => {
         let arr = [...items];
@@ -933,12 +1396,40 @@ export default function ChurchesAdmin() {
     const toggleExpand = useCallback((id) => {
         const key = safeStr(id).trim();
         if (!key) return;
+
         setExpandedIds((prev) => {
             const next = new Set(prev);
-            next.has(key) ? next.delete(key) : next.add(key);
+            const isClosing = next.has(key);
+
+            if (isClosing) {
+                const item = items.find(i => i.id === key);
+                const draft = draftsById[key];
+                if (hasDraftChanges(item, draft)) {
+                    setModal({
+                        isOpen: true,
+                        title: "Unsaved Changes",
+                        message: "Are you sure you want to cancel all changes?",
+                        onConfirm: () => {
+                            setModal({ isOpen: false });
+                            // Revert draft
+                            if (item) setDraftsById(d => ({ ...d, [key]: { ...item } }));
+                            // Close
+                            setExpandedIds(curr => {
+                                const n = new Set(curr);
+                                n.delete(key);
+                                return n;
+                            });
+                        }
+                    });
+                    return prev; // Don't change until confirmed
+                }
+                next.delete(key);
+            } else {
+                next.add(key);
+            }
             return next;
         });
-    }, []);
+    }, [items, draftsById]);
 
     // --- NEW ---
     const startNew = () => {
@@ -1249,6 +1740,7 @@ export default function ChurchesAdmin() {
                                     saveState={newState}
                                     onCancel={cancelNew}
                                     onSave={saveNew}
+                                    onPhotoClick={setLightboxUrl}
                                 />
                             </div>
                         ) : null}
@@ -1268,6 +1760,7 @@ export default function ChurchesAdmin() {
                                     onDelete={deleteOne}
                                     setSaveStateById={setSaveStateById}
                                     setErrorById={setErrorById}
+                                    onPhotoClick={setLightboxUrl}
                                 />
                             ))}
 
@@ -1290,6 +1783,11 @@ export default function ChurchesAdmin() {
                             message={modal.message}
                             onConfirm={modal.onConfirm}
                             onCancel={() => setModal({ ...modal, isOpen: false })}
+                        />
+
+                        <PhotoLightbox 
+                            url={lightboxUrl} 
+                            onClose={() => setLightboxUrl(null)} 
                         />
                     </div>
                 ) : null

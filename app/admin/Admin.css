@@ -1938,3 +1938,180 @@ input:checked + .adminSlider:before {
         padding: 20px;
     }
 }
+/* Sync Highlighting */
+.adminInput.is-synced-highlight, 
+.adminSelect.is-synced-highlight {
+    background-color: #f0fdf4 !important; /* Very light green */
+    border-color: #86efac !important;
+    box-shadow: 0 0 0 1px #86efac inset;
+}
+
+.adminSyncDiffLabel {
+    font-size: 10px;
+    font-weight: 700;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* ── Photo Lightbox ── */
+.adminLightbox {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(10, 42, 67, 0.95);
+    backdrop-filter: blur(10px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: zoom-out;
+    padding: 40px;
+    animation: modalFadeIn 0.3s ease;
+}
+
+.adminLightboxImage {
+    max-width: 95%;
+    max-height: 95%;
+    object-fit: contain;
+    border-radius: 12px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    cursor: default;
+    animation: modalScaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.adminPhotoThumbnail {
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+
+.adminPhotoThumbnail:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 2;
+}
+
+.adminPhotoThumbnail:hover img {
+    filter: brightness(1.1);
+}
+
+.adminPhotoThumbnail::after {
+    content: "🔍";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.5);
+    font-size: 20px;
+    opacity: 0;
+    transition: all 0.2s ease;
+    pointer-events: none;
+}
+
+.adminPhotoThumbnail:hover::after {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+/* ── Photo Gallery Pagination ── */
+.adminPhotoNav {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 8px;
+    padding: 4px 8px;
+    background: rgba(10, 42, 67, 0.02);
+    border-radius: 6px;
+}
+
+.adminPhotoNavBtn {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    color: #2563eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.adminPhotoNavBtn:hover:not(:disabled) {
+    background: rgba(37, 99, 235, 0.08);
+}
+
+.adminPhotoNavBtn:disabled {
+    opacity: 0.2;
+    cursor: not-allowed;
+}
+
+.adminPhotoCounter {
+    font-size: 11px;
+    font-weight: 700;
+    color: rgba(10, 42, 67, 0.5);
+    font-variant-numeric: tabular-nums;
+}
+
+/* ── Swipeable Photo Gallery ── */
+.adminPhotoScrollContainer {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    gap: 10px;
+    padding-bottom: 12px;
+    cursor: grab;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Hide scrollbar Firefox */
+}
+
+.adminPhotoScrollContainer::-webkit-scrollbar {
+    display: none; /* Hide scrollbar Chrome/Safari */
+}
+
+.adminPhotoItem {
+    scroll-snap-align: start;
+    flex: 0 0 calc(50% - 5px);
+    width: calc(50% - 5px);
+    height: 120px;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #f0f0f0;
+    position: relative;
+    user-select: none;
+}
+
+@media (max-width: 640px) {
+    .adminPhotoItem {
+        flex: 0 0 calc(100% - 20px);
+        width: calc(100% - 20px);
+        margin-right: 10px;
+    }
+}
+
+.adminPhotoNav {
+    user-select: none;
+}
+
+/* ── Sync Feedback ── */
+@keyframes syncSuccessPop {
+    0% { transform: scale(0.5); opacity: 0; }
+    50% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.adminSyncSuccess {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #059669;
+    font-size: 11px;
+    font-weight: 700;
+    animation: syncSuccessPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}

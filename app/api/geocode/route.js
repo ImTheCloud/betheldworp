@@ -19,7 +19,7 @@ export async function GET(request) {
                 headers: {
                     'Content-Type': 'application/json',
                     'X-Goog-Api-Key': apiKey,
-                    'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.location,places.internationalPhoneNumber,places.websiteUri,places.regularOpeningHours,places.photos,places.googleMapsUri,places.rating'
+                    'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.addressComponents,places.location,places.internationalPhoneNumber,places.websiteUri,places.regularOpeningHours,places.photos,places.googleMapsUri,places.rating'
                 },
                 body: JSON.stringify({ textQuery: query })
             });
@@ -44,6 +44,11 @@ export async function GET(request) {
                     place_id: p.id,
                     name: p.displayName?.text,
                     formatted_address: p.formattedAddress,
+                    address_components: (p.addressComponents || []).map(c => ({
+                        long_name: c.longText,
+                        short_name: c.shortText,
+                        types: c.types
+                    })),
                     geometry: { 
                         location: {
                             lat: p.location?.latitude,
