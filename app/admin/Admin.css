@@ -498,7 +498,8 @@
 @media (max-width: 600px) {
 
     .adminDeleteBtn,
-    .adminMsgSaveBtn {
+    .adminMsgSaveBtn,
+    .adminResubscribeBtn {
         width: 100%;
         justify-content: center;
     }
@@ -953,6 +954,30 @@
     .adminDeleteBtn:hover {
         background: rgba(220, 38, 38, 0.1);
         border-color: #b91c1c;
+    }
+}
+
+.adminResubscribeBtn {
+    width: 100%;
+    border-radius: 8px;
+    padding: 10px;
+    cursor: pointer;
+    font-weight: 700;
+    border: 1px solid rgba(10, 42, 67, 0.15);
+    background: rgba(10, 42, 67, 0.05);
+    color: rgba(10, 42, 67, 0.8);
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 13px;
+}
+
+@media (hover: hover) {
+    .adminResubscribeBtn:hover {
+        background: rgba(10, 42, 67, 0.1);
+        border-color: rgba(10, 42, 67, 0.25);
     }
 }
 

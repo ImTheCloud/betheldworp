@@ -74,7 +74,16 @@ function IconCopy(props) {
     );
 }
 
-function SubscriberCard({ item, expanded, draftEmail, saveState, errorText, onToggle, onChange, onSave, onDelete }) {
+function IconUndo(props) {
+    return (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
+            <path d="M3 7v6h6" />
+            <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
+        </svg>
+    );
+}
+
+function SubscriberCard({ item, expanded, draftEmail, saveState, errorText, onToggle, onChange, onSave, onDelete, onResubscribe }) {
     const id = safeStr(item?.id).trim();
     const draft = safeStr(draftEmail).trim();
     const dirty = draft.toLowerCase() !== id.toLowerCase();
@@ -90,10 +99,13 @@ function SubscriberCard({ item, expanded, draftEmail, saveState, errorText, onTo
     };
 
     return (
-        <div className="adminAnnCard">
+        <div className="adminAnnCard" style={item?.unsubscribed ? { backgroundColor: '#fef2f2', borderColor: '#fecaca' } : {}}>
             <div className="adminAnnHeader" style={{ cursor: "pointer", justifyContent: "space-between" }} onClick={() => onToggle(id)}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <div className="adminAnnIdChip" style={{ fontWeight: 700 }}>{id}</div>
+                    <div className="adminAnnIdChip" style={{ fontWeight: 700, color: item?.unsubscribed ? '#dc2626' : 'inherit' }}>{id}</div>
+                    {item?.unsubscribed && (
+                        <span style={{ fontSize: 11, backgroundColor: '#fee2e2', color: '#dc2626', padding: '2px 6px', borderRadius: 4, fontWeight: 600 }}>Unsubscribed</span>
+                    )}
                     <button
                         type="button"
                         onClick={copyEmail}
@@ -146,7 +158,7 @@ function SubscriberCard({ item, expanded, draftEmail, saveState, errorText, onTo
                         <input className="adminInput" value={draftEmail} onChange={(e) => onChange(id, e.target.value)} />
                     </label>
 
-                    <div className="adminMsgActions">
+                    <div className={`adminMsgActions ${item?.unsubscribed ? 'adminMsgActions--3' : ''}`}>
                         <button
                             type="button"
                             className="adminDeleteBtn"
@@ -159,6 +171,21 @@ function SubscriberCard({ item, expanded, draftEmail, saveState, errorText, onTo
                             <IconTrash />
                             Delete
                         </button>
+
+                        {item?.unsubscribed && (
+                            <button
+                                type="button"
+                                className="adminResubscribeBtn"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onResubscribe(id);
+                                }}
+                                disabled={saveState === "saving"}
+                            >
+                                <IconUndo />
+                                Resubscribe
+                            </button>
+                        )}
 
                         <button
                             type="button"
@@ -304,7 +331,8 @@ export default function NewsletterAdmin() {
                         return {
                             id: safeStr(d.id).trim(),
                             createdAt: createdAtText,
-                            createdAtMs
+                            createdAtMs,
+                            unsubscribed: !!data.unsubscribed
                         };
                     })
                     .filter((x) => x.id);
@@ -563,6 +591,26 @@ export default function NewsletterAdmin() {
         });
     };
 
+    const resubscribeOne = async (id) => {
+        const key = safeStr(id).trim();
+        if (!key) return;
+
+        setSaveStateById((m) => ({ ...m, [key]: "saving" }));
+        setErrorById((m) => ({ ...m, [key]: "" }));
+
+        try {
+            await setDoc(doc(db, "newsletter", key), { unsubscribed: false, updatedAt: serverTimestamp() }, { merge: true });
+            
+            if (!mountedRef.current) return;
+            setTransientState(key, "saved");
+        } catch (err) {
+            console.error(err);
+            if (!mountedRef.current) return;
+            setSaveStateById((m) => ({ ...m, [key]: "error" }));
+            setErrorById((m) => ({ ...m, [key]: "Could not resubscribe." }));
+        }
+    };
+
     return (
         <div className="adminFullPage">
             <div className="adminFullTop">
@@ -633,6 +681,7 @@ export default function NewsletterAdmin() {
                                 onChange={changeDraft}
                                 onSave={saveOne}
                                 onDelete={deleteOne}
+                                onResubscribe={resubscribeOne}
                             />
                         ))}
 
