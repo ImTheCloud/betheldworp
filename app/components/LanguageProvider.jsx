@@ -38,10 +38,10 @@ export default function LanguageProvider({ children, initialLang = "ro" }) {
         // Check if the first segment is a locale
         if (SUPPORTED.includes(segments[1])) {
             segments[1] = normalized;
-            router.push(segments.join("/"));
+            router.push(segments.join("/"), { scroll: false });
         } else {
             // Fallback for non-localized paths if any
-            router.push(`/${normalized}${pathname}`);
+            router.push(`/${normalized}${pathname}`, { scroll: false });
         }
     };
 
