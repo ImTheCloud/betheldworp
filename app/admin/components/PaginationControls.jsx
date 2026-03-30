@@ -41,23 +41,21 @@ export default function PaginationControls({ page, totalPages, onNext, onPrev, o
 
     let items = [];
 
-    if (totalPages <= 7) {
+    if (totalPages <= 5) {
         // Show all
         for (let i = 0; i < totalPages; i++) {
             items.push(renderPageBtn(i));
         }
     } else {
-        // Complex logic
-        const start = 0;
-        const end = totalPages - 1;
+        // Compact logic for mobile friendliness
         const width = 1; // neighbors on each side of current
 
         let left = Math.max(0, current - width);
         let right = Math.min(totalPages - 1, current + width);
 
-        // Adjust if close to ends
-        if (current <= 2) right = Math.max(right, 4); // ensures 1 2 3 4 5 ... 10
-        if (current >= totalPages - 3) left = Math.min(left, totalPages - 5);
+        // Adjust if close to ends to show 1 2 3 ... Last
+        if (current <= 1) right = Math.max(right, 2); 
+        if (current >= totalPages - 2) left = Math.min(left, totalPages - 3);
 
         // Always show first
         items.push(renderPageBtn(0));
