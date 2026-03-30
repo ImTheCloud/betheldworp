@@ -1,6 +1,6 @@
 import "./globals.css";
-import VisitTracker from "./components/VisitTracker";
-import LanguageProvider from "./components/LanguageProvider";
+import VisitTracker from "../components/VisitTracker";
+import LanguageProvider from "../components/LanguageProvider";
 import { cookies, headers } from "next/headers";
 // 1. L'import est correct ici
 import { Analytics } from "@vercel/analytics/next";
@@ -50,8 +50,9 @@ async function getInitialLang() {
 
 
 
-export default async function RootLayout({ children }) {
-    const lang = await getInitialLang();
+export default async function RootLayout({ children, params }) {
+    const { lang } = await params;
+    
 
     return (
         <html lang={lang} suppressHydrationWarning>

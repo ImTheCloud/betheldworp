@@ -322,7 +322,7 @@ export default function Program() {
     }, [hasLinkedEvents, lang]);
 
     return (
-        <section id="program" className="program-section">
+        <section className="program-section">
             <div className="program-content">
                 <div className="program-header">
                     <h2 className="program-title">{t("title")}</h2>

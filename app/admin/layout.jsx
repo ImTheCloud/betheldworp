@@ -3,7 +3,13 @@ export const metadata = {
 };
 
 export default function AdminLayout({ children }) {
-    return children;
+    return (
+        <html lang="en">
+            <body>
+                {children}
+            </body>
+        </html>
+    );
 }
 
 

@@ -48,6 +48,54 @@ export default function Header() {
         return () => window.removeEventListener("scroll", onScroll);
     }, []);
 
+    // Scroll Spy & URL Hash Sync
+    const isManualScroll = useRef(false);
+
+    useEffect(() => {
+        const observerOptions = {
+            root: null,
+            rootMargin: "-20% 0px -70% 0px", // Focus on the upper-middle part of the screen
+            threshold: 0,
+        };
+
+        const observerCallback = (entries) => {
+            if (isManualScroll.current) return;
+
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.id;
+                    setActiveId(id);
+
+                    // Update URL hash without adding to history
+                    if (id === "acasa") {
+                        window.history.replaceState(null, null, " ");
+                    } else {
+                        window.history.replaceState(null, null, `#${id}`);
+                    }
+                }
+            });
+        };
+
+        const observer = new IntersectionObserver(observerCallback, observerOptions);
+
+        NAV_ITEMS.forEach((item) => {
+            if (item.type === "section") {
+                const el = document.getElementById(item.id);
+                if (el) observer.observe(el);
+            }
+        });
+
+        // Handle initial hash on load
+        const initialHash = window.location.hash.replace("#", "");
+        if (initialHash) {
+            setTimeout(() => {
+                scrollToSection(initialHash, false);
+            }, 800);
+        }
+
+        return () => observer.disconnect();
+    }, [NAV_ITEMS]);
+
     useEffect(() => {
         window.dispatchEvent(new CustomEvent("bethel:menu", { detail: { open: menuOpen } }));
     }, [menuOpen]);
@@ -74,8 +122,22 @@ export default function Header() {
         };
     }, [menuOpen]);
 
-    const scrollToSection = (id) => {
+    const scrollToSection = (id, updateHash = true) => {
         setMenuOpen(false);
+        setActiveId(id);
+
+        if (updateHash) {
+            isManualScroll.current = true;
+            if (id === "acasa") {
+                window.history.replaceState(null, null, " ");
+            } else {
+                window.history.replaceState(null, null, `#${id}`);
+            }
+            // Allow observer to resume after scroll finishes
+            setTimeout(() => {
+                isManualScroll.current = false;
+            }, 1000);
+        }
 
         if (id === "acasa") {
             window.scrollTo({ top: 0, behavior: "smooth" });
@@ -120,7 +182,7 @@ export default function Header() {
                 <button
                     key={item.id}
                     type="button"
-                    className="navLink"
+                    className={`navLink ${activeId === item.id ? "is-active" : ""}`}
                     onClick={() => onNavClick(item)}
                     data-id={item.id}
                 >

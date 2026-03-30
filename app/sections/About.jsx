@@ -11,7 +11,7 @@ export default function About() {
     const t = useMemo(() => makeT(tr, lang), [lang]);
 
     return (
-        <section id="despre-noi" className="about-section">
+        <section className="about-section">
             <div className="about-content">
                 <div className="about-header">
                     <h2 className="about-title">{t("title")}</h2>

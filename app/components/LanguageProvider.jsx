@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
 
 const LangContext = createContext(null);
 
@@ -21,12 +22,27 @@ function writeCookieLang(value) {
 }
 
 export default function LanguageProvider({ children, initialLang = "ro" }) {
+    const router = useRouter();
+    const pathname = usePathname();
     const [lang, setLangState] = useState(() => normalizeLang(initialLang) || "ro");
 
     const setLang = (next) => {
         const normalized = normalizeLang(next) || "ro";
+        if (normalized === lang) return;
+
         setLangState(normalized);
         writeCookieLang(normalized);
+
+        // Update URL: /ro/foo -> /fr/foo
+        const segments = pathname.split("/");
+        // Check if the first segment is a locale
+        if (SUPPORTED.includes(segments[1])) {
+            segments[1] = normalized;
+            router.push(segments.join("/"));
+        } else {
+            // Fallback for non-localized paths if any
+            router.push(`/${normalized}${pathname}`);
+        }
     };
 
     useEffect(() => {

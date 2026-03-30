@@ -89,8 +89,13 @@
     transition: width 0.18s ease-out;
 }
 
-.nav .navLink:hover::after {
+.nav .navLink:hover::after,
+.nav .navLink.is-active::after {
     width: 100%;
+}
+
+.nav .navLink.is-active {
+    color: rgba(19, 75, 123, 1);
 }
 
 .headerRight {
@@ -238,8 +243,15 @@
     transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
 }
 
-.mnav-links .navLink:hover {
+.mnav-links .navLink:hover,
+.mnav-links .navLink.is-active {
     background: rgba(10, 42, 67, 0.06);
+}
+
+.mnav-links .navLink.is-active {
+    border-color: rgba(10, 42, 67, 0.18);
+    color: #0a2a43;
+    pointer-events: none;
 }
 
 .header.header-top .logo-text {

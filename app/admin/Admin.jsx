@@ -54,6 +54,31 @@ export default function Admin() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [pendingOverride, setPendingOverride] = useState(null);
 
+    // Sync hash -> tab (initial & back/forward buttons)
+    useEffect(() => {
+        if (!isAdmin) return;
+
+        const handleHash = () => {
+            const hash = window.location.hash.replace("#", "");
+            const validTabs = ["stats", "newsletter", "verse", "overrides", "events", "churches", "suggestions"];
+            if (hash && validTabs.includes(hash)) {
+                setActiveTab(hash);
+            }
+        };
+
+        handleHash(); // Run once on admin status granted
+        window.addEventListener("popstate", handleHash);
+        return () => window.removeEventListener("popstate", handleHash);
+    }, [isAdmin]);
+
+    // Sync tab -> hash
+    useEffect(() => {
+        if (!isAdmin) return;
+        if (activeTab) {
+            window.history.replaceState(null, null, `#${activeTab}`);
+        }
+    }, [activeTab, isAdmin]);
+
     const navigateToOverride = ({ weekKey, eventId, dateStr }) => {
         setPendingOverride({ weekKey, eventId, dateStr });
         setActiveTab("overrides");

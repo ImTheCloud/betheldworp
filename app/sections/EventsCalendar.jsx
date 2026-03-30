@@ -421,7 +421,7 @@ export default function EventsCalendar() {
 
     return (
         <>
-            <section id="evenimente" className="ec-section">
+            <section className="ec-section">
                 <div className="ec-content">
                     <div className="ec-header">
                         <h2 className="ec-title">{t("title")}</h2>

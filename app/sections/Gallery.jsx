@@ -104,7 +104,7 @@ export default function Gallery() {
 
     return (
         <>
-            <section id="galerie" className="gal-section">
+            <section className="gal-section">
                 <div className="gal-content">
                     <div className="gal-header">
                         <h2 className="gal-title">{t("title")}</h2>

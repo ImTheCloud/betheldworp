@@ -6,13 +6,13 @@ import { APIProvider, Map, AdvancedMarker, useMap, useMapsLibrary } from "@vis.g
 import { MarkerClusterer } from "@googlemaps/markerclusterer";
 import { useSearchParams } from "next/navigation";
 import { collection, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, increment } from "firebase/firestore";
-import { db } from "../lib/Firebase";
+import { db } from "../../lib/Firebase";
 import { trackWorldMapVisit } from "@/app/lib/Tracker";
 import Link from "next/link";
-import { useLang } from "../components/LanguageProvider";
-import LanguageSwitcher from "../components/LanguageSwitcher";
-import { makeT } from "../lib/i18n";
-import worldMapTranslations from "../translations/WorldMap.json";
+import { useLang } from "../../components/LanguageProvider";
+import LanguageSwitcher from "../../components/LanguageSwitcher";
+import { makeT } from "../../lib/i18n";
+import worldMapTranslations from "../../translations/WorldMap.json";
 import "./WorldMap.css";
 
 const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
