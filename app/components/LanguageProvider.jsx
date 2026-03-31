@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 
 const LangContext = createContext(null);
 
@@ -24,6 +24,7 @@ function writeCookieLang(value) {
 export default function LanguageProvider({ children, initialLang = "ro" }) {
     const router = useRouter();
     const pathname = usePathname();
+    const searchParams = useSearchParams();
     const [lang, setLangState] = useState(() => normalizeLang(initialLang) || "ro");
 
     const setLang = (next) => {
@@ -33,15 +34,19 @@ export default function LanguageProvider({ children, initialLang = "ro" }) {
         setLangState(normalized);
         writeCookieLang(normalized);
 
+        const search = searchParams?.toString();
+        const hash = typeof window !== "undefined" ? window.location.hash : "";
+        const suffix = `${search ? `?${search}` : ""}${hash}`;
+
         // Update URL: /ro/foo -> /fr/foo
         const segments = pathname.split("/");
         // Check if the first segment is a locale
         if (SUPPORTED.includes(segments[1])) {
             segments[1] = normalized;
-            router.push(segments.join("/"), { scroll: false });
+            router.push(`${segments.join("/")}${suffix}`, { scroll: false });
         } else {
             // Fallback for non-localized paths if any
-            router.push(`/${normalized}${pathname}`, { scroll: false });
+            router.push(`/${normalized}${pathname}${suffix}`, { scroll: false });
         }
     };
 

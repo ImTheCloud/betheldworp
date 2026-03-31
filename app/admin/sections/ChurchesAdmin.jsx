@@ -292,6 +292,35 @@ export default function ChurchesAdmin() {
     const [modal, setModal] = useState({ isOpen: false, title: "", message: "", onConfirm: () => { } });
     const [lightboxUrl, setLightboxUrl] = useState(null);
 
+    const openInfoModal = useCallback((title, message) => {
+        setModal({
+            isOpen: true,
+            title,
+            message,
+            actions: [
+                {
+                    label: "OK",
+                    variant: "primary",
+                    onClick: () => setModal((prev) => ({ ...prev, isOpen: false }))
+                }
+            ]
+        });
+    }, []);
+
+    const findDuplicateChurch = useCallback((name, city, excludeId = null) => {
+        const normalizedName = normalizeText(safeStr(name).trim());
+        const normalizedCity = normalizeText(safeStr(city).trim());
+        if (!normalizedName || !normalizedCity) return null;
+
+        return items.find((item) => {
+            if (excludeId && item.id === excludeId) return false;
+            return (
+                normalizeText(safeStr(item.name).trim()) === normalizedName &&
+                normalizeText(safeStr(item.city).trim()) === normalizedCity
+            );
+        }) || null;
+    }, [items]);
+
     const sortedItems = useMemo(() => {
         let arr = [...items];
 
@@ -484,6 +513,13 @@ export default function ChurchesAdmin() {
             setNewError("The Church Name and City fields are required.");
             return;
         }
+
+        const duplicateChurch = findDuplicateChurch(newDrafts.name, newDrafts.city);
+        if (duplicateChurch) {
+            openInfoModal("Duplicate Church", "A church with the same name and city already exists.");
+            return;
+        }
+
         setNewError("");
         setNewState("saving");
 
@@ -568,6 +604,13 @@ export default function ChurchesAdmin() {
 
         if (!draft.name?.trim() || !draft.city?.trim()) {
             setErrorById((m) => ({ ...m, [id]: "The Church Name and City fields are required." }));
+            return;
+        }
+
+        const duplicateChurch = findDuplicateChurch(draft.name, draft.city, id);
+        if (duplicateChurch) {
+            setErrorById((m) => ({ ...m, [id]: "" }));
+            openInfoModal("Duplicate Church", "A church with the same name and city already exists.");
             return;
         }
 
@@ -890,6 +933,7 @@ export default function ChurchesAdmin() {
                             isOpen={modal.isOpen}
                             title={modal.title}
                             message={modal.message}
+                            actions={modal.actions}
                             onConfirm={modal.onConfirm}
                             onCancel={() => setModal({ ...modal, isOpen: false })}
                         />

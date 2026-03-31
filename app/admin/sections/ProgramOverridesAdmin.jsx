@@ -610,6 +610,21 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed }) {
 
     const [modal, setModal] = useState({ isOpen: false, title: "", message: "", onConfirm: () => { } });
 
+    const openInfoModal = useCallback((title, message) => {
+        setModal({
+            isOpen: true,
+            title,
+            message,
+            actions: [
+                {
+                    label: "OK",
+                    variant: "primary",
+                    onClick: () => setModal((prev) => ({ ...prev, isOpen: false }))
+                }
+            ]
+        });
+    }, []);
+
     // ── Events list for the dropdown ──
     const [eventsList, setEventsList] = useState([]);
 
@@ -827,10 +842,7 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed }) {
             setNewDraft((d) => ({ ...d, weekKey: val }));
 
             // Immediate validation
-            const alreadyExists = items.some((it) => it.weekKey === val);
-            if (alreadyExists) {
-                setNewError("An override already exists for this week.");
-            } else if (!isValidWeekKey(val)) {
+            if (!isValidWeekKey(val)) {
                 setNewError("Invalid week (YYYY-Www).");
             } else {
                 setNewError("");
@@ -964,7 +976,7 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed }) {
 
         const alreadyExists = items.some((it) => it.weekKey === weekKey);
         if (alreadyExists) {
-            setNewError("An override already exists for this week.");
+            openInfoModal("Duplicate Override", "An override already exists for this week.");
             return;
         }
 
@@ -1194,6 +1206,7 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed }) {
                         isOpen={modal.isOpen}
                         title={modal.title}
                         message={modal.message}
+                        actions={modal.actions}
                         onConfirm={modal.onConfirm}
                         onCancel={() => setModal({ ...modal, isOpen: false })}
                     />

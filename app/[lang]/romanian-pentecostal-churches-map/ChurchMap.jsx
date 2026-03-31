@@ -18,6 +18,7 @@ import "./WorldMap.css";
 const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 const MAP_ID = "5b50d76db2afedb8ba67cff4";
 const BELGIUM_CENTER = { lat: 50.77198, lng: 4.30396 }; // Coordinates roughly near Brussels/Halle
+const MAP_SELECTED_CHURCH_STORAGE_KEY = "bethel_worldmap_selected_church";
 
 const COUNTRY_CODES = {
     Belgium: "be",
@@ -868,6 +869,7 @@ function ChurchMap() {
     const touchStartTime = useRef(0);
     const mobileStickyHeaderRef = useRef(null);
     const footerRef = useRef(null);
+    const manualRecenterPendingRef = useRef(false);
 
     // Auto-close bottom sheet on mobile when a country is selected (or when re-clicking "All")
     useEffect(() => {
@@ -888,6 +890,7 @@ function ChurchMap() {
 
 
     const [showSuggestionModal, setShowSuggestionModal] = useState(false);
+    const [duplicateChurchModal, setDuplicateChurchModal] = useState({ isOpen: false, church: null });
     const [suggestionType, setSuggestionType] = useState("new"); // "new" | "edit"
     const [suggestionSuccess, setSuggestionSuccess] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -970,6 +973,17 @@ function ChurchMap() {
 
     const SUGGESTION_COUNTRIES = Object.keys(COUNTRY_CODES).sort();
 
+    const findDuplicateChurch = useCallback((name, city) => {
+        const normalizedName = normalizeText(String(name || "").trim());
+        const normalizedCity = normalizeText(String(city || "").trim());
+        if (!normalizedName || !normalizedCity) return null;
+
+        return churches.find((church) => (
+            normalizeText(String(church.name || "").trim()) === normalizedName &&
+            normalizeText(String(church.city || "").trim()) === normalizedCity
+        )) || null;
+    }, [churches]);
+
     const openSuggestionModal = (type = "new", church = null) => {
         setSuggestionType(type);
         let data;
@@ -1046,6 +1060,20 @@ function ChurchMap() {
             );
     };
 
+    const handleDuplicateChurchRedirect = () => {
+        const duplicateChurch = duplicateChurchModal.church;
+        if (!duplicateChurch) return;
+
+        setDuplicateChurchModal({ isOpen: false, church: null });
+        setShowSuggestionModal(false);
+        setFormError("");
+        setSuggestionStep(1);
+        selectChurch(duplicateChurch);
+        setTimeout(() => {
+            openSuggestionModal("edit", duplicateChurch);
+        }, 0);
+    };
+
     const handleSuggestionSubmit = async (e) => {
         if (e) e.preventDefault();
 
@@ -1053,6 +1081,14 @@ function ChurchMap() {
             if (!suggestionForm.name || !suggestionForm.city) {
                 setFormError(t("errorNameCityRequired"));
                 return;
+            }
+            if (suggestionType === "new") {
+                const duplicateChurch = findDuplicateChurch(suggestionForm.name, suggestionForm.city);
+                if (duplicateChurch) {
+                    setFormError("");
+                    setDuplicateChurchModal({ isOpen: true, church: duplicateChurch });
+                    return;
+                }
             }
             if (suggestionType === "edit" && !hasChanges) {
                 setFormError(t("errorNoChanges"));
@@ -1153,12 +1189,13 @@ function ChurchMap() {
     // Auto-select church from URL param
     useEffect(() => {
         if (churchesLoading || churches.length === 0) return;
-        const churchSlug = searchParams.get("church");
+        const churchSlug = searchParams.get("church") || sessionStorage.getItem(MAP_SELECTED_CHURCH_STORAGE_KEY);
         if (churchSlug) {
             const found = churches.find((c) => c.id === churchSlug);
             if (found) {
                 setSelectedChurch(found);
                 setIsInitialLoad(false);
+                sessionStorage.setItem(MAP_SELECTED_CHURCH_STORAGE_KEY, found.id);
             }
         }
     }, [searchParams, churches, churchesLoading]);
@@ -1170,6 +1207,7 @@ function ChurchMap() {
 
     const fetchUserLocation = useCallback((isManual = false) => {
         if (!navigator.geolocation) {
+            manualRecenterPendingRef.current = false;
             trackWorldMapVisit("denied");
             return;
         }
@@ -1181,13 +1219,16 @@ function ChurchMap() {
                 const lng = position.coords.longitude;
                 setUserLocation({ lat, lng });
                 trackWorldMapVisit("granted", { lat, lng });
-                if (isManual) {
+                if (isManual || manualRecenterPendingRef.current) {
+                    setIsInitialLoad(false);
                     setRecenterTrigger(prev => prev + 1);
                 }
+                manualRecenterPendingRef.current = false;
             },
             (err) => {
                 localStorage.setItem("bethel_map_geo_asked", "true");
                 console.warn("Geolocation denied or unavailable.", err);
+                manualRecenterPendingRef.current = false;
                 trackWorldMapVisit("denied");
             },
             { timeout: 5000 }
@@ -1224,8 +1265,10 @@ function ChurchMap() {
         deselectChurch();
 
         if (userLocation) {
+            manualRecenterPendingRef.current = false;
             setRecenterTrigger(prev => prev + 1);
         } else {
+            manualRecenterPendingRef.current = true;
             // Re-request position if not available — this forces a browser prompt
             // if it was previously dismissed or not yet decided.
             fetchUserLocation(true);
@@ -1236,6 +1279,7 @@ function ChurchMap() {
         setSelectedChurch(church);
         setIsInitialLoad(false);
         setBottomSheetMode("collapsed"); // Set to collapsed (medium) mode instead of expanded
+        sessionStorage.setItem(MAP_SELECTED_CHURCH_STORAGE_KEY, church.id);
         const url = new URL(window.location.href);
         url.searchParams.set("church", church.id);
         window.history.replaceState({}, "", url.toString());
@@ -1249,6 +1293,7 @@ function ChurchMap() {
                 setSelectedChurch(null);
                 setIsExiting(false);
                 setBottomSheetMode("collapsed");
+                sessionStorage.removeItem(MAP_SELECTED_CHURCH_STORAGE_KEY);
                 const url = new URL(window.location.href);
                 url.searchParams.delete("church");
                 window.history.replaceState({}, "", url.toString());
@@ -1256,6 +1301,7 @@ function ChurchMap() {
         } else {
             setSelectedChurch(null);
             setBottomSheetMode("collapsed");
+            sessionStorage.removeItem(MAP_SELECTED_CHURCH_STORAGE_KEY);
             const url = new URL(window.location.href);
             url.searchParams.delete("church");
             window.history.replaceState({}, "", url.toString());
@@ -1889,6 +1935,7 @@ function ChurchMap() {
                                             <>
                                                 <FlagImage country={activeCountryFilter} />
                                                 <span className="pillLabel">{getCountryLabel(activeCountryFilter)}</span>
+                                                <span className="pillCount">{countryCounts[activeCountryFilter] || 0}</span>
                                             </>
                                         ) : (
                                             <>
@@ -1902,6 +1949,7 @@ function ChurchMap() {
                                                     lineHeight: 1
                                                 }}>🌍</span>
                                                 <span className="pillLabel">{t("allCountries")}</span>
+                                                <span className="pillCount">{countryCounts.all || 0}</span>
                                             </>
                                         )}
                                     </div>
@@ -2475,6 +2523,42 @@ function ChurchMap() {
                                 </div>
                             </form>
                         )}
+                    </div>
+                </div>
+            )}
+
+            {duplicateChurchModal.isOpen && duplicateChurchModal.church && (
+                <div className="suggestionModalOverlay">
+                    <div className="suggestionInfoModal" role="dialog" aria-modal="true">
+                        <div className="suggestionModalHeader">
+                            <h3>{t("duplicateChurchTitle")}</h3>
+                        </div>
+                        <div className="suggestionInfoModalBody">
+                            <p>{t("duplicateChurchMessage")}</p>
+                            <div className="suggestionDuplicateTarget">
+                                <strong>{duplicateChurchModal.church.name}</strong>
+                                <span>
+                                    {duplicateChurchModal.church.city}
+                                    {duplicateChurchModal.church.country ? `, ${getCountryLabel(duplicateChurchModal.church.country)}` : ""}
+                                </span>
+                            </div>
+                        </div>
+                        <div className="suggestionInfoModalActions">
+                            <button
+                                type="button"
+                                className="suggestionCancelBtn"
+                                onClick={() => setDuplicateChurchModal({ isOpen: false, church: null })}
+                            >
+                                {t("cancel")}
+                            </button>
+                            <button
+                                type="button"
+                                className="suggestionSubmitBtn"
+                                onClick={handleDuplicateChurchRedirect}
+                            >
+                                {t("duplicateChurchAction")}
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

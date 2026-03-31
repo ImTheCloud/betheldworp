@@ -1718,6 +1718,16 @@ input:checked + .adminSlider:before {
 
 /* ── Program Overrides Mobile Responsive ── */
 @media (max-width: 768px) {
+    .adminInput,
+    .adminTextarea,
+    .adminSelect,
+    .adminSearchInput,
+    .adminInput[type="date"],
+    .adminInput[type="time"],
+    .adminInput[type="week"] {
+        font-size: 16px;
+    }
+
     .adminInputWrapper {
         flex-direction: column;
         align-items: stretch;
