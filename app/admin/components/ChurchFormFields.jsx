@@ -3,7 +3,7 @@
 import React, { useRef } from "react";
 import { COUNTRY_OPTIONS } from "../utils/churchHelpers";
 import { IconSync } from "./ChurchIcons";
-import { SyncDiffLabel, SyncableIcon, GoogleSearchButton } from "./SyncDiffLabel";
+import { SyncDiffLabel, SyncableIcon, GoogleSearchButton, PreviewLinkButton } from "./SyncDiffLabel";
 
 /**
  * ChurchFormFields — Shared form fields component used by both ChurchCard, NewChurchCard, and Suggestions.
@@ -66,7 +66,6 @@ export default function ChurchFormFields({
                         <label className="adminLabel" style={{ marginBottom: 0 }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, overflow: "hidden" }}>
                                 <span>Location Title (Directions)</span>
-                                <SyncDiffLabel field="locationTitle" syncedFields={syncedFields} onRestore={onRestore} />
                             </div>
                         </label>
                         {onSync && !disabled && (
@@ -99,13 +98,13 @@ export default function ChurchFormFields({
                         placeholder="Search by name, address or place ID..."
                         disabled={disabled || isSyncing}
                     />
+                    <SyncDiffLabel field="locationTitle" syncedFields={syncedFields} onRestore={onRestore} />
                 </div>
 
                 {/* Row 1: Name & City */}
                 <label className="adminLabel">
                     <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
                         <span>Name * <SyncableIcon /></span>
-                        <SyncDiffLabel field="name" syncedFields={syncedFields} onRestore={onRestore} />
                     </div>
                     <input 
                         className={`adminInput ${getHighlightClass("name")}`} 
@@ -113,11 +112,11 @@ export default function ChurchFormFields({
                         onChange={(e) => onChange("name", e.target.value)} 
                         disabled={disabled}
                     />
+                    <SyncDiffLabel field="name" syncedFields={syncedFields} onRestore={onRestore} />
                 </label>
                 <label className="adminLabel">
                     <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
                         <span>City / Locality * <SyncableIcon /></span>
-                        <SyncDiffLabel field="city" syncedFields={syncedFields} onRestore={onRestore} />
                     </div>
                     <input 
                         className={`adminInput ${getHighlightClass("city")}`} 
@@ -125,13 +124,13 @@ export default function ChurchFormFields({
                         onChange={(e) => onChange("city", e.target.value)} 
                         disabled={disabled}
                     />
+                    <SyncDiffLabel field="city" syncedFields={syncedFields} onRestore={onRestore} />
                 </label>
 
                 {/* Row 2: Country & Postal Code */}
                 <label className="adminLabel">
                     <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
                         <span>Country <SyncableIcon /></span>
-                        <SyncDiffLabel field="country" syncedFields={syncedFields} onRestore={onRestore} />
                     </div>
                     <select 
                         className={`adminSelect ${getHighlightClass("country")}`} 
@@ -143,11 +142,11 @@ export default function ChurchFormFields({
                         <option value="">-- Select Country --</option>
                         {COUNTRY_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                     </select>
+                    <SyncDiffLabel field="country" syncedFields={syncedFields} onRestore={onRestore} />
                 </label>
                 <label className="adminLabel">
                     <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
                         <span>Postal Code <SyncableIcon /></span>
-                        <SyncDiffLabel field="zipCode" syncedFields={syncedFields} onRestore={onRestore} />
                     </div>
                     <input 
                         className={`adminInput ${getHighlightClass("zipCode")}`} 
@@ -155,6 +154,7 @@ export default function ChurchFormFields({
                         onChange={(e) => onChange("zipCode", e.target.value)} 
                         disabled={disabled}
                     />
+                    <SyncDiffLabel field="zipCode" syncedFields={syncedFields} onRestore={onRestore} />
                 </label>
 
                 {/* Row 3: Street & Number */}
@@ -163,7 +163,6 @@ export default function ChurchFormFields({
                         <label className="adminLabel">
                             <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
                                 <span>Street <SyncableIcon /></span>
-                                <SyncDiffLabel field="street" syncedFields={syncedFields} onRestore={onRestore} />
                             </div>
                             <input 
                                 className={`adminInput ${getHighlightClass("street")}`} 
@@ -171,13 +170,13 @@ export default function ChurchFormFields({
                                 onChange={(e) => onChange("street", e.target.value)} 
                                 disabled={disabled}
                             />
+                            <SyncDiffLabel field="street" syncedFields={syncedFields} onRestore={onRestore} />
                         </label>
                     </div>
                     <div style={{ flex: 1 }}>
                         <label className="adminLabel">
                             <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
                                 <span>Number <SyncableIcon /></span>
-                                <SyncDiffLabel field="number" syncedFields={syncedFields} onRestore={onRestore} />
                             </div>
                             <input 
                                 className={`adminInput ${getHighlightClass("number")}`} 
@@ -185,6 +184,7 @@ export default function ChurchFormFields({
                                 onChange={(e) => onChange("number", e.target.value)} 
                                 disabled={disabled}
                             />
+                            <SyncDiffLabel field="number" syncedFields={syncedFields} onRestore={onRestore} />
                         </label>
                     </div>
                 </div>
@@ -194,7 +194,6 @@ export default function ChurchFormFields({
                     <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
                         Phone <SyncableIcon />
                         <GoogleSearchButton query={searchQuery} label="phone contact" />
-                        <SyncDiffLabel field="phone" syncedFields={syncedFields} onRestore={onRestore} />
                     </div>
                     <input 
                         className={`adminInput ${getHighlightClass("phone")}`} 
@@ -202,12 +201,12 @@ export default function ChurchFormFields({
                         onChange={(e) => onChange("phone", e.target.value)} 
                         disabled={disabled}
                     />
+                    <SyncDiffLabel field="phone" syncedFields={syncedFields} onRestore={onRestore} />
                 </label>
                 <label className="adminLabel">
                     <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
                         Email
                         <GoogleSearchButton query={searchQuery} label="email" />
-                        <SyncDiffLabel field="email" syncedFields={syncedFields} onRestore={onRestore} />
                     </div>
                     <input 
                         className={`adminInput ${getHighlightClass("email")}`} 
@@ -215,6 +214,7 @@ export default function ChurchFormFields({
                         onChange={(e) => onChange("email", e.target.value)} 
                         disabled={disabled}
                     />
+                    <SyncDiffLabel field="email" syncedFields={syncedFields} onRestore={onRestore} />
                 </label>
 
                 {/* Row 5: Website & Youtube */}
@@ -222,29 +222,39 @@ export default function ChurchFormFields({
                     <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
                         Website <SyncableIcon />
                         <GoogleSearchButton query={searchQuery} label="website" />
-                        <SyncDiffLabel field="website" syncedFields={syncedFields} onRestore={onRestore} />
                     </div>
-                    <input 
-                        className={`adminInput ${getHighlightClass("website")}`} 
-                        placeholder="https://..." 
-                        value={drafts.website ?? ""} 
-                        onChange={(e) => onChange("website", e.target.value)} 
-                        disabled={disabled}
-                    />
+                    <div style={{ position: "relative" }}>
+                        <input 
+                            className={`adminInput adminInput--withIcon ${getHighlightClass("website")}`} 
+                            placeholder="https://..." 
+                            value={drafts.website ?? ""} 
+                            onChange={(e) => onChange("website", e.target.value)} 
+                            disabled={disabled}
+                        />
+                        <div className="adminInputIconWrapper">
+                            <PreviewLinkButton url={drafts.website} />
+                        </div>
+                    </div>
+                    <SyncDiffLabel field="website" syncedFields={syncedFields} onRestore={onRestore} showPreview={true} />
                 </label>
                 <label className="adminLabel">
                     <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
                         YouTube
                         <GoogleSearchButton query={searchQuery} label="youtube channel" />
-                        <SyncDiffLabel field="youtube" syncedFields={syncedFields} onRestore={onRestore} />
                     </div>
-                    <input 
-                        className={`adminInput ${getHighlightClass("youtube")}`} 
-                        placeholder="https://youtube.com/..." 
-                        value={drafts.youtube ?? ""} 
-                        onChange={(e) => onChange("youtube", e.target.value)} 
-                        disabled={disabled}
-                    />
+                    <div style={{ position: "relative" }}>
+                        <input 
+                            className={`adminInput adminInput--withIcon ${getHighlightClass("youtube")}`} 
+                            placeholder="https://youtube.com/..." 
+                            value={drafts.youtube ?? ""} 
+                            onChange={(e) => onChange("youtube", e.target.value)} 
+                            disabled={disabled}
+                        />
+                        <div className="adminInputIconWrapper">
+                            <PreviewLinkButton url={drafts.youtube} />
+                        </div>
+                    </div>
+                    <SyncDiffLabel field="youtube" syncedFields={syncedFields} onRestore={onRestore} showPreview={true} />
                 </label>
 
                 {/* Row 6: Instagram & Facebook */}
@@ -252,29 +262,39 @@ export default function ChurchFormFields({
                     <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
                         Instagram
                         <GoogleSearchButton query={searchQuery} label="instagram" />
-                        <SyncDiffLabel field="instagram" syncedFields={syncedFields} onRestore={onRestore} />
                     </div>
-                    <input 
-                        className={`adminInput ${getHighlightClass("instagram")}`} 
-                        placeholder="instagram.com/..." 
-                        value={drafts.instagram ?? ""} 
-                        onChange={(e) => onChange("instagram", e.target.value)} 
-                        disabled={disabled}
-                    />
+                    <div style={{ position: "relative" }}>
+                        <input 
+                            className={`adminInput adminInput--withIcon ${getHighlightClass("instagram")}`} 
+                            placeholder="instagram.com/..." 
+                            value={drafts.instagram ?? ""} 
+                            onChange={(e) => onChange("instagram", e.target.value)} 
+                            disabled={disabled}
+                        />
+                        <div className="adminInputIconWrapper">
+                            <PreviewLinkButton url={drafts.instagram} />
+                        </div>
+                    </div>
+                    <SyncDiffLabel field="instagram" syncedFields={syncedFields} onRestore={onRestore} showPreview={true} />
                 </label>
                 <label className="adminLabel">
                     <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
                         Facebook
                         <GoogleSearchButton query={searchQuery} label="facebook" />
-                        <SyncDiffLabel field="facebook" syncedFields={syncedFields} onRestore={onRestore} />
                     </div>
-                    <input 
-                        className={`adminInput ${getHighlightClass("facebook")}`} 
-                        placeholder="facebook.com/..." 
-                        value={drafts.facebook ?? ""} 
-                        onChange={(e) => onChange("facebook", e.target.value)} 
-                        disabled={disabled}
-                    />
+                    <div style={{ position: "relative" }}>
+                        <input 
+                            className={`adminInput adminInput--withIcon ${getHighlightClass("facebook")}`} 
+                            placeholder="facebook.com/..." 
+                            value={drafts.facebook ?? ""} 
+                            onChange={(e) => onChange("facebook", e.target.value)} 
+                            disabled={disabled}
+                        />
+                        <div className="adminInputIconWrapper">
+                            <PreviewLinkButton url={drafts.facebook} />
+                        </div>
+                    </div>
+                    <SyncDiffLabel field="facebook" syncedFields={syncedFields} onRestore={onRestore} showPreview={true} />
                 </label>
             </div>
 
@@ -287,7 +307,6 @@ export default function ChurchFormFields({
                     <label className="adminLabel">
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                             <span>Latitude <SyncableIcon /></span>
-                            <SyncDiffLabel field="lat" syncedFields={syncedFields} onRestore={onRestore} />
                         </div>
                         <input 
                             className={`adminInput ${getHighlightClass("lat")}`} 
@@ -297,11 +316,11 @@ export default function ChurchFormFields({
                             onChange={(e) => onChange("lat", e.target.value)} 
                             disabled={disabled}
                         />
+                        <SyncDiffLabel field="lat" syncedFields={syncedFields} onRestore={onRestore} />
                     </label>
                     <label className="adminLabel">
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                             <span>Longitude <SyncableIcon /></span>
-                            <SyncDiffLabel field="lng" syncedFields={syncedFields} onRestore={onRestore} />
                         </div>
                         <input 
                             className={`adminInput ${getHighlightClass("lng")}`} 
@@ -311,6 +330,7 @@ export default function ChurchFormFields({
                             onChange={(e) => onChange("lng", e.target.value)} 
                             disabled={disabled}
                         />
+                        <SyncDiffLabel field="lng" syncedFields={syncedFields} onRestore={onRestore} />
                     </label>
                 </div>
             </div>

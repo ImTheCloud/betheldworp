@@ -273,7 +273,8 @@
 }
 
 .adminLabel {
-    display: grid;
+    display: flex;
+    flex-direction: column;
     gap: 6px;
     font-size: 12px;
     font-weight: 700;
@@ -1981,14 +1982,7 @@ input:checked + .adminSlider:before {
     box-shadow: 0 0 0 1px #86efac inset;
 }
 
-.adminSyncDiffLabel {
-    font-size: 10px;
-    font-weight: 700;
-    color: #94a3b8;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
+/* Removed redundant class */
 
 /* ── Photo Lightbox ── */
 .adminLightbox {
@@ -2122,45 +2116,7 @@ input:checked + .adminSlider:before {
     user-select: none;
 }
 
-/* ── Stripe-through Sync Diff ── */
-.adminSyncDiffLabel {
-    display: inline-flex;
-    align-items: center;
-    background: rgba(239, 68, 68, 0.05);
-    border: 1px solid rgba(239, 68, 68, 0.15);
-    border-radius: 4px;
-    padding: 2px 8px;
-    margin-left: 6px;
-    vertical-align: middle;
-    transition: all 0.2s ease;
-    cursor: help;
-    min-width: 0;
-    flex-shrink: 1;
-}
 
-.adminSyncDiffLabelText {
-    text-decoration: line-through;
-    color: #ef4444;
-    opacity: 0.7;
-    font-size: 10px;
-    font-weight: 700;
-    max-width: 60px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    display: block;
-}
-
-@media (min-width: 1024px) {
-    .adminSyncDiffLabelText {
-        max-width: 800px;
-    }
-}
-
-.adminSyncDiffLabel:hover {
-    background-color: rgba(239, 68, 68, 0.12);
-    border-color: rgba(239, 68, 68, 0.3);
-}
 
 @media (max-width: 640px) {
     .adminPhotoItem {
@@ -2211,6 +2167,29 @@ input:checked + .adminSlider:before {
 }
 
 .adminGoogleSearchBtn svg {
+    display: block;
+}
+
+/* ── Link Preview Helper ── */
+.adminLinkPreviewBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    color: rgba(10, 42, 67, 0.4);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    vertical-align: middle;
+}
+
+.adminLinkPreviewBtn:hover {
+    background-color: rgba(10, 42, 67, 0.05);
+    color: #10b981; /* Success Green */
+}
+
+.adminLinkPreviewBtn svg {
     display: block;
 }
 
@@ -2285,4 +2264,73 @@ input:checked + .adminSlider:before {
     font-size: 12px;
     color: #ef4444;
     font-weight: 500;
+}
+
+/* ── Full-Width Sync Diff (Old Value) ── */
+.adminSyncDiffWrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    background: rgba(239, 68, 68, 0.04);
+    border: 1px dashed rgba(239, 68, 68, 0.2);
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-top: 4px;
+    min-width: 0;
+}
+
+.adminSyncDiffLabelText {
+    flex: 1;
+    min-width: 0; /* Allow truncation only when necessary */
+    text-decoration: line-through;
+    color: #ef4444;
+    opacity: 0.8;
+    font-size: 13px;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: block;
+}
+
+.adminSyncDiffActions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.adminSyncRestoreBtn {
+    background: transparent;
+    border: none;
+    color: #ef4444;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    opacity: 0.6;
+}
+
+.adminSyncRestoreBtn:hover {
+    background: rgba(239, 68, 68, 0.1);
+    opacity: 1;
+}
+
+/* ── UI Adjustment for Inputs with Icons ── */
+.adminInput--withIcon {
+    padding-right: 42px !important;
+}
+
+.adminInputIconWrapper {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    gap: 4px;
+    align-items: center;
 }
