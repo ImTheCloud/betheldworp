@@ -1984,151 +1984,7 @@ input:checked + .adminSlider:before {
 
 /* Removed redundant class */
 
-/* ── Photo Lightbox ── */
-.adminLightbox {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(10, 42, 67, 0.95);
-    backdrop-filter: blur(10px);
-    z-index: 9999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: zoom-out;
-    padding: 40px;
-    animation: modalFadeIn 0.3s ease;
-}
 
-.adminLightboxImage {
-    max-width: 95%;
-    max-height: 95%;
-    object-fit: contain;
-    border-radius: 12px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-    cursor: default;
-    animation: modalScaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.adminPhotoThumbnail {
-    position: relative;
-    cursor: pointer;
-    overflow: hidden;
-    transition: all 0.2s ease;
-}
-
-.adminPhotoThumbnail:hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    z-index: 2;
-}
-
-.adminPhotoThumbnail:hover img {
-    filter: brightness(1.1);
-}
-
-.adminPhotoThumbnail::after {
-    content: "🔍";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(0.5);
-    font-size: 20px;
-    opacity: 0;
-    transition: all 0.2s ease;
-    pointer-events: none;
-}
-
-.adminPhotoThumbnail:hover::after {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-}
-
-/* ── Photo Gallery Pagination ── */
-.adminPhotoNav {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 12px;
-    margin-top: 8px;
-    padding: 4px 8px;
-    background: rgba(10, 42, 67, 0.02);
-    border-radius: 6px;
-}
-
-.adminPhotoNavBtn {
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    padding: 4px;
-    border-radius: 4px;
-    color: #2563eb;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-}
-
-.adminPhotoNavBtn:hover:not(:disabled) {
-    background: rgba(37, 99, 235, 0.08);
-}
-
-.adminPhotoNavBtn:disabled {
-    opacity: 0.2;
-    cursor: not-allowed;
-}
-
-.adminPhotoCounter {
-    font-size: 11px;
-    font-weight: 700;
-    color: rgba(10, 42, 67, 0.5);
-    font-variant-numeric: tabular-nums;
-}
-
-/* ── Swipeable Photo Gallery ── */
-.adminPhotoScrollContainer {
-    display: flex;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scroll-behavior: smooth;
-    gap: 10px;
-    padding-bottom: 12px;
-    cursor: grab;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none; /* Hide scrollbar Firefox */
-}
-
-.adminPhotoScrollContainer::-webkit-scrollbar {
-    display: none; /* Hide scrollbar Chrome/Safari */
-}
-
-.adminPhotoItem {
-    scroll-snap-align: start;
-    flex: 0 0 calc(25% - 7.5px);
-    width: calc(25% - 7.5px);
-    height: 90px;
-    border-radius: 8px;
-    overflow: hidden;
-    background-color: #f0f0f0;
-    position: relative;
-    user-select: none;
-}
-
-
-
-@media (max-width: 640px) {
-    .adminPhotoItem {
-        flex: 0 0 calc(50% - 5px);
-        width: calc(50% - 5px);
-        margin-right: 5px;
-    }
-}
-
-.adminPhotoNav {
-    user-select: none;
-}
 
 /* ── Sync Feedback ── */
 @keyframes syncSuccessPop {
@@ -2333,4 +2189,105 @@ input:checked + .adminSlider:before {
     display: flex;
     gap: 4px;
     align-items: center;
+}
+
+/* ── Admin Card Header Buttons ── */
+.adminHeaderCircleBtn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(37, 99, 235, 0.06);
+    color: #2563eb;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(37, 99, 235, 0.1);
+}
+
+.adminHeaderCircleBtn:hover {
+    background: #2563eb;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
+/* ── Opening Hours Redesign ── */
+.adminHoursContainer {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid rgba(10, 42, 67, 0.08);
+    box-shadow: 0 4px 15px rgba(10, 42, 67, 0.03);
+}
+
+.adminHoursGrid {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.adminHoursRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(10, 42, 67, 0.04);
+    gap: 16px;
+}
+
+.adminHoursRow:last-child {
+    border-bottom: none;
+}
+
+.adminHoursDay {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: rgba(10, 42, 67, 0.5);
+    text-transform: capitalize;
+    flex-shrink: 0;
+}
+
+.adminHoursTime {
+    font-size: 11px;
+    line-height: 1.4;
+    font-weight: 600;
+    color: #134b7b;
+    text-align: right;
+    flex: 1;
+}
+
+.adminMapsLinkCard {
+    display: block;
+    background: white;
+    border: 1px solid rgba(37, 99, 235, 0.1);
+    border-radius: 12px;
+    padding: 16px;
+    text-decoration: none;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(10, 42, 67, 0.03);
+}
+
+.adminMapsLinkCard:hover {
+    background: #f0f7ff;
+    border-color: #2563eb;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.15);
+}
+
+.adminMapsLinkIcon {
+    width: 40px;
+    height: 40px;
+    background: #f0f7ff;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #2563eb;
+    transition: all 0.2s;
+}
+
+.adminMapsLinkCard:hover .adminMapsLinkIcon {
+    background: #2563eb;
+    color: white;
 }

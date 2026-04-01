@@ -30,8 +30,10 @@ export const FIELDS = [
 ];
 
 export function emptyChurch() {
-    return { name: "", locationTitle: "", street: "", number: "", city: "", country: "Belgium", zipCode: "", lat: "", lng: "", phone: "", email: "", website: "", youtube: "", facebook: "", instagram: "", notes: "", isDraft: false, place_id: "", openingHours: [], photos: [], googleMapsUri: "", rating: null };
+    return { name: "", locationTitle: "", street: "", number: "", city: "", country: "Belgium", zipCode: "", lat: "", lng: "", phone: "", email: "", website: "", youtube: "", facebook: "", instagram: "", notes: "", isDraft: false, place_id: "", openingHours: [], googleMapsUri: "", rating: null };
 }
+
+
 
 export const normalizeText = (text) => {
     return (text || "")
@@ -54,29 +56,10 @@ export const hasDraftChanges = (item, draft) => {
         if (String(item[f] || "") !== String(draft[f] || "")) return true;
     }
     if (JSON.stringify(item.openingHours || []) !== JSON.stringify(draft.openingHours || [])) return true;
-    if (JSON.stringify(item.photos || []) !== JSON.stringify(draft.photos || [])) return true;
     return false;
 };
 
-export const uploadPhotosIfNeeded = async (photos, id) => {
-    if (!photos || !photos.length) return [];
-    
-    return await Promise.all(photos.map(async (photo, idx) => {
-        if (photo.startsWith("http")) return photo;
-        try {
-            const res = await fetch(`/api/geocode?type=photo&photo_name=${encodeURIComponent(photo)}`);
-            if (!res.ok) throw new Error("Failed to fetch photo from proxy");
-            const blob = await res.blob();
-            
-            const storageRef = ref(storage, `churches/${id}/${Date.now()}_${idx}.jpg`);
-            await uploadBytes(storageRef, blob, { contentType: "image/jpeg" });
-            return await getDownloadURL(storageRef);
-        } catch (e) {
-            console.error("Firebase Storage Upload Error:", e);
-            return photo; 
-        }
-    }));
-};
+
 
 export const geocodeAddress = async (street, number, city, zipCode, country, locationTitle = "") => {
     if (locationTitle) {
@@ -148,7 +131,7 @@ export const processGoogleData = (res, components, originalQuery = "", placeId =
         // German
         "Kirche", "Gemeinde", "Rumänisch", "Rumänische",
         "Evangelische", "Christliche", "Pfingst", "Pfingstliche",
-        "Zentrum",
+        "Zentrum", "Verein", "e.V.", "eV", "e V", "V",
         // Italian
         "Chiesa", "Cristiana", "Cristiano", "Romena", "Romeno",
         "Evangelica", "Evangelico", "Comunità", "Centro",
@@ -178,6 +161,30 @@ export const processGoogleData = (res, components, originalQuery = "", placeId =
         .trim();
 
     if (cleanedName.length < 2) cleanedName = rawName;
+    
+    // Deduplicate similar words (Elim vs Elime)
+    const cleanedWords = cleanedName.split(" ");
+    if (cleanedWords.length > 1) {
+        const finalWords = [];
+        cleanedWords.forEach(w => {
+            const lowW = w.toLowerCase();
+            const isDuplicate = finalWords.some(fw => {
+                const lowFw = fw.toLowerCase();
+                // If words are very similar or one is a prefix of the other (min 3 chars)
+                if (lowFw.startsWith(lowW) || lowW.startsWith(lowFw)) {
+                    if (Math.abs(lowW.length - lowFw.length) <= 2 && lowW.length >= 3) return true;
+                }
+                return false;
+            });
+            if (!isDuplicate) finalWords.push(w);
+        });
+        cleanedName = finalWords.join(" ");
+    }
+    
+    // Final check: if cleanedName is in ALL CAPS but has multiple words, titlecase it
+    if (cleanedName === cleanedName.toUpperCase() && cleanedName.includes(" ")) {
+        cleanedName = cleanedName.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ");
+    }
 
     const result = {};
     const setIf = (key, val) => {
@@ -187,6 +194,7 @@ export const processGoogleData = (res, components, originalQuery = "", placeId =
     };
 
     setIf("name", cleanedName);
+
     setIf("street", getComp(["route"]));
     setIf("number", getComp(["street_number"]));
     setIf("city", cityName);
@@ -203,7 +211,6 @@ export const processGoogleData = (res, components, originalQuery = "", placeId =
     setIf("youtube", res.youtube);
     
     if (res.openingHours !== undefined) result.openingHours = res.openingHours || [];
-    if (res.photos !== undefined) result.photos = res.photos || [];
     if (res.googleMapsUri !== undefined) result.googleMapsUri = res.googleMapsUri || "";
     if (res.rating !== undefined) result.rating = res.rating || null;
 
@@ -212,6 +219,56 @@ export const processGoogleData = (res, components, originalQuery = "", placeId =
 
     return result;
 };
+
+/**
+ * Smart comparison to determine if a suggested value is actually an update
+ * or just a reformatting of existing data.
+ */
+export const isMeaningfullyDifferent = (oldVal, newVal, field) => {
+    const sOld = String(oldVal || "").trim();
+    const sNew = String(newVal || "").trim();
+
+    if (!sNew) return false; // Google returned nothing, not a change
+    if (!sOld && sNew) return true; // New data where none existed before
+
+    const normalize = (s) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+    if (field === "name") {
+        const nOld = normalize(sOld);
+        const nNew = normalize(sNew);
+        
+        // 1. If identical after normalization
+        if (nOld === nNew) return false;
+        
+        // 2. If one is a complete substring of the other (common for "Elim" vs "Elim Christliche...")
+        // AND both share the same starting word
+        const firstWordOld = nOld.split(" ")[0];
+        const firstWordNew = nNew.split(" ")[0];
+        
+        if (firstWordOld === firstWordNew) {
+           if (nNew.includes(nOld) || nOld.includes(nNew)) return false;
+        }
+
+        return true;
+    }
+
+    if (field === "phone") {
+        // Compare only digits
+        const dOld = sOld.replace(/\D/g, "");
+        const dNew = sNew.replace(/\D/g, "");
+        return dOld !== dNew;
+    }
+
+    if (field === "website" || field === "facebook" || field === "instagram" || field === "youtube") {
+        // Normalize URLs (remove protocol, www, trailing slash)
+        const normUrl = (url) => url.replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/$/, "");
+        return normUrl(sOld) !== normUrl(sNew);
+    }
+
+    // Default: simple trimmed comparison
+    return sOld !== sNew;
+};
+
 
 export const fetchGooglePlaceData = async (query, city = "", country = "", placeId = "") => {
     if (placeId) {

@@ -2,8 +2,8 @@
 
 import React, { useRef } from "react";
 import { COUNTRY_OPTIONS } from "../utils/churchHelpers";
-import { IconSync } from "./ChurchIcons";
-import { SyncDiffLabel, SyncableIcon, GoogleSearchButton, PreviewLinkButton } from "./SyncDiffLabel";
+import { IconSync, IconMap } from "./ChurchIcons";
+import { SyncDiffLabel, GoogleSearchButton, PreviewLinkButton } from "./SyncDiffLabel";
 
 /**
  * ChurchFormFields — Shared form fields component used by both ChurchCard, NewChurchCard, and Suggestions.
@@ -31,13 +31,11 @@ export default function ChurchFormFields({
     isSyncing = false,
     syncSuccess = false,
     disabled = false,
-    onPhotoClick,
     showGoogleEnrichment = true
 }) {
-    const photoRef = useRef(null);
-    const searchQuery = `${drafts.name || ""} ${drafts.city || ""}`.trim();
+    const searchQuery = `Biserica Penticostala ${drafts.name || ""} ${drafts.city || ""}`.trim();
+
     const hoursModified = !!syncedFields.openingHours;
-    const photosModified = !!syncedFields.photos;
 
     const ModifiedBadge = ({ label }) => (
         <span style={{
@@ -104,7 +102,7 @@ export default function ChurchFormFields({
                 {/* Row 1: Name & City */}
                 <label className="adminLabel">
                     <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
-                        <span>Name * <SyncableIcon /></span>
+                        <span>Name *</span>
                     </div>
                     <input 
                         className={`adminInput ${getHighlightClass("name")}`} 
@@ -116,7 +114,7 @@ export default function ChurchFormFields({
                 </label>
                 <label className="adminLabel">
                     <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
-                        <span>City / Locality * <SyncableIcon /></span>
+                        <span>City / Locality *</span>
                     </div>
                     <input 
                         className={`adminInput ${getHighlightClass("city")}`} 
@@ -130,7 +128,7 @@ export default function ChurchFormFields({
                 {/* Row 2: Country & Postal Code */}
                 <label className="adminLabel">
                     <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
-                        <span>Country <SyncableIcon /></span>
+                        <span>Country</span>
                     </div>
                     <select 
                         className={`adminSelect ${getHighlightClass("country")}`} 
@@ -146,7 +144,7 @@ export default function ChurchFormFields({
                 </label>
                 <label className="adminLabel">
                     <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
-                        <span>Postal Code <SyncableIcon /></span>
+                        <span>Postal Code</span>
                     </div>
                     <input 
                         className={`adminInput ${getHighlightClass("zipCode")}`} 
@@ -162,7 +160,7 @@ export default function ChurchFormFields({
                     <div style={{ flex: 3 }}>
                         <label className="adminLabel">
                             <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
-                                <span>Street <SyncableIcon /></span>
+                                <span>Street</span>
                             </div>
                             <input 
                                 className={`adminInput ${getHighlightClass("street")}`} 
@@ -176,7 +174,7 @@ export default function ChurchFormFields({
                     <div style={{ flex: 1 }}>
                         <label className="adminLabel">
                             <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
-                                <span>Number <SyncableIcon /></span>
+                                <span>Number</span>
                             </div>
                             <input 
                                 className={`adminInput ${getHighlightClass("number")}`} 
@@ -192,9 +190,10 @@ export default function ChurchFormFields({
                 {/* Row 4: Phone & Email */}
                 <label className="adminLabel">
                     <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
-                        Phone <SyncableIcon />
-                        <GoogleSearchButton query={searchQuery} label="phone contact" />
+                        Phone
+                        <GoogleSearchButton query={searchQuery} label="phone" />
                     </div>
+
                     <input 
                         className={`adminInput ${getHighlightClass("phone")}`} 
                         value={drafts.phone ?? ""} 
@@ -220,7 +219,7 @@ export default function ChurchFormFields({
                 {/* Row 5: Website & Youtube */}
                 <label className="adminLabel">
                     <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
-                        Website <SyncableIcon />
+                        Website
                         <GoogleSearchButton query={searchQuery} label="website" />
                     </div>
                     <div style={{ position: "relative" }}>
@@ -240,8 +239,9 @@ export default function ChurchFormFields({
                 <label className="adminLabel">
                     <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
                         YouTube
-                        <GoogleSearchButton query={searchQuery} label="youtube channel" />
+                        <GoogleSearchButton query={searchQuery} label="youtube" />
                     </div>
+
                     <div style={{ position: "relative" }}>
                         <input 
                             className={`adminInput adminInput--withIcon ${getHighlightClass("youtube")}`} 
@@ -298,6 +298,9 @@ export default function ChurchFormFields({
                 </label>
             </div>
 
+
+
+
             {/* Coordinates Section */}
             <div style={{ marginTop: 12, padding: 12, backgroundColor: "rgba(10, 42, 67, 0.03)", borderRadius: 8, border: "1px solid rgba(10, 42, 67, 0.08)" }}>
                 <div style={{ marginBottom: 8 }}>
@@ -306,7 +309,7 @@ export default function ChurchFormFields({
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                     <label className="adminLabel">
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                            <span>Latitude <SyncableIcon /></span>
+                            <span>Latitude</span>
                         </div>
                         <input 
                             className={`adminInput ${getHighlightClass("lat")}`} 
@@ -320,7 +323,7 @@ export default function ChurchFormFields({
                     </label>
                     <label className="adminLabel">
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                            <span>Longitude <SyncableIcon /></span>
+                            <span>Longitude</span>
                         </div>
                         <input 
                             className={`adminInput ${getHighlightClass("lng")}`} 
@@ -335,113 +338,39 @@ export default function ChurchFormFields({
                 </div>
             </div>
 
-            {/* Google Enrichment Section: Hours & Photos */}
-            {showGoogleEnrichment && (drafts.place_id || drafts.openingHours?.length > 0 || drafts.photos?.length > 0) && (
-                <div style={{ marginTop: 16, borderTop: "1px dashed rgba(10, 42, 67, 0.1)", paddingTop: 16 }}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-                        <h4 style={{ margin: 0, fontSize: 14, color: "#134b7b", display: "flex", alignItems: "center", gap: 6 }}>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-                            </svg>
-                            Google Places Data
-                        </h4>
-                    </div>
-
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
-                        <div>
-                            <span style={{ fontSize: 12, fontWeight: 700, opacity: 0.6, textTransform: "uppercase", display: "flex", alignItems: "center", marginBottom: 8 }}>
-                                Schedule / Hours
-                                {hoursModified && <ModifiedBadge />}
+            {/* Google Enrichment Section: Hours */}
+            {showGoogleEnrichment && (drafts.place_id || drafts.openingHours?.length > 0) && (
+                <div style={{ marginTop: 20, borderTop: "1px dashed rgba(10, 42, 67, 0.12)", paddingTop: 20 }}>
+                    <div className="adminHoursContainer">
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+                            <span style={{ fontSize: 11, fontWeight: 800, color: "rgba(10, 42, 67, 0.5)", textTransform: "uppercase", letterSpacing: "0.05em", display: "flex", alignItems: "center", gap: 6 }}>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                Opening Hours
                             </span>
-                            {drafts.openingHours && drafts.openingHours.length > 0 ? (
-                                <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                                    {drafts.openingHours.map((line, idx) => (
-                                        <div key={idx} style={{ fontSize: 12, color: "#134b7b", fontWeight: 500 }}>{line}</div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <span style={{ fontSize: 12, fontStyle: "italic", opacity: 0.5 }}>Not available on Google</span>
-                            )}
+                            {hoursModified && <ModifiedBadge />}
                         </div>
-
-                        <div>
-                            <span style={{ fontSize: 12, fontWeight: 700, opacity: 0.6, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Maps Context</span>
-                            {drafts.googleMapsUri ? (
-                                <a href={drafts.googleMapsUri} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: "#3b82f6", fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
-                                    View on Google Maps
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3" />
-                                    </svg>
-                                </a>
-                            ) : (
-                                <span style={{ fontSize: 12, fontStyle: "italic", opacity: 0.5 }}>Link not available</span>
-                            )}
-                            {drafts.place_id && (
-                                <div style={{ marginTop: 4, fontSize: 10, opacity: 0.4, fontFamily: "monospace" }}>ID: {drafts.place_id}</div>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Photos Gallery */}
-                    {drafts.photos && drafts.photos.length > 0 && (
-                        <div style={{ marginTop: 16 }}>
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                                <span style={{ fontSize: 12, fontWeight: 700, opacity: 0.6, textTransform: "uppercase", display: "flex", alignItems: "center" }}>
-                                    Photos ({drafts.photos.length})
-                                    {photosModified && (() => {
-                                        const oldCount = syncedFields.photos?.old?.length || 0;
-                                        const newCount = drafts.photos.length;
-                                        return oldCount !== newCount 
-                                            ? <ModifiedBadge label={`${oldCount} → ${newCount}`} />
-                                            : <ModifiedBadge />;
-                                    })()}
-                                </span>
-                                {drafts.photos.length > 2 && (
-                                    <div className="adminPhotoNav">
-                                        <button 
-                                            type="button" 
-                                            className="adminPhotoNavBtn" 
-                                            onClick={(e) => { 
-                                                e.stopPropagation(); 
-                                                photoRef.current?.scrollBy({ left: -200, behavior: "smooth" }); 
-                                            }}
-                                        >
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M15 18l-6-6 6-6" /></svg>
-                                        </button>
-                                        <button 
-                                            type="button" 
-                                            className="adminPhotoNavBtn" 
-                                            onClick={(e) => { 
-                                                e.stopPropagation(); 
-                                                photoRef.current?.scrollBy({ left: 200, behavior: "smooth" }); 
-                                            }}
-                                        >
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M9 18l6-6-6-6" /></svg>
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                            <div className="adminPhotoScrollContainer" ref={photoRef}>
-                                {drafts.photos.map((p, idx) => {
-                                    const photoUrl = p.startsWith("http") ? p : `/api/geocode?type=photo&photo_name=${encodeURIComponent(p)}`;
+                        
+                        {drafts.openingHours && drafts.openingHours.length > 0 ? (
+                            <div className="adminHoursGrid">
+                                {drafts.openingHours.map((line, idx) => {
+                                    const colonIndex = line.indexOf(": ");
+                                    const day = line.substring(0, colonIndex);
+                                    const time = line.substring(colonIndex + 2);
+                                    
                                     return (
-                                        <div 
-                                            key={idx} 
-                                            className="adminPhotoThumbnail adminPhotoItem"
-                                            onClick={() => onPhotoClick?.(photoUrl)}
-                                        >
-                                            <img 
-                                                src={photoUrl} 
-                                                alt={`Church ${idx}`} 
-                                                style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                                                loading="lazy"
-                                            />
+                                        <div key={idx} className="adminHoursRow">
+                                            <span className="adminHoursDay">{day}</span>
+                                            <span className="adminHoursTime">{time}</span>
                                         </div>
                                     );
                                 })}
                             </div>
-                        </div>
-                    )}
+                        ) : (
+                            <div style={{ fontSize: 12, fontStyle: "italic", color: "rgba(10, 42, 67, 0.4)", padding: "8px 0" }}>
+                                No schedule available on Google Maps
+                            </div>
+                        )}
+                    </div>
                 </div>
             )}
         </>

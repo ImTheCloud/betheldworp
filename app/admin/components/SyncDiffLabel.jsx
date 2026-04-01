@@ -33,22 +33,7 @@ export const SyncDiffLabel = ({ field, syncedFields, onRestore, showPreview }) =
     );
 };
 
-export const SyncableIcon = () => (
-    <span title="Synchronisable avec Google" style={{ 
-        display: "inline-flex", 
-        alignItems: "center", 
-        justifyContent: "center",
-        width: "18px",
-        height: "18px",
-        marginLeft: "8px",
-        borderRadius: "4px",
-        background: "transparent",
-        color: "#2563eb",
-        cursor: "help"
-    }}>
-        <IconSync style={{ width: 10, height: 10 }} />
-    </span>
-);
+
 
 export const GoogleSearchButton = ({ query, label }) => {
     if (!query) return null;
@@ -96,11 +81,3 @@ export const PreviewLinkButton = ({ url }) => {
     );
 };
 
-export const PhotoLightbox = ({ url, onClose }) => {
-    if (!url) return null;
-    return (
-        <div className="adminLightbox" onClick={onClose}>
-            <img src={url} alt="Enlarged view" className="adminLightboxImage" onClick={(e) => e.stopPropagation()} />
-        </div>
-    );
-};

@@ -5,9 +5,8 @@ import { collection, doc, onSnapshot, updateDoc, setDoc, serverTimestamp, delete
 import { db } from "../../lib/Firebase";
 import ConfirmModal from "../components/ConfirmModal";
 import ChurchFormFields from "../components/ChurchFormFields";
-import { PhotoLightbox } from "../components/SyncDiffLabel";
-import { IconCheck, IconX, IconChevronDown, IconEyeOff, IconHistory, IconTrash } from "../components/ChurchIcons";
-import { geocodeAddress, fetchGooglePlaceData, uploadPhotosIfNeeded } from "../utils/churchHelpers";
+import { IconCheck, IconX, IconChevronDown, IconEyeOff, IconHistory, IconTrash, IconMap } from "../components/ChurchIcons";
+import { geocodeAddress, fetchGooglePlaceData } from "../utils/churchHelpers";
 
 export default function ChurchSuggestionsAdmin() {
     const [suggestions, setSuggestions] = useState([]);
@@ -22,7 +21,6 @@ export default function ChurchSuggestionsAdmin() {
     const [syncSuccessById, setSyncSuccessById] = useState({});
     const [modal, setModal] = useState({ isOpen: false, title: "", message: "", onConfirm: () => {} });
     const [showHistory, setShowHistory] = useState(false);
-    const [lightboxUrl, setLightboxUrl] = useState(null);
     const [diffRecomputeTrigger, setDiffRecomputeTrigger] = useState(0);
 
     const FIELDS_TO_COMPARE = ["name", "locationTitle", "city", "country", "zipCode", "street", "number", "phone", "email", "website", "youtube", "instagram", "facebook", "lat", "lng"];
@@ -53,21 +51,42 @@ export default function ChurchSuggestionsAdmin() {
             setSuggestions(pending);
             setProcessedSuggestions(processed);
 
-            // Initialize drafts for pending suggestions
-            setDraftsById(prev => {
-                const next = { ...prev };
-                pending.forEach(s => {
-                    if (!next[s.id]) {
-                        next[s.id] = { ...s.data };
-                    }
-                });
-                return next;
-            });
+
 
             setLoading(false);
         });
         return () => unsub();
     }, []);
+    
+    // Initialize or Update drafts for pending suggestions
+    // This runs whenever suggestions or church data arrives from Firestore
+    useEffect(() => {
+        if (!suggestions.length || Object.keys(churchesById).length === 0) return;
+        
+        setDraftsById(prev => {
+            let next = { ...prev };
+            let hasChanges = false;
+            
+            suggestions.forEach(s => {
+                if (!next[s.id]) {
+                    hasChanges = true;
+                    // MERGE: If it's an edit of an existing church, start with live DB data
+                    if (s.type === "edit" && s.originalChurchId) {
+                        const liveChurch = churchesById[s.originalChurchId];
+                        if (liveChurch) {
+                            // Start with live data, then apply proposed changes
+                            next[s.id] = { ...liveChurch, ...s.data };
+                        } else {
+                            next[s.id] = { ...s.data };
+                        }
+                    } else {
+                        next[s.id] = { ...s.data };
+                    }
+                }
+            });
+            return hasChanges ? next : prev;
+        });
+    }, [suggestions, churchesById]);
 
     // Compute diffs: compare suggestion data vs current DB church data
     // This runs whenever suggestions or churches change
@@ -94,13 +113,6 @@ export default function ChurchSuggestionsAdmin() {
             const sugHours = JSON.stringify(s.data.openingHours || []);
             if (dbHours !== sugHours) {
                 syncMap["openingHours"] = { old: currentChurch.openingHours || [] };
-            }
-
-            // Compare photos by count (Google URLs change every request)
-            const dbPhotoCount = (currentChurch.photos || []).length;
-            const sugPhotoCount = (s.data.photos || []).length;
-            if (dbPhotoCount !== sugPhotoCount) {
-                syncMap["photos"] = { old: currentChurch.photos || [] };
             }
 
             if (Object.keys(syncMap).length > 0) {
@@ -241,13 +253,10 @@ export default function ChurchSuggestionsAdmin() {
                 targetId = newDocRef.id;
             }
 
-            const finalPhotos = await uploadPhotosIfNeeded(draft.photos, targetId || "temp_id");
-
             const finalData = { 
                 ...draft, 
                 lat: parseFloat(draft.lat) || coords?.lat || 0,
                 lng: parseFloat(draft.lng) || coords?.lng || 0,
-                photos: finalPhotos,
                 isDraft: saveAsDraft,
                 updatedAt: serverTimestamp() 
             };
@@ -351,9 +360,23 @@ export default function ChurchSuggestionsAdmin() {
                                                 • {draft.city || s.data.city}
                                             </span>
                                         </div>
-                                        <button className="adminSmallBtn" style={{ flexShrink: 0 }}>
-                                            <IconChevronDown style={{ transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s ease" }} />
-                                        </button>
+                                        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                                            {(draft.googleMapsUri || s.data.googleMapsUri) && (
+                                                <a 
+                                                    href={draft.googleMapsUri || s.data.googleMapsUri} 
+                                                    target="_blank" 
+                                                    rel="noopener noreferrer" 
+                                                    className="adminHeaderCircleBtn"
+                                                    title="View on Google Maps"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
+                                                    <IconMap style={{ width: 14, height: 14 }} />
+                                                </a>
+                                            )}
+                                            <button className="adminSmallBtn" style={{ flexShrink: 0 }}>
+                                                <IconChevronDown style={{ transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s ease" }} />
+                                            </button>
+                                        </div>
                                     </div>
 
                                     {isExpanded && (
@@ -385,7 +408,6 @@ export default function ChurchSuggestionsAdmin() {
                                                 isSyncing={syncingById[s.id] || false}
                                                 syncSuccess={syncSuccessById[s.id] || false}
                                                 disabled={isProcessed}
-                                                onPhotoClick={setLightboxUrl}
                                                 showGoogleEnrichment={true}
                                             />
 
@@ -489,11 +511,6 @@ export default function ChurchSuggestionsAdmin() {
                 message={modal.message}
                 onConfirm={modal.onConfirm}
                 onCancel={() => setModal({ ...modal, isOpen: false })}
-            />
-
-            <PhotoLightbox 
-                url={lightboxUrl} 
-                onClose={() => setLightboxUrl(null)} 
             />
         </div>
     );

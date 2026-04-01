@@ -11,8 +11,33 @@ export async function GET(request) {
         return NextResponse.json({ error: "Missing API Key" }, { status: 500 });
     }
 
+    const isFacebookLink = (url) => url && (url.includes('facebook.com') || url.includes('fb.com'));
+    
+    // Helper to check if a social link is actually a profile/channel and not just the homepage
+    const isProfileLink = (url) => {
+        if (!url) return false;
+        try {
+            const u = new URL(url);
+            const path = u.pathname.replace(/\/$/, "");
+            if (!path || path.length < 2) return false;
+            
+            // Filter out common generic landing pages
+            const genericPaths = ["/pages", "/groups", "/watch", "/embed", "/shorts", "/results", "/feed", "/trending", "/channel"];
+            if (genericPaths.includes(path.toLowerCase())) return false;
+            
+            return true;
+        } catch (e) {
+            return false;
+        }
+    };
+
     async function extractSocialLinks(url) {
         if (!url) return {};
+        
+        // Skip if it's already a social link
+        if (isFacebookLink(url) || url.includes('instagram.com') || url.includes('youtube.com') || url.includes('youtu.be')) {
+            return {};
+        }
 
         const fetchWithTimeout = async (targetUrl, timeout = 8000) => {
             try {
@@ -53,12 +78,10 @@ export async function GET(request) {
                     if (mainLinks.length > 0) {
                         let selected = mainLinks[0];
                         // If it's a plugin link, extract the real URL from the 'href' parameter
-                        if (selected.includes('/plugins/')) {
-                            const params = new URLSearchParams(selected.split('?')[1]);
-                            if (params.has('href')) selected = params.get('href');
+                        if (isProfileLink(selected)) {
+                            links.facebook = selected.split('&')[0].split('?')[0].replace(/[.,;]$/, '');
+                            if (links.facebook.endsWith('/')) links.facebook = links.facebook.slice(0, -1);
                         }
-                        links.facebook = selected.split('&')[0].split('?')[0].replace(/[.,;]$/, '');
-                        if (links.facebook.endsWith('/')) links.facebook = links.facebook.slice(0, -1);
                     }
                 }
             }
@@ -66,19 +89,38 @@ export async function GET(request) {
             // Instagram
             if (!links.instagram) {
                 const instaMatch = text.match(/(https?:\/\/(?:[a-z0-9-]+\.)?instagram\.com\/(?!explore\/tags)(?:[^"'\s<>]+))/i);
-                if (instaMatch) {
+                if (instaMatch && isProfileLink(instaMatch[1])) {
                     links.instagram = instaMatch[1].split('?')[0].replace(/[.,;]$/, '');
                     if (links.instagram.endsWith('/')) links.instagram = links.instagram.slice(0, -1);
                 }
             }
             
-            // YouTube (Priority to channels)
+            // YouTube (Priority to channels over videos)
             if (!links.youtube) {
-                const ytMatches = [...text.matchAll(/(https?:\/\/(?:[a-z0-9-]+\.)?(?:youtube\.com|youtu\.be)\/(?!embed)(?:[^"'\s<>]+))/ig)].map(m => m[1]);
+                const ytMatches = [...new Set([...text.matchAll(/(https?:\/\/(?:[a-z0-9-]+\.)?(?:youtube\.com|youtu\.be)\/(?!embed)(?:[^"'\s<>]+))/ig)].map(m => m[1]))];
                 if (ytMatches.length > 0) {
-                    const channelMatch = ytMatches.find(u => u.includes('/channel/') || u.includes('/c/') || u.includes('/user/') || u.includes('/@') || u.toLowerCase().includes('uc'));
-                    links.youtube = (channelMatch || ytMatches[0]).split('&')[0].split('?')[0].replace(/[.,;]$/, '');
-                    if (links.youtube.endsWith('/')) links.youtube = links.youtube.slice(0, -1);
+                    // 1. Prioritize explicit channel markers
+                    const channelMatch = ytMatches.find(u => 
+                        u.includes('/channel/') || 
+                        u.includes('/c/') || 
+                        u.includes('/user/') || 
+                        u.includes('/@')
+                    );
+                    
+                    // 2. Identify potential handles/custom URLs that aren't videos
+                    const profileMatch = !channelMatch ? ytMatches.find(u => 
+                        !u.includes('/watch?') && 
+                        !u.includes('/v/') && 
+                        !u.includes('youtu.be/') &&
+                        !u.includes('/embed/') &&
+                        !u.includes('/shorts/')
+                    ) : null;
+                    
+                    const bestMatch = channelMatch || profileMatch || ytMatches[0];
+                    if (isProfileLink(bestMatch)) {
+                        links.youtube = bestMatch.split('&')[0].split('?')[0].replace(/[.,;]$/, '');
+                        if (links.youtube.endsWith('/')) links.youtube = links.youtube.slice(0, -1);
+                    }
                 }
             }
             
@@ -162,7 +204,7 @@ export async function GET(request) {
                 headers: {
                     'Content-Type': 'application/json',
                     'X-Goog-Api-Key': apiKey,
-                    'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.addressComponents,places.location,places.internationalPhoneNumber,places.websiteUri,places.regularOpeningHours,places.photos,places.googleMapsUri,places.rating'
+                    'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.addressComponents,places.location,places.internationalPhoneNumber,places.websiteUri,places.regularOpeningHours,places.googleMapsUri,places.rating'
                 },
                 body: JSON.stringify({ textQuery: query })
             });
@@ -199,9 +241,9 @@ export async function GET(request) {
                         }
                     },
                     international_phone_number: p.internationalPhoneNumber,
-                    website: p.websiteUri,
+                    website: isFacebookLink(p.websiteUri) ? null : p.websiteUri,
+                    facebook: isFacebookLink(p.websiteUri) ? p.websiteUri : null,
                     openingHours: p.regularOpeningHours?.weekdayDescriptions || [],
-                    photos: (p.photos || []).slice(0, 5).map(photo => photo.name),
                     googleMapsUri: p.googleMapsUri,
                     rating: p.rating
                 })),
@@ -214,7 +256,7 @@ export async function GET(request) {
                 headers: {
                     'Content-Type': 'application/json',
                     'X-Goog-Api-Key': apiKey,
-                    'X-Goog-FieldMask': 'id,displayName,formattedAddress,addressComponents,internationalPhoneNumber,websiteUri,location,regularOpeningHours,photos,googleMapsUri,rating'
+                    'X-Goog-FieldMask': 'id,displayName,formattedAddress,addressComponents,internationalPhoneNumber,websiteUri,location,regularOpeningHours,googleMapsUri,rating'
                 }
             });
 
@@ -240,12 +282,11 @@ export async function GET(request) {
                     })),
                     international_phone_number: p.internationalPhoneNumber || socialLinks.phone,
                     email: socialLinks.email,
-                    website: p.websiteUri,
+                    website: isFacebookLink(p.websiteUri) ? null : p.websiteUri,
                     openingHours: p.regularOpeningHours?.weekdayDescriptions || [],
-                    photos: (p.photos || []).slice(0, 10).map(photo => photo.name),
                     googleMapsUri: p.googleMapsUri,
                     rating: p.rating,
-                    facebook: socialLinks.facebook,
+                    facebook: isFacebookLink(p.websiteUri) ? p.websiteUri : socialLinks.facebook,
                     instagram: socialLinks.instagram,
                     youtube: socialLinks.youtube,
                     geometry: { 
@@ -257,16 +298,6 @@ export async function GET(request) {
                 },
                 status: p.id ? "OK" : "NOT_FOUND"
             };
-        } else if (type === 'photo') {
-            const photoName = searchParams.get('photo_name'); // e.g., 'places/PLACE_ID/photos/PHOTO_ID'
-            if (!photoName) return NextResponse.json({ error: "Missing photo_name" }, { status: 400 });
-
-            // We use the media endpoint which returns the image itself
-            const photoUrl = `https://places.googleapis.com/v1/${photoName}/media?key=${apiKey}&maxWidthPx=800`;
-            
-            // Redirect to the Google image URL
-            return NextResponse.redirect(photoUrl);
-
         } else {
             const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${apiKey}`;
             const res = await fetch(geocodeUrl);

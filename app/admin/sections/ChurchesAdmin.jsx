@@ -8,18 +8,21 @@ import PaginationControls from "../components/PaginationControls";
 import ConfirmModal from "../components/ConfirmModal";
 import AdminSearch from "../components/AdminSearch";
 import ChurchFormFields from "../components/ChurchFormFields";
-import { PhotoLightbox } from "../components/SyncDiffLabel";
-import { IconPlus, IconTrash, IconChevronDown, IconSave, IconEyeOff, IconEye, IconSync } from "../components/ChurchIcons";
-import { safeStr, normalizeText, matchChurchSearch, hasDraftChanges, emptyChurch, COUNTRY_OPTIONS, geocodeAddress, fetchGooglePlaceData, uploadPhotosIfNeeded } from "../utils/churchHelpers";
+import { IconPlus, IconTrash, IconChevronDown, IconSave, IconEyeOff, IconEye, IconSync, IconMap } from "../components/ChurchIcons";
+import { safeStr, normalizeText, matchChurchSearch, hasDraftChanges, emptyChurch, COUNTRY_OPTIONS, geocodeAddress, isMeaningfullyDifferent } from "../utils/churchHelpers";
+import { useChurchSync } from "../hooks/useChurchSync";
+
+
 
 const PAGE_SIZE = 10;
 
-function ChurchCard({ item, expanded, drafts, saveState, errorText, onToggle, onChange, onSave, onDelete, setSaveStateById, setErrorById, onPhotoClick }) {
+function ChurchCard({ item, expanded, drafts, saveState, errorText, onToggle, onChange, onSave, onDelete, setSaveStateById, setErrorById }) {
     const id = item.id;
     const isDraft = drafts.isDraft || false;
     const [syncedFields, setSyncedFields] = useState({});
-    const [isSyncing, setIsSyncing] = useState(false);
     const [syncSuccess, setSyncSuccess] = useState(false);
+    const { isSyncing, syncSingleChurch } = useChurchSync();
+
 
     useEffect(() => {
         if (!expanded) {
@@ -35,20 +38,15 @@ function ChurchCard({ item, expanded, drafts, saveState, errorText, onToggle, on
     }, [saveState]);
 
     const handleSync = async () => {
-        setIsSyncing(true);
         setSyncSuccess(false);
         try {
-            const query = drafts.locationTitle || drafts.name;
-            const data = await fetchGooglePlaceData(query, drafts.city, drafts.country, drafts.place_id);
+            const data = await syncSingleChurch(drafts);
             
             if (data) {
                 const newSyncMap = {};
                 Object.entries(data).forEach(([k, v]) => {
-                    if (v !== undefined && v !== null) {
-                        const currentVal = drafts[k];
-                        if (String(currentVal || "") !== String(v || "")) {
-                            newSyncMap[k] = { old: String(currentVal || "") };
-                        }
+                    if (isMeaningfullyDifferent(drafts[k], v, k)) {
+                        newSyncMap[k] = { old: String(drafts[k] || "") };
                         onChange(id, k, v);
                     }
                 });
@@ -56,10 +54,12 @@ function ChurchCard({ item, expanded, drafts, saveState, errorText, onToggle, on
                 setSyncSuccess(true);
                 setTimeout(() => setSyncSuccess(false), 3000);
             }
-        } finally {
-            setIsSyncing(false);
+        } catch (err) {
+            console.error("Sync failed:", err);
+            setErrorById(m => ({ ...m, [id]: "Sync failed. Please try again." }));
         }
     };
+
 
     const handleFieldChange = (field, value) => {
         onChange(id, field, value);
@@ -99,6 +99,18 @@ function ChurchCard({ item, expanded, drafts, saveState, errorText, onToggle, on
                     </span>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    {item.googleMapsUri && (
+                        <a 
+                            href={item.googleMapsUri} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="adminHeaderCircleBtn"
+                            title="View on Google Maps"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <IconMap style={{ width: 14, height: 14 }} />
+                        </a>
+                    )}
                     <button type="button" className="adminSmallBtn">
                         <IconChevronDown style={{ transform: expanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s ease" }} />
                     </button>
@@ -128,7 +140,6 @@ function ChurchCard({ item, expanded, drafts, saveState, errorText, onToggle, on
                         onSync={handleSync}
                         isSyncing={isSyncing}
                         syncSuccess={syncSuccess}
-                        onPhotoClick={onPhotoClick}
                         showGoogleEnrichment={true}
                     />
 
@@ -169,10 +180,10 @@ function ChurchCard({ item, expanded, drafts, saveState, errorText, onToggle, on
     );
 }
 
-function NewChurchCard({ drafts, setDraft, errorText, saveState, onCancel, onSave, onPhotoClick }) {
+function NewChurchCard({ drafts, setDraft, errorText, saveState, onCancel, onSave }) {
     const [syncedFields, setSyncedFields] = useState({});
-    const [isSyncing, setIsSyncing] = useState(false);
     const [syncSuccess, setSyncSuccess] = useState(false);
+
 
     useEffect(() => {
         if (saveState === "saved") {
@@ -195,18 +206,17 @@ function NewChurchCard({ drafts, setDraft, errorText, saveState, onCancel, onSav
 
     const getHighlightClass = (field) => syncedFields[field] ? "is-synced-highlight" : "";
 
+    const { isSyncing, syncSingleChurch } = useChurchSync();
+
     const handleSync = async () => {
-        setIsSyncing(true);
         setSyncSuccess(false);
         try {
-            const data = await fetchGooglePlaceData(drafts.locationTitle || drafts.name, drafts.city, drafts.country, drafts.place_id);
+            const data = await syncSingleChurch(drafts);
             if (data) {
                 const newSyncMap = {};
                 Object.entries(data).forEach(([k, v]) => {
-                    if (v !== undefined) {
-                        if (String(drafts[k] || "") !== String(v || "")) {
-                            newSyncMap[k] = { old: String(drafts[k] || "") };
-                        }
+                    if (isMeaningfullyDifferent(drafts[k], v, k)) {
+                        newSyncMap[k] = { old: String(drafts[k] || "") };
                         setDraft(k, v);
                     }
                 });
@@ -214,10 +224,11 @@ function NewChurchCard({ drafts, setDraft, errorText, saveState, onCancel, onSav
                 setSyncSuccess(true);
                 setTimeout(() => setSyncSuccess(false), 3000);
             }
-        } finally {
-            setIsSyncing(false);
+        } catch (err) {
+            console.error("Sync failed:", err);
         }
     };
+
 
     return (
         <div className="adminAnnCard is-active">
@@ -237,7 +248,6 @@ function NewChurchCard({ drafts, setDraft, errorText, saveState, onCancel, onSav
                     onSync={handleSync}
                     isSyncing={isSyncing}
                     syncSuccess={syncSuccess}
-                    onPhotoClick={onPhotoClick}
                     showGoogleEnrichment={true}
                 />
 
@@ -284,13 +294,12 @@ export default function ChurchesAdmin() {
     const [newState, setNewState] = useState("idle");
     const [showDraftsOnly, setShowDraftsOnly] = useState(false);
     
-    // Bulk Sync State
-    const [isBulkSyncing, setIsBulkSyncing] = useState(false);
-    const [bulkSyncProgress, setBulkSyncProgress] = useState({ current: 0, total: 0, suggestionsCreated: 0, churchName: "" });
+    // Bulk Sync State via Hook
+    const { isSyncing: isBulkSyncing, progress: bulkSyncProgress, performBulkSync } = useChurchSync();
     const [showBulkSyncConfirm, setShowBulkSyncConfirm] = useState(false);
 
+
     const [modal, setModal] = useState({ isOpen: false, title: "", message: "", onConfirm: () => { } });
-    const [lightboxUrl, setLightboxUrl] = useState(null);
 
     const openInfoModal = useCallback((title, message) => {
         setModal({
@@ -541,8 +550,6 @@ export default function ChurchesAdmin() {
 
         try {
             const newDocRef = doc(collection(db, "churches"));
-            const finalPhotos = await uploadPhotosIfNeeded(newDrafts.photos, newDocRef.id);
-
             await setDoc(newDocRef, {
                 name: newDrafts.name.trim(),
                 locationTitle: (newDrafts.locationTitle || "").trim(),
@@ -559,8 +566,8 @@ export default function ChurchesAdmin() {
                 facebook: (newDrafts.facebook || "").trim(),
                 instagram: (newDrafts.instagram || "").trim(),
                 place_id: newDrafts.place_id || "",
+
                 openingHours: newDrafts.openingHours || [],
-                photos: finalPhotos,
                 googleMapsUri: newDrafts.googleMapsUri || "",
                 rating: newDrafts.rating || null,
                 isDraft: isDraftValue,
@@ -568,6 +575,7 @@ export default function ChurchesAdmin() {
                 updatedAt: serverTimestamp(),
                 createdBy: { name: "Popadiuc Claudiu", at: serverTimestamp() }
             });
+
 
             if (!mountedRef.current) return;
             if (forcedDraftStatus !== null) {
@@ -645,8 +653,6 @@ export default function ChurchesAdmin() {
         }
 
         try {
-            const finalPhotos = await uploadPhotosIfNeeded(draft.photos, id);
-
             const finalData = {
                 name: draft.name.trim(),
                 locationTitle: (draft.locationTitle || "").trim(),
@@ -663,12 +669,13 @@ export default function ChurchesAdmin() {
                 facebook: (draft.facebook || "").trim(),
                 instagram: (draft.instagram || "").trim(),
                 place_id: draft.place_id || "",
+
                 openingHours: draft.openingHours || [],
-                photos: finalPhotos,
                 googleMapsUri: draft.googleMapsUri || "",
                 rating: draft.rating || null,
                 isDraft: isDraftValue
             };
+
 
             await updateDoc(doc(db, "churches", id), { ...finalData, updatedAt: serverTimestamp() });
 
@@ -689,74 +696,21 @@ export default function ChurchesAdmin() {
     };
 
     const handleBulkSync = async () => {
-        const targetChurches = items;
-        if (targetChurches.length === 0) {
+        if (items.length === 0) {
             setGlobalError("No churches to sync.");
             return;
         }
 
-        setIsBulkSyncing(true);
-        setBulkSyncProgress({ current: 0, total: targetChurches.length, suggestionsCreated: 0, churchName: "" });
-
-        let suggestionsCreatedCount = 0;
-
-        for (let i = 0; i < targetChurches.length; i++) {
-            if (!mountedRef.current || !isBulkSyncing) {
-                if (isBulkSyncing) break;
-            }
-            
-            const church = targetChurches[i];
-            setBulkSyncProgress(prev => ({ ...prev, current: i + 1, churchName: church.name }));
-
-            try {
-                const query = church.locationTitle || church.name;
-                const googleData = await fetchGooglePlaceData(query, church.city, church.country, church.place_id);
-
-                if (googleData) {
-                    const fieldsToSync = ["phone", "email", "website", "youtube", "facebook", "instagram", "name", "place_id"];
-                    const hasChanges = fieldsToSync.some(f => {
-                        const newVal = googleData[f];
-                        // Ignore if Google returned nothing — that's not a real change
-                        if (newVal === undefined || newVal === null || String(newVal).trim() === "") return false;
-                        return String(church[f] || "").trim() !== String(newVal).trim();
-                    }) || (
-                        // Only count hours as changed if Google returned non-empty hours
-                        (googleData.openingHours?.length > 0) &&
-                        JSON.stringify(church.openingHours || []) !== JSON.stringify(googleData.openingHours)
-                    );
-
-                    if (hasChanges) {
-                        await addDoc(collection(db, "church_suggestions"), {
-                            type: "edit",
-                            status: "pending",
-                            source: "auto_sync",
-                            originalChurchId: church.id,
-                            data: {
-                                ...googleData,
-                                ...Object.fromEntries(Object.entries(church).filter(([k]) => !fieldsToSync.includes(k) && k !== "openingHours" && k !== "photos" && k !== "id"))
-                            },
-                            createdAt: serverTimestamp(),
-                            submitter: { name: "System Sync", at: serverTimestamp() }
-                        });
-                        suggestionsCreatedCount++;
-                        setBulkSyncProgress(prev => ({ ...prev, suggestionsCreated: suggestionsCreatedCount }));
-                    }
-                }
-            } catch (err) {
-                console.error(`Sync failed for ${church.name}:`, err);
-            }
-
-            await new Promise(r => setTimeout(r, 400));
-        }
-
-        setIsBulkSyncing(false);
-        setModal({
-            isOpen: true,
-            title: "Sync Complete",
-            message: `The bulk synchronization is finished. ${suggestionsCreatedCount} new suggestions were created/updated.`,
-            onConfirm: () => setModal(m => ({ ...m, isOpen: false }))
+        performBulkSync(items, (suggestionsCount) => {
+            setModal({
+                isOpen: true,
+                title: "Sync Bot Complete",
+                message: `The background synchronization bot has finished. ${suggestionsCount} new suggestions were created/updated for your review.`,
+                onConfirm: () => setModal(m => ({ ...m, isOpen: false }))
+            });
         });
     };
+
 
     // --- DELETE ---
     const deleteOne = async (id) => {
@@ -892,7 +846,6 @@ export default function ChurchesAdmin() {
                                     saveState={newState}
                                     onCancel={cancelNew}
                                     onSave={saveNew}
-                                    onPhotoClick={setLightboxUrl}
                                 />
                             </div>
                         ) : null}
@@ -912,7 +865,6 @@ export default function ChurchesAdmin() {
                                     onDelete={deleteOne}
                                     setSaveStateById={setSaveStateById}
                                     setErrorById={setErrorById}
-                                    onPhotoClick={setLightboxUrl}
                                 />
                             ))}
 
@@ -937,11 +889,6 @@ export default function ChurchesAdmin() {
                             onConfirm={modal.onConfirm}
                             onCancel={() => setModal({ ...modal, isOpen: false })}
                         />
-
-                        <PhotoLightbox 
-                            url={lightboxUrl} 
-                            onClose={() => setLightboxUrl(null)} 
-                        />
                     </div>
                 ) : null
             }
@@ -950,13 +897,13 @@ export default function ChurchesAdmin() {
                 <ConfirmModal
                     isOpen={true}
                     title="Bulk Synchronization with Google"
-                    message={`This will check ALL churches in your database. 
-                    - For churches already identified, it updates the info.
-                    - For others, it will SEARCH on Google to find their Place ID and info.
+                    message={`Bulk sync will check all ${items.length} churches.
+                    • New "Suggestions" will be created for any differences found.
                     
-                    Any differences found will be added as "Suggestions".
+                    • Estimated Usage: $${(items.reduce((acc, c) => acc + (c.place_id ? 0.02 : 0.04), 0)).toFixed(2)}
+                    • Real Cost: FREE (Deducted from your $200 monthly credit).
                     
-                    Estimated cost: $${(items.reduce((acc, c) => acc + (c.place_id ? 0.02 : 0.04), 0)).toFixed(2)}. Proceed?`}
+                    Proceed?`}
                     onConfirm={() => { setShowBulkSyncConfirm(false); handleBulkSync(); }}
                     onCancel={() => setShowBulkSyncConfirm(false)}
                 />
