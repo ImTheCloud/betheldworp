@@ -14,7 +14,8 @@ export default function ConfirmModal({
     onConfirm,
     onCancel,
     variant = "danger", // 'danger' or 'primary'
-    actions // Optional array: [{ label, onClick, variant }]
+    actions, // Optional array: [{ label, onClick, variant }]
+    progress = null // Number from 0-100 or null
 }) {
     if (!isOpen) return null;
 
@@ -33,6 +34,21 @@ export default function ConfirmModal({
 
                 <div className="adminModalBody">
                     <p className="adminModalMessage">{message}</p>
+                    
+                    {progress != null && !isNaN(progress) && (
+                        <div className="adminModalProgress">
+                            <div className="adminProgressBarContainer">
+                                <div 
+                                    className="adminProgressBarFill" 
+                                    style={{ width: `${Math.min(100, Math.max(0, progress))}%` }} 
+                                />
+                            </div>
+                            <div className="adminProgressText">
+                                <span>Progress</span>
+                                <span>{Math.round(progress)}%</span>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 <div className="adminModalFooter">

@@ -361,18 +361,6 @@ export default function ChurchSuggestionsAdmin() {
                                             </span>
                                         </div>
                                         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                                            {(draft.googleMapsUri || s.data.googleMapsUri) && (
-                                                <a 
-                                                    href={draft.googleMapsUri || s.data.googleMapsUri} 
-                                                    target="_blank" 
-                                                    rel="noopener noreferrer" 
-                                                    className="adminHeaderCircleBtn"
-                                                    title="View on Google Maps"
-                                                    onClick={(e) => e.stopPropagation()}
-                                                >
-                                                    <IconMap style={{ width: 14, height: 14 }} />
-                                                </a>
-                                            )}
                                             <button className="adminSmallBtn" style={{ flexShrink: 0 }}>
                                                 <IconChevronDown style={{ transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s ease" }} />
                                             </button>

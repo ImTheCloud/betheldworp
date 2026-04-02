@@ -288,7 +288,7 @@ function VerseCard({
     );
 }
 
-function NewVerseCard({ newDraft, setNewDraft, newError, newState, activeLang, onLangChange, onCancel, onSave }) {
+function NewVerseCard({ newDraft, setNewDraft, newState, activeLang, onLangChange, onCancel, onSave }) {
     const langKey = activeLang || "ro";
 
     return (
@@ -298,8 +298,6 @@ function NewVerseCard({ newDraft, setNewDraft, newError, newState, activeLang, o
             </div>
 
             <div className="adminAnnBody">
-                {newError ? <div className="adminAlert">{newError}</div> : null}
-
                 <div className="adminAffectGrid">
                     {LANGS.map((l) => (
                         <button
@@ -367,7 +365,6 @@ export default function MonthlyVerseAdmin() {
     const timeoutRef = useRef(null);
 
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
 
     const [current, setCurrent] = useState(() => ({ reference: emptyLangMap(), text: emptyLangMap() }));
     const [currentDraft, setCurrentDraft] = useState(() => ({ reference: emptyLangMap(), text: emptyLangMap() }));
@@ -378,10 +375,24 @@ export default function MonthlyVerseAdmin() {
     const [showNew, setShowNew] = useState(false);
     const [newDraft, setNewDraft] = useState(() => ({ reference: emptyLangMap(), text: emptyLangMap() }));
     const [newState, setNewState] = useState("idle");
-    const [newError, setNewError] = useState("");
     const [newLang, setNewLang] = useState("ro");
 
     const [modal, setModal] = useState({ isOpen: false, title: "", message: "", onConfirm: () => { } });
+
+    const openInfoModal = (title, message) => {
+        setModal({
+            isOpen: true,
+            title,
+            message,
+            actions: [
+                {
+                    label: "OK",
+                    variant: "primary",
+                    onClick: () => setModal((prev) => ({ ...prev, isOpen: false }))
+                }
+            ]
+        });
+    };
 
     const [showHistory, setShowHistory] = useState(false);
     const [history, setHistory] = useState([]);
@@ -421,7 +432,6 @@ export default function MonthlyVerseAdmin() {
 
     useEffect(() => {
         setLoading(true);
-        setError("");
         setSaveCurrentState("idle");
 
         const unsub = onSnapshot(
@@ -438,7 +448,7 @@ export default function MonthlyVerseAdmin() {
                 console.error(err);
                 if (!mountedRef.current) return;
                 setLoading(false);
-                setError("Could not load verse.");
+                openInfoModal("Loading Error", "Could not load verse.");
             }
         );
 
@@ -522,9 +532,8 @@ export default function MonthlyVerseAdmin() {
     const currentSummary = useMemo(() => makeSummary(currentDraft.reference, currentDraft.text), [currentDraft]);
 
     const saveCurrent = async () => {
-        setError("");
         if (!isVerseValidAllLangs(currentDraft)) {
-            setError("Fill in reference and text for all 4 languages.");
+            openInfoModal("Action Required", "Fill in reference and text for all 4 languages.");
             return;
         }
 
@@ -541,7 +550,7 @@ export default function MonthlyVerseAdmin() {
             console.error(err);
             if (!mountedRef.current) return;
             setSaveCurrentState("error");
-            setError("Saving failed.");
+            openInfoModal("Save Error", "Saving failed.");
         }
     };
 
@@ -552,7 +561,6 @@ export default function MonthlyVerseAdmin() {
             message: "Are you sure you want to delete the current verse? This will remove it from the home page.",
             onConfirm: async () => {
                 setModal({ isOpen: false });
-                setError("");
                 setSaveCurrentState("saving");
                 try {
                     await deleteDoc(CURRENT_REF);
@@ -566,7 +574,7 @@ export default function MonthlyVerseAdmin() {
                     console.error(err);
                     if (!mountedRef.current) return;
                     setSaveCurrentState("error");
-                    setError("Could not delete current verse.");
+                    openInfoModal("Action Failed", "Could not delete current verse.");
                 }
             }
         });
@@ -576,18 +584,17 @@ export default function MonthlyVerseAdmin() {
         setShowNew(false);
         setNewDraft({ reference: emptyLangMap(), text: emptyLangMap() });
         setNewState("idle");
-        setNewError("");
+        setNewState("idle");
         setNewLang("ro");
     };
 
     const saveNew = async () => {
         if (!isVerseValidAllLangs(newDraft)) {
-            setNewError("Fill in reference and text for all 4 languages.");
+            openInfoModal("Action Required", "Fill in reference and text for all 4 languages.");
             return;
         }
 
         setNewState("saving");
-        setNewError("");
 
         try {
             const prev = cleanVerse(current);
@@ -608,7 +615,7 @@ export default function MonthlyVerseAdmin() {
             console.error(err);
             if (!mountedRef.current) return;
             setNewState("error");
-            setNewError("Could not save new verse.");
+            openInfoModal("Save Error", "Could not save new verse.");
         }
     };
 
@@ -636,7 +643,6 @@ export default function MonthlyVerseAdmin() {
                 },
             };
         });
-        if (error) setError("");
     };
 
     const saveHistory = async (id) => {
@@ -647,14 +653,13 @@ export default function MonthlyVerseAdmin() {
         const draft = historyDrafts[key] || (base ? { reference: base.reference, text: base.text } : { reference: emptyLangMap(), text: emptyLangMap() });
 
         if (!isVerseValidAllLangs(draft)) {
-            setError("Fill in reference and text for all 4 languages.");
+            openInfoModal("Action Required", "Fill in reference and text for all 4 languages.");
             return;
         }
 
         if (base && verseEqualTrim(draft, { reference: base.reference, text: base.text })) return;
 
         setSavingHistoryById((m) => ({ ...m, [key]: "saving" }));
-        setError("");
 
         try {
             const v = cleanVerse(draft);
@@ -667,7 +672,7 @@ export default function MonthlyVerseAdmin() {
             console.error(err);
             if (!mountedRef.current) return;
             setSavingHistoryById((m) => ({ ...m, [key]: "error" }));
-            setError("Could not save history verse.");
+            openInfoModal("Save Error", "Could not save history verse.");
         }
     };
 
@@ -681,7 +686,6 @@ export default function MonthlyVerseAdmin() {
             message: "Permanently delete this verse from history? This action cannot be undone.",
             onConfirm: async () => {
                 setModal({ isOpen: false });
-                setError("");
                 setSavingHistoryById((m) => ({ ...m, [key]: "saving" }));
 
                 try {
@@ -712,7 +716,7 @@ export default function MonthlyVerseAdmin() {
                     console.error(err);
                     if (!mountedRef.current) return;
                     setSavingHistoryById((m) => ({ ...m, [key]: "error" }));
-                    setError("Could not delete history verse.");
+                    openInfoModal("Action Failed", "Could not delete history verse.");
                 }
             }
         });
@@ -764,14 +768,11 @@ export default function MonthlyVerseAdmin() {
                 <div className="adminSkeleton" />
             ) : (
                 <div className="adminFullContent">
-                    {error ? <div className="adminAlert">{error}</div> : null}
-
                     {showNew ? (
                         <div>
                             <NewVerseCard
                                 newDraft={newDraft}
                                 setNewDraft={setNewDraft}
-                                newError={newError}
                                 newState={newState}
                                 activeLang={newLang}
                                 onLangChange={setNewLang}
@@ -799,7 +800,6 @@ export default function MonthlyVerseAdmin() {
                                         ...s,
                                         [field]: { ...(s[field] || emptyLangMap()), [l]: value },
                                     }));
-                                    if (error) setError("");
                                     if (saveCurrentState !== "idle") setSaveCurrentState("idle");
                                 }}
                                 onSave={saveCurrent}

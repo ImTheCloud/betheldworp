@@ -13,6 +13,7 @@ import { useLang } from "../../components/LanguageProvider";
 import LanguageSwitcher from "../../components/LanguageSwitcher";
 import { makeT } from "../../lib/i18n";
 import worldMapTranslations from "../../translations/WorldMap.json";
+import SearchableSelect from "../../components/SearchableSelect";
 import "./WorldMap.css";
 
 const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
@@ -2323,14 +2324,13 @@ function ChurchMap() {
                                             <div className="suggestionFormRow">
                                                 <div className="suggestionFormGroup">
                                                     <label>{t("country")}</label>
-                                                    <select
+                                                    <SearchableSelect
                                                         value={suggestionForm.country}
-                                                        onChange={(e) => setSuggestionForm({ ...suggestionForm, country: e.target.value })}
-                                                    >
-                                                        {SUGGESTION_COUNTRIES.map(c => (
-                                                            <option key={c} value={c}>{getCountryLabel(c)}</option>
-                                                        ))}
-                                                    </select>
+                                                        onChange={(val) => setSuggestionForm({ ...suggestionForm, country: val })}
+                                                        options={SUGGESTION_COUNTRIES.map(c => ({ value: c, label: getCountryLabel(c) }))}
+                                                        placeholder={t("selectCountry") || "Select country"}
+                                                        inputClassName="suggestionInput" 
+                                                    />
                                                 </div>
                                                 <div className="suggestionFormGroup">
                                                     <label>{t("postalCode")}</label>

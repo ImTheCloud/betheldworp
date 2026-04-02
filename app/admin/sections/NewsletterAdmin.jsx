@@ -83,7 +83,7 @@ function IconUndo(props) {
     );
 }
 
-function SubscriberCard({ item, expanded, draftEmail, saveState, errorText, onToggle, onChange, onSave, onDelete, onResubscribe }) {
+function SubscriberCard({ item, expanded, draftEmail, saveState, onToggle, onChange, onSave, onDelete, onResubscribe }) {
     const id = safeStr(item?.id).trim();
     const draft = safeStr(draftEmail).trim();
     const dirty = draft.toLowerCase() !== id.toLowerCase();
@@ -145,8 +145,6 @@ function SubscriberCard({ item, expanded, draftEmail, saveState, errorText, onTo
 
             {expanded ? (
                 <div className="adminAnnBody">
-                    {errorText ? <div className="adminAlert">{errorText}</div> : null}
-
                     {item?.createdAt ? (
                         <div style={{ color: "rgba(10, 42, 67, 0.6)", fontWeight: 500, fontSize: 13, marginBottom: 12 }}>
                             Subscribed on: {item.createdAt}
@@ -206,7 +204,7 @@ function SubscriberCard({ item, expanded, draftEmail, saveState, errorText, onTo
     );
 }
 
-function NewSubscriberCard({ email, setEmail, errorText, saveState, onCancel, onSave }) {
+function NewSubscriberCard({ email, setEmail, saveState, onCancel, onSave }) {
     return (
         <div className="adminAnnCard is-active">
             <div className="adminAnnHeader">
@@ -214,8 +212,6 @@ function NewSubscriberCard({ email, setEmail, errorText, saveState, onCancel, on
             </div>
 
             <div className="adminAnnBody">
-                {errorText ? <div className="adminAlert">{errorText}</div> : null}
-
                 <label className="adminLabel">
                     Email
                     <input className="adminInput" value={email} onChange={(e) => setEmail(e.target.value)} />
@@ -243,22 +239,34 @@ export default function NewsletterAdmin() {
     const timeoutRef = useRef(null);
 
     const [loading, setLoading] = useState(true);
-    const [globalError, setGlobalError] = useState("");
 
     const [items, setItems] = useState([]);
     const [draftsById, setDraftsById] = useState({});
     const [saveStateById, setSaveStateById] = useState({});
-    const [errorById, setErrorById] = useState({});
     const [expandedIds, setExpandedIds] = useState(() => new Set());
     const [sortBy, setSortBy] = useState("date-desc");
     const [searchQuery, setSearchQuery] = useState("");
 
     const [showNew, setShowNew] = useState(false);
     const [newEmail, setNewEmail] = useState("");
-    const [newError, setNewError] = useState("");
     const [newState, setNewState] = useState("idle");
 
     const [modal, setModal] = useState({ isOpen: false, title: "", message: "", onConfirm: () => { } });
+
+    const openInfoModal = useCallback((title, message) => {
+        setModal({
+            isOpen: true,
+            title,
+            message,
+            actions: [
+                {
+                    label: "OK",
+                    variant: "primary",
+                    onClick: () => setModal((prev) => ({ ...prev, isOpen: false }))
+                }
+            ]
+        });
+    }, []);
 
     // Sorting logic
     const sortedItems = useMemo(() => {
@@ -307,7 +315,6 @@ export default function NewsletterAdmin() {
 
     useEffect(() => {
         setLoading(true);
-        setGlobalError("");
 
         const unsub = onSnapshot(
             collection(db, "newsletter"),
@@ -370,7 +377,7 @@ export default function NewsletterAdmin() {
                 console.error(err);
                 if (!mountedRef.current) return;
                 setLoading(false);
-                setGlobalError("Could not load newsletter.");
+                openInfoModal("Loading Error", "Could not load newsletter.");
             }
         );
 
@@ -390,14 +397,11 @@ export default function NewsletterAdmin() {
     const startNew = () => {
         setShowNew(true);
         setNewEmail("");
-        setNewError("");
         setNewState("idle");
-        if (globalError) setGlobalError("");
     };
 
     const cancelNew = () => {
         setShowNew(false);
-        setNewError("");
         setNewState("idle");
     };
 
@@ -405,11 +409,10 @@ export default function NewsletterAdmin() {
         const clean = safeStr(newEmail).trim().toLowerCase();
 
         if (!clean || !isValidEmail(clean)) {
-            setNewError("Invalid email.");
+            openInfoModal("Action Required", "Please enter a valid email address.");
             return;
         }
 
-        setNewError("");
         setNewState("saving");
 
         try {
@@ -444,17 +447,12 @@ export default function NewsletterAdmin() {
             console.error(err);
             if (!mountedRef.current) return;
             setNewState("error");
-            setNewError("Could not save email.");
+            openInfoModal("Save Error", "Could not save email.");
         }
     };
 
     const changeDraft = (id, value) => {
-        const key = safeStr(id).trim();
-        if (!key) return;
-
         setDraftsById((prev) => ({ ...prev, [key]: value }));
-        setErrorById((m) => ({ ...m, [key]: "" }));
-        if (globalError) setGlobalError("");
     };
 
     const saveOne = async (id) => {
@@ -465,11 +463,10 @@ export default function NewsletterAdmin() {
         const clean = curDraft.toLowerCase();
 
         if (!clean || !isValidEmail(clean)) {
-            setErrorById((m) => ({ ...m, [key]: "Invalid email." }));
+            openInfoModal("Action Required", "Please enter a valid email address.");
             return;
         }
 
-        setErrorById((m) => ({ ...m, [key]: "" }));
         setSaveStateById((m) => ({ ...m, [key]: "saving" }));
 
         try {
@@ -491,13 +488,12 @@ export default function NewsletterAdmin() {
             console.error(err);
             if (!mountedRef.current) return;
             setSaveStateById((m) => ({ ...m, [key]: "error" }));
-            setErrorById((m) => ({ ...m, [key]: "Could not save email." }));
+            openInfoModal("Save Error", "Could not save email.");
         }
     };
 
     const executeSaveOne = async (id, clean, key) => {
         setSaveStateById((m) => ({ ...m, [key]: "saving" }));
-        setErrorById((m) => ({ ...m, [key]: "" }));
 
         try {
             const oldRef = doc(db, "newsletter", key);
@@ -539,7 +535,7 @@ export default function NewsletterAdmin() {
             console.error(err);
             if (!mountedRef.current) return;
             setSaveStateById((m) => ({ ...m, [key]: "error" }));
-            setErrorById((m) => ({ ...m, [key]: "Could not save email." }));
+            openInfoModal("Save Error", "Could not save email.");
         }
     };
 
@@ -553,8 +549,6 @@ export default function NewsletterAdmin() {
             message: `Are you sure you want to delete ${key} from the newsletter list?`,
             onConfirm: async () => {
                 setModal({ isOpen: false });
-                setGlobalError("");
-                setErrorById((m) => ({ ...m, [key]: "" }));
                 setSaveStateById((m) => ({ ...m, [key]: "saving" }));
 
                 try {
@@ -576,16 +570,11 @@ export default function NewsletterAdmin() {
                         delete next[key];
                         return next;
                     });
-                    setErrorById((prev) => {
-                        const next = { ...prev };
-                        delete next[key];
-                        return next;
-                    });
                 } catch (err) {
                     console.error(err);
                     if (!mountedRef.current) return;
                     setSaveStateById((m) => ({ ...m, [key]: "error" }));
-                    setErrorById((m) => ({ ...m, [key]: "Could not delete email." }));
+                    openInfoModal("Action Failed", "Could not delete email.");
                 }
             }
         });
@@ -596,7 +585,6 @@ export default function NewsletterAdmin() {
         if (!key) return;
 
         setSaveStateById((m) => ({ ...m, [key]: "saving" }));
-        setErrorById((m) => ({ ...m, [key]: "" }));
 
         try {
             await setDoc(doc(db, "newsletter", key), { unsubscribed: false, updatedAt: serverTimestamp() }, { merge: true });
@@ -607,7 +595,7 @@ export default function NewsletterAdmin() {
             console.error(err);
             if (!mountedRef.current) return;
             setSaveStateById((m) => ({ ...m, [key]: "error" }));
-            setErrorById((m) => ({ ...m, [key]: "Could not resubscribe." }));
+            openInfoModal("Action Failed", "Could not resubscribe.");
         }
     };
 
@@ -652,14 +640,11 @@ export default function NewsletterAdmin() {
 
             {!loading ? (
                 <div className="adminFullContent">
-                    {globalError ? <div className="adminAlert">{globalError}</div> : null}
-
                     {showNew ? (
                         <div>
                             <NewSubscriberCard
                                 email={newEmail}
                                 setEmail={setNewEmail}
-                                errorText={newError}
                                 saveState={newState}
                                 onCancel={cancelNew}
                                 onSave={saveNew}
@@ -676,7 +661,6 @@ export default function NewsletterAdmin() {
                                 expanded={expandedIds.has(it.id)}
                                 draftEmail={safeStr(draftsById[it.id] ?? it.id)}
                                 saveState={saveStateById[it.id] || "idle"}
-                                errorText={errorById[it.id] || ""}
                                 onToggle={toggleExpand}
                                 onChange={changeDraft}
                                 onSave={saveOne}
@@ -702,6 +686,7 @@ export default function NewsletterAdmin() {
                         isOpen={modal.isOpen}
                         title={modal.title}
                         message={modal.message}
+                        actions={modal.actions}
                         onConfirm={modal.onConfirm}
                         onCancel={() => setModal({ ...modal, isOpen: false })}
                     />

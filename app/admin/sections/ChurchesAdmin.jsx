@@ -8,15 +8,17 @@ import PaginationControls from "../components/PaginationControls";
 import ConfirmModal from "../components/ConfirmModal";
 import AdminSearch from "../components/AdminSearch";
 import ChurchFormFields from "../components/ChurchFormFields";
-import { IconPlus, IconTrash, IconChevronDown, IconSave, IconEyeOff, IconEye, IconSync, IconMap } from "../components/ChurchIcons";
-import { safeStr, normalizeText, matchChurchSearch, hasDraftChanges, emptyChurch, COUNTRY_OPTIONS, geocodeAddress, isMeaningfullyDifferent } from "../utils/churchHelpers";
+import { IconPlus, IconTrash, IconChevronDown, IconSave, IconEyeOff, IconEye, IconSync, IconMap, IconSearch } from "../components/ChurchIcons";
+import { safeStr, normalizeText, matchChurchSearch, hasDraftChanges, emptyChurch, COUNTRY_OPTIONS, geocodeAddress, isMeaningfullyDifferent, PENTECOSTAL_NAMES, shuffleArray, fetchGooglePlaceData } from "../utils/churchHelpers";
 import { useChurchSync } from "../hooks/useChurchSync";
+import { syncChurchBot } from "../services/churchSyncBot";
+import SearchableSelect from "../../components/SearchableSelect";
 
 
 
 const PAGE_SIZE = 10;
 
-function ChurchCard({ item, expanded, drafts, saveState, errorText, onToggle, onChange, onSave, onDelete, setSaveStateById, setErrorById }) {
+function ChurchCard({ item, expanded, drafts, saveState, onToggle, onChange, onSave, onDelete, setSaveStateById }) {
     const id = item.id;
     const isDraft = drafts.isDraft || false;
     const [syncedFields, setSyncedFields] = useState({});
@@ -56,7 +58,7 @@ function ChurchCard({ item, expanded, drafts, saveState, errorText, onToggle, on
             }
         } catch (err) {
             console.error("Sync failed:", err);
-            setErrorById(m => ({ ...m, [id]: "Sync failed. Please try again." }));
+            openInfoModal("Sync Failed", "Synchronization failed. Please try again.");
         }
     };
 
@@ -99,18 +101,6 @@ function ChurchCard({ item, expanded, drafts, saveState, errorText, onToggle, on
                     </span>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    {item.googleMapsUri && (
-                        <a 
-                            href={item.googleMapsUri} 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
-                            className="adminHeaderCircleBtn"
-                            title="View on Google Maps"
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            <IconMap style={{ width: 14, height: 14 }} />
-                        </a>
-                    )}
                     <button type="button" className="adminSmallBtn">
                         <IconChevronDown style={{ transform: expanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s ease" }} />
                     </button>
@@ -119,7 +109,6 @@ function ChurchCard({ item, expanded, drafts, saveState, errorText, onToggle, on
 
             {expanded ? (
                 <div className="adminAnnBody">
-                    {errorText ? <div className="adminAlert">{errorText}</div> : null}
 
                     {item.createdByInfo ? (
                         <div style={{ color: "rgba(10, 42, 67, 0.6)", fontWeight: 500, fontSize: 13, marginBottom: 4 }}>
@@ -180,7 +169,7 @@ function ChurchCard({ item, expanded, drafts, saveState, errorText, onToggle, on
     );
 }
 
-function NewChurchCard({ drafts, setDraft, errorText, saveState, onCancel, onSave }) {
+function NewChurchCard({ drafts, setDraft, saveState, onCancel, onSave, onDiscover, isDiscovering }) {
     const [syncedFields, setSyncedFields] = useState({});
     const [syncSuccess, setSyncSuccess] = useState(false);
 
@@ -237,7 +226,6 @@ function NewChurchCard({ drafts, setDraft, errorText, saveState, onCancel, onSav
             </div>
 
             <div className="adminAnnBody">
-                {errorText ? <div className="adminAlert">{errorText}</div> : null}
 
                 <ChurchFormFields
                     drafts={drafts}
@@ -249,6 +237,8 @@ function NewChurchCard({ drafts, setDraft, errorText, saveState, onCancel, onSav
                     isSyncing={isSyncing}
                     syncSuccess={syncSuccess}
                     showGoogleEnrichment={true}
+                    onDiscover={onDiscover}
+                    isDiscovering={isDiscovering}
                 />
 
                 <div className="adminMsgActions adminMsgActions--3" style={{ marginTop: "20px" }}>
@@ -276,12 +266,9 @@ export default function ChurchesAdmin() {
     const timeoutRef = useRef(null);
 
     const [loading, setLoading] = useState(true);
-    const [globalError, setGlobalError] = useState("");
-
     const [items, setItems] = useState([]);
     const [draftsById, setDraftsById] = useState({});
     const [saveStateById, setSaveStateById] = useState({});
-    const [errorById, setErrorById] = useState({});
     const [expandedIds, setExpandedIds] = useState(() => new Set());
     const [sortBy, setSortBy] = useState("az");
     const [searchQuery, setSearchQuery] = useState("");
@@ -290,7 +277,6 @@ export default function ChurchesAdmin() {
 
     const [showNew, setShowNew] = useState(false);
     const [newDrafts, setNewDrafts] = useState(emptyChurch());
-    const [newError, setNewError] = useState("");
     const [newState, setNewState] = useState("idle");
     const [showDraftsOnly, setShowDraftsOnly] = useState(false);
     
@@ -298,8 +284,9 @@ export default function ChurchesAdmin() {
     const { isSyncing: isBulkSyncing, progress: bulkSyncProgress, performBulkSync } = useChurchSync();
     const [showBulkSyncConfirm, setShowBulkSyncConfirm] = useState(false);
 
+    const [isDiscovering, setIsDiscovering] = useState(false);
 
-    const [modal, setModal] = useState({ isOpen: false, title: "", message: "", onConfirm: () => { } });
+    const [modal, setModal] = useState({ isOpen: false, title: "", message: "", progress: null, onConfirm: () => { } });
 
     const openInfoModal = useCallback((title, message) => {
         setModal({
@@ -312,7 +299,8 @@ export default function ChurchesAdmin() {
                     variant: "primary",
                     onClick: () => setModal((prev) => ({ ...prev, isOpen: false }))
                 }
-            ]
+            ],
+            progress: null
         });
     }, []);
 
@@ -393,10 +381,8 @@ export default function ChurchesAdmin() {
         };
     }, []);
 
-    // Load churches from Firestore
     useEffect(() => {
         setLoading(true);
-        setGlobalError("");
 
         const unsub = onSnapshot(
             collection(db, "churches"),
@@ -453,7 +439,7 @@ export default function ChurchesAdmin() {
                 console.error(err);
                 if (!mountedRef.current) return;
                 setLoading(false);
-                setGlobalError("Could not load churches.");
+                openInfoModal("Loading Error", "Could not load churches.");
             }
         );
 
@@ -500,26 +486,23 @@ export default function ChurchesAdmin() {
     const startNew = () => {
         setShowNew(true);
         setNewDrafts(emptyChurch());
-        setNewError("");
         setNewState("idle");
     };
 
     const cancelNew = () => {
         setShowNew(false);
-        setNewError("");
         setNewState("idle");
     };
 
     const setNewField = (key, value) => {
         setNewDrafts((prev) => ({ ...prev, [key]: value }));
-        if (newError) setNewError("");
     };
 
     const saveNew = async (forcedDraftStatus = null) => {
         let isDraftValue = forcedDraftStatus !== null ? forcedDraftStatus : (newDrafts.isDraft || false);
         
         if (!newDrafts.name.trim() || !newDrafts.city.trim()) {
-            setNewError("The Church Name and City fields are required.");
+            openInfoModal("Action Required", "The Church Name and City fields are required.");
             return;
         }
 
@@ -529,7 +512,6 @@ export default function ChurchesAdmin() {
             return;
         }
 
-        setNewError("");
         setNewState("saving");
 
         let lat = parseFloat(newDrafts.lat);
@@ -543,7 +525,7 @@ export default function ChurchesAdmin() {
                 setNewDrafts((prev) => ({ ...prev, lat, lng }));
             } else {
                 setNewState("error");
-                setNewError("Could not automatically find coordinates. Please enter Latitude and Longitude manually.");
+                openInfoModal("Geocoding Error", "Could not automatically find coordinates. Please enter Latitude and Longitude manually.");
                 return;
             }
         }
@@ -591,17 +573,15 @@ export default function ChurchesAdmin() {
             console.error(err);
             if (!mountedRef.current) return;
             setNewState("error");
-            setNewError("Could not save church.");
+            openInfoModal("Save Error", "Could not save church.");
         }
     };
 
-    // --- EDIT ---
     const changeDraft = (id, key, value) => {
         setDraftsById((prev) => ({
             ...prev,
             [id]: { ...prev[id], [key]: value }
         }));
-        setErrorById((m) => ({ ...m, [id]: "" }));
     };
 
     const saveOne = async (id, forcedDraftStatus = null) => {
@@ -611,18 +591,16 @@ export default function ChurchesAdmin() {
         let isDraftValue = forcedDraftStatus !== null ? forcedDraftStatus : (draft.isDraft || false);
 
         if (!draft.name?.trim() || !draft.city?.trim()) {
-            setErrorById((m) => ({ ...m, [id]: "The Church Name and City fields are required." }));
+            openInfoModal("Action Required", "The Church Name and City fields are required.");
             return;
         }
 
         const duplicateChurch = findDuplicateChurch(draft.name, draft.city, id);
         if (duplicateChurch) {
-            setErrorById((m) => ({ ...m, [id]: "" }));
             openInfoModal("Duplicate Church", "A church with the same name and city already exists.");
             return;
         }
 
-        setErrorById((m) => ({ ...m, [id]: "" }));
         setSaveStateById((m) => ({ ...m, [id]: "saving" }));
 
         let lat = parseFloat(draft.lat);
@@ -647,7 +625,7 @@ export default function ChurchesAdmin() {
                 changeDraft(id, "lng", lng);
             } else if (isNaN(lat) || isNaN(lng)) {
                 setSaveStateById((m) => ({ ...m, [id]: "error" }));
-                setErrorById((m) => ({ ...m, [id]: "Could not automatically find coordinates. Please enter Lat/Lng manually." }));
+                openInfoModal("Geocoding Error", "Could not automatically find coordinates. Please enter Lat/Lng manually.");
                 return;
             }
         }
@@ -691,13 +669,13 @@ export default function ChurchesAdmin() {
             console.error(err);
             if (!mountedRef.current) return;
             setSaveStateById((m) => ({ ...m, [id]: "error" }));
-            setErrorById((m) => ({ ...m, [id]: "Could not save." }));
+            openInfoModal("Save Error", "Could not save.");
         }
     };
 
     const handleBulkSync = async () => {
         if (items.length === 0) {
-            setGlobalError("No churches to sync.");
+            openInfoModal("No Churches", "No churches to sync.");
             return;
         }
 
@@ -728,15 +706,132 @@ export default function ChurchesAdmin() {
                     setDraftsById((prev) => { const next = { ...prev }; delete next[id]; return next; });
                     setExpandedIds((prev) => { const next = new Set(prev); next.delete(id); return next; });
                     setSaveStateById((prev) => { const next = { ...prev }; delete next[id]; return next; });
-                    setErrorById((prev) => { const next = { ...prev }; delete next[id]; return next; });
                 } catch (err) {
                     console.error(err);
                     if (!mountedRef.current) return;
                     setSaveStateById((m) => ({ ...m, [id]: "error" }));
-                    setErrorById((m) => ({ ...m, [id]: "Could not delete." }));
+                    openInfoModal("Action Failed", "Could not delete.");
                 }
             }
         });
+    };
+
+    const handleDiscover = async (cityToSearch, countryToSearch) => {
+        if (!countryToSearch) {
+            openInfoModal("Action Required", "Please select a Country before discovering.");
+            return;
+        }
+
+        const locationLabel = cityToSearch ? `${cityToSearch}, ${countryToSearch}` : countryToSearch;
+
+        setIsDiscovering(true);
+        try {
+            setModal({
+                isOpen: true,
+                title: "Discovering Churches...",
+                message: `Searching for unlisted Pentecostal churches in ${locationLabel}...`,
+                actions: [], // No actions while discovering, disable closing
+                progress: 0
+            });
+
+            const namesToTry = shuffleArray(PENTECOSTAL_NAMES);
+            let foundNewChurch = null;
+
+            for (let i = 0; i < namesToTry.length; i++) {
+                const churchName = namesToTry[i];
+                if (!mountedRef.current) break;
+                
+                const progress = Math.round(((i + 1) / namesToTry.length) * 100);
+                setModal(prev => ({ 
+                    ...prev, 
+                    message: `Searching for: "Biserica Penticostala ${churchName}" in ${locationLabel}...`,
+                    progress 
+                }));
+
+                const query = `Biserica Penticostala ${churchName}`;
+                try {
+                    const data = await fetchGooglePlaceData(query, cityToSearch, countryToSearch);
+                    
+                    if (data && (data.name || data.place_id)) {
+                        // Security check: ensure the found church is in the same country AND city
+                        if (data.country && countryToSearch) {
+                            if (normalizeText(data.country) !== normalizeText(countryToSearch)) {
+                                console.log(`Skipping discovery result in wrong country: ${data.country} vs ${countryToSearch}`);
+                                continue;
+                            }
+                        }
+                        if (data.city && cityToSearch) {
+                            if (normalizeText(data.city) !== normalizeText(cityToSearch)) {
+                                console.log(`Skipping discovery result in wrong city: ${data.city} vs ${cityToSearch}`);
+                                continue;
+                            }
+                        }
+
+                        // Pentecostal Keyword Check: avoid finding Orthodox or other denominations
+                        const normName = normalizeText(data.name || "");
+                        const normLoc = normalizeText(data.locationTitle || "");
+                        const isPentecostal = 
+                            normName.includes("penticost") || 
+                            normName.includes("pentecost") ||
+                            normLoc.includes("penticost") || 
+                            normLoc.includes("pentecost");
+                        
+                        if (!isPentecostal) {
+                            console.log(`Skipping non-Pentecostal church: ${data.name}`);
+                            continue;
+                        }
+
+                        // Check if it already exists
+                        const duplicatePlace = data.place_id ? items.find(i => i.place_id === data.place_id) : null;
+                        const duplicateName = findDuplicateChurch(data.name, data.city || cityToSearch);
+                        
+                        if (!duplicatePlace && !duplicateName) {
+                            foundNewChurch = data;
+                            break; // Stop immediately upon finding a new one
+                        }
+                    }
+                } catch (e) {
+                    console.error("Discovery error for", churchName, e);
+                }
+                
+                // Add a small delay between queries to avoid API rate limiting
+                await new Promise(r => setTimeout(r, 600));
+            }
+
+            if (!mountedRef.current) return;
+
+            if (foundNewChurch) {
+                setModal({
+                    isOpen: true,
+                    title: "Church Discovered!",
+                    message: `Found: ${foundNewChurch.name}.\nRunning full background synchronization (scraping websites, socials)...`,
+                    actions: []
+                });
+
+                const initialDraft = {
+                    ...emptyChurch(),
+                    ...foundNewChurch,
+                    country: foundNewChurch.country || countryToSearch,
+                    city: foundNewChurch.city || cityToSearch
+                };
+
+                try {
+                    const deeplyEnriched = await syncChurchBot(initialDraft);
+                    setNewDrafts({ ...initialDraft, ...deeplyEnriched });
+                } catch (err) {
+                    console.error("Sync bot failed on discovered church:", err);
+                    setNewDrafts(initialDraft);
+                }
+                
+                setModal({ isOpen: false });
+            } else {
+                openInfoModal("Discovery Complete", `No new unlisted churches were found in ${locationLabel}. Try another location.`);
+            }
+        } finally {
+            if (mountedRef.current) {
+                setIsDiscovering(false);
+            }
+        }
     };
 
     return (
@@ -769,37 +864,31 @@ export default function ChurchesAdmin() {
                 </div>
 
                 <div className="adminActions" style={{ flexWrap: "wrap", justifyContent: "flex-end", gap: "12px" }}>
-                    <select
-                        className="adminSelect"
-                        value={selectedCountry}
-                        onChange={(e) => {
-                            setSelectedCountry(e.target.value);
-                            setSelectedCity("");
-                            setPage(1);
-                        }}
-                        aria-label="Filter by country"
-                    >
-                        <option value="">All Countries</option>
-                        {uniqueCountries.map(c => (
-                            <option key={c} value={c}>{c}</option>
-                        ))}
-                    </select>
+                    <div style={{ width: 220 }}>
+                        <SearchableSelect
+                            value={selectedCountry}
+                            options={uniqueCountries}
+                            onChange={(val) => {
+                                setSelectedCountry(val);
+                                setSelectedCity("");
+                                setPage(1);
+                            }}
+                            placeholder="All Countries"
+                        />
+                    </div>
 
-                    <select
-                        className="adminSelect"
-                        value={selectedCity}
-                        onChange={(e) => {
-                            setSelectedCity(e.target.value);
-                            setPage(1);
-                        }}
-                        aria-label="Filter by city"
-                        disabled={!uniqueCities.length}
-                    >
-                        <option value="">All Cities</option>
-                        {uniqueCities.map(c => (
-                            <option key={c} value={c}>{c}</option>
-                        ))}
-                    </select>
+                    <div style={{ width: 220 }}>
+                        <SearchableSelect
+                            value={selectedCity}
+                            options={uniqueCities}
+                            onChange={(val) => {
+                                setSelectedCity(val);
+                                setPage(1);
+                            }}
+                            placeholder="All Cities"
+                            disabled={!uniqueCities.length}
+                        />
+                    </div>
 
                     <select
                         className="adminSelect"
@@ -835,17 +924,17 @@ export default function ChurchesAdmin() {
             {
                 !loading ? (
                     <div className="adminFullContent">
-                        {globalError ? <div className="adminAlert">{globalError}</div> : null}
 
                         {showNew ? (
                             <div>
                                 <NewChurchCard
                                     drafts={newDrafts}
                                     setDraft={setNewField}
-                                    errorText={newError}
                                     saveState={newState}
                                     onCancel={cancelNew}
                                     onSave={saveNew}
+                                    onDiscover={() => handleDiscover(newDrafts.city, newDrafts.country)}
+                                    isDiscovering={isDiscovering}
                                 />
                             </div>
                         ) : null}
@@ -858,13 +947,11 @@ export default function ChurchesAdmin() {
                                     expanded={expandedIds.has(it.id)}
                                     drafts={draftsById[it.id] || it}
                                     saveState={saveStateById[it.id] || "idle"}
-                                    errorText={errorById[it.id] || ""}
                                     onToggle={toggleExpand}
                                     onChange={changeDraft}
                                     onSave={saveOne}
                                     onDelete={deleteOne}
                                     setSaveStateById={setSaveStateById}
-                                    setErrorById={setErrorById}
                                 />
                             ))}
 
@@ -885,6 +972,7 @@ export default function ChurchesAdmin() {
                             isOpen={modal.isOpen}
                             title={modal.title}
                             message={modal.message}
+                            progress={modal.progress}
                             actions={modal.actions}
                             onConfirm={modal.onConfirm}
                             onCancel={() => setModal({ ...modal, isOpen: false })}

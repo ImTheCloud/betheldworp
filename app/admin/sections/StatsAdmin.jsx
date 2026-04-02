@@ -5,6 +5,8 @@ import { useEffect, useMemo, useState } from "react";
 import { collection, collectionGroup, getDocs } from "firebase/firestore";
 import { db } from "../../lib/Firebase";
 import AdminSearch from "../components/AdminSearch";
+import ConfirmModal from "../components/ConfirmModal";
+import { useCallback } from "react";
 
 const BOT_ICON = "🤖";
 const HUMAN_ICON = "👤";
@@ -383,13 +385,28 @@ function DonutWithLegend({ title, rows, total, search, centerLabel, nameLabel })
 
 export default function StatsAdmin() {
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
 
     const [rangeMode, setRangeMode] = useState("7");
     const [page, setPage] = useState("lp");
     const [visitorType, setVisitorType] = useState("human");
     const [mode, setMode] = useState("cities");
     const [search, setSearch] = useState("");
+
+    const [modal, setModal] = useState({ isOpen: false, title: "", message: "" });
+    const openInfoModal = useCallback((title, message) => {
+        setModal({
+            isOpen: true,
+            title,
+            message,
+            actions: [
+                {
+                    label: "OK",
+                    variant: "primary",
+                    onClick: () => setModal((prev) => ({ ...prev, isOpen: false }))
+                }
+            ]
+        });
+    }, []);
 
     const todayKey = useMemo(() => brusselsDayKey(), []);
     const siteStartLabel = useMemo(() => formatEnDateFromKey(SITE_START_KEY), []);
@@ -404,7 +421,6 @@ export default function StatsAdmin() {
         (async () => {
             try {
                 setLoading(true);
-                setError("");
 
                 const [dailySnap, globalSnap, worldMapSnap] = await Promise.all([
                     getDocs(collectionGroup(db, "visitors")),
@@ -466,8 +482,8 @@ export default function StatsAdmin() {
             } catch (e) {
                 if (!alive) return;
                 console.error(e);
-                setError("Could not load visits.");
                 setLoading(false);
+                openInfoModal("Loading Error", "Could not load visits.");
             }
         })();
 
@@ -713,8 +729,6 @@ export default function StatsAdmin() {
                 <div className="adminSkeleton" />
             ) : (
                 <div className="adminFullContent">
-                    {error ? <div className="adminAlert">{error}</div> : null}
-
                     <BarChart
                         title={`${visitorType === "unique" ? "Real Traffic" : "Daily Traffic"} • Timeline`}
                         rows={agg.timeline}
@@ -776,6 +790,14 @@ export default function StatsAdmin() {
                             </div>
                         </div>
                     )}
+                    <ConfirmModal
+                        isOpen={modal.isOpen}
+                        title={modal.title}
+                        message={modal.message}
+                        actions={modal.actions}
+                        onConfirm={modal.onConfirm}
+                        onCancel={() => setModal({ ...modal, isOpen: false })}
+                    />
                 </div>
             )}
         </div>

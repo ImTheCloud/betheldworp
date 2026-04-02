@@ -33,6 +33,28 @@ export function emptyChurch() {
     return { name: "", locationTitle: "", street: "", number: "", city: "", country: "Belgium", zipCode: "", lat: "", lng: "", phone: "", email: "", website: "", youtube: "", facebook: "", instagram: "", notes: "", isDraft: false, place_id: "", openingHours: [], googleMapsUri: "", rating: null };
 }
 
+export const PENTECOSTAL_NAMES = [
+    "Bethel", "Betania", "Bethania", "Bethany", "Elim", "Emanuel", "Speranta", "Speranța", 
+    "Filadelfia", "Maranata", "Maranatha", "Golgota", "Sion", "Harul", "Efes", 
+    "Poarta Cerului", "Izvorul", "Agape", "Ghetsimani", "Carmel", "Gloria", 
+    "Muntele Sionului", "Vestea Buna", "Vestea Bună", "Salem", "Lumina", 
+    "Rugul Aprins", "Emaus", "Eben-Ezer", "Mangaietorul", "Mângâietorul", 
+    "Piatra Unghiulara", "Piatra Unghiulară", "Stanca Mantuirii", "Stânca Mântuirii", 
+    "Muntele Maslinilor", "Muntele Măslinilor", "Izvorul Vietii", "Izvorul Vieții", 
+    "Alfa si Omega", "Alfa și Omega", "Lumina Lumii", "Logos", "Saron", "Siloam",
+    "Pacea", "Izbavirea", "Horeb", "Buna Vestire", "Biruinta", "Biruința",
+    "Casa Painii", "Casa Pâinii", "Canaan", "Muntele Moria", "Salvarea",
+    "Sfantul Ilie", "Porumbita", "Pridvorul", "Calea, Adevarul si Viata", "Tabor"
+];
+
+export const shuffleArray = (array) => {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+};
 
 
 export const normalizeText = (text) => {
@@ -194,6 +216,7 @@ export const processGoogleData = (res, components, originalQuery = "", placeId =
     };
 
     setIf("name", cleanedName);
+    setIf("locationTitle", rawName);
 
     setIf("street", getComp(["route"]));
     setIf("number", getComp(["street_number"]));
@@ -299,7 +322,7 @@ export const fetchGooglePlaceData = async (query, city = "", country = "", place
             return await res.json();
         };
 
-        if (country && country !== "Belgium") {
+        if (country) {
             const q = [query, city, country].filter(Boolean).join(", ");
             const data = await performSearch(q);
             results = data.results || [];
@@ -308,14 +331,6 @@ export const fetchGooglePlaceData = async (query, city = "", country = "", place
             fallbackUsed = data._fallback || false;
         }
 
-        if (results.length === 0) {
-            console.log("Searching with just query:", query);
-            const data = await performSearch(query);
-            results = data.results || [];
-            status = data.status;
-            googleError = data._googleError;
-            fallbackUsed = data._fallback || false;
-        }
         
         if (results.length === 0) {
             console.warn("No results found for query:", query);

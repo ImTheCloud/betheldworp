@@ -234,7 +234,7 @@ function IconSave(props) {
     );
 }
 
-function OverrideCard({ item, expanded, draft, saveState, errorText, eventsList, weekKeyForCard, onToggleExpand, onToggleAffected, onChangeWeekKey, onChangeReplacement, onChangeAddition, onSave, onDelete }) {
+function OverrideCard({ item, expanded, draft, saveState, eventsList, weekKeyForCard, onToggleExpand, onToggleAffected, onChangeWeekKey, onChangeReplacement, onChangeAddition, onSave, onDelete }) {
     const id = safeStr(item?.id).trim();
     const affectedSet = useMemo(() => toSet(draft?.affectedProgramIds ?? item?.affectedProgramIds), [draft, item]);
     const weekKeyValue = safeStr(draft?.weekKey ?? item?.weekKey);
@@ -274,8 +274,6 @@ function OverrideCard({ item, expanded, draft, saveState, errorText, eventsList,
 
             {expanded ? (
                 <div className="adminAnnBody">
-                    {errorText ? <div className="adminAlert">{errorText}</div> : null}
-
                     <label className="adminLabel">
                         Week
                         <input
@@ -421,7 +419,7 @@ function OverrideCard({ item, expanded, draft, saveState, errorText, eventsList,
     );
 }
 
-function NewOverrideCard({ draft, saveState, errorText, eventsList, weekKeyForCard, onToggleAffected, onChangeWeekKey, onChangeReplacement, onChangeAddition, onCancel, onSave }) {
+function NewOverrideCard({ draft, saveState, eventsList, weekKeyForCard, onToggleAffected, onChangeWeekKey, onChangeReplacement, onChangeAddition, onCancel, onSave }) {
     const affectedSet = useMemo(() => toSet(draft?.affectedProgramIds), [draft]);
     const weekKeyValue = safeStr(draft?.weekKey);
     const replacements = safeObj(draft?.replacements);
@@ -435,8 +433,6 @@ function NewOverrideCard({ draft, saveState, errorText, eventsList, weekKeyForCa
             </div>
 
             <div className="adminAnnBody">
-                {errorText ? <div className="adminAlert">{errorText}</div> : null}
-
                 <label className="adminLabel">
                     Week
                     <input
@@ -553,7 +549,7 @@ function NewOverrideCard({ draft, saveState, errorText, eventsList, weekKeyForCa
                         Cancel
                     </button>
 
-                    <button type="button" className="adminMsgSaveBtn" onClick={onSave} disabled={saveState === "saving" || !!errorText}>
+                    <button type="button" className="adminMsgSaveBtn" onClick={onSave} disabled={saveState === "saving"}>
                         <IconSave />
                         {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved ✓" : "Save"}
                     </button>
@@ -588,7 +584,6 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed }) {
     const timeoutRef = useRef(null);
 
     const [loading, setLoading] = useState(true);
-    const [globalError, setGlobalError] = useState("");
 
     const [items, setItems] = useState([]);
     const [showHistory, setShowHistory] = useState(false);
@@ -596,7 +591,6 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed }) {
 
     const [draftsById, setDraftsById] = useState({});
     const [saveStateById, setSaveStateById] = useState({});
-    const [errorById, setErrorById] = useState({});
 
     const [showNew, setShowNew] = useState(false);
     const [newDraft, setNewDraft] = useState(() => ({
@@ -605,7 +599,6 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed }) {
         replacements: {},
         additions: {},
     }));
-    const [newError, setNewError] = useState("");
     const [newState, setNewState] = useState("idle");
 
     const [modal, setModal] = useState({ isOpen: false, title: "", message: "", onConfirm: () => { } });
@@ -742,7 +735,6 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed }) {
 
     useEffect(() => {
         setLoading(true);
-        setGlobalError("");
 
         const ref = collection(db, "program_overrides");
         const unsub = onSnapshot(
@@ -810,7 +802,7 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed }) {
                 console.error(err);
                 if (!mountedRef.current) return;
                 setLoading(false);
-                setGlobalError("Could not load program overrides.");
+                openInfoModal("Loading Error", "Could not load program overrides.");
             }
         );
 
@@ -843,12 +835,9 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed }) {
 
             // Immediate validation
             if (!isValidWeekKey(val)) {
-                setNewError("Invalid week (YYYY-Www).");
-            } else {
-                setNewError("");
+                // We'll catch this on save too
             }
 
-            if (globalError) setGlobalError("");
             return;
         }
 
@@ -857,8 +846,6 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed }) {
             ...prev,
             [key]: { ...(prev[key] || { weekKey: "", affectedProgramIds: [] }), weekKey: weekKey || safeStr(wk).trim() },
         }));
-        setErrorById((m) => ({ ...m, [key]: "" }));
-        if (globalError) setGlobalError("");
     };
 
     const toggleAffected = (id, programId) => {
@@ -875,8 +862,6 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed }) {
                 if (!set.has(p)) delete repl[p];
                 return { ...d, affectedProgramIds: Array.from(set), replacements: repl };
             });
-            if (newError) setNewError("");
-            if (globalError) setGlobalError("");
             return;
         }
 
@@ -889,8 +874,6 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed }) {
             if (!set.has(p)) delete repl[p];
             return { ...prev, [key]: { ...cur, affectedProgramIds: Array.from(set), replacements: repl } };
         });
-        setErrorById((m) => ({ ...m, [key]: "" }));
-        if (globalError) setGlobalError("");
     };
 
     const changeReplacement = (id, programId, eventId) => {
@@ -905,7 +888,6 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed }) {
                 else delete repl[p];
                 return { ...d, replacements: repl };
             });
-            if (newError) setNewError("");
             return;
         }
 
@@ -917,7 +899,6 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed }) {
             else delete repl[p];
             return { ...prev, [key]: { ...cur, replacements: repl } };
         });
-        setErrorById((m) => ({ ...m, [key]: "" }));
     };
 
     const changeAddition = (id, programId, eventId) => {
@@ -932,7 +913,6 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed }) {
                 else delete add[p];
                 return { ...d, additions: add };
             });
-            if (newError) setNewError("");
             return;
         }
 
@@ -944,7 +924,6 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed }) {
             else delete add[p];
             return { ...prev, [key]: { ...cur, additions: add } };
         });
-        setErrorById((m) => ({ ...m, [key]: "" }));
     };
 
 
@@ -956,21 +935,18 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed }) {
             replacements: {},
             additions: {},
         });
-        setNewError("");
         setNewState("idle");
-        if (globalError) setGlobalError("");
     };
 
     const cancelNew = () => {
         setShowNew(false);
-        setNewError("");
         setNewState("idle");
     };
 
     const saveNew = async () => {
         const weekKey = safeStr(newDraft?.weekKey).trim().toUpperCase();
         if (!isValidWeekKey(weekKey)) {
-            setNewError("Invalid week (YYYY-Www).");
+            openInfoModal("Action Required", "Invalid week format (YYYY-Www).");
             return;
         }
 
@@ -980,7 +956,6 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed }) {
             return;
         }
 
-        setNewError("");
         setNewState("saving");
 
         try {
@@ -1005,7 +980,7 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed }) {
             console.error(err);
             if (!mountedRef.current) return;
             setNewState("error");
-            setNewError("Could not save new override.");
+            openInfoModal("Save Error", "Could not save new override.");
         }
     };
 
@@ -1018,11 +993,10 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed }) {
 
         const weekKey = safeStr(draft.weekKey).trim().toUpperCase();
         if (!isValidWeekKey(weekKey)) {
-            setErrorById((m) => ({ ...m, [key]: "Invalid week (YYYY-Www)." }));
+            openInfoModal("Action Required", "Invalid week (YYYY-Www).");
             return;
         }
 
-        setErrorById((m) => ({ ...m, [key]: "" }));
         setSaveStateById((m) => ({ ...m, [key]: "saving" }));
 
         try {
@@ -1043,7 +1017,7 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed }) {
             console.error(err);
             if (!mountedRef.current) return;
             setSaveStateById((m) => ({ ...m, [key]: "error" }));
-            setErrorById((m) => ({ ...m, [key]: "Could not save override." }));
+            openInfoModal("Save Error", "Could not save override.");
         }
     };
 
@@ -1057,8 +1031,6 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed }) {
             message: `Are you sure you want to delete the program override for ${key}?`,
             onConfirm: async () => {
                 setModal({ isOpen: false });
-                setGlobalError("");
-                setErrorById((m) => ({ ...m, [key]: "" }));
                 setSaveStateById((m) => ({ ...m, [key]: "saving" }));
 
                 try {
@@ -1068,7 +1040,7 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed }) {
                     console.error(err);
                     if (!mountedRef.current) return;
                     setSaveStateById((m) => ({ ...m, [key]: "error" }));
-                    setErrorById((m) => ({ ...m, [key]: "Could not delete override." }));
+                    openInfoModal("Action Failed", "Could not delete override.");
                 }
             }
         });
@@ -1114,16 +1086,12 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed }) {
                 <div className="adminSkeleton" />
             ) : (
                 <div className="adminFullContent">
-                    {globalError ? <div className="adminAlert">{globalError}</div> : null}
-
-
                     <div className="adminFullList">
                         {showNew ? (
                             <div>
                                 <NewOverrideCard
                                     draft={newDraft}
                                     saveState={newState}
-                                    errorText={newError}
                                     eventsList={eventsList}
                                     weekKeyForCard={newDraft.weekKey}
                                     onToggleAffected={toggleAffected}
@@ -1145,7 +1113,6 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed }) {
                                         expanded={expandedIds.has(it.id)}
                                         draft={draftsById[it.id]}
                                         saveState={saveStateById[it.id] || "idle"}
-                                        errorText={errorById[it.id] || ""}
                                         eventsList={eventsList}
                                         weekKeyForCard={safeStr(draftsById[it.id]?.weekKey ?? it.weekKey)}
                                         onToggleExpand={toggleExpand}
@@ -1167,7 +1134,6 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed }) {
                                         expanded={expandedIds.has(it.id)}
                                         draft={draftsById[it.id]}
                                         saveState={saveStateById[it.id] || "idle"}
-                                        errorText={errorById[it.id] || ""}
                                         eventsList={eventsList}
                                         weekKeyForCard={safeStr(draftsById[it.id]?.weekKey ?? it.weekKey)}
                                         onToggleExpand={toggleExpand}

@@ -4,6 +4,7 @@ import React, { useRef } from "react";
 import { COUNTRY_OPTIONS } from "../utils/churchHelpers";
 import { IconSync, IconMap } from "./ChurchIcons";
 import { SyncDiffLabel, GoogleSearchButton, PreviewLinkButton } from "./SyncDiffLabel";
+import SearchableSelect from "../../components/SearchableSelect";
 
 /**
  * ChurchFormFields — Shared form fields component used by both ChurchCard, NewChurchCard, and Suggestions.
@@ -31,7 +32,9 @@ export default function ChurchFormFields({
     isSyncing = false,
     syncSuccess = false,
     disabled = false,
-    showGoogleEnrichment = true
+    showGoogleEnrichment = true,
+    onDiscover = null,
+    isDiscovering = false
 }) {
     const searchQuery = `Biserica Penticostala ${drafts.name || ""} ${drafts.city || ""}`.trim();
 
@@ -64,30 +67,62 @@ export default function ChurchFormFields({
                         <label className="adminLabel" style={{ marginBottom: 0 }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, overflow: "hidden" }}>
                                 <span>Location Title (Directions)</span>
+                                {(() => {
+                                    const queryForMap = drafts.locationTitle || drafts.name || "";
+                                    const googleMapsLink = drafts.googleMapsUri 
+                                        ? drafts.googleMapsUri 
+                                        : drafts.place_id 
+                                            ? `https://www.google.com/maps/search/?api=1&query=Google&query_place_id=${drafts.place_id}`
+                                            : queryForMap 
+                                                ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${queryForMap} ${drafts.city || ""} ${drafts.country || ""}`.trim())}`
+                                                : null;
+                                    
+                                    return googleMapsLink ? <PreviewLinkButton url={googleMapsLink} /> : null;
+                                })()}
                             </div>
                         </label>
-                        {onSync && !disabled && (
-                            <button 
-                                type="button" 
-                                style={{ fontSize: 11, fontWeight: 700, color: "#2563eb", border: "none", background: "transparent", padding: "4px 0", borderRadius: 6, cursor: isSyncing ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 6, transition: "all 0.2s", opacity: isSyncing ? 0.5 : 1, flexShrink: 0 }}
-                                disabled={isSyncing}
-                                onClick={onSync}
-                            >
-                                {isSyncing ? (
-                                    <div className="adminSpinner" style={{ width: 12, height: 12, border: "2px solid #2563eb", borderTopColor: "transparent" }} />
-                                ) : syncSuccess ? (
-                                    <span className="adminSyncSuccess">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><path d="M20 6L9 17l-5-5" /></svg>
-                                        Done
-                                    </span>
-                                ) : (
-                                    <>
-                                        <IconSync style={{ width: 12, height: 12 }} />
-                                        Synchronisation
-                                    </>
-                                )}
-                            </button>
-                        )}
+                        <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+                            {onDiscover && !disabled && (
+                                <button 
+                                    type="button" 
+                                    style={{ fontSize: 11, fontWeight: 700, color: "#10b981", border: "none", background: "transparent", padding: "4px 0", borderRadius: 6, cursor: isDiscovering ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 6, transition: "all 0.2s", opacity: isDiscovering ? 0.5 : 1, flexShrink: 0 }}
+                                    disabled={isDiscovering}
+                                    onClick={onDiscover}
+                                >
+                                    {isDiscovering ? (
+                                        <div className="adminSpinner" style={{ width: 12, height: 12, border: "2px solid #10b981", borderTopColor: "transparent" }} />
+                                    ) : (
+                                        <>
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                                            Discover
+                                        </>
+                                    )}
+                                </button>
+                            )}
+
+                            {onSync && !disabled && (
+                                <button 
+                                    type="button" 
+                                    style={{ fontSize: 11, fontWeight: 700, color: "#2563eb", border: "none", background: "transparent", padding: "4px 0", borderRadius: 6, cursor: isSyncing ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 6, transition: "all 0.2s", opacity: isSyncing ? 0.5 : 1, flexShrink: 0 }}
+                                    disabled={isSyncing}
+                                    onClick={onSync}
+                                >
+                                    {isSyncing ? (
+                                        <div className="adminSpinner" style={{ width: 12, height: 12, border: "2px solid #2563eb", borderTopColor: "transparent" }} />
+                                    ) : syncSuccess ? (
+                                        <span className="adminSyncSuccess">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><path d="M20 6L9 17l-5-5" /></svg>
+                                            Done
+                                        </span>
+                                    ) : (
+                                        <>
+                                            <IconSync style={{ width: 12, height: 12 }} />
+                                            Synchronisation
+                                        </>
+                                    )}
+                                </button>
+                            )}
+                        </div>
                     </div>
                     <input 
                         className={`adminInput ${getHighlightClass("locationTitle")}`} 
@@ -130,16 +165,14 @@ export default function ChurchFormFields({
                     <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
                         <span>Country</span>
                     </div>
-                    <select 
-                        className={`adminSelect ${getHighlightClass("country")}`} 
-                        style={{ width: "100%", marginTop: 4 }} 
-                        value={drafts.country ?? ""} 
-                        onChange={(e) => onChange("country", e.target.value)}
+                    <SearchableSelect
+                        className={getHighlightClass("country")}
+                        value={drafts.country ?? ""}
+                        options={COUNTRY_OPTIONS}
+                        onChange={(val) => onChange("country", val)}
                         disabled={disabled}
-                    >
-                        <option value="">-- Select Country --</option>
-                        {COUNTRY_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                    </select>
+                        placeholder="Type to search country..."
+                    />
                     <SyncDiffLabel field="country" syncedFields={syncedFields} onRestore={onRestore} />
                 </label>
                 <label className="adminLabel">

@@ -3,6 +3,7 @@
  * Performs zero-cost church data synchronization using:
  * 1. Google Places Data
  * 2. Official website scraping
+ * 3. Web search fallback (for missing fields when no website or scraping fails)
  */
 
 import { fetchGooglePlaceData, isMeaningfullyDifferent } from "../utils/churchHelpers";
@@ -37,6 +38,8 @@ export async function syncChurchBot(churchData) {
         }
     }
 
+    // ── 3. No more web search fallback (as requested) ─────────────────────────
+    
     return enrichedData;
 }
 
@@ -149,3 +152,4 @@ export function isBotSuggestionUseful(church, newData) {
 
     return false;
 }
+

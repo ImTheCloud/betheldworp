@@ -14,6 +14,8 @@ import NewsletterAdmin from "./sections/NewsletterAdmin";
 import ChurchesAdmin from "./sections/ChurchesAdmin";
 import ChurchSuggestionsAdmin from "./sections/ChurchSuggestionsAdmin";
 import AdminSidebar from "./AdminSidebar";
+import ConfirmModal from "./components/ConfirmModal";
+import { useCallback } from "react";
 
 function isValidEmail(value) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
@@ -48,11 +50,26 @@ export default function Admin() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [loggingIn, setLoggingIn] = useState(false);
-    const [authError, setAuthError] = useState("");
-
+    const [pendingOverride, setPendingOverride] = useState(null);
     const [activeTab, setActiveTab] = useState("stats");
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [pendingOverride, setPendingOverride] = useState(null);
+
+    const [modal, setModal] = useState({ isOpen: false, title: "", message: "", progress: null });
+    const openInfoModal = useCallback((title, message) => {
+        setModal({
+            isOpen: true,
+            title,
+            message,
+            actions: [
+                {
+                    label: "OK",
+                    variant: "primary",
+                    onClick: () => setModal((prev) => ({ ...prev, isOpen: false }))
+                }
+            ],
+            progress: null
+        });
+    }, []);
 
     // Sync hash -> tab (initial & back/forward buttons)
     useEffect(() => {
@@ -145,17 +162,16 @@ export default function Admin() {
 
     const login = async (e) => {
         e?.preventDefault?.();
-        setAuthError("");
 
         const cleanEmail = String(email || "").trim();
         const pass = String(password || "");
 
         if (!cleanEmail || !pass) {
-            setAuthError("Please enter email and password.");
+            openInfoModal("Login Failed", "Please enter both email and password.");
             return;
         }
         if (!isValidEmail(cleanEmail)) {
-            setAuthError("Invalid email.");
+            openInfoModal("Login Failed", "Please enter a valid email address.");
             return;
         }
 
@@ -165,19 +181,18 @@ export default function Admin() {
             setPassword("");
         } catch (err) {
             console.error(err);
-            setAuthError(mapAuthError(err?.code));
+            openInfoModal("Login error", mapAuthError(err?.code));
         } finally {
             setLoggingIn(false);
         }
     };
 
     const logout = async () => {
-        setAuthError("");
         try {
             await signOut(auth);
         } catch (err) {
             console.error(err);
-            setAuthError("Could not logout.");
+            openInfoModal("Logout Error", "Could not logout safely.");
         }
     };
 
@@ -245,8 +260,6 @@ export default function Admin() {
                     <div className="adminCard adminCard--login">
                         <h2 className="adminTitle">Login</h2>
 
-                        {authError ? <div className="adminAlert">{authError}</div> : null}
-
                         <form className="adminForm" onSubmit={login}>
                             <label className="adminLabel">
                                 Email
@@ -256,7 +269,6 @@ export default function Admin() {
                                     value={email}
                                     onChange={(e) => {
                                         setEmail(e.target.value);
-                                        if (authError) setAuthError("");
                                     }}
                                     autoComplete="email"
                                 />
@@ -270,7 +282,6 @@ export default function Admin() {
                                     value={password}
                                     onChange={(e) => {
                                         setPassword(e.target.value);
-                                        if (authError) setAuthError("");
                                     }}
                                     autoComplete="current-password"
                                 />
@@ -281,6 +292,15 @@ export default function Admin() {
                             </button>
                         </form>
                     </div>
+                    <ConfirmModal
+                        isOpen={modal.isOpen}
+                        title={modal.title}
+                        message={modal.message}
+                        actions={modal.actions}
+                        progress={modal.progress}
+                        onConfirm={modal.onConfirm}
+                        onCancel={() => setModal({ ...modal, isOpen: false })}
+                    />
                 </div>
             ) : !isAdmin ? (
                 <div className="adminLoginWrap">
@@ -336,6 +356,15 @@ export default function Admin() {
                     </main>
                 </div>
             )}
+            <ConfirmModal
+                isOpen={modal.isOpen}
+                title={modal.title}
+                message={modal.message}
+                actions={modal.actions}
+                progress={modal.progress}
+                onConfirm={modal.onConfirm}
+                onCancel={() => setModal({ ...modal, isOpen: false })}
+            />
         </div>
     );
 }

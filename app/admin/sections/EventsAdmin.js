@@ -167,7 +167,7 @@ function IconSave(props) {
     );
 }
 
-function EventCard({ item, expanded, draft, saveState, errorText, activeLang, onToggle, onLangChange, onChangeField, onSave, onDelete, onOverrideWeek }) {
+function EventCard({ item, expanded, draft, saveState, activeLang, onToggle, onLangChange, onChangeField, onSave, onDelete, onOverrideWeek }) {
     const id = safeStr(item?.id);
     const dirty = !eventEqual(draft, item);
     const langKey = activeLang || "ro";
@@ -200,8 +200,6 @@ function EventCard({ item, expanded, draft, saveState, errorText, activeLang, on
 
             {expanded ? (
                 <div className="adminAnnBody">
-                    {errorText ? <div className="adminAlert">{errorText}</div> : null}
-
                     <div className="adminGrid2">
                         <label className="adminLabel">
                             Date
@@ -332,7 +330,7 @@ function EventCard({ item, expanded, draft, saveState, errorText, activeLang, on
     );
 }
 
-function NewEventCard({ draft, saveState, errorText, activeLang, onLangChange, onChangeField, onCancel, onSave, templates = [], onSelectTemplate }) {
+function NewEventCard({ draft, saveState, activeLang, onLangChange, onChangeField, onCancel, onSave, templates = [], onSelectTemplate }) {
     const langKey = activeLang || "ro";
 
     return (
@@ -365,8 +363,6 @@ function NewEventCard({ draft, saveState, errorText, activeLang, onLangChange, o
                         ))}
                     </select>
                 </div>
-
-                {errorText ? <div className="adminAlert">{errorText}</div> : null}
 
                 <div className="adminGrid2">
                     <label className="adminLabel">
@@ -472,12 +468,9 @@ export default function EventsAdmin({ onCreateOverride }) {
     const timeoutRef = useRef(null);
 
     const [loading, setLoading] = useState(true);
-    const [globalError, setGlobalError] = useState("");
-
     const [items, setItems] = useState([]);
     const [draftsById, setDraftsById] = useState({});
     const [saveStateById, setSaveStateById] = useState({});
-    const [errorById, setErrorById] = useState({});
     const [expandedIds, setExpandedIds] = useState(() => new Set());
     const [activeLangById, setActiveLangById] = useState({});
     const [searchQuery, setSearchQuery] = useState("");
@@ -492,11 +485,25 @@ export default function EventsAdmin({ onCreateOverride }) {
         title: emptyLangMap(),
         description: emptyLangMap(),
     }));
-    const [newError, setNewError] = useState("");
     const [newState, setNewState] = useState("idle");
     const [newLang, setNewLang] = useState("ro");
 
     const [modal, setModal] = useState({ isOpen: false, title: "", message: "", onConfirm: () => { } });
+
+    const openInfoModal = (title, message) => {
+        setModal({
+            isOpen: true,
+            title,
+            message,
+            actions: [
+                {
+                    label: "OK",
+                    variant: "primary",
+                    onClick: () => setModal((prev) => ({ ...prev, isOpen: false }))
+                }
+            ]
+        });
+    };
 
     const [showHistory, setShowHistory] = useState(false);
 
@@ -563,7 +570,6 @@ export default function EventsAdmin({ onCreateOverride }) {
 
     useEffect(() => {
         setLoading(true);
-        setGlobalError("");
 
         const unsub = onSnapshot(
             collection(db, "events"),
@@ -614,7 +620,7 @@ export default function EventsAdmin({ onCreateOverride }) {
                 console.error(err);
                 if (!mountedRef.current) return;
                 setLoading(false);
-                setGlobalError("Could not load events.");
+                openInfoModal("Loading Error", "Could not load events.");
             }
         );
 
@@ -647,7 +653,6 @@ export default function EventsAdmin({ onCreateOverride }) {
             }
             return { ...prev, [key]: next };
         });
-        setErrorById((m) => ({ ...m, [key]: "" }));
     };
 
     const changeNewField = (field, lang, value) => {
@@ -662,20 +667,17 @@ export default function EventsAdmin({ onCreateOverride }) {
             }
             return next;
         });
-        setNewError("");
     };
 
     const startNew = () => {
         setShowNew(true);
         setNewDraft(cleanEvent({}));
-        setNewError("");
         setNewState("idle");
     };
 
     const cancelNew = () => {
         setShowNew(false);
         setNewState("idle");
-        setNewError("");
     };
 
     const applyTemplate = (templateItem) => {
@@ -690,16 +692,15 @@ export default function EventsAdmin({ onCreateOverride }) {
     const saveNew = async () => {
         const d = cleanEvent(newDraft);
         if (!d.dateEvent) {
-            setNewError("Fill in date (YYYY-MM-DD or DD.MM.YYYY).");
+            openInfoModal("Action Required", "Fill in date (YYYY-MM-DD or DD.MM.YYYY).");
             return;
         }
         if (!pickFallback(d.title)) {
-            setNewError("Fill in title for at least RO or EN.");
+            openInfoModal("Action Required", "Fill in title for at least RO or EN.");
             return;
         }
 
         setNewState("saving");
-        setNewError("");
 
         try {
             const ref = doc(collection(db, "events"));
@@ -716,7 +717,7 @@ export default function EventsAdmin({ onCreateOverride }) {
             console.error(err);
             if (!mountedRef.current) return;
             setNewState("error");
-            setNewError("Could not save event.");
+            openInfoModal("Save Error", "Could not save event.");
         }
     };
 
@@ -730,11 +731,11 @@ export default function EventsAdmin({ onCreateOverride }) {
         // Validations
         const d = cleanEvent(draft);
         if (!d.dateEvent) {
-            setErrorById((m) => ({ ...m, [key]: "Fill in date." }));
+            openInfoModal("Action Required", "Fill in date.");
             return;
         }
         if (!pickFallback(d.title)) {
-            setErrorById((m) => ({ ...m, [key]: "Fill in title." }));
+            openInfoModal("Action Required", "Fill in title.");
             return;
         }
 
@@ -780,7 +781,6 @@ export default function EventsAdmin({ onCreateOverride }) {
         const d = cleanEvent(draft);
 
         setSaveStateById((m) => ({ ...m, [key]: "saving" }));
-        setErrorById((m) => ({ ...m, [key]: "" }));
 
         try {
             if (dateChanged) {
@@ -808,7 +808,7 @@ export default function EventsAdmin({ onCreateOverride }) {
             console.error(err);
             if (!mountedRef.current) return;
             setSaveStateById((m) => ({ ...m, [key]: "error" }));
-            setErrorById((m) => ({ ...m, [key]: "Could not save event." }));
+            openInfoModal("Save Error", "Could not save event.");
         }
     };
 
@@ -823,7 +823,6 @@ export default function EventsAdmin({ onCreateOverride }) {
             onConfirm: async () => {
                 setModal({ isOpen: false });
                 setSaveStateById((m) => ({ ...m, [key]: "saving" }));
-                setErrorById((m) => ({ ...m, [key]: "" }));
 
                 try {
                     await deleteDoc(doc(db, "events", key));
@@ -831,7 +830,7 @@ export default function EventsAdmin({ onCreateOverride }) {
                     console.error(err);
                     if (!mountedRef.current) return;
                     setSaveStateById((m) => ({ ...m, [key]: "error" }));
-                    setErrorById((m) => ({ ...m, [key]: "Could not delete event." }));
+                    openInfoModal("Action Failed", "Could not delete event.");
                 }
             }
         });
@@ -905,14 +904,11 @@ export default function EventsAdmin({ onCreateOverride }) {
                 <div className="adminSkeleton" />
             ) : (
                 <div className="adminFullContent">
-                    {globalError ? <div className="adminAlert">{globalError}</div> : null}
-
                     {showNew ? (
                         <div>
                             <NewEventCard
                                 draft={newDraft}
                                 saveState={newState}
-                                errorText={newError}
                                 activeLang={newLang}
                                 onLangChange={setNewLang}
                                 onChangeField={changeNewField}
@@ -934,7 +930,6 @@ export default function EventsAdmin({ onCreateOverride }) {
                                         expanded={expandedIds.has(it.id)}
                                         draft={draftsById[it.id]}
                                         saveState={saveStateById[it.id] || "idle"}
-                                        errorText={errorById[it.id] || ""}
                                         activeLang={activeLangById[it.id]}
                                         onLangChange={(id, l) => setActiveLangById((m) => ({ ...m, [id]: l }))}
                                         onToggle={toggleExpand}
@@ -954,7 +949,6 @@ export default function EventsAdmin({ onCreateOverride }) {
                                         expanded={expandedIds.has(it.id)}
                                         draft={draftsById[it.id]}
                                         saveState={saveStateById[it.id] || "idle"}
-                                        errorText={errorById[it.id] || ""}
                                         activeLang={activeLangById[it.id]}
                                         onLangChange={(id, l) => setActiveLangById((m) => ({ ...m, [id]: l }))}
                                         onToggle={toggleExpand}
