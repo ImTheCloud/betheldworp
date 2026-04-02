@@ -1,12 +1,14 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import { collection, doc, onSnapshot, updateDoc, setDoc, serverTimestamp, deleteDoc } from "firebase/firestore";
+import { collection, doc, onSnapshot, updateDoc, setDoc, serverTimestamp, deleteDoc, addDoc } from "firebase/firestore";
 import { db } from "../../lib/Firebase";
 import ConfirmModal from "../components/ConfirmModal";
 import ChurchFormFields from "../components/ChurchFormFields";
-import { IconCheck, IconX, IconChevronDown, IconEyeOff, IconHistory, IconTrash, IconMap } from "../components/ChurchIcons";
-import { geocodeAddress, fetchGooglePlaceData } from "../utils/churchHelpers";
+import { IconCheck, IconX, IconChevronDown, IconEyeOff, IconHistory, IconTrash } from "../components/ChurchIcons";
+import SearchableSelect from "../../components/SearchableSelect";
+import { geocodeAddress, fetchGooglePlaceData, PENTECOSTAL_NAMES, shuffleArray, normalizeText, emptyChurch, COUNTRY_OPTIONS } from "../utils/churchHelpers";
+import { syncChurchBot } from "../services/churchSyncBot";
 
 export default function ChurchSuggestionsAdmin() {
     const [suggestions, setSuggestions] = useState([]);
@@ -22,6 +24,10 @@ export default function ChurchSuggestionsAdmin() {
     const [modal, setModal] = useState({ isOpen: false, title: "", message: "", onConfirm: () => {} });
     const [showHistory, setShowHistory] = useState(false);
     const [diffRecomputeTrigger, setDiffRecomputeTrigger] = useState(0);
+    const [discoverCountry, setDiscoverCountry] = useState("");
+    const [isDiscovering5, setIsDiscovering5] = useState(false);
+    const [discover5Count, setDiscover5Count] = useState(0);
+    const [discover5Status, setDiscover5Status] = useState("");
 
     const FIELDS_TO_COMPARE = ["name", "locationTitle", "city", "country", "zipCode", "street", "number", "phone", "email", "website", "youtube", "instagram", "facebook", "lat", "lng"];
 
@@ -309,6 +315,92 @@ export default function ChurchSuggestionsAdmin() {
         }
     };
 
+    const handleDiscover5 = async () => {
+        if (isDiscovering5) return;
+
+        setIsDiscovering5(true);
+        setDiscover5Count(0);
+        setDiscover5Status("Starting discovery...");
+
+        try {
+            const existingPlaceIds = new Set();
+            Object.values(churchesById).forEach(c => { if (c?.place_id) existingPlaceIds.add(String(c.place_id)); });
+            [...suggestions, ...processedSuggestions].forEach(s => { if (s?.data?.place_id) existingPlaceIds.add(String(s.data.place_id)); });
+
+            const country = (discoverCountry || "").trim();
+
+            const namesToTry = shuffleArray(PENTECOSTAL_NAMES);
+            let created = 0;
+
+            for (let i = 0; i < namesToTry.length && created < 5; i++) {
+                const churchName = namesToTry[i];
+                setDiscover5Status(`Searching: "Biserica Penticostala ${churchName}"`);
+
+                const googleCandidate = await fetchGooglePlaceData(`Biserica Penticostala ${churchName}`, "", country);
+                if (!googleCandidate || (!googleCandidate.name && !googleCandidate.place_id)) continue;
+
+                const normName = normalizeText(googleCandidate.name || "");
+                const normLoc = normalizeText(googleCandidate.locationTitle || "");
+                const isPentecostal = normName.includes("penticost") || normName.includes("pentecost") ||
+                    normLoc.includes("penticost") || normLoc.includes("pentecost");
+                if (!isPentecostal) continue;
+
+                if (country && googleCandidate.country && normalizeText(googleCandidate.country) !== normalizeText(country)) continue;
+
+                if (googleCandidate.place_id && existingPlaceIds.has(String(googleCandidate.place_id))) continue;
+
+                setDiscover5Status(`Enriching: ${googleCandidate.name || churchName}`);
+                const base = { ...emptyChurch(), country: "", city: "" };
+                const enriched = await syncChurchBot({
+                    ...base,
+                    ...googleCandidate,
+                    place_id: googleCandidate.place_id || "",
+                    country: googleCandidate.country || country || "",
+                    city: googleCandidate.city || ""
+                }, (msg) => setDiscover5Status(msg));
+
+                const submitter = {
+                    firstName: "Discover",
+                    lastName: "Bot",
+                    phone: "",
+                    email: "",
+                    notes: `Auto-discovered via admin on ${new Date().toLocaleString()}.`
+                };
+
+                await addDoc(collection(db, "church_suggestions"), {
+                    type: "new",
+                    status: "pending",
+                    source: "admin_discover_bot",
+                    createdAt: serverTimestamp(),
+                    data: {
+                        ...enriched,
+                        syncedAt: serverTimestamp(),
+                        submitter
+                    }
+                });
+
+                created++;
+                setDiscover5Count(created);
+                if (googleCandidate.place_id) existingPlaceIds.add(String(googleCandidate.place_id));
+
+                // small pacing so the UI stays responsive and avoids burst limits
+                await new Promise(r => setTimeout(r, 350));
+            }
+
+            if (created < 5) {
+                setDiscover5Status(`Done: created ${created} suggestion(s). (Not enough matches for 5.)`);
+            } else {
+                setDiscover5Status("Done: created 5 suggestions.");
+            }
+            setTimeout(() => setDiscover5Status(""), 4000);
+        } catch (e) {
+            console.error("Discover 5 failed:", e);
+            setDiscover5Status("Discovery failed. Check console.");
+        } finally {
+            setIsDiscovering5(false);
+        }
+    };
+
     if (loading) return <div className="adminSectionLoading">Loading...</div>;
 
     const activeList = showHistory ? processedSuggestions : suggestions;
@@ -321,6 +413,32 @@ export default function ChurchSuggestionsAdmin() {
                 </h2>
 
                 <div className="adminActions">
+                    <div className="adminActionsGroup adminActionsGroup--suggestionsDiscover">
+                        <div className="adminActionsSelectWrap">
+                            <SearchableSelect
+                                value={discoverCountry}
+                                options={COUNTRY_OPTIONS}
+                                onChange={(val) => setDiscoverCountry(val)}
+                                disabled={isDiscovering5}
+                                placeholder="Country (optional)"
+                            />
+                        </div>
+                        <button
+                            type="button"
+                            className="adminBtn adminBtn--discover"
+                            disabled={isDiscovering5}
+                            onClick={handleDiscover5}
+                            title={discover5Status || "Discover 5 new churches and create suggestions"}
+                        >
+                            {isDiscovering5 ? (
+                                <div className="adminSpinner" style={{ width: 14, height: 14, border: "2px solid #0a6b4a", borderTopColor: "transparent" }} />
+                            ) : (
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                            )}
+                            {isDiscovering5 ? `Discovering (${discover5Count}/5)` : "Discover 5"}
+                        </button>
+                    </div>
+
                     <button 
                         className="adminBtn adminBtn--new" 
                         type="button"

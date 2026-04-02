@@ -117,7 +117,7 @@ export default function ChurchFormFields({
                                     ) : (
                                         <>
                                             <IconSync style={{ width: 12, height: 12 }} />
-                                            Sync
+                                            Synchronisation
                                         </>
                                     )}
                                 </button>

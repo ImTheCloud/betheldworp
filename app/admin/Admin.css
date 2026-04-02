@@ -456,6 +456,28 @@
     box-shadow: 0 2px 4px rgba(10, 42, 67, 0.1);
 }
 
+.adminBtn--discover {
+    background: rgba(16, 185, 129, 0.12);
+    color: #0a6b4a;
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    box-shadow: 0 1px 2px rgba(10, 107, 74, 0.08);
+}
+
+.adminBtn--discover svg {
+    opacity: 0.9;
+    flex-shrink: 0;
+}
+
+@media (hover: hover) {
+    .adminBtn.adminBtn--discover:hover {
+        background: rgba(16, 185, 129, 0.18);
+        border-color: rgba(10, 107, 74, 0.65);
+        color: #065f41;
+        box-shadow: 0 2px 8px rgba(10, 107, 74, 0.12);
+        transform: translateY(-1px);
+    }
+}
+
 /* Subtle text-link style for the Override Week action */
 .adminOverrideLink {
     display: inline-flex;
@@ -526,6 +548,17 @@
     display: flex;
     gap: 10px;
     align-items: center;
+}
+
+.adminActionsGroup {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.adminActionsSelectWrap {
+    width: 240px;
 }
 
 .adminList {
@@ -1577,11 +1610,22 @@ input:checked + .adminSlider:before {
     }
 
     /* Stack the Full Page Header on Mobile */
+    .adminFullPage {
+        overflow: visible;
+    }
+
     .adminFullTop {
         flex-direction: column;
         align-items: stretch;
         gap: 16px;
         padding: 12px;
+        position: relative;
+        z-index: 5; /* Keep SearchableSelect dropdown above the list/content */
+    }
+
+    .adminFullContent {
+        position: relative;
+        z-index: 1;
     }
 
     .adminFullTop .adminActions {
@@ -1609,6 +1653,20 @@ input:checked + .adminSlider:before {
 
     .adminFullTop .adminActions .adminBtn--new {
         grid-column: span 2;
+    }
+
+    /* Churches page: keep Sync All + New side-by-side on mobile */
+    .adminFullTop .adminActions.adminActions--churches .adminBtn--new {
+        grid-column: auto;
+    }
+
+    /* Suggestions page: make Country + Discover share the first row */
+    .adminFullTop .adminActions .adminActionsGroup--suggestionsDiscover {
+        display: contents;
+    }
+
+    .adminFullTop .adminActions .adminActionsSelectWrap {
+        width: 100%;
     }
 
     /* If there are flex containers inside actions (like tabs), let them scroll or wrap */
@@ -2319,5 +2377,3 @@ input:checked + .adminSlider:before {
     text-transform: uppercase;
     letter-spacing: 0.02em;
 }
-
-

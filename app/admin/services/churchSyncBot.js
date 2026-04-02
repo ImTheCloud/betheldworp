@@ -6,7 +6,7 @@
  * 3. Web search fallback (for missing fields when no website or scraping fails)
  */
 
-import { fetchGooglePlaceData, isMeaningfullyDifferent } from "../utils/churchHelpers";
+import { fetchGooglePlaceData, isMeaningfullyDifferent, sanitizeSocialLink, sanitizeWebsite, sanitizeEmail, sanitizePhone } from "../utils/churchHelpers";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ORCHESTRATOR
@@ -21,7 +21,7 @@ export async function syncChurchBot(churchData, onStatus = () => {}) {
     // ── 1. Google Places ─────────────────────────────────────────────────────
     onStatus("Checking Google Places...");
     const googleData = await fetchGooglePlaceData(query, city, country, placeId);
-    let enrichedData = { ...googleData };
+    let enrichedData = cleanContacts(googleData);
 
     // ── 2. Official website scraping ─────────────────────────────────────────
     const website = enrichedData.website || churchData.website;
@@ -30,7 +30,7 @@ export async function syncChurchBot(churchData, onStatus = () => {}) {
         try {
             const scrapedData = await scrapeChurchWebsite(website);
             if (scrapedData) {
-                enrichedData = { ...enrichedData, ...scrapedData };
+                enrichedData = cleanContacts({ ...enrichedData, ...scrapedData });
                 if ((!enrichedData.openingHours || enrichedData.openingHours.length === 0) && scrapedData.openingHours) {
                     enrichedData.openingHours = scrapedData.openingHours;
                 }
@@ -42,6 +42,26 @@ export async function syncChurchBot(churchData, onStatus = () => {}) {
 
     onStatus("Finalizing enrichment...");
     return enrichedData;
+}
+
+// Ensure scraped/google data can't inject placeholder/fake contact links
+function cleanContacts(data) {
+    // fetchGooglePlaceData() can return null; treat non-objects as empty.
+    const source = (data && typeof data === "object") ? data : {};
+    const cleaned = { ...source };
+    if (source.website) cleaned.website = sanitizeWebsite(source.website);
+    if (source.facebook) cleaned.facebook = sanitizeSocialLink("facebook", source.facebook);
+    if (source.instagram) cleaned.instagram = sanitizeSocialLink("instagram", source.instagram);
+    if (source.youtube) cleaned.youtube = sanitizeSocialLink("youtube", source.youtube);
+    if (source.email) cleaned.email = sanitizeEmail(source.email);
+    if (source.phone) cleaned.phone = sanitizePhone(source.phone);
+
+    // Drop nullified fields
+    ["website", "facebook", "instagram", "youtube", "email", "phone"].forEach(k => {
+        if (!cleaned[k]) delete cleaned[k];
+    });
+
+    return cleaned;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -69,35 +89,60 @@ function extractFromHtml(html) {
     const findValidLink = (regex, blacklist) => {
         const matches = html.matchAll(new RegExp(regex, "gi"));
         for (const match of matches) {
-            const path = match[1].toLowerCase();
-            if (!blacklist.includes(path)) {
-                return match[0].replace(/\/$/, "");
-            }
+            const fullMatch = match[0].replace(/\/$/, "");
+            const pathPart = match[1] || "";
+            const path = pathPart.toLowerCase().replace(/\/$/, "");
+            
+            // 1. MUST have a handle/path
+            if (!path) continue;
+            
+            // 2. MUST NOT be in the blacklist
+            if (blacklist.includes(path)) continue;
+            
+            // 3. Handle MUST be at least 3 chars (filtering out 'a', '12', etc.)
+            if (path.length < 3) continue;
+
+            // 4. Special check for YouTube: if it matched "channel" but the regex was loose
+            if (fullMatch.endsWith("/channel") || fullMatch.endsWith("/user") || fullMatch.endsWith("/c")) continue;
+
+            return fullMatch;
         }
         return null;
     };
 
     const fbLink = findValidLink(/https?:\/\/(?:www\.)?facebook\.com\/([a-zA-Z0-9._-]+)/gi, 
-        ["people", "groups", "sharer", "login", "r.php", "hashtag", "messages", "profile.php"]);
+        ["people", "groups", "sharer", "login", "r.php", "hashtag", "messages", "profile.php", "pages", "home", "watch", "marketplace", "gaming", "events"]);
     if (fbLink) data.facebook = fbLink;
 
-    const ytLink = findValidLink(/https?:\/\/(?:www\.)?youtube\.com\/(?:user|channel|c|@)?([a-zA-Z0-9._-]+)/gi, 
-        ["c", "channel", "user", "results", "watch", "playlist", "live"]);
+    const ytLink = findValidLink(/https?:\/\/(?:www\.)?youtube\.com\/(?:user\/|channel\/|c\/|@)?([a-zA-Z0-9._-]+)/gi, 
+        ["c", "channel", "user", "results", "watch", "playlist", "live", "shorts", "feed", "about"]);
     if (ytLink) {
         // Ensure YouTube link has full path if it's just a handle
         data.youtube = ytLink.includes("youtube.com/") ? ytLink : `https://www.youtube.com/${ytLink}`;
     }
 
     const igLink = findValidLink(/https?:\/\/(?:www\.)?instagram\.com\/([a-zA-Z0-9._-]+)/gi, 
-        ["p", "reel", "explore", "stories", "direct", "accounts"]);
+        ["p", "reel", "explore", "stories", "direct", "accounts", "legal", "about", "explore/locations", "reels"]);
     if (igLink) data.instagram = igLink;
 
-    const emails = html.match(/[a-zA-Z0-9._%+-]+@(?!(?:example|domain|support|yoursite|email)\.[a-z]{2,})[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/gi) || [];
+    const emails = html.match(/[a-zA-Z0-9._%+-]+@(?!(?:example|domain|support|yoursite|email|wix|wordpress|squarespace)\.[a-z]{2,})[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/gi) || [];
     
     if (emails.length > 0) {
         // Known placeholders to strictly ignore
-        const garbage = ["writer@support.com", "user@example.com", "info@yourdomain.com", "john.doe@gmail.com", "support@wordpress.com"];
-        const cleanEmails = emails.filter(e => !garbage.includes(e.toLowerCase()) && !e.toLowerCase().includes("template") && !e.toLowerCase().includes("theme"));
+        const garbage = [
+            "writer@support.com", "user@example.com", "info@yourdomain.com", 
+            "john.doe@gmail.com", "support@wordpress.com", "admin@wix.com",
+            "info@wix.com", "support@wix.com", "contact@wix.com",
+            "noreply@wordpress.com", "donotreply@wordpress.com"
+        ];
+        const cleanEmails = emails.filter(e => {
+            const lowE = e.toLowerCase();
+            return !garbage.includes(lowE) && 
+                   !lowE.includes("template") && 
+                   !lowE.includes("theme") &&
+                   !lowE.includes("yourdomain") &&
+                   !lowE.includes("yoursite");
+        });
         
         if (cleanEmails.length > 0) {
             // Priority: if an email contains the church name or "gmail/hotmail", pick it first
@@ -107,7 +152,15 @@ function extractFromHtml(html) {
     }
 
     const phoneMatch = html.match(/(?:\+40|0040|0)\s?(?:7[0-9]{2}|[23][0-9]{2})[.\s-]?[0-9]{3}[.\s-]?[0-9]{3}/);
-    if (phoneMatch) data.phone = phoneMatch[0].replace(/\s/g, "");
+    if (phoneMatch) {
+        const rawPhone = phoneMatch[0].replace(/\s/g, "");
+        // Avoid obviously fake numbers like 0700000000 or 123456789
+        const digitsOnly = rawPhone.replace(/\D/g, "");
+        const isRepeated = /(.)\1{5,}/.test(digitsOnly); // Same digit 6+ times
+        if (!isRepeated && digitsOnly.length >= 9) {
+            data.phone = rawPhone;
+        }
+    }
 
     const days = [
         { key: "Duminică", variants: ["Duminica", "Sunday", "Duminică"] },
@@ -182,4 +235,3 @@ export function isBotSuggestionUseful(church, newData) {
 
     return false;
 }
-

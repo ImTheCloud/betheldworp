@@ -5,6 +5,128 @@ import { storage } from "../../lib/Firebase";
 
 export const safeStr = (v) => String(v ?? "");
 
+// ─────────────────────────────────────────────────────────────────────────────
+// URL & contact sanitizers to avoid saving placeholder/fake links
+// ─────────────────────────────────────────────────────────────────────────────
+
+const GENERIC_HOSTS = new Set([
+    "wordpress.com", "wix.com", "wixsite.com", "squarespace.com", "weebly.com",
+    "godaddy.com", "jimdo.com", "webnode.com", "strikingly.com", "site123.com",
+    "medium.com", "blogspot.com", "tumblr.com"
+]);
+
+const PLACEHOLDER_TOKENS = ["example", "yourdomain", "yoursite", "sample", "template", "localhost", "placeholder"];
+
+const buildUrlInfo = (url) => {
+    if (!url) return null;
+    let candidate = String(url).trim();
+    if (!candidate) return null;
+    candidate = candidate.replace(/[,"'`]+$/, ""); // drop trailing punctuation from copy/paste
+    if (!/^https?:\/\//i.test(candidate)) candidate = `https://${candidate}`;
+
+    try {
+        const u = new URL(candidate);
+        const host = u.hostname.replace(/^www\./, "").toLowerCase();
+        const normalizedPath = u.pathname.replace(/\/+$/, "").replace(/\/{2,}/g, "/") || "";
+        return {
+            host,
+            path: normalizedPath,
+            url: `${u.protocol}//${host}${normalizedPath}${u.search || ""}`
+        };
+    } catch {
+        return null;
+    }
+};
+
+export const sanitizeWebsite = (url) => {
+    const info = buildUrlInfo(url);
+    if (!info) return null;
+    if (GENERIC_HOSTS.has(info.host) && !info.path) return null; // pure platform homepage
+    if (PLACEHOLDER_TOKENS.some(t => info.url.toLowerCase().includes(t))) return null;
+    return info.url;
+};
+
+export const sanitizeSocialLink = (platform, url) => {
+    const info = buildUrlInfo(url);
+    if (!info) return null;
+
+    const hostMatches = (expected) => expected.some(h => info.host === h || info.host.endsWith(`.${h}`));
+    const path = info.path.replace(/^\//, "");
+    if (!path) return null;
+
+    switch (platform) {
+        case "youtube": {
+            if (!hostMatches(["youtube.com", "youtu.be"])) return null;
+            if (info.host === "youtu.be") return null; // video short links are not channel IDs
+
+            if (/^channel\/[A-Za-z0-9_-]{8,}$/.test(path) ||
+                /^c\/[A-Za-z0-9._-]{3,}$/.test(path) ||
+                /^user\/[A-Za-z0-9._-]{3,}$/.test(path) ||
+                /^@[A-Za-z0-9._-]{3,}$/.test(path)) {
+                return `https://youtube.com/${path.startsWith("@") ? path : path}`;
+            }
+            return null;
+        }
+        case "facebook": {
+            if (!hostMatches(["facebook.com", "fb.com"])) return null;
+            const segments = path.split("/").filter(Boolean);
+            if (segments.length === 0) return null;
+
+            const first = segments[0].toLowerCase();
+            const disallowed = ["sharer.php", "share.php", "login.php", "home", "watch", "marketplace", "events", "profile.php"];
+            if (disallowed.includes(first)) return null;
+
+            if (first === "groups") {
+                if (segments[1] && segments[1].length >= 5) {
+                    return `https://www.facebook.com/groups/${segments[1]}`;
+                }
+                return null;
+            }
+
+            if (first === "pages" && segments[2]) {
+                return `https://www.facebook.com/pages/${segments[1]}/${segments[2]}`;
+            }
+
+            if (first.length < 3) return null;
+            return `https://www.facebook.com/${segments.join("/")}`;
+        }
+        case "instagram": {
+            if (!hostMatches(["instagram.com"])) return null;
+            const segments = path.split("/").filter(Boolean);
+            if (segments.length === 0) return null;
+            const first = segments[0].toLowerCase();
+            const disallowed = ["p", "reel", "reels", "explore", "stories", "direct", "accounts", "about", "legal"];
+            if (disallowed.includes(first)) return null;
+            if (first.length < 3) return null;
+            return `https://www.instagram.com/${segments[0]}`;
+        }
+        default:
+            return null;
+    }
+};
+
+export const sanitizeEmail = (email) => {
+    if (!email) return null;
+    const normalized = String(email).trim().toLowerCase();
+    if (!/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i.test(normalized)) return null;
+    if (PLACEHOLDER_TOKENS.some(t => normalized.includes(t))) return null;
+    const blockedDomains = ["wix.com", "wordpress.com", "example.com", "email.com"];
+    if (blockedDomains.some(d => normalized.endsWith(`@${d}`))) return null;
+    return normalized;
+};
+
+export const sanitizePhone = (phone) => {
+    if (!phone) return null;
+    const raw = String(phone).trim();
+    const digits = raw.replace(/\D/g, "");
+    if (digits.length < 8) return null;
+
+    const uniqueDigits = new Set(digits.split(""));
+    if (uniqueDigits.size <= 2) return null; // 00000000, 11111111, 12121212 etc.
+
+    return raw;
+};
+
 export const COUNTRY_OPTIONS = [
     "Austria", "Belgium", "Bulgaria", "Croatia", "Cyprus", "Czech Republic",
     "Denmark", "Estonia", "Finland", "France", "Germany", "Greece", "Hungary",
@@ -223,29 +345,54 @@ export const processGoogleData = (res, components, originalQuery = "", placeId =
     }
 
     const result = {};
-    const setIf = (key, val) => {
+    const isGenericBranding = (url, platform) => {
+        if (!url) return false;
+        const lowUrl = url.toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/$/, "");
+        
+        // List of generic platform domains that should not be saved as a church's unique link
+        const genericDomains = [
+            "wordpress.com", "wix.com", "wixsite.com", "squarespace.com", 
+            "weebly.com", "godaddy.com", "jimdo.com", "webnode.com", 
+            "strikingly.com", "site123.com", "medium.com"
+        ];
+
+        // If the URL is EXACTLY one of these domains (no subdomain, no path), it's branding
+        if (genericDomains.includes(lowUrl)) return true;
+
+        // Platform specific generic paths
+        if (platform === "facebook" && ["facebook.com", "fb.com", "facebook.com/pages", "facebook.com/groups"].includes(lowUrl)) return true;
+        if (platform === "youtube" && ["youtube.com", "youtube.com/channel", "youtube.com/user", "youtube.com/c"].includes(lowUrl)) return true;
+        if (platform === "instagram" && ["instagram.com", "instagram.com/p", "instagram.com/reels"].includes(lowUrl)) return true;
+
+        return false;
+    };
+
+    const setIfValid = (key, val) => {
         if (val !== undefined && val !== null && val !== "") {
+            if (["website", "facebook", "instagram", "youtube"].includes(key)) {
+                if (isGenericBranding(val, key)) return;
+            }
             result[key] = val;
         }
     };
 
-    setIf("name", cleanedName);
-    setIf("locationTitle", rawName);
+    setIfValid("name", cleanedName);
+    setIfValid("locationTitle", rawName);
 
-    setIf("street", getComp(["route"]));
-    setIf("number", getComp(["street_number"]));
-    setIf("city", cityName);
-    setIf("zipCode", getComp(["postal_code"]));
-    setIf("country", countryName);
-    setIf("phone", res.international_phone_number || res.formatted_phone_number);
-    setIf("email", res.email);
-    setIf("website", res.website);
-    setIf("lat", res.geometry?.location?.lat);
-    setIf("lng", res.geometry?.location?.lng);
-    setIf("place_id", res.place_id || placeId);
-    setIf("facebook", res.facebook);
-    setIf("instagram", res.instagram);
-    setIf("youtube", res.youtube);
+    setIfValid("street", getComp(["route"]));
+    setIfValid("number", getComp(["street_number"]));
+    setIfValid("city", cityName);
+    setIfValid("zipCode", getComp(["postal_code"]));
+    setIfValid("country", countryName);
+    setIfValid("phone", res.international_phone_number || res.formatted_phone_number);
+    setIfValid("email", res.email);
+    setIfValid("website", res.website);
+    setIfValid("lat", res.geometry?.location?.lat);
+    setIfValid("lng", res.geometry?.location?.lng);
+    setIfValid("place_id", res.place_id || placeId);
+    setIfValid("facebook", res.facebook);
+    setIfValid("instagram", res.instagram);
+    setIfValid("youtube", res.youtube);
     
     if (res.openingHours !== undefined) result.openingHours = res.openingHours || [];
     if (res.googleMapsUri !== undefined) result.googleMapsUri = res.googleMapsUri || "";
@@ -327,14 +474,13 @@ export const fetchGooglePlaceData = async (query, city = "", country = "", place
             return await res.json();
         };
 
-        if (country) {
-            const q = [query, city, country].filter(Boolean).join(", ");
-            const data = await performSearch(q);
-            results = data.results || [];
-            status = data.status;
-            googleError = data._googleError;
-            fallbackUsed = data._fallback || false;
-        }
+        const q = [query, city, country].filter(Boolean).join(", ");
+        if (!q) return null;
+        const data = await performSearch(q);
+        results = data.results || [];
+        status = data.status;
+        googleError = data._googleError;
+        fallbackUsed = data._fallback || false;
 
         
         if (results.length === 0) {

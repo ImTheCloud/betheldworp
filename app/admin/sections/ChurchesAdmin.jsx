@@ -239,7 +239,6 @@ export default function ChurchesAdmin() {
     const [draftsById, setDraftsById] = useState({});
     const [saveStateById, setSaveStateById] = useState({});
     const [expandedIds, setExpandedIds] = useState(() => new Set());
-    const [sortBy, setSortBy] = useState("az");
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedCountry, setSelectedCountry] = useState("");
     const [selectedCity, setSelectedCity] = useState("");
@@ -280,14 +279,10 @@ export default function ChurchesAdmin() {
             const q = searchQuery.toLowerCase();
             arr = arr.filter(it => matchChurchSearch(it, q));
         }
-        arr.sort((a, b) => {
-            if (sortBy === "az") return a.name.localeCompare(b.name);
-            if (sortBy === "date-desc") return (b.createdAtMs || 0) - (a.createdAtMs || 0);
-            if (sortBy === "date-asc") return (a.createdAtMs || 0) - (b.createdAtMs || 0);
-            return 0;
-        });
+        // Keep a stable default ordering now that the sort selector is removed.
+        arr.sort((a, b) => safeStr(a.name).localeCompare(safeStr(b.name)));
         return arr;
-    }, [items, sortBy, searchQuery, selectedCountry, selectedCity, showDraftsOnly]);
+    }, [items, searchQuery, selectedCountry, selectedCity, showDraftsOnly]);
 
     const draftCount = useMemo(() => items.filter(it => it.isDraft === true).length, [items]);
 
@@ -453,7 +448,7 @@ export default function ChurchesAdmin() {
                     </div>
                 </div>
 
-                <div className="adminActions">
+                <div className="adminActions adminActions--churches">
                     <select className="adminSelect" style={{ width: 220 }} value={selectedCountry} onChange={e => { setSelectedCountry(e.target.value); setSelectedCity(""); setPage(1); }}>
                         <option value="">All Countries</option>
                         {uniqueCountries.map(c => <option key={c} value={c}>{c}</option>)}
@@ -461,10 +456,6 @@ export default function ChurchesAdmin() {
                     <select className="adminSelect" style={{ width: 220 }} value={selectedCity} onChange={e => { setSelectedCity(e.target.value); setPage(1); }} disabled={!uniqueCities.length}>
                         <option value="">All Cities</option>
                         {uniqueCities.map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
-                    <select className="adminSelect" value={sortBy} onChange={e => setSortBy(e.target.value)}>
-                        <option value="az">A-Z</option>
-                        <option value="date-desc">Newest</option>
                     </select>
                     <button className="adminBtn" onClick={() => setShowBulkSyncConfirm(true)} disabled={isSyncing}><IconSync />Sync All</button>
                     <button className="adminBtn adminBtn--new" onClick={startNew}><IconPlus />New</button>
