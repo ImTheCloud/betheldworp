@@ -32,20 +32,20 @@ export function useChurchSync() {
     // --- SYNC INDIVIDUAL ---
     const syncSingleChurch = useCallback(async (churchData) => {
         setIsSyncing(true);
-        const name = churchData.name || "l'église";
+        const name = churchData.name || "church";
         setProgress({ 
             current: 0, 
             total: 0, 
             suggestionsCreated: 0, 
             churchName: name, 
-            status: `Initialisation de la synchronisation...`,
+            status: `Initializing synchronization...`,
             progress: 30,
             foundChurch: null
         });
 
         try {
             const enrichedData = await syncChurchBot(churchData, updateStatus);
-            setProgress(prev => ({ ...prev, progress: 100, status: "Synchronisation terminée !" }));
+            setProgress(prev => ({ ...prev, progress: 100, status: "Sync complete!" }));
             return enrichedData;
         } catch (error) {
             console.error("Single Sync Hook Error:", error);
@@ -64,7 +64,7 @@ export function useChurchSync() {
             total: churches.length, 
             suggestionsCreated: 0, 
             churchName: "", 
-            status: "Initialisation du bot de masse...",
+            status: "Initializing Sync All...",
             progress: 0,
             foundChurch: null
         });
@@ -77,11 +77,10 @@ export function useChurchSync() {
                 ...prev, 
                 current: i + 1, 
                 churchName: church.name,
-                status: `Début du traitement de : ${church.name}`
+                status: `Syncing: ${church.name}`
             }));
 
             try {
-                // Pass updateStatus to see individual steps in the modal during bulk sync
                 const googleAndWebData = await syncChurchBot(church, updateStatus);
                 
                 if (googleAndWebData && isBotSuggestionUseful(church, googleAndWebData)) {
@@ -121,7 +120,7 @@ export function useChurchSync() {
             total: namesToTry.length, 
             suggestionsCreated: 0, 
             churchName: "", 
-            status: "Exploration des églises potentielles...",
+            status: "Exploring potential churches...",
             progress: 0,
             foundChurch: null
         });
@@ -135,7 +134,7 @@ export function useChurchSync() {
             setProgress(prev => ({ 
                 ...prev, 
                 current: i + 1, 
-                status: `Recherche de : "Biserica Penticostala ${churchName}"`,
+                status: `SEARCHING FOR: "Biserica Penticostala ${churchName}"`,
                 progress: currentProgress
             }));
 
@@ -159,11 +158,9 @@ export function useChurchSync() {
                     );
                     
                     if (!isDuplicate) {
-                        // FOUND ONE
                         foundResult = data;
-                        setProgress(prev => ({ ...prev, status: `Trouvé : ${data.name}! Enrichissement en cours...`, progress: 90 }));
+                        setProgress(prev => ({ ...prev, status: `Found: ${data.name}! Finalizing enrichment...`, progress: 90 }));
                         
-                        // DEEP ENRICHMENT
                         const deeplyEnriched = await syncChurchBot({
                             ...emptyChurch(),
                             ...data,

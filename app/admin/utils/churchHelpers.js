@@ -30,12 +30,13 @@ export const FIELDS = [
 ];
 
 export function emptyChurch() {
-    return { name: "", locationTitle: "", street: "", number: "", city: "", country: "Belgium", zipCode: "", lat: "", lng: "", phone: "", email: "", website: "", youtube: "", facebook: "", instagram: "", notes: "", isDraft: false, place_id: "", openingHours: [], googleMapsUri: "", rating: null };
+    return { name: "", locationTitle: "", street: "", number: "", city: "", country: "Romania", zipCode: "", lat: "", lng: "", phone: "", email: "", website: "", youtube: "", facebook: "", instagram: "", notes: "", isDraft: false, place_id: "", openingHours: [], googleMapsUri: "", rating: null };
 }
 
 export const PENTECOSTAL_NAMES = [
-    "Bethel", "Betania", "Bethania", "Bethany", "Elim", "Emanuel", "Speranta", "Speranța", 
-    "Filadelfia", "Maranata", "Maranatha", "Golgota", "Sion", "Harul", "Efes", 
+    // Classical Romanian / Biblic
+    "Bethel", "Betel", "Betania", "Bethania", "Bethany", "Elim", "Emanuel", "Emmanuel", "Speranta", "Speranța", 
+    "Filadelfia", "Philadelphia", "Maranata", "Maranatha", "Golgota", "Sion", "Harul", "Efes", 
     "Poarta Cerului", "Izvorul", "Agape", "Ghetsimani", "Carmel", "Gloria", 
     "Muntele Sionului", "Vestea Buna", "Vestea Bună", "Salem", "Lumina", 
     "Rugul Aprins", "Emaus", "Eben-Ezer", "Mangaietorul", "Mângâietorul", 
@@ -44,7 +45,20 @@ export const PENTECOSTAL_NAMES = [
     "Alfa si Omega", "Alfa și Omega", "Lumina Lumii", "Logos", "Saron", "Siloam",
     "Pacea", "Izbavirea", "Horeb", "Buna Vestire", "Biruinta", "Biruința",
     "Casa Painii", "Casa Pâinii", "Canaan", "Muntele Moria", "Salvarea",
-    "Sfantul Ilie", "Porumbita", "Pridvorul", "Calea, Adevarul si Viata", "Tabor"
+    "Sfantul Ilie", "Porumbita", "Pridvorul", "Calea, Adevarul si Viata", "Tabor",
+    "Betesda", "Peniel", "Hebron", "Nazaret", "Nazareth", "Calvarul", "Ierusalim", 
+    "Bereea", "Mahanaim", "Gosen", "Metanoia", "Harvest", "Via", "Shalom", 
+    "Antiohia", "Apa Vie", "Viata Noua", "Viață Nouă", "Hermon", "Lidia", 
+    "Prima", "Romana", "Română", "Apostolica", "Apostolică", "Crestina", "Creștină",
+    // Biblic Towns & Regions
+    "Sardes", "Smirna", "Pergam", "Tiatira", "Laodicea", "Patmos", "Colose", "Emaus",
+    "Ierihon", "Galilee", "Iordan", "Sarepta", "Sidon", "Damasc", "Antioch",
+    // Spiritual concepts (often used as names)
+    "Bucuria", "Dragostea", "Credinta", "Credința", "Nadejdea", "Nădejdea", "Lumina", "Aura",
+    "Roua", "Muntele Sion", "Poarta Cerului", "Izvorul", "Stanca", "Stânca",
+    // English variants (very common in UK/USA)
+    "Victory", "Living Water", "New Life", "Grace", "Hope", "Faith", "Cornerstone", "Solid Rock",
+    "Good News", "Mount Zion", "Fountain of Life", "Morning Star", "Holy Trinity"
 ];
 
 export const shuffleArray = (array) => {

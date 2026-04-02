@@ -45,7 +45,7 @@ export default function ConfirmModal({
                                 />
                             </div>
                             <div className="adminProgressText" style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <span style={{ color: '#3b82f6', fontWeight: 600 }}>{status || "Traitement en cours..."}</span>
+                                <span style={{ color: '#3b82f6', fontWeight: 600 }}>{status || "Processing..."}</span>
                                 <span style={{ fontWeight: 800 }}>{Math.round(progress)}%</span>
                             </div>
                         </div>

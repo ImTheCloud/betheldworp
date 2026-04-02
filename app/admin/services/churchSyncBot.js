@@ -19,14 +19,14 @@ export async function syncChurchBot(churchData, onStatus = () => {}) {
     const placeId = churchData.place_id;
 
     // ── 1. Google Places ─────────────────────────────────────────────────────
-    onStatus("Interrogation de Google Places...");
+    onStatus("Checking Google Places...");
     const googleData = await fetchGooglePlaceData(query, city, country, placeId);
     let enrichedData = { ...googleData };
 
     // ── 2. Official website scraping ─────────────────────────────────────────
     const website = enrichedData.website || churchData.website;
     if (website && website !== "#") {
-        onStatus(`Analyse du site : ${website.replace(/^https?:\/\//, "")}...`);
+        onStatus(`Analyzing website: ${website.replace(/^https?:\/\//, "")}...`);
         try {
             const scrapedData = await scrapeChurchWebsite(website);
             if (scrapedData) {
@@ -40,7 +40,7 @@ export async function syncChurchBot(churchData, onStatus = () => {}) {
         }
     }
 
-    onStatus("Finalisation de l'enrichissement...");
+    onStatus("Finalizing enrichment...");
     return enrichedData;
 }
 
@@ -92,8 +92,19 @@ function extractFromHtml(html) {
         ["p", "reel", "explore", "stories", "direct", "accounts"]);
     if (igLink) data.instagram = igLink;
 
-    const emailMatch = html.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
-    if (emailMatch) data.email = emailMatch[0];
+    const emails = html.match(/[a-zA-Z0-9._%+-]+@(?!(?:example|domain|support|yoursite|email)\.[a-z]{2,})[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/gi) || [];
+    
+    if (emails.length > 0) {
+        // Known placeholders to strictly ignore
+        const garbage = ["writer@support.com", "user@example.com", "info@yourdomain.com", "john.doe@gmail.com", "support@wordpress.com"];
+        const cleanEmails = emails.filter(e => !garbage.includes(e.toLowerCase()) && !e.toLowerCase().includes("template") && !e.toLowerCase().includes("theme"));
+        
+        if (cleanEmails.length > 0) {
+            // Priority: if an email contains the church name or "gmail/hotmail", pick it first
+            const bestEmail = cleanEmails.find(e => e.toLowerCase().includes("gmail.com") || e.toLowerCase().includes("outlook.")) || cleanEmails[0];
+            data.email = bestEmail.toLowerCase();
+        }
+    }
 
     const phoneMatch = html.match(/(?:\+40|0040|0)\s?(?:7[0-9]{2}|[23][0-9]{2})[.\s-]?[0-9]{3}[.\s-]?[0-9]{3}/);
     if (phoneMatch) data.phone = phoneMatch[0].replace(/\s/g, "");

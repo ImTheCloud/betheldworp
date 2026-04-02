@@ -458,8 +458,8 @@ export default function ChurchesAdmin() {
 
             <ConfirmModal
                 isOpen={modal.isOpen || isSyncing}
-                title={isSyncing ? (progress.status || "Automatisation...") : modal.title}
-                message={isSyncing ? (progress.churchName ? `Analyse de : ${progress.churchName}` : "") : modal.message}
+                title={isSyncing ? (progress.status || "Sync Engine Running...") : modal.title}
+                message={isSyncing ? (progress.churchName ? `Analyzing: ${progress.churchName}` : "") : modal.message}
                 progress={isSyncing ? (progress.total > 0 ? (progress.current / progress.total) * 100 : (progress.progress || 0)) : modal.progress}
                 status={isSyncing ? "" : ""}
                 actions={isSyncing ? [] : modal.actions}
@@ -470,11 +470,12 @@ export default function ChurchesAdmin() {
             {showBulkSyncConfirm && (
                 <ConfirmModal
                     isOpen={true}
-                    title="Bulk Sync"
-                    message={`Voulez-vous lancer la synchronisation pour ${items.length} églises ?`}
+                    title="Sync All Churches"
+                    message={`Confirm: Do you want to start the synchronization for all ${items.length} churches? This will check for missing info and new updates.`}
                     onConfirm={() => { setShowBulkSyncConfirm(false); handleBulkSync(); }}
                     onCancel={() => setShowBulkSyncConfirm(false)}
                     variant="primary"
+                    confirmText="Start Sync"
                 />
             )}
         </div>

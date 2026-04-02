@@ -1001,7 +1001,7 @@ function ChurchMap() {
                 youtube: church.youtube || "",
                 facebook: church.facebook || "",
                 instagram: church.instagram || "",
-                country: church.country || "Belgium",
+                country: church.country || "Romania",
                 locationTitle: church.locationTitle || ""
             };
         } else {
@@ -1017,7 +1017,7 @@ function ChurchMap() {
                 youtube: "",
                 facebook: "",
                 instagram: "",
-                country: activeCountryFilter || "Belgium",
+                country: activeCountryFilter || "Romania",
                 locationTitle: ""
             };
         }
