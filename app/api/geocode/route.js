@@ -1,5 +1,29 @@
 import { NextResponse } from 'next/server';
 
+const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
+const getCache = () => {
+    if (!globalThis.__bethelGeocodeCache) {
+        globalThis.__bethelGeocodeCache = new Map();
+    }
+    return globalThis.__bethelGeocodeCache;
+};
+
+const cacheGet = (key) => {
+    const cache = getCache();
+    const entry = cache.get(key);
+    if (!entry) return null;
+    if (Date.now() - entry.t > CACHE_TTL_MS) {
+        cache.delete(key);
+        return null;
+    }
+    return entry.v;
+};
+
+const cacheSet = (key, value) => {
+    if (!key || value === undefined || value === null) return;
+    getCache().set(key, { t: Date.now(), v: value });
+};
+
 export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type'); // 'places', 'details', 'geocode', or 'photo'
@@ -199,6 +223,10 @@ export async function GET(request) {
     try {
         let data = {};
         if (type === 'places') {
+            const cacheKey = query ? `places:${query}` : null;
+            const cached = cacheKey ? cacheGet(cacheKey) : null;
+            if (cached) return NextResponse.json(cached);
+
             const response = await fetch('https://places.googleapis.com/v1/places:searchText', {
                 method: 'POST',
                 headers: {
@@ -249,8 +277,13 @@ export async function GET(request) {
                 })),
                 status: result.places?.length > 0 ? "OK" : "ZERO_RESULTS"
             };
+            if (cacheKey) cacheSet(cacheKey, data);
         } else if (type === 'details') {
             const placeId = searchParams.get('place_id');
+            const cacheKey = placeId ? `details:${placeId}` : null;
+            const cached = cacheKey ? cacheGet(cacheKey) : null;
+            if (cached) return NextResponse.json(cached);
+
             const response = await fetch(`https://places.googleapis.com/v1/places/${placeId}`, {
                 method: 'GET',
                 headers: {
@@ -298,6 +331,7 @@ export async function GET(request) {
                 },
                 status: p.id ? "OK" : "NOT_FOUND"
             };
+            if (cacheKey) cacheSet(cacheKey, data);
         } else {
             const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${apiKey}`;
             const res = await fetch(geocodeUrl);

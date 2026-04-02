@@ -166,7 +166,7 @@ export function useChurchSync() {
                             ...data,
                             country: data.country || countryToSearch,
                             city: data.city || cityToSearch
-                        }, updateStatus);
+                        }, updateStatus, { googleData: data });
                         
                         foundResult = { ...data, ...deeplyEnriched };
                         break; 

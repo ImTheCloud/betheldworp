@@ -357,7 +357,7 @@ export default function ChurchSuggestionsAdmin() {
                     place_id: googleCandidate.place_id || "",
                     country: googleCandidate.country || country || "",
                     city: googleCandidate.city || ""
-                }, (msg) => setDiscover5Status(msg));
+                }, (msg) => setDiscover5Status(msg), { googleData: googleCandidate });
 
                 const submitter = {
                     firstName: "Discover",

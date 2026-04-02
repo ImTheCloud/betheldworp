@@ -12,15 +12,18 @@ import { fetchGooglePlaceData, isMeaningfullyDifferent, sanitizeSocialLink, sani
 // ORCHESTRATOR
 // ─────────────────────────────────────────────────────────────────────────────
 
-export async function syncChurchBot(churchData, onStatus = () => {}) {
+export async function syncChurchBot(churchData, onStatus = () => {}, options = {}) {
     const query = churchData.locationTitle || churchData.name;
     const city = churchData.city;
     const country = churchData.country;
     const placeId = churchData.place_id;
 
     // ── 1. Google Places ─────────────────────────────────────────────────────
+    const providedGoogle = options && typeof options === "object" ? options.googleData : null;
+    const skipGoogle = !!(options && typeof options === "object" && options.skipGoogle);
+
     onStatus("Checking Google Places...");
-    const googleData = await fetchGooglePlaceData(query, city, country, placeId);
+    const googleData = skipGoogle ? null : (providedGoogle || await fetchGooglePlaceData(query, city, country, placeId));
     let enrichedData = cleanContacts(googleData);
 
     // ── 2. Official website scraping ─────────────────────────────────────────
@@ -30,10 +33,16 @@ export async function syncChurchBot(churchData, onStatus = () => {}) {
         try {
             const scrapedData = await scrapeChurchWebsite(website);
             if (scrapedData) {
-                enrichedData = cleanContacts({ ...enrichedData, ...scrapedData });
+                // Google card data has priority. Website scraping only fills missing fields.
+                const scrapedClean = cleanContacts(scrapedData);
+                const merged = { ...scrapedClean, ...enrichedData }; // existing (Google) wins on conflicts
+
+                // Opening hours: only use scraped hours if Google didn't provide them.
                 if ((!enrichedData.openingHours || enrichedData.openingHours.length === 0) && scrapedData.openingHours) {
-                    enrichedData.openingHours = scrapedData.openingHours;
+                    merged.openingHours = scrapedData.openingHours;
                 }
+
+                enrichedData = cleanContacts(merged);
             }
         } catch (err) {
             console.error(`SyncBot: Website scraping failed for ${website}:`, err);

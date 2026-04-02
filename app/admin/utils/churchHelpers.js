@@ -59,12 +59,37 @@ export const sanitizeSocialLink = (platform, url) => {
             if (!hostMatches(["youtube.com", "youtu.be"])) return null;
             if (info.host === "youtu.be") return null; // video short links are not channel IDs
 
-            if (/^channel\/[A-Za-z0-9_-]{8,}$/.test(path) ||
-                /^c\/[A-Za-z0-9._-]{3,}$/.test(path) ||
-                /^user\/[A-Za-z0-9._-]{3,}$/.test(path) ||
-                /^@[A-Za-z0-9._-]{3,}$/.test(path)) {
-                return `https://youtube.com/${path.startsWith("@") ? path : path}`;
+            // Normalize common channel/profile URL variants to their root.
+            // Examples:
+            // - /channel/<id>/videos -> /channel/<id>
+            // - /@handle/videos -> /@handle
+            // - /c/<name>/about -> /c/<name>
+            const segments = path.split("/").filter(Boolean);
+            const first = segments[0] || "";
+            const second = segments[1] || "";
+            const third = segments[2] || "";
+
+            if (first.startsWith("@")) {
+                if (/^@[A-Za-z0-9._-]{3,}$/.test(first)) return `https://youtube.com/${first}`;
+                return null;
             }
+
+            if (first === "channel") {
+                if (/^[A-Za-z0-9_-]{8,}$/.test(second)) return `https://youtube.com/channel/${second}`;
+                return null;
+            }
+
+            if (first === "c") {
+                if (/^[A-Za-z0-9._-]{3,}$/.test(second)) return `https://youtube.com/c/${second}`;
+                return null;
+            }
+
+            if (first === "user") {
+                if (/^[A-Za-z0-9._-]{3,}$/.test(second)) return `https://youtube.com/user/${second}`;
+                return null;
+            }
+
+            // Some results return bare handle-like paths without a prefix (rare). Reject those to reduce false positives.
             return null;
         }
         case "facebook": {
@@ -444,16 +469,41 @@ export const isMeaningfullyDifferent = (oldVal, newVal, field) => {
     return sOld !== sNew;
 };
 
+// In-memory cache (per browser session) to reduce repeated Google Places calls.
+const GOOGLE_PLACE_CACHE_TTL_MS = 60 * 60 * 1000; // 1h
+const googlePlaceCache = new Map(); // key -> { t: number, v: any }
+
+const cacheGet = (key) => {
+    const entry = googlePlaceCache.get(key);
+    if (!entry) return null;
+    if (Date.now() - entry.t > GOOGLE_PLACE_CACHE_TTL_MS) {
+        googlePlaceCache.delete(key);
+        return null;
+    }
+    return entry.v;
+};
+
+const cacheSet = (key, value) => {
+    if (!key) return;
+    if (value === undefined || value === null) return;
+    googlePlaceCache.set(key, { t: Date.now(), v: value });
+};
+
 
 export const fetchGooglePlaceData = async (query, city = "", country = "", placeId = "") => {
     if (placeId) {
+        const cached = cacheGet(`place:${placeId}`);
+        if (cached) return cached;
+
         console.log("Syncing via Place ID (Priority):", placeId);
         try {
             const detailsRes = await fetch(`/api/geocode?type=details&place_id=${placeId}`);
             const detailsData = await detailsRes.json();
             
             if (detailsData.result) {
-                return processGoogleData(detailsData.result, detailsData.result.address_components || [], query, placeId);
+                const processed = processGoogleData(detailsData.result, detailsData.result.address_components || [], query, placeId);
+                cacheSet(`place:${placeId}`, processed);
+                return processed;
             }
         } catch (e) {
             console.error("Fetch by Place ID failed, will try search as fallback:", e);
@@ -476,6 +526,10 @@ export const fetchGooglePlaceData = async (query, city = "", country = "", place
 
         const q = [query, city, country].filter(Boolean).join(", ");
         if (!q) return null;
+
+        const cachedQuery = cacheGet(`q:${q}`);
+        if (cachedQuery) return cachedQuery;
+
         const data = await performSearch(q);
         results = data.results || [];
         status = data.status;
@@ -492,7 +546,10 @@ export const fetchGooglePlaceData = async (query, city = "", country = "", place
 
         if (fallbackUsed) {
             console.log("Using Geocoding/fallback data directly");
-            return processGoogleData(firstResult, firstResult.address_components || [], query, "", fallbackUsed, googleError);
+            const processed = processGoogleData(firstResult, firstResult.address_components || [], query, "", fallbackUsed, googleError);
+            if (processed?.place_id) cacheSet(`place:${processed.place_id}`, processed);
+            cacheSet(`q:${q}`, processed);
+            return processed;
         }
         
         console.log("Found results, fetching details for:", firstResult.name);
@@ -500,7 +557,10 @@ export const fetchGooglePlaceData = async (query, city = "", country = "", place
         const detailsData = await detailsRes.json();
         
         if (!detailsData.result) return null;
-        return processGoogleData(detailsData.result, detailsData.result.address_components || [], query, "", fallbackUsed, googleError);
+        const processed = processGoogleData(detailsData.result, detailsData.result.address_components || [], query, "", fallbackUsed, googleError);
+        if (processed?.place_id) cacheSet(`place:${processed.place_id}`, processed);
+        cacheSet(`q:${q}`, processed);
+        return processed;
 
     } catch (e) {
         console.error("Fetch Google Place Data failed:", e);
