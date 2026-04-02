@@ -12,19 +12,21 @@ import { fetchGooglePlaceData, isMeaningfullyDifferent } from "../utils/churchHe
 // ORCHESTRATOR
 // ─────────────────────────────────────────────────────────────────────────────
 
-export async function syncChurchBot(churchData) {
+export async function syncChurchBot(churchData, onStatus = () => {}) {
     const query = churchData.locationTitle || churchData.name;
     const city = churchData.city;
     const country = churchData.country;
     const placeId = churchData.place_id;
 
     // ── 1. Google Places ─────────────────────────────────────────────────────
+    onStatus("Interrogation de Google Places...");
     const googleData = await fetchGooglePlaceData(query, city, country, placeId);
     let enrichedData = { ...googleData };
 
     // ── 2. Official website scraping ─────────────────────────────────────────
     const website = enrichedData.website || churchData.website;
     if (website && website !== "#") {
+        onStatus(`Analyse du site : ${website.replace(/^https?:\/\//, "")}...`);
         try {
             const scrapedData = await scrapeChurchWebsite(website);
             if (scrapedData) {
@@ -38,8 +40,7 @@ export async function syncChurchBot(churchData) {
         }
     }
 
-    // ── 3. No more web search fallback (as requested) ─────────────────────────
-    
+    onStatus("Finalisation de l'enrichissement...");
     return enrichedData;
 }
 
@@ -64,14 +65,32 @@ function extractFromHtml(html) {
     if (!html) return {};
     const data = {};
 
-    const fbMatch = html.match(/https?:\/\/(?:www\.)?facebook\.com\/[a-zA-Z0-9._-]+/i);
-    if (fbMatch) data.facebook = fbMatch[0].replace(/\/$/, "");
+    // --- Helper to find the first valid social link ---
+    const findValidLink = (regex, blacklist) => {
+        const matches = html.matchAll(new RegExp(regex, "gi"));
+        for (const match of matches) {
+            const path = match[1].toLowerCase();
+            if (!blacklist.includes(path)) {
+                return match[0].replace(/\/$/, "");
+            }
+        }
+        return null;
+    };
 
-    const ytMatch = html.match(/https?:\/\/(?:www\.)?youtube\.com\/(?:user|channel|c|@)[a-zA-Z0-9._-]+/i);
-    if (ytMatch) data.youtube = ytMatch[0];
+    const fbLink = findValidLink(/https?:\/\/(?:www\.)?facebook\.com\/([a-zA-Z0-9._-]+)/gi, 
+        ["people", "groups", "sharer", "login", "r.php", "hashtag", "messages", "profile.php"]);
+    if (fbLink) data.facebook = fbLink;
 
-    const igMatch = html.match(/https?:\/\/(?:www\.)?instagram\.com\/[a-zA-Z0-9._-]+/i);
-    if (igMatch) data.instagram = igMatch[0].replace(/\/$/, "");
+    const ytLink = findValidLink(/https?:\/\/(?:www\.)?youtube\.com\/(?:user|channel|c|@)?([a-zA-Z0-9._-]+)/gi, 
+        ["c", "channel", "user", "results", "watch", "playlist", "live"]);
+    if (ytLink) {
+        // Ensure YouTube link has full path if it's just a handle
+        data.youtube = ytLink.includes("youtube.com/") ? ytLink : `https://www.youtube.com/${ytLink}`;
+    }
+
+    const igLink = findValidLink(/https?:\/\/(?:www\.)?instagram\.com\/([a-zA-Z0-9._-]+)/gi, 
+        ["p", "reel", "explore", "stories", "direct", "accounts"]);
+    if (igLink) data.instagram = igLink;
 
     const emailMatch = html.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
     if (emailMatch) data.email = emailMatch[0];

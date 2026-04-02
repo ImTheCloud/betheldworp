@@ -3103,7 +3103,8 @@
 }
 
 .suggestionFormGroup input,
-.suggestionFormGroup select {
+.suggestionFormGroup select,
+.suggestionInput {
     width: 100%;
     padding: 10px 14px;
     background: #f8fafc;
@@ -3115,7 +3116,8 @@
 }
 
 .suggestionFormGroup input:focus,
-.suggestionFormGroup select:focus {
+.suggestionFormGroup select:focus,
+.suggestionInput:focus {
     background: #ffffff;
     border-color: #134b7b;
     outline: none;

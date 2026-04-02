@@ -15,7 +15,8 @@ export default function ConfirmModal({
     onCancel,
     variant = "danger", // 'danger' or 'primary'
     actions, // Optional array: [{ label, onClick, variant }]
-    progress = null // Number from 0-100 or null
+    progress = null, // Number from 0-100 or null
+    status = "" // Dynamically updated status message
 }) {
     if (!isOpen) return null;
 
@@ -36,16 +37,16 @@ export default function ConfirmModal({
                     <p className="adminModalMessage">{message}</p>
                     
                     {progress != null && !isNaN(progress) && (
-                        <div className="adminModalProgress">
-                            <div className="adminProgressBarContainer">
+                        <div className="adminModalProgress" style={{ minHeight: '45px', marginTop: '20px' }}>
+                            <div className="adminProgressBarContainer" style={{ marginBottom: '10px' }}>
                                 <div 
                                     className="adminProgressBarFill" 
                                     style={{ width: `${Math.min(100, Math.max(0, progress))}%` }} 
                                 />
                             </div>
-                            <div className="adminProgressText">
-                                <span>Progress</span>
-                                <span>{Math.round(progress)}%</span>
+                            <div className="adminProgressText" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <span style={{ color: '#3b82f6', fontWeight: 600 }}>{status || "Traitement en cours..."}</span>
+                                <span style={{ fontWeight: 800 }}>{Math.round(progress)}%</span>
                             </div>
                         </div>
                     )}
