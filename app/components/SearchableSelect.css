@@ -20,12 +20,6 @@
     animation: dropdownSlideIn 0.2s cubic-bezier(0, 0, 0.2, 1);
 }
 
-/* Dark mode compatibility for the world map */
-.suggestionForm .searchableSelectDropdown {
-    background: #1e293b; /* slate-800 */
-    border-color: rgba(255, 255, 255, 0.1);
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
-}
 
 .searchableSelectItem {
     padding: 8px 12px;
@@ -40,9 +34,6 @@
     justify-content: space-between;
 }
 
-.suggestionForm .searchableSelectItem {
-    color: #e2e8f0; /* slate-200 */
-}
 
 .searchableSelectItem:hover,
 .searchableSelectItem.is-focused {
@@ -50,11 +41,6 @@
     color: #2563eb;
 }
 
-.suggestionForm .searchableSelectItem:hover,
-.suggestionForm .searchableSelectItem.is-focused {
-    background: rgba(59, 130, 246, 0.15);
-    color: #60a5fa;
-}
 
 .searchableSelectItem.is-selected {
     background: #2563eb;
@@ -69,9 +55,6 @@
     font-style: italic;
 }
 
-.suggestionForm .searchableSelectEmpty {
-    color: rgba(255, 255, 255, 0.4);
-}
 
 @keyframes dropdownSlideIn {
     from {
@@ -82,4 +65,33 @@
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+.searchableSelectChevron {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(10, 42, 67, 0.4);
+    transition: all 0.2s ease;
+    pointer-events: auto;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+}
+
+.searchableSelectChevron.is-open {
+    transform: translateY(-50%) rotate(180deg);
+    color: #2563eb;
+}
+
+.searchableSelectChevron:hover {
+    color: #0a2a43;
+}
+
+/* Ensure text doesn't overlap chevron */
+.searchableSelect input {
+    padding-right: 36px !important;
 }

@@ -1589,14 +1589,11 @@ input:checked + .adminSlider:before {
         grid-template-columns: 1fr 1fr;
         gap: 10px;
         width: 100%;
-        padding-bottom: 0;
-        overflow: visible;
-        align-items: center;
+        margin-top: 8px;
     }
 
-    /* Override previous column stack explicitly to handle specific children beautifully */
     .adminFullTop .adminActions .adminSelect {
-        width: 100%;
+        width: 100% !important;
         min-width: 0;
         margin: 0;
     }
@@ -1607,6 +1604,11 @@ input:checked + .adminSlider:before {
         justify-content: center;
         padding: 10px 12px;
         font-size: 13px;
+        height: 42px;
+    }
+
+    .adminFullTop .adminActions .adminBtn--new {
+        grid-column: span 2;
     }
 
     /* If there are flex containers inside actions (like tabs), let them scroll or wrap */
@@ -1739,7 +1741,7 @@ input:checked + .adminSlider:before {
     .adminAnnCard {
         width: 100%;
         min-width: 0;
-        overflow: hidden;
+        overflow: visible;
         padding: 8px;
     }
 
@@ -1772,7 +1774,7 @@ input:checked + .adminSlider:before {
     .adminLabel {
         width: 100%;
         min-width: 0;
-        overflow: hidden;
+        overflow: visible;
     }
 
     .adminAffectGrid {

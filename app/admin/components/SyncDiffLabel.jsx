@@ -9,15 +9,15 @@ export const SyncDiffLabel = ({ field, syncedFields, onRestore, showPreview }) =
     
     return (
         <div className="adminSyncDiffWrapper">
-            <span className="adminSyncDiffLabelText" title="Ancienne valeur">
-                {old || "(vide)"}
+            <span className="adminSyncDiffLabelText" title="Old value">
+                {old || "(empty)"}
             </span>
             <div className="adminSyncDiffActions">
                 {showPreview && old && <PreviewLinkButton url={old} />}
                 <button 
                     type="button" 
                     className="adminSyncRestoreBtn" 
-                    title="Restaurer l'ancienne valeur"
+                    title="Restore old value"
                     onClick={(e) => { 
                         e.preventDefault(); 
                         if (onRestore) onRestore(field, old || ""); 

@@ -117,6 +117,18 @@ export default function SearchableSelect({
                 autoComplete="off"
             />
             
+            <div 
+                className={`searchableSelectChevron ${isOpen ? "is-open" : ""}`}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    if (!disabled) setIsOpen(!isOpen);
+                }}
+            >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="m6 9 6 6 6-6"/>
+                </svg>
+            </div>
+            
             {isOpen && !disabled && (
                 <div className="searchableSelectDropdown">
                     {filteredOptions.length > 0 ? (

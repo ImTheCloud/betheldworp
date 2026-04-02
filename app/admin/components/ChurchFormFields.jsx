@@ -66,7 +66,7 @@ export default function ChurchFormFields({
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
                         <label className="adminLabel" style={{ marginBottom: 0 }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, overflow: "hidden" }}>
-                                <span>Location Title (Directions)</span>
+                                <span>TITLE</span>
                                 {(() => {
                                     const queryForMap = drafts.locationTitle || drafts.name || "";
                                     const googleMapsLink = drafts.googleMapsUri 
@@ -117,7 +117,7 @@ export default function ChurchFormFields({
                                     ) : (
                                         <>
                                             <IconSync style={{ width: 12, height: 12 }} />
-                                            Synchronisation
+                                            Sync
                                         </>
                                     )}
                                 </button>
@@ -128,7 +128,6 @@ export default function ChurchFormFields({
                         className={`adminInput ${getHighlightClass("locationTitle")}`} 
                         value={drafts.locationTitle ?? ""} 
                         onChange={(e) => onChange("locationTitle", e.target.value)} 
-                        placeholder="Search by name, address or place ID..."
                         disabled={disabled || isSyncing}
                     />
                     <SyncDiffLabel field="locationTitle" syncedFields={syncedFields} onRestore={onRestore} />
@@ -254,39 +253,31 @@ export default function ChurchFormFields({
                     <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
                         Website
                         <GoogleSearchButton query={searchQuery} label="website" />
+                        <PreviewLinkButton url={drafts.website} />
                     </div>
-                    <div style={{ position: "relative" }}>
-                        <input 
-                            className={`adminInput adminInput--withIcon ${getHighlightClass("website")}`} 
-                            placeholder="https://..." 
-                            value={drafts.website ?? ""} 
-                            onChange={(e) => onChange("website", e.target.value)} 
-                            disabled={disabled}
-                        />
-                        <div className="adminInputIconWrapper">
-                            <PreviewLinkButton url={drafts.website} />
-                        </div>
-                    </div>
+                    <input 
+                        className={`adminInput ${getHighlightClass("website")}`} 
+                        placeholder="https://..." 
+                        value={drafts.website ?? ""} 
+                        onChange={(e) => onChange("website", e.target.value)} 
+                        disabled={disabled}
+                    />
                     <SyncDiffLabel field="website" syncedFields={syncedFields} onRestore={onRestore} showPreview={true} />
                 </label>
                 <label className="adminLabel">
                     <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
                         YouTube
                         <GoogleSearchButton query={searchQuery} label="youtube" />
+                        <PreviewLinkButton url={drafts.youtube} />
                     </div>
 
-                    <div style={{ position: "relative" }}>
-                        <input 
-                            className={`adminInput adminInput--withIcon ${getHighlightClass("youtube")}`} 
-                            placeholder="https://youtube.com/..." 
-                            value={drafts.youtube ?? ""} 
-                            onChange={(e) => onChange("youtube", e.target.value)} 
-                            disabled={disabled}
-                        />
-                        <div className="adminInputIconWrapper">
-                            <PreviewLinkButton url={drafts.youtube} />
-                        </div>
-                    </div>
+                    <input 
+                        className={`adminInput ${getHighlightClass("youtube")}`} 
+                        placeholder="https://youtube.com/..." 
+                        value={drafts.youtube ?? ""} 
+                        onChange={(e) => onChange("youtube", e.target.value)} 
+                        disabled={disabled}
+                    />
                     <SyncDiffLabel field="youtube" syncedFields={syncedFields} onRestore={onRestore} showPreview={true} />
                 </label>
 
@@ -295,38 +286,30 @@ export default function ChurchFormFields({
                     <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
                         Instagram
                         <GoogleSearchButton query={searchQuery} label="instagram" />
+                        <PreviewLinkButton url={drafts.instagram} />
                     </div>
-                    <div style={{ position: "relative" }}>
-                        <input 
-                            className={`adminInput adminInput--withIcon ${getHighlightClass("instagram")}`} 
-                            placeholder="instagram.com/..." 
-                            value={drafts.instagram ?? ""} 
-                            onChange={(e) => onChange("instagram", e.target.value)} 
-                            disabled={disabled}
-                        />
-                        <div className="adminInputIconWrapper">
-                            <PreviewLinkButton url={drafts.instagram} />
-                        </div>
-                    </div>
+                    <input 
+                        className={`adminInput ${getHighlightClass("instagram")}`} 
+                        placeholder="instagram.com/..." 
+                        value={drafts.instagram ?? ""} 
+                        onChange={(e) => onChange("instagram", e.target.value)} 
+                        disabled={disabled}
+                    />
                     <SyncDiffLabel field="instagram" syncedFields={syncedFields} onRestore={onRestore} showPreview={true} />
                 </label>
                 <label className="adminLabel">
                     <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
                         Facebook
                         <GoogleSearchButton query={searchQuery} label="facebook" />
+                        <PreviewLinkButton url={drafts.facebook} />
                     </div>
-                    <div style={{ position: "relative" }}>
-                        <input 
-                            className={`adminInput adminInput--withIcon ${getHighlightClass("facebook")}`} 
-                            placeholder="facebook.com/..." 
-                            value={drafts.facebook ?? ""} 
-                            onChange={(e) => onChange("facebook", e.target.value)} 
-                            disabled={disabled}
-                        />
-                        <div className="adminInputIconWrapper">
-                            <PreviewLinkButton url={drafts.facebook} />
-                        </div>
-                    </div>
+                    <input 
+                        className={`adminInput ${getHighlightClass("facebook")}`} 
+                        placeholder="facebook.com/..." 
+                        value={drafts.facebook ?? ""} 
+                        onChange={(e) => onChange("facebook", e.target.value)} 
+                        disabled={disabled}
+                    />
                     <SyncDiffLabel field="facebook" syncedFields={syncedFields} onRestore={onRestore} showPreview={true} />
                 </label>
             </div>

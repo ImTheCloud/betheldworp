@@ -12,7 +12,6 @@ import { IconPlus, IconTrash, IconChevronDown, IconSave, IconEyeOff, IconEye, Ic
 import { safeStr, normalizeText, matchChurchSearch, hasDraftChanges, emptyChurch, COUNTRY_OPTIONS, geocodeAddress, isMeaningfullyDifferent, PENTECOSTAL_NAMES, shuffleArray, fetchGooglePlaceData } from "../utils/churchHelpers";
 import { useChurchSync } from "../hooks/useChurchSync";
 import { syncChurchBot } from "../services/churchSyncBot";
-import SearchableSelect from "../../components/SearchableSelect";
 
 const PAGE_SIZE = 10;
 
@@ -102,7 +101,7 @@ function ChurchCard({ item, expanded, drafts, saveState, onToggle, onChange, onS
             </div>
 
             {expanded ? (
-                <div className="adminAnnBody">
+                <div className="adminAnnBody" style={isDraft ? { backgroundColor: "#fffbeb" } : {}}>
                     <ChurchFormFields
                         drafts={drafts}
                         onChange={handleFieldChange}
@@ -129,7 +128,12 @@ function ChurchCard({ item, expanded, drafts, saveState, onToggle, onChange, onS
                         <button
                             type="button"
                             className="adminDraftBtn"
-                            onClick={(e) => { e.stopPropagation(); onSave(id, !drafts.isDraft); }}
+                            onClick={(e) => { 
+                                e.stopPropagation(); 
+                                const newStatus = !drafts.isDraft;
+                                onChange(id, "isDraft", newStatus);
+                                onSave(id, newStatus); 
+                            }}
                             disabled={saveState === "saving"}
                         >
                             {drafts.isDraft ? <IconEye /> : <IconEyeOff />}
@@ -391,13 +395,27 @@ export default function ChurchesAdmin() {
     const changeDraft = (id, key, value) => { setDraftsById(prev => ({ ...prev, [id]: { ...(prev[id] || items.find(i => i.id === id)), [key]: value } })); };
 
     const saveOne = async (id, forcedDraftStatus = null) => {
-        const draft = draftsById[id];
+        const item = items.find(i => i.id === id);
+        const draft = draftsById[id] || item;
         if (!draft) return;
+        
         let isDraftValue = forcedDraftStatus !== null ? forcedDraftStatus : (draft.isDraft || false);
         setTransientState(id, "saving");
         try {
-            await updateDoc(doc(db, "churches", id), { ...draft, isDraft: isDraftValue, updatedAt: serverTimestamp() });
+            await updateDoc(doc(db, "churches", id), { 
+                ...draft, 
+                isDraft: isDraftValue, 
+                updatedAt: serverTimestamp() 
+            });
             setTransientState(id, "saved");
+            
+            setTimeout(() => {
+                setExpandedIds(prev => {
+                    const next = new Set(prev);
+                    next.delete(id);
+                    return next;
+                });
+            }, 800);
         } catch (e) { setTransientState(id, "error"); }
     };
 
@@ -436,8 +454,14 @@ export default function ChurchesAdmin() {
                 </div>
 
                 <div className="adminActions">
-                    <div style={{ width: 220 }}><SearchableSelect value={selectedCountry} options={uniqueCountries} onChange={val => { setSelectedCountry(val); setSelectedCity(""); setPage(1); }} placeholder="Countries" /></div>
-                    <div style={{ width: 220 }}><SearchableSelect value={selectedCity} options={uniqueCities} onChange={val => { setSelectedCity(val); setPage(1); }} placeholder="Cities" disabled={!uniqueCities.length} /></div>
+                    <select className="adminSelect" style={{ width: 220 }} value={selectedCountry} onChange={e => { setSelectedCountry(e.target.value); setSelectedCity(""); setPage(1); }}>
+                        <option value="">All Countries</option>
+                        {uniqueCountries.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                    <select className="adminSelect" style={{ width: 220 }} value={selectedCity} onChange={e => { setSelectedCity(e.target.value); setPage(1); }} disabled={!uniqueCities.length}>
+                        <option value="">All Cities</option>
+                        {uniqueCities.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
                     <select className="adminSelect" value={sortBy} onChange={e => setSortBy(e.target.value)}>
                         <option value="az">A-Z</option>
                         <option value="date-desc">Newest</option>

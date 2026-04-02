@@ -155,27 +155,27 @@ export const processGoogleData = (res, components, originalQuery = "", placeId =
         // English
         "Church", "Pentecostal", "Christian", "Romanian",
         "Evangelical", "Evangelic", "Community", "Assembly",
-        "Center", "Centre",
+        "Center", "Centre", "of", "the", "at",
         // French
         "Église", "Eglise", "Pentecôtiste", "Chrétienne", "Chrétien",
         "Roumaine", "Roumain", "Évangélique", "Evangelique",
-        "Communauté", "Assemblée", "Centre",
+        "Communauté", "Assemblée", "Centre", "de", "la", "le", "l", "du", "des",
         // Dutch
         "Kerk", "Gemeente", "Roemeens", "Roemeense",
         "Evangelisch", "Evangelische", "Christelijk", "Christelijke",
-        "Pinkster", "Centrum", "Gemeenschap",
+        "Pinkster", "Centrum", "Gemeenschap", "van", "de", "het", "der",
         // German
         "Kirche", "Gemeinde", "Rumänisch", "Rumänische",
         "Evangelische", "Christliche", "Pfingst", "Pfingstliche",
-        "Zentrum", "Verein", "e.V.", "eV", "e V", "V",
+        "Zentrum", "Verein", "e.V.", "eV", "e V", "V", "von", "der", "die", "das", "in",
         // Italian
         "Chiesa", "Cristiana", "Cristiano", "Romena", "Romeno",
-        "Evangelica", "Evangelico", "Comunità", "Centro",
+        "Evangelica", "Evangelico", "Comunità", "Centro", "di", "la", "il", "del",
         // Spanish
         "Iglesia", "Cristiana", "Cristiano", "Rumana", "Rumano",
-        "Evangélica", "Comunidad", "Asamblea",
+        "Evangélica", "Comunidad", "Asamblea", "de", "la", "el", "en",
         // Portuguese
-        "Igreja", "Cristã", "Romena", "Comunidade",
+        "Igreja", "Cristã", "Romena", "Comunidade", "de", "a", "o",
         // Scandinavian (SE/NO/DK)
         "Kyrka", "Kirke", "Rumänska", "Rumensk", "Rumænsk",
         "Evangelisk", "Kristen", "Kristne", "Församling",
@@ -183,7 +183,7 @@ export const processGoogleData = (res, components, originalQuery = "", placeId =
         "Templom", "Egyház", "Pünkösdi", "Keresztény",
         "Román", "Evangéliumi", "Közösség",
         // Generic descriptors
-        "din", "de", "la", "du", "des", "van", "von", "der", "het"
+        "din", "de", "la", "du", "des", "van", "von", "der", "het", "of", "the", "at", "in", "and", "und", "et", "si", "și"
     ];
     if (cityName) noise.push(cityName);
     
@@ -237,7 +237,7 @@ export const processGoogleData = (res, components, originalQuery = "", placeId =
     setIf("city", cityName);
     setIf("zipCode", getComp(["postal_code"]));
     setIf("country", countryName);
-    setIf("phone", res.international_phone_number);
+    setIf("phone", res.international_phone_number || res.formatted_phone_number);
     setIf("email", res.email);
     setIf("website", res.website);
     setIf("lat", res.geometry?.location?.lat);
@@ -277,15 +277,6 @@ export const isMeaningfullyDifferent = (oldVal, newVal, field) => {
         // 1. If identical after normalization
         if (nOld === nNew) return false;
         
-        // 2. If one is a complete substring of the other (common for "Elim" vs "Elim Christliche...")
-        // AND both share the same starting word
-        const firstWordOld = nOld.split(" ")[0];
-        const firstWordNew = nNew.split(" ")[0];
-        
-        if (firstWordOld === firstWordNew) {
-           if (nNew.includes(nOld) || nOld.includes(nNew)) return false;
-        }
-
         return true;
     }
 
