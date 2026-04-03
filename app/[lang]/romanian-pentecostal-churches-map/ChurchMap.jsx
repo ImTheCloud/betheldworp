@@ -514,18 +514,28 @@ function MapController({ selectedChurch, requestedLocation, isInitialLoad, recen
     return null;
 }
 
-function FilterController({ filteredChurches, activeCountryFilter, isMobile, filterRecenterTrigger }) {
+function FilterController({ filteredChurches, activeCountryFilter, isMobile, filterRecenterTrigger, recenterTrigger }) {
     const map = useMap();
     const prevFilterRef = useRef("");
+    const prevRecenterTriggerRef = useRef(recenterTrigger);
     const initialRunRef = useRef(true);
 
     useEffect(() => {
         if (!map) return;
-        // The effect runs whenever the filter OR recenter trigger changes.
-        // This allows re-clicking "All" to re-center on Europe.
         
         const filterChanged = prevFilterRef.current !== activeCountryFilter;
         prevFilterRef.current = activeCountryFilter;
+
+        // Detect if recenter was explicitly triggered via button click
+        const recenterTriggered = recenterTrigger > prevRecenterTriggerRef.current;
+        prevRecenterTriggerRef.current = recenterTrigger;
+
+        // If a manual recenter (to user location) was just triggered, 
+        // we skip the filter-based camera update to avoid conflicting animations.
+        if (recenterTriggered) {
+            initialRunRef.current = false;
+            return;
+        }
 
         // Cancel any in-flight church animation when switching filters
         cancelMapAnimation();
@@ -534,8 +544,6 @@ function FilterController({ filteredChurches, activeCountryFilter, isMobile, fil
             // Reset to wide view of Europe ONLY if the user explicitly changed the filter
             // or clicked the filter button. Avoid overriding userLocation on initial background load.
             if (filterChanged || filterRecenterTrigger > 0 || (initialRunRef.current && filterRecenterTrigger === 0 && !window.location.search.includes('church='))) {
-                // Note: On absolute first run, we let MapController handle it, so we skip unless filterRecenterTrigger forces it
-                // Actually, just skipping on initial run entirely for empty filter is safer because MapController handles Europe/Belgium/User defaults.
                 if (!initialRunRef.current) {
                     map.panTo({ lat: 48.0, lng: 15.0 });
                     map.setZoom(4);
@@ -1261,9 +1269,24 @@ function ChurchMap() {
     }, [fetchUserLocation]);
 
     const handleRecenter = () => {
-        // Deselect any active church first
-        deselectChurch();
+        // 1. Reset search and country filters immediately
+        setSearchQuery("");
+        setActiveCountryFilter("");
+        
+        // 2. Deselect any active church
+        if (selectedChurch) {
+            deselectChurch();
+        }
 
+        // 3. For mobile, ensure the interface is cleaned (bottom sheet pushed all the way down)
+        if (isMobile) {
+            setBottomSheetMode("hidden");
+            // Since deselectChurch has its own internal timing that resets to "collapsed",
+            // we add a tiny safety timeout to ensure "hidden" wins on recenter.
+            setTimeout(() => setBottomSheetMode("hidden"), 300);
+        }
+
+        // 4. Trigger map movement to user location
         if (userLocation) {
             manualRecenterPendingRef.current = false;
             setRecenterTrigger(prev => prev + 1);
@@ -2201,6 +2224,7 @@ function ChurchMap() {
                             activeCountryFilter={activeCountryFilter}
                             isMobile={isMobile}
                             filterRecenterTrigger={filterRecenterTrigger}
+                            recenterTrigger={recenterTrigger}
                         />
 
                         {/* Recentering button (follows bottom sheet on mobile) */}
