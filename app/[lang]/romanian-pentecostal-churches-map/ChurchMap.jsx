@@ -1298,6 +1298,9 @@ function ChurchMap() {
         }
     };
 
+
+
+
     const selectChurch = useCallback((church) => {
         setSelectedChurch(church);
         setIsInitialLoad(false);
@@ -1331,23 +1334,6 @@ function ChurchMap() {
         }
     }, [isMobile, selectedChurch]);
 
-    const handleShare = useCallback(async (church) => {
-        const url = `${window.location.origin}/romanian-pentecostal-churches-map?church=${church.id}`;
-        try {
-            await navigator.clipboard.writeText(url);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
-        } catch {
-            const input = document.createElement("input");
-            input.value = url;
-            document.body.appendChild(input);
-            input.select();
-            document.execCommand("copy");
-            document.body.removeChild(input);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
-        }
-    }, []);
     const handleMapInteraction = useCallback(() => {
         if (isMobile) {
             setBottomSheetMode("hidden");
@@ -2091,22 +2077,25 @@ function ChurchMap() {
                             {isMobile && (selectedChurch || isExiting) && (
                                 <div className={`mobileChurchDetails ${isExiting ? "exiting" : ""}`}>
                                     <div className="mobileDetailsHeader">
-                                        <div className="mobileDetailsTitleArea">
-                                            <h2 className="churchDetailsTitle">
-                                                {selectedChurch.name}{selectedChurch.city ? ` ${selectedChurch.city}` : ''}
-                                            </h2>
-                                            <p className="churchDetailsAddress">
-                                                {[(`${selectedChurch.street || ""} ${selectedChurch.number || ""}`.trim()), (`${selectedChurch.zipCode ? `${selectedChurch.zipCode} ` : ""}${selectedChurch.city || ""}`.trim()), getCountryLabel(selectedChurch.country)].filter(Boolean).join(", ")}
-                                            </p>
+                                        <div className="mobileDetailsTitleRow">
+                                            <div className="mobileDetailsTitleArea">
+                                                <h2 className="churchDetailsTitle">
+                                                    <FlagImage country={selectedChurch.country} className="title-flag" />
+                                                    <span>{selectedChurch.name}{selectedChurch.city ? ` ${selectedChurch.city}` : ''}</span>
+                                                </h2>
+                                            </div>
+                                            <div className="mobileDetailsHeaderActions">
+                                                <button className="mobileDetailsBack" onClick={deselectChurch} aria-label="Close">
+                                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                                                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                                                    </svg>
+                                                </button>
+                                            </div>
                                         </div>
-                                        <div className="mobileDetailsHeaderActions">
-                                            <button className="mobileDetailsBack" onClick={deselectChurch} aria-label="Close">
-                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                                                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                                                </svg>
-                                            </button>
-                                        </div>
+                                        <p className="churchDetailsAddress">
+                                            {[(`${selectedChurch.street || ""} ${selectedChurch.number || ""}`.trim()), (`${selectedChurch.zipCode ? `${selectedChurch.zipCode} ` : ""}${selectedChurch.city || ""}`.trim())].filter(Boolean).join(", ")}
+                                        </p>
                                     </div>
                                 </div>
                             )}
@@ -2249,9 +2238,11 @@ function ChurchMap() {
                         <div className="churchDetailsCard">
                             <div className="churchDetailsHeader">
                                 <h2 className="churchDetailsTitle">
-                                    {selectedChurch.name}{selectedChurch.city ? ` ${selectedChurch.city}` : ''}
+                                    <FlagImage country={selectedChurch.country} className="title-flag" />
+                                    <span>{selectedChurch.name}{selectedChurch.city ? ` ${selectedChurch.city}` : ''}</span>
                                 </h2>
                                 <div className="churchDetailsHeaderActions">
+
                                     <button className="churchDetailsClose" onClick={deselectChurch} aria-label="Close">
                                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                             <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -2262,7 +2253,7 @@ function ChurchMap() {
                             </div>
                             <div className="churchDetailsContent">
                                 <p className="churchDetailsAddress">
-                                    {[(`${selectedChurch.street || ""} ${selectedChurch.number || ""}`.trim()), (`${selectedChurch.zipCode ? `${selectedChurch.zipCode} ` : ""}${selectedChurch.city || ""}`.trim()), getCountryLabel(selectedChurch.country)].filter(Boolean).join(", ")}
+                                    {[(`${selectedChurch.street || ""} ${selectedChurch.number || ""}`.trim()), (`${selectedChurch.zipCode ? `${selectedChurch.zipCode} ` : ""}${selectedChurch.city || ""}`.trim())].filter(Boolean).join(", ")}
                                 </p>
                                 <ChurchInfoLinks church={selectedChurch} t={t} />
 
