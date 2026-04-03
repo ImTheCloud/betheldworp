@@ -190,11 +190,6 @@
     border-color: rgba(10, 42, 67, 0.08);
 }
 
-.ec-cell.is-today .ec-dayBadge {
-    background: linear-gradient(135deg, #0a2a43 0%, #164678 100%);
-    color: #ffffff;
-    border: 1px solid rgba(22, 70, 120, 0.25);
-}
 
 .ec-emptyBody {
     width: 100%;

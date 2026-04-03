@@ -28,6 +28,8 @@ export default function ChurchSuggestionsAdmin() {
     const [isDiscovering5, setIsDiscovering5] = useState(false);
     const [discover5Count, setDiscover5Count] = useState(0);
     const [discover5Status, setDiscover5Status] = useState("");
+    const [isDiscoveryToolOpen, setIsDiscoveryToolOpen] = useState(false);
+    const [discoveryTargetCount, setDiscoveryTargetCount] = useState(5);
 
     const FIELDS_TO_COMPARE = ["name", "locationTitle", "city", "country", "zipCode", "street", "number", "phone", "email", "website", "youtube", "instagram", "facebook", "lat", "lng"];
 
@@ -315,24 +317,25 @@ export default function ChurchSuggestionsAdmin() {
         }
     };
 
-    const handleDiscover5 = async () => {
+    const handleDiscovery = async (targetCount, countryToSearch) => {
         if (isDiscovering5) return;
 
         setIsDiscovering5(true);
         setDiscover5Count(0);
         setDiscover5Status("Starting discovery...");
+        setIsDiscoveryToolOpen(false); // Close modal when starting
 
         try {
             const existingPlaceIds = new Set();
             Object.values(churchesById).forEach(c => { if (c?.place_id) existingPlaceIds.add(String(c.place_id)); });
             [...suggestions, ...processedSuggestions].forEach(s => { if (s?.data?.place_id) existingPlaceIds.add(String(s.data.place_id)); });
 
-            const country = (discoverCountry || "").trim();
+            const country = (countryToSearch || "").trim();
 
             const namesToTry = shuffleArray(PENTECOSTAL_NAMES);
             let created = 0;
 
-            for (let i = 0; i < namesToTry.length && created < 5; i++) {
+            for (let i = 0; i < namesToTry.length && created < targetCount; i++) {
                 const churchName = namesToTry[i];
                 setDiscover5Status(`Searching: "Biserica Penticostala ${churchName}"`);
 
@@ -387,10 +390,10 @@ export default function ChurchSuggestionsAdmin() {
                 await new Promise(r => setTimeout(r, 350));
             }
 
-            if (created < 5) {
-                setDiscover5Status(`Done: created ${created} suggestion(s). (Not enough matches for 5.)`);
+            if (created < targetCount) {
+                setDiscover5Status(`Done: created ${created} suggestion(s). (Not enough matches for ${targetCount}.)`);
             } else {
-                setDiscover5Status("Done: created 5 suggestions.");
+                setDiscover5Status(`Done: created ${created} suggestions.`);
             }
             setTimeout(() => setDiscover5Status(""), 4000);
         } catch (e) {
@@ -414,29 +417,25 @@ export default function ChurchSuggestionsAdmin() {
 
                 <div className="adminActions">
                     <div className="adminActionsGroup adminActionsGroup--suggestionsDiscover">
-                        <div className="adminActionsSelectWrap">
-                            <SearchableSelect
-                                value={discoverCountry}
-                                options={COUNTRY_OPTIONS}
-                                onChange={(val) => setDiscoverCountry(val)}
-                                disabled={isDiscovering5}
-                                placeholder="Country (optional)"
-                            />
-                        </div>
                         <button
                             type="button"
                             className="adminBtn adminBtn--discover"
                             disabled={isDiscovering5}
-                            onClick={handleDiscover5}
-                            title={discover5Status || "Discover 5 new churches and create suggestions"}
+                            onClick={() => setIsDiscoveryToolOpen(true)}
+                            title={discover5Status || "Discovery Tool: Find new churches and create suggestions"}
                         >
                             {isDiscovering5 ? (
                                 <div className="adminSpinner" style={{ width: 14, height: 14, border: "2px solid #0a6b4a", borderTopColor: "transparent" }} />
                             ) : (
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                             )}
-                            {isDiscovering5 ? `Discovering (${discover5Count}/5)` : "Discover 5"}
+                            {isDiscovering5 ? `Discovering (${discover5Count}/${discoveryTargetCount})` : "Discover New Churches"}
                         </button>
+                        {discover5Status && (
+                             <span className="adminMuted" style={{ fontSize: '11px', fontWeight: '500', marginLeft: '8px' }}>
+                                 {discover5Status}
+                             </span>
+                        )}
                     </div>
 
                     <button 
@@ -618,6 +617,67 @@ export default function ChurchSuggestionsAdmin() {
                 onConfirm={modal.onConfirm}
                 onCancel={() => setModal({ ...modal, isOpen: false })}
             />
+
+            {isDiscoveryToolOpen && (
+                <div className="adminModalOverlay">
+                    <div className="adminConfirmModal" style={{ maxWidth: '450px' }}>
+                        <div className="adminModalHeader">
+                            <h3 className="adminModalTitle" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                                Discovery Tool
+                            </h3>
+                            <button className="adminModalClose" onClick={() => setIsDiscoveryToolOpen(false)} aria-label="Close">
+                                <IconX />
+                            </button>
+                        </div>
+                        
+                        <div className="adminModalBody">
+                            <p className="adminModalMessage" style={{ marginBottom: '20px' }}>
+                                Automatically find new churches via Google and create pending suggestions.
+                            </p>
+                            
+                            <div className="adminForm" style={{ gap: '20px' }}>
+                                <div className="adminLabel">
+                                    <span>Country to explore</span>
+                                    <SearchableSelect
+                                        value={discoverCountry}
+                                        options={COUNTRY_OPTIONS}
+                                        onChange={(val) => setDiscoverCountry(val)}
+                                        placeholder="Select a country (optional)"
+                                        inputClassName="adminSearchInput"
+                                    />
+                                </div>
+                                <div className="adminLabel">
+                                    <span>Desired quantity (1-10)</span>
+                                    <select 
+                                        className="adminInput"
+                                        value={discoveryTargetCount}
+                                        onChange={(e) => setDiscoveryTargetCount(parseInt(e.target.value))}
+                                        style={{ height: '40px' }}
+                                    >
+                                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
+                                            <option key={n} value={n}>{n} churches</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className="adminModalFooter">
+                            <button className="adminModalBtn adminModalBtn--cancel" onClick={() => setIsDiscoveryToolOpen(false)}>
+                                Cancel
+                            </button>
+                            <button 
+                                className="adminModalBtn adminModalBtn--primary" 
+                                onClick={() => handleDiscovery(discoveryTargetCount, discoverCountry)}
+                                style={{ background: '#0a6b4a' }}
+                            >
+                                Start Discovery
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

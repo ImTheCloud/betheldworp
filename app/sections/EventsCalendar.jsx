@@ -271,6 +271,18 @@ export default function EventsCalendar() {
                 createdAt: serverTimestamp(),
             });
 
+            // Send real-time notification via ntfy.sh
+            try {
+                const topic = "bethel_churches_notifications_f93k2n8";
+                const notifyUrl = `https://ntfy.sh/${topic}?title=${encodeURIComponent("Abonare Nouă Newsletter")}&priority=default&tags=email,tada`;
+                fetch(notifyUrl, {
+                    method: 'POST',
+                    body: `Nou abonat: ${normalized}`
+                }).catch(e => console.error("Notification error:", e));
+            } catch (notifyErr) {
+                console.error("Failed to send notification:", notifyErr);
+            }
+
             setSuccess(true);
             setSuccessText(t("subscribe_success_short"));
             setEmail("");

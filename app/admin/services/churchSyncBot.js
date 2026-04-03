@@ -134,23 +134,29 @@ function extractFromHtml(html) {
         ["p", "reel", "explore", "stories", "direct", "accounts", "legal", "about", "explore/locations", "reels"]);
     if (igLink) data.instagram = igLink;
 
-    const emails = html.match(/[a-zA-Z0-9._%+-]+@(?!(?:example|domain|support|yoursite|email|wix|wordpress|squarespace)\.[a-z]{2,})[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/gi) || [];
+    const emails = html.match(/[a-zA-Z0-9._%+-]+@(?!(?:example|domain|support|yoursite|email|wix|wordpress|squarespace|wixpress|sentry|hubspot|intercom)\.[a-z]{2,})[a-z0-9.-]+\.[a-z]{2,}/gi) || [];
     
     if (emails.length > 0) {
-        // Known placeholders to strictly ignore
+        // Known technical/placeholder emails to strictly ignore
         const garbage = [
             "writer@support.com", "user@example.com", "info@yourdomain.com", 
             "john.doe@gmail.com", "support@wordpress.com", "admin@wix.com",
             "info@wix.com", "support@wix.com", "contact@wix.com",
-            "noreply@wordpress.com", "donotreply@wordpress.com"
+            "noreply@wordpress.com", "donotreply@wordpress.com",
+            "sentry-next.wixpress.com"
         ];
         const cleanEmails = emails.filter(e => {
             const lowE = e.toLowerCase();
-            return !garbage.includes(lowE) && 
-                   !lowE.includes("template") && 
-                   !lowE.includes("theme") &&
-                   !lowE.includes("yourdomain") &&
-                   !lowE.includes("yoursite");
+            
+            // 1. Check against garbage list or containing technical keywords
+            if (garbage.includes(lowE)) return false;
+            if (lowE.includes("template") || lowE.includes("theme") || lowE.includes("yourdomain") || lowE.includes("yoursite")) return false;
+
+            // 2. Reject long hexadecimal hashes (technical error reporting)
+            const [localPart] = lowE.split("@");
+            if (localPart.length >= 24 && /^[0-9a-f]+$/.test(localPart)) return false;
+
+            return true;
         });
         
         if (cleanEmails.length > 0) {

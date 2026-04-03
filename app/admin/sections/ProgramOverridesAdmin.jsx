@@ -7,6 +7,7 @@ import { db } from "../../lib/Firebase";
 import { usePagination } from "../hooks/usePagination";
 import PaginationControls from "../components/PaginationControls";
 import ConfirmModal from "../components/ConfirmModal";
+import { toggleExpandWithConfirm } from "../utils/adminUI";
 
 const safeObj = (v) => (v && typeof v === "object" && !Array.isArray(v) ? v : {});
 
@@ -118,6 +119,14 @@ function formatWeekRange(weekKey) {
 
 function labelForAffected(id) {
     return AFFECT_OPTIONS.find((x) => x.id === id)?.label || id;
+}
+
+function overrideEqual(a, b) {
+    const dirtyWeek = safeStr(a.weekKey).trim().toUpperCase() !== safeStr(b.weekKey).trim().toUpperCase();
+    const dirtyAffect = !sameArrayAsSet(a.affectedProgramIds, toSet(b.affectedProgramIds));
+    const dirtyRepl = JSON.stringify(safeObj(a.replacements)) !== JSON.stringify(safeObj(b.replacements));
+    const dirtyAdd = JSON.stringify(safeObj(a.additions)) !== JSON.stringify(safeObj(b.additions));
+    return !dirtyWeek && !dirtyAffect && !dirtyRepl && !dirtyAdd;
 }
 
 function makeAffectedSummary(arr, max = 60) {
@@ -816,14 +825,16 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed }) {
     const historyPagination = usePagination(historyItems, 10);
 
     const toggleExpand = useCallback((id) => {
-        const key = safeStr(id).trim();
-        if (!key) return;
-        setExpandedIds((prev) => {
-            const next = new Set(prev);
-            next.has(key) ? next.delete(key) : next.add(key);
-            return next;
+        toggleExpandWithConfirm({
+            id,
+            items,
+            draftsById,
+            isDirtyFn: (item, draft) => !overrideEqual(item, draft),
+            setModal,
+            setExpandedIds,
+            setDraftsById
         });
-    }, []);
+    }, [items, draftsById]);
 
     const changeWeekKey = (id, wk) => {
         const key = safeStr(id).trim();

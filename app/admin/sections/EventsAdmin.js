@@ -2,12 +2,14 @@
 
 import { useEffect, useRef, useState, useMemo } from "react";
 import { collection, deleteDoc, doc, onSnapshot, setDoc } from "firebase/firestore";
-import { db } from "../../lib/Firebase";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { db, storage } from "../../lib/Firebase";
 import { usePagination } from "../hooks/usePagination";
 import PaginationControls from "../components/PaginationControls";
 import ImagePicker from "../components/ImagePicker";
 import ConfirmModal from "../components/ConfirmModal";
 import AdminSearch from "../components/AdminSearch";
+import { toggleExpandWithConfirm } from "../utils/adminUI";
 
 function safeStr(v) {
     return String(v ?? "");
@@ -274,13 +276,13 @@ function EventCard({ item, expanded, draft, saveState, activeLang, onToggle, onL
                         </label>
                     </div>
 
-                    <label className="adminLabel">
+                    <div className="adminLabel">
                         Image
                         <ImagePicker
                             value={safeStr(draft?.image)}
                             onChange={(val) => onChangeField(id, "image", null, val)}
                         />
-                    </label>
+                    </div>
 
                     <div className="adminMsgActions">
                         <button
@@ -438,13 +440,13 @@ function NewEventCard({ draft, saveState, activeLang, onLangChange, onChangeFiel
                     </label>
                 </div>
 
-                <label className="adminLabel">
+                <div className="adminLabel">
                     Image
                     <ImagePicker
                         value={safeStr(draft?.image)}
                         onChange={(val) => onChangeField("image", null, val)}
                     />
-                </label>
+                </div>
 
                 <div className="adminMsgActions">
                     <button type="button" className="adminDeleteBtn" onClick={onCancel} disabled={saveState === "saving"}>
@@ -487,6 +489,7 @@ export default function EventsAdmin({ onCreateOverride }) {
     }));
     const [newState, setNewState] = useState("idle");
     const [newLang, setNewLang] = useState("ro");
+    const [migrating, setMigrating] = useState(false);
 
     const [modal, setModal] = useState({ isOpen: false, title: "", message: "", onConfirm: () => { } });
 
@@ -628,12 +631,14 @@ export default function EventsAdmin({ onCreateOverride }) {
     }, []);
 
     const toggleExpand = (id) => {
-        const key = safeStr(id);
-        if (!key) return;
-        setExpandedIds((prev) => {
-            const next = new Set(prev);
-            next.has(key) ? next.delete(key) : next.add(key);
-            return next;
+        toggleExpandWithConfirm({
+            id,
+            items,
+            draftsById,
+            isDirtyFn: (item, draft) => !eventEqual(item, draft),
+            setModal,
+            setExpandedIds,
+            setDraftsById
         });
     };
 
@@ -857,6 +862,7 @@ export default function EventsAdmin({ onCreateOverride }) {
             },
         });
     };
+
 
     return (
         <div className="adminFullPage">

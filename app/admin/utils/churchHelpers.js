@@ -133,10 +133,25 @@ export const sanitizeSocialLink = (platform, url) => {
 export const sanitizeEmail = (email) => {
     if (!email) return null;
     const normalized = String(email).trim().toLowerCase();
+    
+    // 1. Basic format validation
     if (!/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i.test(normalized)) return null;
+    
+    // 2. Filter out placeholder tokens
     if (PLACEHOLDER_TOKENS.some(t => normalized.includes(t))) return null;
-    const blockedDomains = ["wix.com", "wordpress.com", "example.com", "email.com"];
+    
+    // 3. Filter out obviously technical/hashed addresses (e.g. 605a7baede844d278b89dc95ae0a9123@...)
+    const [localPart] = normalized.split("@");
+    if (localPart && localPart.length >= 24 && /^[0-9a-f]{16,}$/.test(localPart)) return null;
+
+    // 4. Block technical/infrastructure domains that don't provide contact emails for churches
+    const blockedDomains = [
+        "wix.com", "wordpress.com", "example.com", "email.com", 
+        "wixpress.com", "sentry.io", "sentry-next.wixpress.com",
+        "wp.com", "automattic.com", "squarespace.com", "intercom.io", "drift.com"
+    ];
     if (blockedDomains.some(d => normalized.endsWith(`@${d}`))) return null;
+
     return normalized;
 };
 
@@ -278,7 +293,7 @@ export const geocodeAddress = async (street, number, city, zipCode, country, loc
     return null;
 };
 
-export const processGoogleData = (res, components, originalQuery = "", placeId = "", fallbackUsed = false, googleError = null) => {
+export const processGoogleData = (res, components, originalQuery = "", placeId = "", searchCity = "", searchCountry = "", fallbackUsed = false, googleError = null) => {
     const getComp = (types) => {
         const comp = components.find(c => c.types && types.some(t => c.types.includes(t)));
         return comp ? comp.long_name : null;
@@ -329,10 +344,18 @@ export const processGoogleData = (res, components, originalQuery = "", placeId =
         // Hungarian
         "Templom", "Egyház", "Pünkösdi", "Keresztény",
         "Román", "Evangéliumi", "Közösség",
-        // Generic descriptors
+        // Denominational & Generic descriptors
+        "Apostolica", "Apostolică", "Apostolic", "Apostolique", "Apostolico", "Apostolice",
+        "Crestina", "Creștină", "Christian", "Cristiano", "Chrétienne", "Christelijk",
         "din", "de", "la", "du", "des", "van", "von", "der", "het", "of", "the", "at", "in", "and", "und", "et", "si", "și"
     ];
+    
+    // Add all country names to noise (e.g., to strip "Australia" from "Betania Australia")
+    COUNTRY_OPTIONS.forEach(c => noise.push(c));
+    
     if (cityName) noise.push(cityName);
+    if (searchCity) noise.push(searchCity);
+    if (searchCountry) noise.push(searchCountry);
     
     const normalize = (s) => s ? s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : "";
     const noiseNormalized = new Set(noise.map(normalize));
@@ -501,7 +524,7 @@ export const fetchGooglePlaceData = async (query, city = "", country = "", place
             const detailsData = await detailsRes.json();
             
             if (detailsData.result) {
-                const processed = processGoogleData(detailsData.result, detailsData.result.address_components || [], query, placeId);
+                const processed = processGoogleData(detailsData.result, detailsData.result.address_components || [], query, placeId, city, country);
                 cacheSet(`place:${placeId}`, processed);
                 return processed;
             }
@@ -546,7 +569,7 @@ export const fetchGooglePlaceData = async (query, city = "", country = "", place
 
         if (fallbackUsed) {
             console.log("Using Geocoding/fallback data directly");
-            const processed = processGoogleData(firstResult, firstResult.address_components || [], query, "", fallbackUsed, googleError);
+            const processed = processGoogleData(firstResult, firstResult.address_components || [], query, "", city, country, fallbackUsed, googleError);
             if (processed?.place_id) cacheSet(`place:${processed.place_id}`, processed);
             cacheSet(`q:${q}`, processed);
             return processed;
@@ -557,7 +580,7 @@ export const fetchGooglePlaceData = async (query, city = "", country = "", place
         const detailsData = await detailsRes.json();
         
         if (!detailsData.result) return null;
-        const processed = processGoogleData(detailsData.result, detailsData.result.address_components || [], query, "", fallbackUsed, googleError);
+        const processed = processGoogleData(detailsData.result, detailsData.result.address_components || [], query, "", city, country, fallbackUsed, googleError);
         if (processed?.place_id) cacheSet(`place:${processed.place_id}`, processed);
         cacheSet(`q:${q}`, processed);
         return processed;

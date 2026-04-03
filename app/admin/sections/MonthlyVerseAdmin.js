@@ -7,6 +7,7 @@ import { usePagination } from "../hooks/usePagination";
 import PaginationControls from "../components/PaginationControls";
 import ConfirmModal from "../components/ConfirmModal";
 import AdminSearch from "../components/AdminSearch";
+import { toggleExpandWithConfirm, toggleSingleExpandWithConfirm } from "../utils/adminUI";
 
 function safeStr(v) {
     return String(v ?? "");
@@ -620,12 +621,14 @@ export default function MonthlyVerseAdmin() {
     };
 
     const toggleHistory = (id) => {
-        const key = safeStr(id).trim();
-        if (!key) return;
-        setExpandedHistoryIds((prev) => {
-            const next = new Set(prev);
-            next.has(key) ? next.delete(key) : next.add(key);
-            return next;
+        toggleExpandWithConfirm({
+            id,
+            items: history,
+            draftsById: historyDrafts,
+            isDirtyFn: (item, draft) => !verseEqualTrim(item, draft),
+            setModal,
+            setExpandedIds: setExpandedHistoryIds,
+            setDraftsById: setHistoryDrafts
         });
     };
 
@@ -793,7 +796,16 @@ export default function MonthlyVerseAdmin() {
                                 saveState={saveCurrentState}
                                 activeLang={currentLang}
                                 onLangChange={setCurrentLang}
-                                onToggle={() => setExpandedCurrent((v) => !v)}
+                                onToggle={() => {
+                                    toggleSingleExpandWithConfirm({
+                                        item: current,
+                                        draft: currentDraft,
+                                        isDirtyFn: (item, draft) => !verseEqualTrim(item, draft),
+                                        setModal,
+                                        setExpanded: setExpandedCurrent,
+                                        onResetDraft: () => setCurrentDraft(current)
+                                    });
+                                }}
                                 onChangeField={(field, lang, value) => {
                                     const l = safeStr(lang).trim() || "ro";
                                     setCurrentDraft((s) => ({

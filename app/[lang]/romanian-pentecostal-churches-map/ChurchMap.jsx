@@ -89,7 +89,14 @@ const matchChurchSearch = (c, q) => {
     const fields = [c.name, c.city];
     return fields.some(val => normalizeText(val).includes(normalizedQuery));
 };
-const FlagImage = ({ country, className = "" }) => {
+const formatCasing = (s) => {
+    if (!s) return "";
+    const str = String(s).trim();
+    if (!str) return "";
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+};
+
+const FlagImage = React.memo(({ country, className = "" }) => {
     const code = COUNTRY_CODES[country];
     if (!code) return (
         <span 
@@ -122,7 +129,7 @@ const FlagImage = ({ country, className = "" }) => {
             }}
         />
     );
-};
+});
 
 const COUNTRY_VIEWS = {
     Belgium: { center: { lat: 50.5039, lng: 4.4699 }, zoom: 8 },
@@ -764,14 +771,14 @@ const ChurchListItem = React.memo(({ church, isSelected, selectChurch, isMobile,
         </div>
         <div className="churchListItemContent">
             <div className="churchListItemMain">
-                <h3>{church.name}{church.city ? ` ${church.city}` : ''}</h3>
+                <h3>{formatCasing(church.name)}{church.city ? ` ${formatCasing(church.city)}` : ''}</h3>
                 {userLocation && distanceMap[church.id] && (
                     <span className="churchDistanceBadge">
                         {formatDistance(distanceMap[church.id])}
                     </span>
                 )}
             </div>
-            <p>{[(`${church.street || ""} ${church.number || ""}`.trim()), (`${church.zipCode ? `${church.zipCode} ` : ""}${church.city || ""}`.trim()), getCountryLabel(church.country)].filter(Boolean).join(", ")}</p>
+            <p>{[(`${formatCasing(church.street) || ""} ${church.number || ""}`.trim()), (`${church.zipCode ? `${church.zipCode} ` : ""}${formatCasing(church.city) || ""}`.trim()), formatCasing(getCountryLabel(church.country))].filter(Boolean).join(", ")}</p>
         </div>
     </button>
 ));
@@ -807,7 +814,7 @@ const ChurchList = React.memo(({
                 <div key={country} className="churchCountryGroup">
                     <h2 className="churchCountryHeader">
                         <FlagImage country={country} className="countryFlag" />
-                        {t(`country_${country}`) === `country_${country}` ? country : t(`country_${country}`)}
+                        {formatCasing(t(`country_${country}`) === `country_${country}` ? country : t(`country_${country}`))}
                         <span className="countryCount">{items.length}</span>
                     </h2>
                     {items.map((church, idx) => (
@@ -2081,7 +2088,7 @@ function ChurchMap() {
                                             <div className="mobileDetailsTitleArea">
                                                 <h2 className="churchDetailsTitle">
                                                     <FlagImage country={selectedChurch.country} className="title-flag" />
-                                                    <span>{selectedChurch.name}{selectedChurch.city ? ` ${selectedChurch.city}` : ''}</span>
+                                                    <span>{formatCasing(selectedChurch.name)}{selectedChurch.city ? ` ${formatCasing(selectedChurch.city)}` : ''}</span>
                                                 </h2>
                                             </div>
                                             <div className="mobileDetailsHeaderActions">
@@ -2094,7 +2101,7 @@ function ChurchMap() {
                                             </div>
                                         </div>
                                         <p className="churchDetailsAddress">
-                                            {[(`${selectedChurch.street || ""} ${selectedChurch.number || ""}`.trim()), (`${selectedChurch.zipCode ? `${selectedChurch.zipCode} ` : ""}${selectedChurch.city || ""}`.trim())].filter(Boolean).join(", ")}
+                                            {[(`${formatCasing(selectedChurch.street) || ""} ${selectedChurch.number || ""}`.trim()), (`${selectedChurch.zipCode ? `${selectedChurch.zipCode} ` : ""}${formatCasing(selectedChurch.city) || ""}`.trim())].filter(Boolean).join(", ")}
                                         </p>
                                     </div>
                                 </div>
@@ -2239,7 +2246,7 @@ function ChurchMap() {
                             <div className="churchDetailsHeader">
                                 <h2 className="churchDetailsTitle">
                                     <FlagImage country={selectedChurch.country} className="title-flag" />
-                                    <span>{selectedChurch.name}{selectedChurch.city ? ` ${selectedChurch.city}` : ''}</span>
+                                    <span>{formatCasing(selectedChurch.name)}{selectedChurch.city ? ` ${formatCasing(selectedChurch.city)}` : ''}</span>
                                 </h2>
                                 <div className="churchDetailsHeaderActions">
 
@@ -2253,7 +2260,7 @@ function ChurchMap() {
                             </div>
                             <div className="churchDetailsContent">
                                 <p className="churchDetailsAddress">
-                                    {[(`${selectedChurch.street || ""} ${selectedChurch.number || ""}`.trim()), (`${selectedChurch.zipCode ? `${selectedChurch.zipCode} ` : ""}${selectedChurch.city || ""}`.trim())].filter(Boolean).join(", ")}
+                                    {[(`${formatCasing(selectedChurch.street) || ""} ${selectedChurch.number || ""}`.trim()), (`${selectedChurch.zipCode ? `${selectedChurch.zipCode} ` : ""}${formatCasing(selectedChurch.city) || ""}`.trim())].filter(Boolean).join(", ")}
                                 </p>
                                 <ChurchInfoLinks church={selectedChurch} t={t} />
 

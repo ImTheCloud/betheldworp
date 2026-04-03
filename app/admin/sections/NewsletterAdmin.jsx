@@ -7,6 +7,7 @@ import { usePagination } from "../hooks/usePagination";
 import PaginationControls from "../components/PaginationControls";
 import ConfirmModal from "../components/ConfirmModal";
 import AdminSearch from "../components/AdminSearch";
+import { toggleExpandWithConfirm } from "../utils/adminUI";
 
 const safeStr = (v) => String(v ?? "");
 
@@ -385,14 +386,16 @@ export default function NewsletterAdmin() {
     }, []);
 
     const toggleExpand = useCallback((id) => {
-        const key = safeStr(id).trim();
-        if (!key) return;
-        setExpandedIds((prev) => {
-            const next = new Set(prev);
-            next.has(key) ? next.delete(key) : next.add(key);
-            return next;
+        toggleExpandWithConfirm({
+            id,
+            items,
+            draftsById,
+            isDirtyFn: (item, draft) => safeStr(draft).trim().toLowerCase() !== safeStr(item.id).trim().toLowerCase(),
+            setModal,
+            setExpandedIds,
+            setDraftsById
         });
-    }, []);
+    }, [items, draftsById]);
 
     const startNew = () => {
         setShowNew(true);
@@ -452,7 +455,7 @@ export default function NewsletterAdmin() {
     };
 
     const changeDraft = (id, value) => {
-        setDraftsById((prev) => ({ ...prev, [key]: value }));
+        setDraftsById((prev) => ({ ...prev, [id]: value }));
     };
 
     const saveOne = async (id) => {

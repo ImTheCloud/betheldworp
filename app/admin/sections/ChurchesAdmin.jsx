@@ -12,6 +12,7 @@ import { IconPlus, IconTrash, IconChevronDown, IconSave, IconEyeOff, IconEye, Ic
 import { safeStr, normalizeText, matchChurchSearch, hasDraftChanges, emptyChurch, COUNTRY_OPTIONS, geocodeAddress, isMeaningfullyDifferent, PENTECOSTAL_NAMES, shuffleArray, fetchGooglePlaceData } from "../utils/churchHelpers";
 import { useChurchSync } from "../hooks/useChurchSync";
 import { syncChurchBot } from "../services/churchSyncBot";
+import { toggleExpandWithConfirm } from "../utils/adminUI";
 
 const PAGE_SIZE = 10;
 
@@ -339,28 +340,14 @@ export default function ChurchesAdmin() {
     }, []);
 
     const toggleExpand = useCallback((id) => {
-        const key = safeStr(id).trim();
-        if (!key) return;
-        setExpandedIds(prev => {
-            const next = new Set(prev);
-            if (next.has(key)) {
-                const item = items.find(i => i.id === key);
-                if (hasDraftChanges(item, draftsById[key])) {
-                    setModal({
-                        isOpen: true,
-                        title: "Unsaved Changes",
-                        message: "Are you sure you want to cancel all changes?",
-                        onConfirm: () => {
-                            setModal({ isOpen: false });
-                            if (item) setDraftsById(d => ({ ...d, [key]: { ...item } }));
-                            setExpandedIds(curr => { const n = new Set(curr); n.delete(key); return n; });
-                        }
-                    });
-                    return prev;
-                }
-                next.delete(key);
-            } else { next.add(key); }
-            return next;
+        toggleExpandWithConfirm({
+            id,
+            items,
+            draftsById,
+            isDirtyFn: (item, draft) => hasDraftChanges(item, draft),
+            setModal,
+            setExpandedIds,
+            setDraftsById
         });
     }, [items, draftsById]);
 
