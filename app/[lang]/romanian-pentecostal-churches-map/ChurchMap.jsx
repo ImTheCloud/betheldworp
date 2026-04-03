@@ -1667,13 +1667,19 @@ function ChurchMap() {
 
 
     const getGoogleMapsSearchUrl = (church) => {
-        // Use locationTitleDirection (or old locationTitle for compatibility) if provided,
-        // If we have a place_id, link directly to the Google Maps listing (100% accurate)
-        if (church.place_id) {
-            return `https://www.google.com/maps/place/?q=place_id:${church.place_id}`;
+        // 1. If we have a direct Google Maps URI from the API, use it (most stable)
+        if (church.googleMapsUri) {
+            return church.googleMapsUri;
         }
 
-        // otherwise fallback to full address: street + number, city, postalCode, country
+        // 2. If we have a place_id, use the official Universal URL for Place IDs (100% accurate)
+        if (church.place_id) {
+            // query is required even with place_id, use church name as descriptive fallback
+            const queryName = encodeURIComponent(church.name || "Church");
+            return `https://www.google.com/maps/search/?api=1&query=${queryName}&query_place_id=${church.place_id}`;
+        }
+
+        // 3. Otherwise fallback to text search using address or location title
         const directionQuery = church.locationTitleDirection || church.locationTitle;
         
         const query = directionQuery
