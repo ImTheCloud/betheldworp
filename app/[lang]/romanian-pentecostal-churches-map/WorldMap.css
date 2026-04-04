@@ -1799,7 +1799,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    padding: 12px 20px 4px 20px;
+    padding: 18px 24px 4px 24px;
     border-bottom: none;
 }
 
@@ -1830,14 +1830,17 @@
 }
 
 .churchDetailsContent {
-    padding: 16px 24px 24px 24px;
+    padding: 2px 24px 24px 24px;
 }
 
 .churchDetailsTitle {
+    display: flex;
+    align-items: center;
+    gap: 12px;
     font-size: 1.4rem;
     font-weight: 800;
     color: #0f172a;
-    margin: 0 0 6px 0;
+    margin: 0 0 2px 0;
     letter-spacing: -0.01em;
     word-break: break-word;
 }
