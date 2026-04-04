@@ -1,8 +1,3 @@
-// Shared utilities and constants for church admin sections
-
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { storage } from "../../lib/Firebase";
-
 export const safeStr = (v) => String(v ?? "");
 
 // ─────────────────────────────────────────────────────────────────────────────
