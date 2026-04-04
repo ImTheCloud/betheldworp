@@ -116,13 +116,6 @@ export default function ChurchSuggestionsAdmin() {
                 }
             });
 
-            // Compare opening hours
-            const dbHours = JSON.stringify(currentChurch.openingHours || []);
-            const sugHours = JSON.stringify(s.data.openingHours || []);
-            if (dbHours !== sugHours) {
-                syncMap["openingHours"] = { old: currentChurch.openingHours || [] };
-            }
-
             if (Object.keys(syncMap).length > 0) {
                 newSyncedFields[s.id] = syncMap;
             }

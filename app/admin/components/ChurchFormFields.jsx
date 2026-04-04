@@ -32,13 +32,10 @@ export default function ChurchFormFields({
     isSyncing = false,
     syncSuccess = false,
     disabled = false,
-    showGoogleEnrichment = true,
-    onDiscover = null,
-    isDiscovering = false
+    showGoogleEnrichment = true
 }) {
     const searchQuery = `Biserica Penticostala ${drafts.name || ""} ${drafts.city || ""}`.trim();
 
-    const hoursModified = !!syncedFields.openingHours;
 
     const ModifiedBadge = ({ label }) => (
         <span style={{
@@ -82,25 +79,7 @@ export default function ChurchFormFields({
                             </div>
                         </label>
                         <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-                            {onDiscover && !disabled && (
-                                <button 
-                                    type="button" 
-                                    style={{ fontSize: 11, fontWeight: 700, color: "#10b981", border: "none", background: "transparent", padding: "4px 0", borderRadius: 6, cursor: isDiscovering ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 6, transition: "all 0.2s", opacity: isDiscovering ? 0.5 : 1, flexShrink: 0 }}
-                                    disabled={isDiscovering}
-                                    onClick={onDiscover}
-                                >
-                                    {isDiscovering ? (
-                                        <div className="adminSpinner" style={{ width: 12, height: 12, border: "2px solid #10b981", borderTopColor: "transparent" }} />
-                                    ) : (
-                                        <>
-                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                                            Discover
-                                        </>
-                                    )}
-                                </button>
-                            )}
-
-                            {onSync && !disabled && (
+                             {onSync && !disabled && (
                                 <button 
                                     type="button" 
                                     style={{ fontSize: 11, fontWeight: 700, color: "#2563eb", border: "none", background: "transparent", padding: "4px 0", borderRadius: 6, cursor: isSyncing ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 6, transition: "all 0.2s", opacity: isSyncing ? 0.5 : 1, flexShrink: 0 }}
@@ -354,41 +333,6 @@ export default function ChurchFormFields({
                 </div>
             </div>
 
-            {/* Google Enrichment Section: Hours */}
-            {showGoogleEnrichment && (drafts.place_id || drafts.openingHours?.length > 0) && (
-                <div style={{ marginTop: 20, borderTop: "1px dashed rgba(10, 42, 67, 0.12)", paddingTop: 20 }}>
-                    <div className="adminHoursContainer">
-                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-                            <span style={{ fontSize: 11, fontWeight: 800, color: "rgba(10, 42, 67, 0.5)", textTransform: "uppercase", letterSpacing: "0.05em", display: "flex", alignItems: "center", gap: 6 }}>
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                                Opening Hours
-                            </span>
-                            {hoursModified && <ModifiedBadge />}
-                        </div>
-                        
-                        {drafts.openingHours && drafts.openingHours.length > 0 ? (
-                            <div className="adminHoursGrid">
-                                {drafts.openingHours.map((line, idx) => {
-                                    const colonIndex = line.indexOf(": ");
-                                    const day = line.substring(0, colonIndex);
-                                    const time = line.substring(colonIndex + 2);
-                                    
-                                    return (
-                                        <div key={idx} className="adminHoursRow">
-                                            <span className="adminHoursDay">{day}</span>
-                                            <span className="adminHoursTime">{time}</span>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        ) : (
-                            <div style={{ fontSize: 12, fontStyle: "italic", color: "rgba(10, 42, 67, 0.4)", padding: "8px 0" }}>
-                                No schedule available on Google Maps
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
         </>
     );
 }

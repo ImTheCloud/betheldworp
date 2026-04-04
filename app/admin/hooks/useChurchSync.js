@@ -110,84 +110,10 @@ export function useChurchSync() {
         if (onComplete) onComplete(suggestionsCreatedCount);
     }, []);
 
-    // --- DISCOVERY (FIND NEW CHURCHES) ---
-    const performDiscovery = useCallback(async (cityToSearch, countryToSearch, existingChurches = [], onComplete) => {
-        setIsSyncing(true);
-        const namesToTry = shuffleArray(PENTECOSTAL_NAMES);
-        
-        setProgress({ 
-            current: 0, 
-            total: namesToTry.length, 
-            suggestionsCreated: 0, 
-            churchName: "", 
-            status: "Exploring potential churches...",
-            progress: 0,
-            foundChurch: null
-        });
-
-        let foundResult = null;
-
-        for (let i = 0; i < namesToTry.length; i++) {
-            const churchName = namesToTry[i];
-            const currentProgress = Math.round(((i + 1) / namesToTry.length) * 100);
-            
-            setProgress(prev => ({ 
-                ...prev, 
-                current: i + 1, 
-                status: `SEARCHING FOR: "Biserica Penticostala ${churchName}"`,
-                progress: currentProgress
-            }));
-
-            try {
-                const data = await fetchGooglePlaceData(`Biserica Penticostala ${churchName}`, cityToSearch, countryToSearch);
-                
-                if (data && (data.name || data.place_id)) {
-                    const normName = normalizeText(data.name || "");
-                    const normLoc = normalizeText(data.locationTitle || "");
-                    const isPentecostal = normName.includes("penticost") || normName.includes("pentecost") ||
-                                        normLoc.includes("penticost") || normLoc.includes("pentecost");
-                    
-                    if (!isPentecostal) continue;
-
-                    if (data.country && countryToSearch && normalizeText(data.country) !== normalizeText(countryToSearch)) continue;
-                    if (data.city && cityToSearch && normalizeText(data.city) !== normalizeText(cityToSearch)) continue;
-
-                    const isDuplicate = existingChurches.some(c => 
-                        (c.place_id && c.place_id === data.place_id) || 
-                        (normalizeText(c.name) === normalizeText(data.name) && normalizeText(c.city) === normalizeText(data.city || cityToSearch))
-                    );
-                    
-                    if (!isDuplicate) {
-                        foundResult = data;
-                        setProgress(prev => ({ ...prev, status: `Found: ${data.name}! Finalizing enrichment...`, progress: 90 }));
-                        
-                        const deeplyEnriched = await syncChurchBot({
-                            ...emptyChurch(),
-                            ...data,
-                            country: data.country || countryToSearch,
-                            city: data.city || cityToSearch
-                        }, updateStatus, { googleData: data });
-                        
-                        foundResult = { ...data, ...deeplyEnriched };
-                        break; 
-                    }
-                }
-            } catch (err) {
-                console.error("Discovery Hook: failed query for", churchName, err);
-            }
-
-            await new Promise(r => setTimeout(r, 400));
-        }
-
-        setIsSyncing(false);
-        if (onComplete) onComplete(foundResult);
-    }, []);
-
     return {
         isSyncing,
         progress,
         syncSingleChurch,
-        performBulkSync,
-        performDiscovery
+        performBulkSync
     };
 }

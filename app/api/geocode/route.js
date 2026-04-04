@@ -232,7 +232,7 @@ export async function GET(request) {
                 headers: {
                     'Content-Type': 'application/json',
                     'X-Goog-Api-Key': apiKey,
-                    'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.addressComponents,places.location,places.internationalPhoneNumber,places.websiteUri,places.regularOpeningHours,places.googleMapsUri,places.rating'
+                    'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.addressComponents,places.location,places.internationalPhoneNumber,places.websiteUri,places.googleMapsUri'
                 },
                 body: JSON.stringify({ textQuery: query })
             });
@@ -271,9 +271,7 @@ export async function GET(request) {
                     international_phone_number: p.internationalPhoneNumber,
                     website: isFacebookLink(p.websiteUri) ? null : p.websiteUri,
                     facebook: isFacebookLink(p.websiteUri) ? p.websiteUri : null,
-                    openingHours: p.regularOpeningHours?.weekdayDescriptions || [],
-                    googleMapsUri: p.googleMapsUri,
-                    rating: p.rating
+                    googleMapsUri: p.googleMapsUri
                 })),
                 status: result.places?.length > 0 ? "OK" : "ZERO_RESULTS"
             };
@@ -289,7 +287,7 @@ export async function GET(request) {
                 headers: {
                     'Content-Type': 'application/json',
                     'X-Goog-Api-Key': apiKey,
-                    'X-Goog-FieldMask': 'id,displayName,formattedAddress,addressComponents,internationalPhoneNumber,websiteUri,location,regularOpeningHours,googleMapsUri,rating'
+                    'X-Goog-FieldMask': 'id,displayName,formattedAddress,addressComponents,internationalPhoneNumber,websiteUri,location,googleMapsUri'
                 }
             });
 
@@ -316,9 +314,7 @@ export async function GET(request) {
                     international_phone_number: p.internationalPhoneNumber || socialLinks.phone,
                     email: socialLinks.email,
                     website: isFacebookLink(p.websiteUri) ? null : p.websiteUri,
-                    openingHours: p.regularOpeningHours?.weekdayDescriptions || [],
                     googleMapsUri: p.googleMapsUri,
-                    rating: p.rating,
                     facebook: isFacebookLink(p.websiteUri) ? p.websiteUri : socialLinks.facebook,
                     instagram: socialLinks.instagram,
                     youtube: socialLinks.youtube,

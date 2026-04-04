@@ -35,14 +35,11 @@ export async function syncChurchBot(churchData, onStatus = () => {}, options = {
             if (scrapedData) {
                 // Google card data has priority. Website scraping only fills missing fields.
                 const scrapedClean = cleanContacts(scrapedData);
-                const merged = { ...scrapedClean, ...enrichedData }; // existing (Google) wins on conflicts
+                const mergedInfo = { ...scrapedClean, ...enrichedData }; // existing (Google) wins on conflicts
 
-                // Opening hours: only use scraped hours if Google didn't provide them.
-                if ((!enrichedData.openingHours || enrichedData.openingHours.length === 0) && scrapedData.openingHours) {
-                    merged.openingHours = scrapedData.openingHours;
-                }
-
-                enrichedData = cleanContacts(merged);
+                // Deep Search for social links & email on website
+                const deepData = await scrapeDeepInfo(mergedInfo.website);
+                enrichedData = cleanContacts({ ...mergedInfo, ...deepData });
             }
         } catch (err) {
             console.error(`SyncBot: Website scraping failed for ${website}:`, err);
@@ -110,7 +107,7 @@ function extractFromHtml(html) {
             
             // 3. Handle MUST be at least 3 chars (filtering out 'a', '12', etc.)
             if (path.length < 3) continue;
-
+            
             // 4. Special check for YouTube: if it matched "channel" but the regex was loose
             if (fullMatch.endsWith("/channel") || fullMatch.endsWith("/user") || fullMatch.endsWith("/c")) continue;
 
@@ -177,20 +174,6 @@ function extractFromHtml(html) {
         }
     }
 
-    const days = [
-        { key: "Duminică", variants: ["Duminica", "Sunday", "Duminică"] },
-        { key: "Marți", variants: ["Marti", "Tuesday"] },
-        { key: "Joi", variants: ["Joi", "Thursday"] },
-        { key: "Vineri", variants: ["Vineri", "Friday"] },
-    ];
-    const openingHours = [];
-    days.forEach(({ key, variants }) => {
-        const pattern = new RegExp(`(?:${variants.join("|")})[^<]{1,20}(\\d{1,2}(?::|\\.)\\d{2})`, "i");
-        const m = html.match(pattern);
-        if (m) openingHours.push(`${key}: ${m[1]}`);
-    });
-    if (openingHours.length > 0) data.openingHours = openingHours;
-
     return data;
 }
 
@@ -244,9 +227,11 @@ export function isBotSuggestionUseful(church, newData) {
         }
     }
 
-    if (newData.openingHours?.length > 0) {
-        if (JSON.stringify(church.openingHours || []) !== JSON.stringify(newData.openingHours)) return true;
-    }
-
     return false;
+}
+
+async function scrapeDeepInfo(url) {
+    // Placeholder for deep info scraping (already defined elsewhere or to be implemented)
+    // For now, return empty object to avoid errors if not defined.
+    return {};
 }

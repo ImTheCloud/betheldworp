@@ -157,7 +157,7 @@ function ChurchCard({ item, expanded, drafts, saveState, onToggle, onChange, onS
     );
 }
 
-function NewChurchCard({ drafts, setDraft, saveState, onCancel, onSave, onDiscover, isDiscovering }) {
+function NewChurchCard({ drafts, setDraft, saveState, onCancel, onSave }) {
     const [syncedFields, setSyncedFields] = useState({});
     const [syncSuccess, setSyncSuccess] = useState(false);
     const { isSyncing, syncSingleChurch } = useChurchSync();
@@ -216,8 +216,6 @@ function NewChurchCard({ drafts, setDraft, saveState, onCancel, onSave, onDiscov
                     isSyncing={isSyncing}
                     syncSuccess={syncSuccess}
                     showGoogleEnrichment={true}
-                    onDiscover={onDiscover}
-                    isDiscovering={isDiscovering}
                 />
                 <div className="adminMsgActions adminMsgActions--3" style={{ marginTop: "20px" }}>
                     <button type="button" className="adminDeleteBtn" onClick={onCancel} disabled={saveState === "saving"}>Cancel</button>
@@ -250,7 +248,7 @@ export default function ChurchesAdmin() {
     const [showDraftsOnly, setShowDraftsOnly] = useState(false);
     
     // BOT HOOK
-    const { isSyncing, progress, performBulkSync, performDiscovery } = useChurchSync();
+    const { isSyncing, progress, performBulkSync } = useChurchSync();
     const [showBulkSyncConfirm, setShowBulkSyncConfirm] = useState(false);
 
     const [modal, setModal] = useState({ isOpen: false, title: "", message: "", progress: null, onConfirm: null, actions: null });
@@ -412,13 +410,6 @@ export default function ChurchesAdmin() {
         });
     };
 
-    const handleDiscover = async (city, country) => {
-        if (!country) { openInfoModal("Action Required", "Select a Country."); return; }
-        await performDiscovery(city, country, items, (found) => {
-            if (found) { setNewDrafts({ ...emptyChurch(), ...found }); setShowNew(true); } else { openInfoModal("Discovery Complete", "Nothing found."); }
-        });
-    };
-
     const handleBulkSync = () => { performBulkSync(items, count => openInfoModal("Sync Complete", `${count} suggestions created.`)); };
 
     return (
@@ -451,7 +442,7 @@ export default function ChurchesAdmin() {
             </div>
 
             <div className="adminFullContent">
-                {showNew && <NewChurchCard drafts={newDrafts} setDraft={setNewField} saveState={newState} onCancel={cancelNew} onSave={saveNew} onDiscover={() => handleDiscover(newDrafts.city, newDrafts.country)} isDiscovering={isSyncing} />}
+                {showNew && <NewChurchCard drafts={newDrafts} setDraft={setNewField} saveState={newState} onCancel={cancelNew} onSave={saveNew} />}
                 <div className="adminFullList">
                     {paginatedItems.map(it => <ChurchCard key={it.id} item={it} expanded={expandedIds.has(it.id)} drafts={draftsById[it.id] || it} saveState={saveStateById[it.id] || "idle"} onToggle={toggleExpand} onChange={changeDraft} onSave={saveOne} onDelete={deleteOne} />)}
                 </div>

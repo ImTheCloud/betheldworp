@@ -192,7 +192,7 @@ export const FIELDS = [
 ];
 
 export function emptyChurch() {
-    return { name: "", locationTitle: "", street: "", number: "", city: "", country: "Romania", zipCode: "", lat: "", lng: "", phone: "", email: "", website: "", youtube: "", facebook: "", instagram: "", notes: "", isDraft: false, place_id: "", openingHours: [], googleMapsUri: "", rating: null };
+    return { name: "", locationTitle: "", street: "", number: "", city: "", country: "Romania", zipCode: "", lat: "", lng: "", phone: "", email: "", website: "", youtube: "", facebook: "", instagram: "", notes: "", isDraft: false, place_id: "", googleMapsUri: "" };
 }
 
 export const PENTECOSTAL_NAMES = [
@@ -253,7 +253,6 @@ export const hasDraftChanges = (item, draft) => {
     for (const f of fields) {
         if (String(item[f] || "") !== String(draft[f] || "")) return true;
     }
-    if (JSON.stringify(item.openingHours || []) !== JSON.stringify(draft.openingHours || [])) return true;
     return false;
 };
 
@@ -442,9 +441,7 @@ export const processGoogleData = (res, components, originalQuery = "", placeId =
     setIfValid("instagram", res.instagram);
     setIfValid("youtube", res.youtube);
     
-    if (res.openingHours !== undefined) result.openingHours = res.openingHours || [];
     if (res.googleMapsUri !== undefined) result.googleMapsUri = res.googleMapsUri || "";
-    if (res.rating !== undefined) result.rating = res.rating || null;
 
     result._partial = fallbackUsed;
     result._googleError = googleError;
