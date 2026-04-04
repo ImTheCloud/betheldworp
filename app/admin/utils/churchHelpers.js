@@ -7,7 +7,8 @@ export const safeStr = (v) => String(v ?? "");
 const GENERIC_HOSTS = new Set([
     "wordpress.com", "wix.com", "wixsite.com", "squarespace.com", "weebly.com",
     "godaddy.com", "jimdo.com", "webnode.com", "strikingly.com", "site123.com",
-    "medium.com", "blogspot.com", "tumblr.com"
+    "medium.com", "blogspot.com", "tumblr.com",
+    "duckduckgo.com", "google.com", "bing.com", "yahoo.com", "facebook.com", "facebook.ro", "fb.com", "instagram.com", "youtube.com"
 ]);
 
 const PLACEHOLDER_TOKENS = ["example", "yourdomain", "yoursite", "sample", "template", "localhost", "placeholder"];
@@ -190,44 +191,6 @@ export function emptyChurch() {
     return { name: "", locationTitle: "", street: "", number: "", city: "", country: "Romania", zipCode: "", lat: "", lng: "", phone: "", email: "", website: "", youtube: "", facebook: "", instagram: "", notes: "", isDraft: false, place_id: "", googleMapsUri: "" };
 }
 
-export const PENTECOSTAL_NAMES = [
-    // Classical Romanian / Biblic
-    "Bethel", "Betel", "Betania", "Bethania", "Bethany", "Elim", "Emanuel", "Emmanuel", "Speranta", "Speranța", 
-    "Filadelfia", "Philadelphia", "Maranata", "Maranatha", "Golgota", "Sion", "Harul", "Efes", 
-    "Poarta Cerului", "Izvorul", "Agape", "Ghetsimani", "Carmel", "Gloria", 
-    "Muntele Sionului", "Vestea Buna", "Vestea Bună", "Salem", "Lumina", 
-    "Rugul Aprins", "Emaus", "Eben-Ezer", "Mangaietorul", "Mângâietorul", 
-    "Piatra Unghiulara", "Piatra Unghiulară", "Stanca Mantuirii", "Stânca Mântuirii", 
-    "Muntele Maslinilor", "Muntele Măslinilor", "Izvorul Vietii", "Izvorul Vieții", 
-    "Alfa si Omega", "Alfa și Omega", "Lumina Lumii", "Logos", "Saron", "Siloam",
-    "Pacea", "Izbavirea", "Horeb", "Buna Vestire", "Biruinta", "Biruința",
-    "Casa Painii", "Casa Pâinii", "Canaan", "Muntele Moria", "Salvarea",
-    "Sfantul Ilie", "Porumbita", "Pridvorul", "Calea, Adevarul si Viata", "Tabor",
-    "Betesda", "Peniel", "Hebron", "Nazaret", "Nazareth", "Calvarul", "Ierusalim", 
-    "Bereea", "Mahanaim", "Gosen", "Metanoia", "Harvest", "Via", "Shalom", 
-    "Antiohia", "Apa Vie", "Viata Noua", "Viață Nouă", "Hermon", "Lidia", 
-    "Prima", "Romana", "Română", "Apostolica", "Apostolică", "Crestina", "Creștină",
-    // Biblic Towns & Regions
-    "Sardes", "Smirna", "Pergam", "Tiatira", "Laodicea", "Patmos", "Colose", "Emaus",
-    "Ierihon", "Galilee", "Iordan", "Sarepta", "Sidon", "Damasc", "Antioch",
-    // Spiritual concepts (often used as names)
-    "Bucuria", "Dragostea", "Credinta", "Credința", "Nadejdea", "Nădejdea", "Lumina", "Aura",
-    "Roua", "Muntele Sion", "Poarta Cerului", "Izvorul", "Stanca", "Stânca",
-    // English variants (very common in UK/USA)
-    "Victory", "Living Water", "New Life", "Grace", "Hope", "Faith", "Cornerstone", "Solid Rock",
-    "Good News", "Mount Zion", "Fountain of Life", "Morning Star", "Holy Trinity"
-];
-
-export const shuffleArray = (array) => {
-    const arr = [...array];
-    for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
-};
-
-
 export const normalizeText = (text) => {
     return (text || "")
         .normalize("NFD")
@@ -253,332 +216,75 @@ export const hasDraftChanges = (item, draft) => {
 
 
 
-export const geocodeAddress = async (street, number, city, zipCode, country, locationTitle = "") => {
-    if (locationTitle) {
-        try {
-            const placeQuery = [locationTitle, city, country].filter(Boolean).join(", ");
-            const res = await fetch(`/api/geocode?type=places&query=${encodeURIComponent(placeQuery)}`);
-            const data = await res.json();
-            if (data.results && data.results.length > 0) {
-                const loc = data.results[0].geometry?.location;
-                return { 
-                    lat: loc?.lat ?? null, 
-                    lng: loc?.lng ?? null 
-                };
-            }
-        } catch (e) {
-            console.error("Places Proxy Search failed:", e);
-        }
-    }
 
-    const addressQuery = [`${street || ""} ${number || ""}`.trim(), zipCode, city, country].map(s => (s || "").trim()).filter(Boolean).join(", ");
-    if (!addressQuery) return null;
+export async function geocodeAddress(church) {
+    const address = [
+        `Biserica penticostală ${church.name || ""}`.trim(),
+        (`${church.street || ""} ${church.number || ""}`.trim()),
+        church.city || "",
+        church.country || ""
+    ].filter(Boolean).join(", ");
+
+    if (!address) return null;
 
     try {
-        const res = await fetch(`/api/geocode?type=geocode&address=${encodeURIComponent(addressQuery)}`);
+        const res = await fetch(`/api/geocode?address=${encodeURIComponent(address)}`);
         const data = await res.json();
-        if (data.results && data.results.length > 0) {
-            const loc = data.results[0].geometry.location;
-            return { lat: loc.lat, lng: loc.lng };
-        }
-    } catch (e) {
-        console.error("Geocoding Proxy failed:", e);
-    }
-    return null;
-};
-
-export const processGoogleData = (res, components, originalQuery = "", placeId = "", searchCity = "", searchCountry = "", fallbackUsed = false, googleError = null) => {
-    const getComp = (types) => {
-        const comp = components.find(c => c.types && types.some(t => c.types.includes(t)));
-        return comp ? comp.long_name : null;
-    };
-
-    const cityName = getComp(["locality", "postal_town"]);
-    let countryName = getComp(["country"]);
-    if (countryName) {
-        const matched = COUNTRY_OPTIONS.find(c => c.toLowerCase() === countryName.toLowerCase());
-        if (matched) countryName = matched;
-    }
-
-    let rawName = res.name || originalQuery || "";
-    const noise = [
-        // Romanian
-        "Biserica", "Penticostala", "Penticostală", "Penticostal",
-        "Crestina", "Creștină", "Crestin", "Creștin",
-        "Romana", "Română", "Românească", "Românesc",
-        "Evanghelică", "Evanghelica", "Evanghelic",
-        "Comunitatea", "Adunarea",
-        // English
-        "Church", "Pentecostal", "Christian", "Romanian",
-        "Evangelical", "Evangelic", "Community", "Assembly",
-        "Center", "Centre", "of", "the", "at",
-        // French
-        "Église", "Eglise", "Pentecôtiste", "Chrétienne", "Chrétien",
-        "Roumaine", "Roumain", "Évangélique", "Evangelique",
-        "Communauté", "Assemblée", "Centre", "de", "la", "le", "l", "du", "des",
-        // Dutch
-        "Kerk", "Gemeente", "Roemeens", "Roemeense",
-        "Evangelisch", "Evangelische", "Christelijk", "Christelijke",
-        "Pinkster", "Centrum", "Gemeenschap", "van", "de", "het", "der",
-        // German
-        "Kirche", "Gemeinde", "Rumänisch", "Rumänische",
-        "Evangelische", "Christliche", "Pfingst", "Pfingstliche",
-        "Zentrum", "Verein", "e.V.", "eV", "e V", "V", "von", "der", "die", "das", "in",
-        // Italian
-        "Chiesa", "Cristiana", "Cristiano", "Romena", "Romeno",
-        "Evangelica", "Evangelico", "Comunità", "Centro", "di", "la", "il", "del",
-        // Spanish
-        "Iglesia", "Cristiana", "Cristiano", "Rumana", "Rumano",
-        "Evangélica", "Comunidad", "Asamblea", "de", "la", "el", "en",
-        // Portuguese
-        "Igreja", "Cristã", "Romena", "Comunidade", "de", "a", "o",
-        // Scandinavian (SE/NO/DK)
-        "Kyrka", "Kirke", "Rumänska", "Rumensk", "Rumænsk",
-        "Evangelisk", "Kristen", "Kristne", "Församling",
-        // Hungarian
-        "Templom", "Egyház", "Pünkösdi", "Keresztény",
-        "Román", "Evangéliumi", "Közösség",
-        // Denominational & Generic descriptors
-        "Apostolica", "Apostolică", "Apostolic", "Apostolique", "Apostolico", "Apostolice",
-        "Crestina", "Creștină", "Christian", "Cristiano", "Chrétienne", "Christelijk",
-        "din", "de", "la", "du", "des", "van", "von", "der", "het", "of", "the", "at", "in", "and", "und", "et", "si", "și"
-    ];
-    
-    // Add all country names to noise (e.g., to strip "Australia" from "Betania Australia")
-    COUNTRY_OPTIONS.forEach(c => noise.push(c));
-    
-    if (cityName) noise.push(cityName);
-    if (searchCity) noise.push(searchCity);
-    if (searchCountry) noise.push(searchCountry);
-    
-    const normalize = (s) => s ? s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase() : "";
-    const noiseNormalized = new Set(noise.map(normalize));
-    
-    const words = rawName.split(/[\s,.;:„"\"()\-–—\/|]+/);
-    let cleanedName = words
-        .filter(w => w && !noiseNormalized.has(normalize(w)))
-        .join(" ")
-        .trim();
-
-    if (cleanedName.length < 2) cleanedName = rawName;
-    
-    // Deduplicate similar words (Elim vs Elime)
-    const cleanedWords = cleanedName.split(" ");
-    if (cleanedWords.length > 1) {
-        const finalWords = [];
-        cleanedWords.forEach(w => {
-            const lowW = w.toLowerCase();
-            const isDuplicate = finalWords.some(fw => {
-                const lowFw = fw.toLowerCase();
-                // If words are very similar or one is a prefix of the other (min 3 chars)
-                if (lowFw.startsWith(lowW) || lowW.startsWith(lowFw)) {
-                    if (Math.abs(lowW.length - lowFw.length) <= 2 && lowW.length >= 3) return true;
-                }
-                return false;
-            });
-            if (!isDuplicate) finalWords.push(w);
-        });
-        cleanedName = finalWords.join(" ");
-    }
-    
-    // Final check: if cleanedName is in ALL CAPS but has multiple words, titlecase it
-    if (cleanedName === cleanedName.toUpperCase() && cleanedName.includes(" ")) {
-        cleanedName = cleanedName.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ");
-    }
-
-    const result = {};
-    const isGenericBranding = (url, platform) => {
-        if (!url) return false;
-        const lowUrl = url.toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/$/, "");
-        
-        // List of generic platform domains that should not be saved as a church's unique link
-        const genericDomains = [
-            "wordpress.com", "wix.com", "wixsite.com", "squarespace.com", 
-            "weebly.com", "godaddy.com", "jimdo.com", "webnode.com", 
-            "strikingly.com", "site123.com", "medium.com"
-        ];
-
-        // If the URL is EXACTLY one of these domains (no subdomain, no path), it's branding
-        if (genericDomains.includes(lowUrl)) return true;
-
-        // Platform specific generic paths
-        if (platform === "facebook" && ["facebook.com", "fb.com", "facebook.com/pages", "facebook.com/groups"].includes(lowUrl)) return true;
-        if (platform === "youtube" && ["youtube.com", "youtube.com/channel", "youtube.com/user", "youtube.com/c"].includes(lowUrl)) return true;
-        if (platform === "instagram" && ["instagram.com", "instagram.com/p", "instagram.com/reels"].includes(lowUrl)) return true;
-
-        return false;
-    };
-
-    const setIfValid = (key, val) => {
-        if (val !== undefined && val !== null && val !== "") {
-            if (["website", "facebook", "instagram", "youtube"].includes(key)) {
-                if (isGenericBranding(val, key)) return;
-            }
-            result[key] = val;
-        }
-    };
-
-    setIfValid("name", cleanedName);
-    setIfValid("locationTitle", rawName);
-
-    setIfValid("street", getComp(["route"]));
-    setIfValid("number", getComp(["street_number"]));
-    setIfValid("city", cityName);
-    setIfValid("zipCode", getComp(["postal_code"]));
-    setIfValid("country", countryName);
-    setIfValid("phone", res.international_phone_number || res.formatted_phone_number);
-    setIfValid("email", res.email);
-    setIfValid("website", res.website);
-    setIfValid("lat", res.geometry?.location?.lat);
-    setIfValid("lng", res.geometry?.location?.lng);
-    setIfValid("place_id", res.place_id || placeId);
-    setIfValid("facebook", res.facebook);
-    setIfValid("instagram", res.instagram);
-    setIfValid("youtube", res.youtube);
-    
-    if (res.googleMapsUri !== undefined) result.googleMapsUri = res.googleMapsUri || "";
-
-    result._partial = fallbackUsed;
-    result._googleError = googleError;
-
-    return result;
-};
-
-/**
- * Smart comparison to determine if a suggested value is actually an update
- * or just a reformatting of existing data.
- */
-export const isMeaningfullyDifferent = (oldVal, newVal, field) => {
-    const sOld = String(oldVal || "").trim();
-    const sNew = String(newVal || "").trim();
-
-    if (!sNew) return false; // Google returned nothing, not a change
-    if (!sOld && sNew) return true; // New data where none existed before
-
-    const normalize = (s) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-
-    if (field === "name") {
-        const nOld = normalize(sOld);
-        const nNew = normalize(sNew);
-        
-        // 1. If identical after normalization
-        if (nOld === nNew) return false;
-        
-        return true;
-    }
-
-    if (field === "phone") {
-        // Compare only digits
-        const dOld = sOld.replace(/\D/g, "");
-        const dNew = sNew.replace(/\D/g, "");
-        return dOld !== dNew;
-    }
-
-    if (field === "website" || field === "facebook" || field === "instagram" || field === "youtube") {
-        // Normalize URLs (remove protocol, www, trailing slash)
-        const normUrl = (url) => url.replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/$/, "");
-        return normUrl(sOld) !== normUrl(sNew);
-    }
-
-    // Default: simple trimmed comparison
-    return sOld !== sNew;
-};
-
-// In-memory cache (per browser session) to reduce repeated Google Places calls.
-const GOOGLE_PLACE_CACHE_TTL_MS = 60 * 60 * 1000; // 1h
-const googlePlaceCache = new Map(); // key -> { t: number, v: any }
-
-const cacheGet = (key) => {
-    const entry = googlePlaceCache.get(key);
-    if (!entry) return null;
-    if (Date.now() - entry.t > GOOGLE_PLACE_CACHE_TTL_MS) {
-        googlePlaceCache.delete(key);
-        return null;
-    }
-    return entry.v;
-};
-
-const cacheSet = (key, value) => {
-    if (!key) return;
-    if (value === undefined || value === null) return;
-    googlePlaceCache.set(key, { t: Date.now(), v: value });
-};
-
-
-export const fetchGooglePlaceData = async (query, city = "", country = "", placeId = "") => {
-    if (placeId) {
-        const cached = cacheGet(`place:${placeId}`);
-        if (cached) return cached;
-
-        console.log("Syncing via Place ID (Priority):", placeId);
-        try {
-            const detailsRes = await fetch(`/api/geocode?type=details&place_id=${placeId}`);
-            const detailsData = await detailsRes.json();
-            
-            if (detailsData.result) {
-                const processed = processGoogleData(detailsData.result, detailsData.result.address_components || [], query, placeId, city, country);
-                cacheSet(`place:${placeId}`, processed);
-                return processed;
-            }
-        } catch (e) {
-            console.error("Fetch by Place ID failed, will try search as fallback:", e);
-        }
-    }
-
-    if (!query) return null;
-    console.log("Searching Google for:", query, city, country);
-    
-    try {
-        let results = [];
-        let status = "ZERO_RESULTS";
-        let fallbackUsed = false;
-        let googleError = null;
-
-        const performSearch = async (q) => {
-            const res = await fetch(`/api/geocode?type=places&query=${encodeURIComponent(q)}`);
-            return await res.json();
+        if (data.error) return null;
+        return {
+            lat: data.lat,
+            lng: data.lng,
+            place_id: data.place_id
         };
-
-        const q = [query, city, country].filter(Boolean).join(", ");
-        if (!q) return null;
-
-        const cachedQuery = cacheGet(`q:${q}`);
-        if (cachedQuery) return cachedQuery;
-
-        const data = await performSearch(q);
-        results = data.results || [];
-        status = data.status;
-        googleError = data._googleError;
-        fallbackUsed = data._fallback || false;
-
-        
-        if (results.length === 0) {
-            console.warn("No results found for query:", query);
-            return null;
-        }
-
-        const firstResult = results[0];
-
-        if (fallbackUsed) {
-            console.log("Using Geocoding/fallback data directly");
-            const processed = processGoogleData(firstResult, firstResult.address_components || [], query, "", city, country, fallbackUsed, googleError);
-            if (processed?.place_id) cacheSet(`place:${processed.place_id}`, processed);
-            cacheSet(`q:${q}`, processed);
-            return processed;
-        }
-        
-        console.log("Found results, fetching details for:", firstResult.name);
-        const detailsRes = await fetch(`/api/geocode?type=details&place_id=${firstResult.place_id || firstResult.id}`);
-        const detailsData = await detailsRes.json();
-        
-        if (!detailsData.result) return null;
-        const processed = processGoogleData(detailsData.result, detailsData.result.address_components || [], query, "", city, country, fallbackUsed, googleError);
-        if (processed?.place_id) cacheSet(`place:${processed.place_id}`, processed);
-        cacheSet(`q:${q}`, processed);
-        return processed;
-
     } catch (e) {
-        console.error("Fetch Google Place Data failed:", e);
         return null;
     }
-};
+}
+
+export function parseAddressComponents(components) {
+    if (!components) return {};
+    const map = {};
+    components.forEach(c => {
+        c.types.forEach(t => { map[t] = c.long_name; });
+    });
+
+    return {
+        street: map.route || "",
+        number: map.street_number || "",
+        city: map.locality || map.postal_town || map.administrative_area_level_2 || "",
+        zipCode: map.postal_code || "",
+        country: map.country || ""
+    };
+}
+
+export async function resolveChurchFromTitle(title) {
+    if (!title) return null;
+    try {
+        const res = await fetch(`/api/geocode?address=${encodeURIComponent(title)}`);
+        const data = await res.json();
+        if (data.error || !data.address_components) return null;
+
+        const parsed = parseAddressComponents(data.address_components);
+        
+        // Extract a clean name if possible
+        const est = data.address_components.find(c => c.types.includes("establishment"));
+        let name = est ? est.long_name : "";
+            
+        if (!name) {
+            name = title.replace(/Biserica penticostal[a\u0103]/gi, "").trim();
+            // Capitalize first letter
+            name = name.charAt(0).toUpperCase() + name.slice(1);
+        }
+
+        return {
+            ...parsed,
+            name: name,
+            lat: data.lat,
+            lng: data.lng,
+            place_id: data.place_id,
+            locationTitle: title // Keep original title
+        };
+    } catch (e) {
+        return null;
+    }
+}

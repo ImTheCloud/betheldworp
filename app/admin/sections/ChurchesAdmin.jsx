@@ -9,9 +9,7 @@ import ConfirmModal from "../components/ConfirmModal";
 import AdminSearch from "../components/AdminSearch";
 import ChurchFormFields from "../components/ChurchFormFields";
 import { IconPlus, IconTrash, IconChevronDown, IconSave, IconEyeOff, IconEye, IconSync, IconMap, IconSearch } from "../components/ChurchIcons";
-import { safeStr, normalizeText, matchChurchSearch, hasDraftChanges, emptyChurch, COUNTRY_OPTIONS, geocodeAddress, isMeaningfullyDifferent, PENTECOSTAL_NAMES, shuffleArray, fetchGooglePlaceData } from "../utils/churchHelpers";
-import { useChurchSync } from "../hooks/useChurchSync";
-import { syncChurchBot } from "../services/churchSyncBot";
+import { safeStr, normalizeText, matchChurchSearch, hasDraftChanges, emptyChurch, COUNTRY_OPTIONS, isMeaningfullyDifferent, geocodeAddress } from "../utils/churchHelpers";
 import { toggleExpandWithConfirm } from "../utils/adminUI";
 
 const PAGE_SIZE = 10;
@@ -21,7 +19,6 @@ function ChurchCard({ item, expanded, drafts, saveState, onToggle, onChange, onS
     const isDraft = drafts.isDraft || false;
     const [syncedFields, setSyncedFields] = useState({});
     const [syncSuccess, setSyncSuccess] = useState(false);
-    const { isSyncing, syncSingleChurch } = useChurchSync();
 
     useEffect(() => {
         if (!expanded) {
@@ -36,26 +33,7 @@ function ChurchCard({ item, expanded, drafts, saveState, onToggle, onChange, onS
         }
     }, [saveState]);
 
-    const handleSync = async () => {
-        setSyncSuccess(false);
-        try {
-            const data = await syncSingleChurch(drafts);
-            if (data) {
-                const newSyncMap = {};
-                Object.entries(data).forEach(([k, v]) => {
-                    if (isMeaningfullyDifferent(drafts[k], v, k)) {
-                        newSyncMap[k] = { old: String(drafts[k] || "") };
-                        onChange(id, k, v);
-                    }
-                });
-                setSyncedFields(newSyncMap);
-                setSyncSuccess(true);
-                setTimeout(() => setSyncSuccess(false), 3000);
-            }
-        } catch (err) {
-            console.error("Sync failed:", err);
-        }
-    };
+    const handleSync = null; // Sync function removed
 
     const handleFieldChange = (field, value) => {
         onChange(id, field, value);
@@ -109,10 +87,6 @@ function ChurchCard({ item, expanded, drafts, saveState, onToggle, onChange, onS
                         syncedFields={syncedFields}
                         onRestore={handleRestore}
                         getHighlightClass={getHighlightClass}
-                        onSync={handleSync}
-                        isSyncing={isSyncing}
-                        syncSuccess={syncSuccess}
-                        showGoogleEnrichment={true}
                     />
 
                     <div className="adminMsgActions adminMsgActions--3" style={{ marginTop: "20px" }}>
@@ -160,7 +134,6 @@ function ChurchCard({ item, expanded, drafts, saveState, onToggle, onChange, onS
 function NewChurchCard({ drafts, setDraft, saveState, onCancel, onSave }) {
     const [syncedFields, setSyncedFields] = useState({});
     const [syncSuccess, setSyncSuccess] = useState(false);
-    const { isSyncing, syncSingleChurch } = useChurchSync();
 
     useEffect(() => {
         if (saveState === "saved") {
@@ -181,26 +154,7 @@ function NewChurchCard({ drafts, setDraft, saveState, onCancel, onSave }) {
 
     const getHighlightClass = (field) => syncedFields[field] ? "is-synced-highlight" : "";
 
-    const handleSync = async () => {
-        setSyncSuccess(false);
-        try {
-            const data = await syncSingleChurch(drafts);
-            if (data) {
-                const newSyncMap = {};
-                Object.entries(data).forEach(([k, v]) => {
-                    if (isMeaningfullyDifferent(drafts[k], v, k)) {
-                        newSyncMap[k] = { old: String(drafts[k] || "") };
-                        setDraft(k, v);
-                    }
-                });
-                setSyncedFields(newSyncMap);
-                setSyncSuccess(true);
-                setTimeout(() => setSyncSuccess(false), 3000);
-            }
-        } catch (err) {
-            console.error("Sync failed:", err);
-        }
-    };
+    const handleSync = null; // Sync function removed
 
     return (
         <div className="adminAnnCard is-active">
@@ -212,10 +166,6 @@ function NewChurchCard({ drafts, setDraft, saveState, onCancel, onSave }) {
                     syncedFields={syncedFields}
                     onRestore={handleRestore}
                     getHighlightClass={getHighlightClass}
-                    onSync={handleSync}
-                    isSyncing={isSyncing}
-                    syncSuccess={syncSuccess}
-                    showGoogleEnrichment={true}
                 />
                 <div className="adminMsgActions adminMsgActions--3" style={{ marginTop: "20px" }}>
                     <button type="button" className="adminDeleteBtn" onClick={onCancel} disabled={saveState === "saving"}>Cancel</button>
@@ -247,8 +197,6 @@ export default function ChurchesAdmin() {
     const [newState, setNewState] = useState("idle");
     const [showDraftsOnly, setShowDraftsOnly] = useState(false);
     
-    // BOT HOOK
-    const { isSyncing, progress, performBulkSync } = useChurchSync();
     const [showBulkSyncConfirm, setShowBulkSyncConfirm] = useState(false);
 
     const [modal, setModal] = useState({ isOpen: false, title: "", message: "", progress: null, onConfirm: null, actions: null });
@@ -358,15 +306,27 @@ export default function ChurchesAdmin() {
         if (!newDrafts.name.trim() || !newDrafts.city.trim()) { openInfoModal("Action Required", "The Church Name and City fields are required."); return; }
         if (findDuplicateChurch(newDrafts.name, newDrafts.city)) { openInfoModal("Duplicate Church", "A church already exists with this name and city."); return; }
 
-        setNewState("saving");
-        let lat = parseFloat(newDrafts.lat), lng = parseFloat(newDrafts.lng);
-        if (isNaN(lat) || isNaN(lng)) {
-            const coords = await geocodeAddress(newDrafts.street, newDrafts.number, newDrafts.city, newDrafts.zipCode, newDrafts.country, newDrafts.locationTitle);
-            if (coords) { lat = coords.lat; lng = coords.lng; } else { setNewState("error"); openInfoModal("Geocoding Error", "Coordinates required."); return; }
+        let lat = Number(newDrafts.lat);
+        let lng = Number(newDrafts.lng);
+        let place_id = newDrafts.place_id || "";
+
+        if (!lat || !lng) {
+            setNewState("saving");
+            const geo = await geocodeAddress(newDrafts);
+            if (geo) {
+                lat = geo.lat;
+                lng = geo.lng;
+                place_id = geo.place_id;
+            } else {
+                lat = lat || 0;
+                lng = lng || 0;
+            }
         }
 
         try {
-            await setDoc(doc(collection(db, "churches")), { ...newDrafts, lat, lng, isDraft: isDraftValue, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+            const finalData = { ...newDrafts, lat, lng, place_id, isDraft: isDraftValue, createdAt: serverTimestamp(), updatedAt: serverTimestamp() };
+            await setDoc(doc(collection(db, "churches")), finalData);
+            setNewDrafts(finalData); // Update local state for immediate reflected UI
             setNewState("saved");
             setTimeout(() => { setShowNew(false); setNewState("idle"); }, 900);
         } catch (e) { setNewState("error"); }
@@ -380,13 +340,35 @@ export default function ChurchesAdmin() {
         if (!draft) return;
         
         let isDraftValue = forcedDraftStatus !== null ? forcedDraftStatus : (draft.isDraft || false);
+        let finalDraft = { ...draft };
+        const addressChanged = 
+            safeStr(item.street) !== safeStr(draft.street) ||
+            safeStr(item.number) !== safeStr(draft.number) ||
+            safeStr(item.city) !== safeStr(draft.city) ||
+            safeStr(item.country) !== safeStr(draft.country);
+
+        const infoChanged = 
+            addressChanged ||
+            safeStr(item.name) !== safeStr(draft.name) ||
+            safeStr(item.locationTitle) !== safeStr(draft.locationTitle);
+
         setTransientState(id, "saving");
+
+        if (infoChanged || !draft.lat || !draft.lng) {
+            const geo = await geocodeAddress(draft);
+            if (geo) {
+                finalDraft = { ...finalDraft, lat: geo.lat, lng: geo.lng, place_id: geo.place_id };
+            }
+        }
+
         try {
-            await updateDoc(doc(db, "churches", id), { 
-                ...draft, 
+            const finalData = { 
+                ...finalDraft, 
                 isDraft: isDraftValue, 
                 updatedAt: serverTimestamp() 
-            });
+            };
+            await updateDoc(doc(db, "churches", id), finalData);
+            setDraftsById(prev => ({ ...prev, [id]: finalData })); // Update local state for immediate reflected UI
             setTransientState(id, "saved");
             
             setTimeout(() => {
@@ -410,7 +392,7 @@ export default function ChurchesAdmin() {
         });
     };
 
-    const handleBulkSync = () => { performBulkSync(items, count => openInfoModal("Sync Complete", `${count} suggestions created.`)); };
+    const handleBulkSync = null; // Bulk sync removed
 
     return (
         <div className="adminFullPage">
@@ -435,7 +417,6 @@ export default function ChurchesAdmin() {
                         <option value="">All Cities</option>
                         {uniqueCities.map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
-                    <button className="adminBtn" onClick={() => setShowBulkSyncConfirm(true)} disabled={isSyncing}><IconSync />Sync All</button>
                     <button className="adminBtn adminBtn--new" onClick={startNew}><IconPlus />New</button>
                 </div>
                 <AdminSearch value={searchQuery} onChange={setSearchQuery} />
@@ -450,27 +431,16 @@ export default function ChurchesAdmin() {
             </div>
 
             <ConfirmModal
-                isOpen={modal.isOpen || isSyncing}
-                title={isSyncing ? (progress.status || "Sync Engine Running...") : modal.title}
-                message={isSyncing ? (progress.churchName ? `Analyzing: ${progress.churchName}` : "") : modal.message}
-                progress={isSyncing ? (progress.total > 0 ? (progress.current / progress.total) * 100 : (progress.progress || 0)) : modal.progress}
-                status={isSyncing ? "" : ""}
-                actions={isSyncing ? [] : modal.actions}
+                isOpen={modal.isOpen}
+                title={modal.title}
+                message={modal.message}
+                progress={modal.progress}
+                status={""}
+                actions={modal.actions}
                 onConfirm={modal.onConfirm}
-                onCancel={() => !isSyncing && setModal(m => ({ ...m, isOpen: false }))}
+                onCancel={() => setModal(m => ({ ...m, isOpen: false }))}
             />
 
-            {showBulkSyncConfirm && (
-                <ConfirmModal
-                    isOpen={true}
-                    title="Sync All Churches"
-                    message={`Confirm: Do you want to start the synchronization for all ${items.length} churches? This will check for missing info and new updates.`}
-                    onConfirm={() => { setShowBulkSyncConfirm(false); handleBulkSync(); }}
-                    onCancel={() => setShowBulkSyncConfirm(false)}
-                    variant="primary"
-                    confirmText="Start Sync"
-                />
-            )}
         </div>
     );
 }

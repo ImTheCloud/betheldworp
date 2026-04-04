@@ -7,8 +7,7 @@ import ConfirmModal from "../components/ConfirmModal";
 import ChurchFormFields from "../components/ChurchFormFields";
 import { IconCheck, IconX, IconChevronDown, IconEyeOff, IconHistory, IconTrash } from "../components/ChurchIcons";
 import SearchableSelect from "../../components/SearchableSelect";
-import { geocodeAddress, fetchGooglePlaceData, PENTECOSTAL_NAMES, shuffleArray, normalizeText, emptyChurch, COUNTRY_OPTIONS } from "../utils/churchHelpers";
-import { syncChurchBot } from "../services/churchSyncBot";
+import { normalizeText, COUNTRY_OPTIONS, geocodeAddress } from "../utils/churchHelpers";
 
 export default function ChurchSuggestionsAdmin() {
     const [suggestions, setSuggestions] = useState([]);
@@ -18,18 +17,9 @@ export default function ChurchSuggestionsAdmin() {
     const [processingId, setProcessingId] = useState(null);
     const [expandedIds, setExpandedIds] = useState(new Set());
     const [draftsById, setDraftsById] = useState({});
-    const [syncedFieldsById, setSyncedFieldsById] = useState({});
-    const [syncingById, setSyncingById] = useState({});
-    const [syncSuccessById, setSyncSuccessById] = useState({});
     const [modal, setModal] = useState({ isOpen: false, title: "", message: "", onConfirm: () => {} });
     const [showHistory, setShowHistory] = useState(false);
     const [diffRecomputeTrigger, setDiffRecomputeTrigger] = useState(0);
-    const [discoverCountry, setDiscoverCountry] = useState("");
-    const [isDiscovering5, setIsDiscovering5] = useState(false);
-    const [discover5Count, setDiscover5Count] = useState(0);
-    const [discover5Status, setDiscover5Status] = useState("");
-    const [isDiscoveryToolOpen, setIsDiscoveryToolOpen] = useState(false);
-    const [discoveryTargetCount, setDiscoveryTargetCount] = useState(5);
 
     const FIELDS_TO_COMPARE = ["name", "locationTitle", "city", "country", "zipCode", "street", "number", "phone", "email", "website", "youtube", "instagram", "facebook", "lat", "lng"];
 
@@ -98,43 +88,7 @@ export default function ChurchSuggestionsAdmin() {
 
     // Compute diffs: compare suggestion data vs current DB church data
     // This runs whenever suggestions or churches change
-    useEffect(() => {
-        const newSyncedFields = {};
-        suggestions.forEach(s => {
-            if (s.type !== "edit" || !s.originalChurchId) return;
-            
-            // Always compare against the LIVE database value
-            const currentChurch = churchesById[s.originalChurchId];
-            if (!currentChurch) return;
-
-            const syncMap = {};
-            FIELDS_TO_COMPARE.forEach(f => {
-                const dbVal = String(currentChurch[f] ?? "").trim();
-                const suggestionVal = String(s.data[f] ?? "").trim();
-                if (dbVal !== suggestionVal && suggestionVal !== "") {
-                    syncMap[f] = { old: dbVal };
-                }
-            });
-
-            if (Object.keys(syncMap).length > 0) {
-                newSyncedFields[s.id] = syncMap;
-            }
-        });
-        setSyncedFieldsById(prev => {
-            // Merge: keep any manually-added sync fields (from clicking Sync button), 
-            // but reset computed ones
-            const next = {};
-            Object.keys(prev).forEach(id => {
-                // Keep entries for IDs that aren't in the auto-computed set (e.g. manual sync)
-                if (!suggestions.find(s => s.id === id && s.type === "edit")) {
-                    next[id] = prev[id];
-                }
-            });
-            // Apply computed diffs
-            Object.assign(next, newSyncedFields);
-            return next;
-        });
-    }, [suggestions, churchesById, diffRecomputeTrigger]);
+    // Diff computation logic removed as it was used for sync comparisons
 
     const toggleExpand = useCallback((id) => {
         setExpandedIds((prev) => {
@@ -189,47 +143,9 @@ export default function ChurchSuggestionsAdmin() {
 
     const handleRestore = (id, field, oldValue) => {
         changeDraft(id, field, oldValue);
-        setSyncedFieldsById(prev => {
-            const next = { ...prev };
-            if (next[id]) {
-                const fieldMap = { ...next[id] };
-                delete fieldMap[field];
-                next[id] = fieldMap;
-            }
-            return next;
-        });
     };
 
-    const handleSync = async (id) => {
-        const draft = draftsById[id];
-        if (!draft) return;
-
-        setSyncingById(prev => ({ ...prev, [id]: true }));
-        setSyncSuccessById(prev => ({ ...prev, [id]: false }));
-
-        try {
-            const query = draft.locationTitle || draft.name;
-            const data = await fetchGooglePlaceData(query, draft.city, draft.country, draft.place_id);
-            
-            if (data) {
-                const newSyncMap = { ...(syncedFieldsById[id] || {}) };
-                Object.entries(data).forEach(([k, v]) => {
-                    if (v !== undefined && v !== null) {
-                        const currentVal = draft[k];
-                        if (String(currentVal || "") !== String(v || "")) {
-                            newSyncMap[k] = { old: String(currentVal || "") };
-                        }
-                        changeDraft(id, k, v);
-                    }
-                });
-                setSyncedFieldsById(prev => ({ ...prev, [id]: newSyncMap }));
-                setSyncSuccessById(prev => ({ ...prev, [id]: true }));
-                setTimeout(() => setSyncSuccessById(prev => ({ ...prev, [id]: false })), 3000);
-            }
-        } finally {
-            setSyncingById(prev => ({ ...prev, [id]: false }));
-        }
-    };
+    // handleSync functionality removed for manual-only flow
 
     const handleApprove = async (suggestion, saveAsDraft = false) => {
         const draft = draftsById[suggestion.id];
@@ -239,9 +155,20 @@ export default function ChurchSuggestionsAdmin() {
         try {
             const { type, originalChurchId } = suggestion;
 
-            // 1. Geocode
-            const coords = await geocodeAddress(draft.street, draft.number, draft.city, draft.zipCode, draft.country, draft.locationTitle);
-            
+            let finalLat = parseFloat(draft.lat);
+            let finalLng = parseFloat(draft.lng);
+            let finalPlaceId = draft.place_id || "";
+
+            // If coordinates are missing or it's a new entry, try to geocode
+            if (!finalLat || !finalLng || type === "new") {
+                const geo = await geocodeAddress(draft);
+                if (geo) {
+                    finalLat = geo.lat;
+                    finalLng = geo.lng;
+                    finalPlaceId = geo.place_id;
+                }
+            }
+
             // 2. Attribution Info
             const submitter = suggestion.data?.submitter || {};
             const submitterName = `${submitter.firstName || ""} ${submitter.lastName || ""}`.trim() || "Unknown";
@@ -256,8 +183,9 @@ export default function ChurchSuggestionsAdmin() {
 
             const finalData = { 
                 ...draft, 
-                lat: parseFloat(draft.lat) || coords?.lat || 0,
-                lng: parseFloat(draft.lng) || coords?.lng || 0,
+                lat: finalLat || 0,
+                lng: finalLng || 0,
+                place_id: finalPlaceId,
                 isDraft: saveAsDraft,
                 updatedAt: serverTimestamp() 
             };
@@ -310,92 +238,7 @@ export default function ChurchSuggestionsAdmin() {
         }
     };
 
-    const handleDiscovery = async (targetCount, countryToSearch) => {
-        if (isDiscovering5) return;
-
-        setIsDiscovering5(true);
-        setDiscover5Count(0);
-        setDiscover5Status("Starting discovery...");
-        setIsDiscoveryToolOpen(false); // Close modal when starting
-
-        try {
-            const existingPlaceIds = new Set();
-            Object.values(churchesById).forEach(c => { if (c?.place_id) existingPlaceIds.add(String(c.place_id)); });
-            [...suggestions, ...processedSuggestions].forEach(s => { if (s?.data?.place_id) existingPlaceIds.add(String(s.data.place_id)); });
-
-            const country = (countryToSearch || "").trim();
-
-            const namesToTry = shuffleArray(PENTECOSTAL_NAMES);
-            let created = 0;
-
-            for (let i = 0; i < namesToTry.length && created < targetCount; i++) {
-                const churchName = namesToTry[i];
-                setDiscover5Status(`Searching: "Biserica Penticostala ${churchName}"`);
-
-                const googleCandidate = await fetchGooglePlaceData(`Biserica Penticostala ${churchName}`, "", country);
-                if (!googleCandidate || (!googleCandidate.name && !googleCandidate.place_id)) continue;
-
-                const normName = normalizeText(googleCandidate.name || "");
-                const normLoc = normalizeText(googleCandidate.locationTitle || "");
-                const isPentecostal = normName.includes("penticost") || normName.includes("pentecost") ||
-                    normLoc.includes("penticost") || normLoc.includes("pentecost");
-                if (!isPentecostal) continue;
-
-                if (country && googleCandidate.country && normalizeText(googleCandidate.country) !== normalizeText(country)) continue;
-
-                if (googleCandidate.place_id && existingPlaceIds.has(String(googleCandidate.place_id))) continue;
-
-                setDiscover5Status(`Enriching: ${googleCandidate.name || churchName}`);
-                const base = { ...emptyChurch(), country: "", city: "" };
-                const enriched = await syncChurchBot({
-                    ...base,
-                    ...googleCandidate,
-                    place_id: googleCandidate.place_id || "",
-                    country: googleCandidate.country || country || "",
-                    city: googleCandidate.city || ""
-                }, (msg) => setDiscover5Status(msg), { googleData: googleCandidate });
-
-                const submitter = {
-                    firstName: "Discover",
-                    lastName: "Bot",
-                    phone: "",
-                    email: "",
-                    notes: `Auto-discovered via admin on ${new Date().toLocaleString()}.`
-                };
-
-                await addDoc(collection(db, "church_suggestions"), {
-                    type: "new",
-                    status: "pending",
-                    source: "admin_discover_bot",
-                    createdAt: serverTimestamp(),
-                    data: {
-                        ...enriched,
-                        syncedAt: serverTimestamp(),
-                        submitter
-                    }
-                });
-
-                created++;
-                setDiscover5Count(created);
-                if (googleCandidate.place_id) existingPlaceIds.add(String(googleCandidate.place_id));
-
-                // small pacing so the UI stays responsive and avoids burst limits
-                await new Promise(r => setTimeout(r, 350));
-            }
-
-            if (created < targetCount) {
-                setDiscover5Status(`Done: created ${created} suggestion(s). (Not enough matches for ${targetCount}.)`);
-            } else {
-                setDiscover5Status(`Done: created ${created} suggestions.`);
-            }
-            setTimeout(() => setDiscover5Status(""), 4000);
-        } catch (e) {
-            console.error("Discover 5 failed:", e);
-            setDiscover5Status("Discovery failed. Check console.");
-        } finally {
-            setIsDiscovering5(false);
-        }
-    };
+    // handleDiscovery functionality removed for manual-only flow
 
     if (loading) return <div className="adminSectionLoading">Loading...</div>;
 
@@ -409,27 +252,6 @@ export default function ChurchSuggestionsAdmin() {
                 </h2>
 
                 <div className="adminActions">
-                    <div className="adminActionsGroup adminActionsGroup--suggestionsDiscover">
-                        <button
-                            type="button"
-                            className="adminBtn adminBtn--discover"
-                            disabled={isDiscovering5}
-                            onClick={() => setIsDiscoveryToolOpen(true)}
-                            title={discover5Status || "Discovery Tool: Find new churches and create suggestions"}
-                        >
-                            {isDiscovering5 ? (
-                                <div className="adminSpinner" style={{ width: 14, height: 14, border: "2px solid #0a6b4a", borderTopColor: "transparent" }} />
-                            ) : (
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                            )}
-                            {isDiscovering5 ? `Discovering (${discover5Count}/${discoveryTargetCount})` : "Discover New Churches"}
-                        </button>
-                        {discover5Status && (
-                             <span className="adminMuted" style={{ fontSize: '11px', fontWeight: '500', marginLeft: '8px' }}>
-                                 {discover5Status}
-                             </span>
-                        )}
-                    </div>
 
                     <button 
                         className="adminBtn adminBtn--new" 
@@ -456,7 +278,6 @@ export default function ChurchSuggestionsAdmin() {
                             const draft = draftsById[s.id] || s.data;
                             const isProcessed = s.status !== "pending";
                             const cardBg = s.status === "approved" ? "#e8f5e9" : s.status === "rejected" ? "#ffebee" : "";
-                            const syncedFields = syncedFieldsById[s.id] || {};
 
                             return (
                                 <div key={s.id} className="adminAnnCard" style={isProcessed ? { backgroundColor: cardBg } : {}}>
@@ -499,14 +320,7 @@ export default function ChurchSuggestionsAdmin() {
                                             <ChurchFormFields
                                                 drafts={draft}
                                                 onChange={(field, value) => changeDraft(s.id, field, value)}
-                                                syncedFields={syncedFields}
-                                                onRestore={(field, oldValue) => handleRestore(s.id, field, oldValue)}
-                                                getHighlightClass={(field) => syncedFields[field] ? "is-synced-highlight" : ""}
-                                                onSync={!isProcessed ? () => handleSync(s.id) : undefined}
-                                                isSyncing={syncingById[s.id] || false}
-                                                syncSuccess={syncSuccessById[s.id] || false}
                                                 disabled={isProcessed}
-                                                showGoogleEnrichment={true}
                                             />
 
                                             <div style={{ marginTop: "24px", paddingTop: "20px", borderTop: "1px dashed rgba(10, 42, 67, 0.15)" }}>
@@ -611,66 +425,6 @@ export default function ChurchSuggestionsAdmin() {
                 onCancel={() => setModal({ ...modal, isOpen: false })}
             />
 
-            {isDiscoveryToolOpen && (
-                <div className="adminModalOverlay">
-                    <div className="adminConfirmModal" style={{ maxWidth: '450px' }}>
-                        <div className="adminModalHeader">
-                            <h3 className="adminModalTitle" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                                Discovery Tool
-                            </h3>
-                            <button className="adminModalClose" onClick={() => setIsDiscoveryToolOpen(false)} aria-label="Close">
-                                <IconX />
-                            </button>
-                        </div>
-                        
-                        <div className="adminModalBody">
-                            <p className="adminModalMessage" style={{ marginBottom: '20px' }}>
-                                Automatically find new churches via Google and create pending suggestions.
-                            </p>
-                            
-                            <div className="adminForm" style={{ gap: '20px' }}>
-                                <div className="adminLabel">
-                                    <span>Country to explore</span>
-                                    <SearchableSelect
-                                        value={discoverCountry}
-                                        options={COUNTRY_OPTIONS}
-                                        onChange={(val) => setDiscoverCountry(val)}
-                                        placeholder="Select a country (optional)"
-                                        inputClassName="adminSearchInput"
-                                    />
-                                </div>
-                                <div className="adminLabel">
-                                    <span>Desired quantity (1-10)</span>
-                                    <select 
-                                        className="adminInput"
-                                        value={discoveryTargetCount}
-                                        onChange={(e) => setDiscoveryTargetCount(parseInt(e.target.value))}
-                                        style={{ height: '40px' }}
-                                    >
-                                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
-                                            <option key={n} value={n}>{n} churches</option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div className="adminModalFooter">
-                            <button className="adminModalBtn adminModalBtn--cancel" onClick={() => setIsDiscoveryToolOpen(false)}>
-                                Cancel
-                            </button>
-                            <button 
-                                className="adminModalBtn adminModalBtn--primary" 
-                                onClick={() => handleDiscovery(discoveryTargetCount, discoverCountry)}
-                                style={{ background: '#0a6b4a' }}
-                            >
-                                Start Discovery
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }

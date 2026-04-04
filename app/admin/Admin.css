@@ -2072,7 +2072,25 @@ input:checked + .adminSlider:before {
     color: #4285F4; /* Google Blue */
 }
 
-.adminGoogleSearchBtn svg {
+.adminLinkSearchBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    color: rgba(10, 42, 67, 0.4);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    vertical-align: middle;
+}
+
+.adminLinkSearchBtn:hover {
+    background-color: rgba(10, 42, 67, 0.05);
+    color: #3b82f6; /* Info Blue */
+}
+
+.adminLinkSearchBtn svg {
     display: block;
 }
 
@@ -2095,15 +2113,54 @@ input:checked + .adminSlider:before {
     color: #10b981; /* Success Green */
 }
 
-.adminLinkPreviewBtn svg {
-    display: block;
+/* ── Magic Fill Diff Visualization ── */
+.is-magic-new {
+    border-color: #10b981 !important;
+    background-color: #f0fdf4 !important;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1) !important;
+}
+
+.adminMagicOldValue {
+    margin-top: 4px;
+    padding: 8px 12px;
+    background-color: #fef2f2;
+    border: 1px dashed #f87171;
+    border-radius: 6px;
+    color: #b91c1c;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.adminMagicOldValue:hover {
+    background-color: #fee2e2;
+    border-style: solid;
+}
+
+.adminMagicOldValue span {
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.adminMagicOldValue .adminRevertIcon {
+    flex-shrink: 0;
+    color: #ef4444;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
 }
 
 /* ── Bulk Sync Modal ── */
-.adminBulkSyncModal {
-    max-width: 450px !important;
-    padding: 32px !important;
-    text-align: center;
+
+.adminMagicFillBtn svg {
+    display: block;
+    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.1));
 }
 
 .adminBulkSyncHeader {

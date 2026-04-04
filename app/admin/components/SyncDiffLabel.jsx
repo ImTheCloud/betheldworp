@@ -35,24 +35,7 @@ export const SyncDiffLabel = ({ field, syncedFields, onRestore, showPreview }) =
 
 
 
-export const GoogleSearchButton = ({ query, label }) => {
-    if (!query) return null;
-    const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query + " " + label)}`;
-    return (
-        <a 
-            href={searchUrl} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="adminGoogleSearchBtn"
-            title={`Search ${label} on Google`}
-            onClick={(e) => e.stopPropagation()}
-        >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
-            </svg>
-        </a>
-    );
-};
+
 
 export const PreviewLinkButton = ({ url }) => {
     if (!url) return null;
@@ -76,6 +59,27 @@ export const PreviewLinkButton = ({ url }) => {
                 <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
                 <polyline points="15 3 21 3 21 9" />
                 <line x1="10" y1="14" x2="21" y2="3" />
+            </svg>
+        </a>
+    );
+};
+
+export const GoogleSearchButton = ({ query }) => {
+    if (!query) return null;
+    const url = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+
+    return (
+        <a 
+            href={url} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="adminLinkSearchBtn"
+            title="Search on Google"
+            onClick={(e) => e.stopPropagation()}
+        >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
         </a>
     );
