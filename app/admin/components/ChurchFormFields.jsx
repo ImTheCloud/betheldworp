@@ -362,7 +362,7 @@ export default function ChurchFormFields({
                 <div style={{ marginBottom: 8 }}>
                     <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(10, 42, 67, 0.7)" }}>Coordinates</span>
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px 16px" }}>
                     <div className="adminFieldGroup">
                         <label className="adminLabel">LATITUDE</label>
                         <FieldDiffWrapper field="lat" magicDiff={magicDiff} revertField={revertField}>
@@ -390,6 +390,25 @@ export default function ChurchFormFields({
                             />
                         </FieldDiffWrapper>
                         <SyncDiffLabel field="lng" syncedFields={syncedFields} onRestore={onRestore} />
+                    </div>
+                    
+                    <div className="adminFieldGroup" style={{ gridColumn: "span 2" }}>
+                        <label className="adminLabel" style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                            <span>PLACE ID</span>
+                            {drafts.place_id && (
+                                <PreviewLinkButton url={`https://www.google.com/maps/search/?api=1&query=Google&query_place_id=${drafts.place_id}`} />
+                            )}
+                        </label>
+                        <FieldDiffWrapper field="place_id" magicDiff={magicDiff} revertField={revertField}>
+                            <input 
+                                className={`adminInput ${getHighlightClass("place_id")}`} 
+                                value={drafts.place_id ?? ""} 
+                                onChange={(e) => onChange("place_id", e.target.value)} 
+                                disabled={disabled}
+                                placeholder="ChI..."
+                            />
+                        </FieldDiffWrapper>
+                        <SyncDiffLabel field="place_id" syncedFields={syncedFields} onRestore={onRestore} />
                     </div>
                 </div>
             </div>
