@@ -31,6 +31,7 @@ export async function GET(request) {
             lat, 
             lng, 
             place_id,
+            types: result.types || [],
             address_components: result.address_components,
             formatted_address: result.formatted_address
         });

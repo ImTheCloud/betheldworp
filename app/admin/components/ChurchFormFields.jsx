@@ -18,15 +18,15 @@ import SearchableSelect from "../../components/SearchableSelect";
  *   disabled         - boolean — disable all fields (for processed suggestions)
  */
     const FieldDiffWrapper = ({ field, magicDiff, revertField, children }) => {
+        const hasDiff = Object.prototype.hasOwnProperty.call(magicDiff, field);
         const oldValue = magicDiff[field];
-        const hasDiff = !!oldValue;
 
         return (
             <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
                 {React.cloneElement(children, {
                     className: `${children.props.className || ""} ${hasDiff ? "is-magic-new" : ""}`.trim()
                 })}
-                {hasDiff && (
+                {hasDiff && oldValue && (
                     <div className="adminMagicOldValue" onClick={() => revertField(field)} title="Click to undo magic fill">
                         <span>Original: {oldValue}</span>
                         <div className="adminRevertIcon">Undo ↺</div>
@@ -68,24 +68,43 @@ export default function ChurchFormFields({
     );
 
     const handleMagicFill = async () => {
-        if (!drafts.locationTitle?.trim()) return;
+        let query = (drafts.locationTitle || "").trim();
+        if (!query) {
+            // Fallback to name + city if title is empty
+            query = `${drafts.name || ""} ${drafts.city || ""}`.trim();
+        }
+        if (!query) return;
+
+        // Ensure denominator is in query for better precision
+        if (!query.toLowerCase().includes("biserica") && !query.toLowerCase().includes("penticostal")) {
+            query = `Biserica penticostală ${query}`;
+        }
+
         setIsResolving(true);
-        const resolved = await resolveChurchFromTitle(drafts.locationTitle);
+        const resolved = await resolveChurchFromTitle(query);
         setIsResolving(false);
 
         if (resolved) {
             const newDiff = {};
             // Bulk update all fields
             Object.keys(resolved).forEach(key => {
+                if (key === "isLowConfidence") return; // Internal flag
+
                 const newValue = resolved[key];
                 const oldValue = drafts[key];
                 
-                if (newValue && newValue !== oldValue) {
-                    onChange(key, newValue);
-                    // Only track diff if there was a previous value
-                    if (oldValue) {
-                        newDiff[key] = oldValue;
+                // SAFETY: If result is a city center (low confidence), 
+                // do NOT overwrite existing coordinates/Place ID.
+                if (resolved.isLowConfidence && (key === "lat" || key === "lng" || key === "place_id")) {
+                    if (oldValue && String(oldValue).trim() !== "0" && String(oldValue).trim() !== "") {
+                        return; // Protect existing manual coordinates
                     }
+                }
+
+                if (newValue && newValue !== (oldValue ?? "")) {
+                    onChange(key, newValue);
+                    // Always track diff if newValue is different, even if oldValue was empty
+                    newDiff[key] = oldValue ?? "";
                 }
             });
             setMagicDiff(newDiff);
@@ -124,20 +143,9 @@ export default function ChurchFormFields({
                                         {isResolving ? (
                                             <div className="adminSpinner" style={{ width: 12, height: 12, borderWidth: 2, margin: 0 }} />
                                         ) : (
-                                            <IconMagic style={{ width: 14, height: 14, color: "#666" }} />
+                                            <IconMagic />
                                         )}
                                     </button>
-                                    {(() => {
-                                        const googleMapsLink = drafts.googleMapsUri 
-                                            ? drafts.googleMapsUri 
-                                            : drafts.place_id 
-                                                ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`Biserica penticostală ${drafts.name} ${drafts.city || ""}`.trim())}&query_place_id=${drafts.place_id}`
-                                                : drafts.name 
-                                                    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`Biserica penticostală ${drafts.name} ${drafts.city || ""} ${drafts.country || ""}`.trim())}`
-                                                    : null;
-                                        
-                                        return googleMapsLink ? <PreviewLinkButton url={googleMapsLink} /> : null;
-                                    })()}
                                 </div>
                             </div>
                         </label>
@@ -222,12 +230,14 @@ export default function ChurchFormFields({
                             <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
                                 <span>Street</span>
                             </div>
-                            <input 
-                                className={`adminInput ${getHighlightClass("street")}`} 
-                                value={drafts.street ?? ""} 
-                                onChange={(e) => onChange("street", e.target.value)} 
-                                disabled={disabled}
-                            />
+                            <FieldDiffWrapper field="street" magicDiff={magicDiff} revertField={revertField}>
+                                <input 
+                                    className={`adminInput ${getHighlightClass("street")}`} 
+                                    value={drafts.street ?? ""} 
+                                    onChange={(e) => onChange("street", e.target.value)} 
+                                    disabled={disabled}
+                                />
+                            </FieldDiffWrapper>
                             <SyncDiffLabel field="street" syncedFields={syncedFields} onRestore={onRestore} />
                         </label>
                     </div>
@@ -271,12 +281,14 @@ export default function ChurchFormFields({
                         Email
                         <GoogleSearchButton query={`${searchQuery} email address contact`} />
                     </div>
-                    <input 
-                        className={`adminInput ${getHighlightClass("email")}`} 
-                        value={drafts.email ?? ""} 
-                        onChange={(e) => onChange("email", e.target.value)} 
-                        disabled={disabled}
-                    />
+                    <FieldDiffWrapper field="email" magicDiff={magicDiff} revertField={revertField}>
+                        <input 
+                            className={`adminInput ${getHighlightClass("email")}`} 
+                            value={drafts.email ?? ""} 
+                            onChange={(e) => onChange("email", e.target.value)} 
+                            disabled={disabled}
+                        />
+                    </FieldDiffWrapper>
                     <SyncDiffLabel field="email" syncedFields={syncedFields} onRestore={onRestore} />
                 </label>
 
@@ -289,13 +301,15 @@ export default function ChurchFormFields({
                             <PreviewLinkButton url={drafts.website} />
                         </div>
                     </div>
-                    <input 
-                        className={`adminInput ${getHighlightClass("website")}`} 
-                        placeholder="https://..." 
-                        value={drafts.website ?? ""} 
-                        onChange={(e) => onChange("website", e.target.value)} 
-                        disabled={disabled}
-                    />
+                    <FieldDiffWrapper field="website" magicDiff={magicDiff} revertField={revertField}>
+                        <input 
+                            className={`adminInput ${getHighlightClass("website")}`} 
+                            placeholder="https://..." 
+                            value={drafts.website ?? ""} 
+                            onChange={(e) => onChange("website", e.target.value)} 
+                            disabled={disabled}
+                        />
+                    </FieldDiffWrapper>
                     <SyncDiffLabel field="website" syncedFields={syncedFields} onRestore={onRestore} showPreview={true} />
                 </label>
                 <label className="adminLabel">
@@ -307,13 +321,15 @@ export default function ChurchFormFields({
                         </div>
                     </div>
 
-                    <input 
-                        className={`adminInput ${getHighlightClass("youtube")}`} 
-                        placeholder="https://youtube.com/..." 
-                        value={drafts.youtube ?? ""} 
-                        onChange={(e) => onChange("youtube", e.target.value)} 
-                        disabled={disabled}
-                    />
+                    <FieldDiffWrapper field="youtube" magicDiff={magicDiff} revertField={revertField}>
+                        <input 
+                            className={`adminInput ${getHighlightClass("youtube")}`} 
+                            placeholder="https://youtube.com/..." 
+                            value={drafts.youtube ?? ""} 
+                            onChange={(e) => onChange("youtube", e.target.value)} 
+                            disabled={disabled}
+                        />
+                    </FieldDiffWrapper>
                     <SyncDiffLabel field="youtube" syncedFields={syncedFields} onRestore={onRestore} showPreview={true} />
                 </label>
 
@@ -326,13 +342,15 @@ export default function ChurchFormFields({
                             <PreviewLinkButton url={drafts.instagram} />
                         </div>
                     </div>
-                    <input 
-                        className={`adminInput ${getHighlightClass("instagram")}`} 
-                        placeholder="instagram.com/..." 
-                        value={drafts.instagram ?? ""} 
-                        onChange={(e) => onChange("instagram", e.target.value)} 
-                        disabled={disabled}
-                    />
+                    <FieldDiffWrapper field="instagram" magicDiff={magicDiff} revertField={revertField}>
+                        <input 
+                            className={`adminInput ${getHighlightClass("instagram")}`} 
+                            placeholder="instagram.com/..." 
+                            value={drafts.instagram ?? ""} 
+                            onChange={(e) => onChange("instagram", e.target.value)} 
+                            disabled={disabled}
+                        />
+                    </FieldDiffWrapper>
                     <SyncDiffLabel field="instagram" syncedFields={syncedFields} onRestore={onRestore} showPreview={true} />
                 </label>
                 <label className="adminLabel">
@@ -343,13 +361,15 @@ export default function ChurchFormFields({
                             <PreviewLinkButton url={drafts.facebook} />
                         </div>
                     </div>
-                    <input 
-                        className={`adminInput ${getHighlightClass("facebook")}`} 
-                        placeholder="facebook.com/..." 
-                        value={drafts.facebook ?? ""} 
-                        onChange={(e) => onChange("facebook", e.target.value)} 
-                        disabled={disabled}
-                    />
+                    <FieldDiffWrapper field="facebook" magicDiff={magicDiff} revertField={revertField}>
+                        <input 
+                            className={`adminInput ${getHighlightClass("facebook")}`} 
+                            placeholder="facebook.com/..." 
+                            value={drafts.facebook ?? ""} 
+                            onChange={(e) => onChange("facebook", e.target.value)} 
+                            disabled={disabled}
+                        />
+                    </FieldDiffWrapper>
                     <SyncDiffLabel field="facebook" syncedFields={syncedFields} onRestore={onRestore} showPreview={true} />
                 </label>
             </div>
@@ -393,7 +413,7 @@ export default function ChurchFormFields({
                     </div>
                     
                     <div className="adminFieldGroup" style={{ gridColumn: "span 2" }}>
-                        <label className="adminLabel" style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                        <label className="adminLabel" style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 8 }}>
                             <span>PLACE ID</span>
                             {drafts.place_id && (
                                 <PreviewLinkButton url={`https://www.google.com/maps/search/?api=1&query=Google&query_place_id=${drafts.place_id}`} />

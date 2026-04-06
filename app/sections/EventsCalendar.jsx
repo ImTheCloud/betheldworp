@@ -147,6 +147,7 @@ export default function EventsCalendar() {
 
     const [selectedDate, setSelectedDate] = useState(null);
     const [eventIndex, setEventIndex] = useState(0);
+    const preventNextScrollRef = useRef(false);
 
     const eventsForSelectedDate = useMemo(() => {
         if (!selectedDate) return [];
@@ -169,6 +170,7 @@ export default function EventsCalendar() {
     const [eventOpen, setEventOpen] = useState(false);
 
     const openEvent = useCallback((date, index = 0, eventIdOverride = null) => {
+        preventNextScrollRef.current = true;
         setSelectedDate(date);
         setEventIndex(index);
         setEventOpen(true);
@@ -202,11 +204,14 @@ export default function EventsCalendar() {
             setEventIndex(idx >= 0 ? idx : 0);
             setEventOpen(true);
 
-            // Scroll to the events section
-            setTimeout(() => {
-                const section = document.getElementById("evenimente");
-                if (section) section.scrollIntoView({ behavior: "smooth" });
-            }, 500);
+            // Scroll to the events section (only if not prevented)
+            if (!preventNextScrollRef.current) {
+                setTimeout(() => {
+                    const section = document.getElementById("evenimente");
+                    if (section) section.scrollIntoView({ behavior: "smooth" });
+                }, 500);
+            }
+            preventNextScrollRef.current = false;
         }
     }, [eventsLoading, eventsSorted, eventsByDate, searchParams]);
 
@@ -215,6 +220,7 @@ export default function EventsCalendar() {
         const handler = (e) => {
             const eventId = e?.detail?.eventId;
             if (!eventId) return;
+            preventNextScrollRef.current = true;
             const ev = eventsSorted.find((x) => x.id === eventId);
             if (!ev) return;
 

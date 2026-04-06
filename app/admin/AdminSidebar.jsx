@@ -99,13 +99,25 @@ function IconBell(props) {
 
 export default function AdminSidebar({ activeTab, onTabChange, onLogout }) {
     const [pendingCount, setPendingCount] = useState(0);
+    const [draftChurchesCount, setDraftChurchesCount] = useState(0);
 
     useEffect(() => {
-        const q = query(collection(db, "church_suggestions"), where("status", "==", "pending"));
-        const unsub = onSnapshot(q, (snap) => {
+        // Suggestions pending count
+        const qSug = query(collection(db, "church_suggestions"), where("status", "==", "pending"));
+        const unsubSug = onSnapshot(qSug, (snap) => {
             setPendingCount(snap.size);
         });
-        return () => unsub();
+
+        // Draft churches count
+        const qChurches = query(collection(db, "churches"), where("isDraft", "==", true));
+        const unsubChurches = onSnapshot(qChurches, (snap) => {
+            setDraftChurchesCount(snap.size);
+        });
+
+        return () => {
+            unsubSug();
+            unsubChurches();
+        };
     }, []);
 
     const navItems = [
@@ -114,7 +126,7 @@ export default function AdminSidebar({ activeTab, onTabChange, onLogout }) {
         { id: "verse", label: "Monthly Verse", icon: IconBook },
         { id: "overrides", label: "Program Overrides", icon: IconEdit },
         { id: "events", label: "Events", icon: IconEvent },
-        { id: "churches", label: "Churches", icon: IconChurch, dividerBefore: true },
+        { id: "churches", label: "Churches", icon: IconChurch, badge: draftChurchesCount > 0 ? draftChurchesCount : null, dividerBefore: true },
         { id: "suggestions", label: "Suggestions", icon: IconBell, badge: pendingCount > 0 ? pendingCount : null },
     ];
 

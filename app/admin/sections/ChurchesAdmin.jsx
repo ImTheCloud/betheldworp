@@ -226,8 +226,13 @@ export default function ChurchesAdmin() {
             const q = searchQuery.toLowerCase();
             arr = arr.filter(it => matchChurchSearch(it, q));
         }
-        // Keep a stable default ordering now that the sort selector is removed.
-        arr.sort((a, b) => safeStr(a.name).localeCompare(safeStr(b.name)));
+        // 1. Drafts first, then alphabetical by name
+        arr.sort((a, b) => {
+            if (a.isDraft !== b.isDraft) {
+                return a.isDraft ? -1 : 1;
+            }
+            return safeStr(a.name).localeCompare(safeStr(b.name));
+        });
         return arr;
     }, [items, searchQuery, selectedCountry, selectedCity, showDraftsOnly]);
 

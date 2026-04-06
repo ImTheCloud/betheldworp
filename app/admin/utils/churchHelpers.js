@@ -164,11 +164,19 @@ export const sanitizePhone = (phone) => {
 };
 
 export const COUNTRY_OPTIONS = [
-    "Austria", "Belgium", "Bulgaria", "Croatia", "Cyprus", "Czech Republic",
-    "Denmark", "Estonia", "Finland", "France", "Germany", "Greece", "Hungary",
-    "Ireland", "Italy", "Latvia", "Lithuania", "Luxembourg", "Malta", "Moldova",
-    "Netherlands", "Norway", "Poland", "Portugal", "Romania", "Slovakia", "Slovenia",
-    "Spain", "Sweden", "Switzerland", "Ukraine", "United Kingdom", "United States", "Canada", "Australia"
+    "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan",
+    "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi",
+    "Cabo Verde", "Cambodia", "Cameroon", "Canada", "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros", "Congo (Congo-Brazzaville)", "Costa Rica", "Croatia", "Cuba", "Cyprus", "Czech Republic",
+    "Democratic Republic of the Congo", "Denmark", "Djibouti", "Dominica", "Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", "Ethiopia",
+    "Fiji", "Finland", "France", "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana",
+    "Haiti", "Holy See", "Honduras", "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Ivory Coast",
+    "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Kuwait", "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg",
+    "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar",
+    "Namibia", "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Korea", "North Macedonia", "Norway",
+    "Oman", "Pakistan", "Palau", "Palestine State", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal",
+    "Qatar", "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Korea", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria",
+    "Taiwan", "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "Tuvalu",
+    "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Vanuatu", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
 ].sort();
 
 export const FIELDS = [
@@ -245,13 +253,18 @@ export function parseAddressComponents(components) {
     if (!components) return {};
     const map = {};
     components.forEach(c => {
-        c.types.forEach(t => { map[t] = c.long_name; });
+        c.types.forEach(t => { 
+            // Store all types, but don't overwrite if already there (prioritizes first appearance)
+            if (!map[t]) map[t] = c.long_name; 
+        });
     });
 
     return {
-        street: map.route || "",
+        // 'route' is the standard street name. 'street_address' or 'intersection' are fallbacks.
+        street: map.route || map.street_address || map.intersection || map.premise || "",
         number: map.street_number || "",
-        city: map.locality || map.postal_town || map.administrative_area_level_2 || "",
+        // More descriptive fallbacks for city/locality
+        city: map.locality || map.sublocality_level_1 || map.neighborhood || map.postal_town || map.administrative_area_level_3 || map.administrative_area_level_2 || "",
         zipCode: map.postal_code || "",
         country: map.country || ""
     };
@@ -262,18 +275,23 @@ export async function resolveChurchFromTitle(title) {
     try {
         const res = await fetch(`/api/geocode?address=${encodeURIComponent(title)}`);
         const data = await res.json();
+        
         if (data.error || !data.address_components) return null;
 
         const parsed = parseAddressComponents(data.address_components);
         
-        // Extract a clean name if possible
+        // Check confidence: Geocoding sometimes returns 'establishment' in Types if it's high confidence.
+        // If it's only 'locality' or 'political', it's a city-level fallback.
+        const isEstablishment = data.types.some(t => ["establishment", "point_of_interest", "church", "place_of_worship"].includes(t));
+        const isLowConfidence = !isEstablishment;
+
+        // Try to find a clean name in address components if it's an establishment
         const est = data.address_components.find(c => c.types.includes("establishment"));
         let name = est ? est.long_name : "";
-            
-        if (!name) {
+
+        if (!name || isLowConfidence) {
             name = title.replace(/Biserica penticostal[a\u0103]/gi, "").trim();
-            // Capitalize first letter
-            name = name.charAt(0).toUpperCase() + name.slice(1);
+            if (name) name = name.charAt(0).toUpperCase() + name.slice(1);
         }
 
         return {
@@ -282,9 +300,11 @@ export async function resolveChurchFromTitle(title) {
             lat: data.lat,
             lng: data.lng,
             place_id: data.place_id,
-            locationTitle: title // Keep original title
+            locationTitle: title,
+            isLowConfidence
         };
     } catch (e) {
+        console.error("resolveChurchFromTitle error:", e);
         return null;
     }
 }

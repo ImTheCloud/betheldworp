@@ -22,42 +22,20 @@ const BELGIUM_CENTER = { lat: 50.77198, lng: 4.30396 }; // Coordinates roughly n
 const MAP_SELECTED_CHURCH_STORAGE_KEY = "bethel_worldmap_selected_church";
 
 const COUNTRY_CODES = {
-    Belgium: "be",
-    Germany: "de",
-    "United Kingdom": "gb",
-    France: "fr",
-    Netherlands: "nl",
-    Romania: "ro",
-    Italy: "it",
-    Spain: "es",
-    USA: "us",
-    Austria: "at",
-    Bulgaria: "bg",
-    Croatia: "hr",
-    Cyprus: "cy",
-    "Czech Republic": "cz",
-    Denmark: "dk",
-    Estonia: "ee",
-    Finland: "fi",
-    Greece: "gr",
-    Hungary: "hu",
-    Ireland: "ie",
-    Latvia: "lv",
-    Lithuania: "lt",
-    Luxembourg: "lu",
-    Malta: "mt",
-    Moldova: "md",
-    Norway: "no",
-    Poland: "pl",
-    Portugal: "pt",
-    Slovakia: "sk",
-    Slovenia: "si",
-    Sweden: "se",
-    Switzerland: "ch",
-    Ukraine: "ua",
-    "United States": "us",
-    Canada: "ca",
-    Australia: "au",
+    Afghanistan: "af", Albania: "al", Algeria: "dz", Andorra: "ad", Angola: "ao", "Antigua and Barbuda": "ag", Argentina: "ar", Armenia: "am", Australia: "au", Austria: "at", Azerbaijan: "az",
+    Bahamas: "bs", Bahrain: "bh", Bangladesh: "bd", Barbados: "bb", Belarus: "by", Belgium: "be", Belize: "bz", Benin: "bj", Bhutan: "bt", Bolivia: "bo", "Bosnia and Herzegovina": "ba", Botswana: "bw", Brazil: "br", Brunei: "bn", Bulgaria: "bg", "Burkina Faso": "bf", Burundi: "bi",
+    "Cabo Verde": "cv", Cambodia: "kh", Cameroon: "cm", Canada: "ca", "Central African Republic": "cf", Chad: "td", Chile: "cl", China: "cn", Colombia: "co", Comoros: "km", "Congo (Congo-Brazzaville)": "cg", "Costa Rica": "cr", Croatia: "hr", Cuba: "cu", Cyprus: "cy", "Czech Republic": "cz",
+    "Democratic Republic of the Congo": "cd", Denmark: "dk", Djibouti: "dj", Dominica: "dm", "Dominican Republic": "do", Ecuador: "ec", Egypt: "eg", "El Salvador": "sv", "Equatorial Guinea": "gq", Eritrea: "er", Estonia: "ee", Eswatini: "sz", Ethiopia: "et",
+    Fiji: "fj", Finland: "fi", France: "fr", Gabon: "ga", Gambia: "gm", Georgia: "ge", Germany: "de", Ghana: "gh", Greece: "gr", Grenada: "gd", Guatemala: "gt", Guinea: "gn", "Guinea-Bissau": "gw", Guyana: "gy",
+    Haiti: "ht", "Holy See": "va", Honduras: "hn", Hungary: "hu", Iceland: "is", India: "in", Indonesia: "id", Iran: "ir", Iraq: "iq", Ireland: "ie", Israel: "il", Italy: "it", "Ivory Coast": "ci",
+    Jamaica: "jm", Japan: "jp", Jordan: "jo", Kazakhstan: "kz", Kenya: "ke", Kiribati: "ki", Kuwait: "kw", Kyrgyzstan: "kg", Laos: "la", Latvia: "lv", Lebanon: "lb", Lesotho: "ls", Liberia: "lr", Libya: "ly", Liechtenstein: "li", Lithuania: "lt", Luxembourg: "lu",
+    Madagascar: "mg", Malawi: "mw", Malaysia: "my", Maldives: "mv", Mali: "ml", Malta: "mt", "Marshall Islands": "mh", Mauritania: "mr", Mauritius: "mu", Mexico: "mx", Micronesia: "fm", Moldova: "md", Monaco: "mc", Mongolia: "mn", Montenegro: "me", Morocco: "ma", Mozambique: "mz", Myanmar: "mm",
+    Namibia: "na", Nauru: "nr", Nepal: "np", Netherlands: "nl", "New Zealand": "nz", Nicaragua: "ni", Niger: "ne", Nigeria: "ng", "North Korea": "kp", "North Macedonia": "mk", Norway: "no",
+    Oman: "om", Pakistan: "pk", Palau: "pw", "Palestine State": "ps", Panama: "pa", "Papua New Guinea": "pg", Paraguay: "py", Peru: "pe", Philippines: "ph", Poland: "pl", Portugal: "pt",
+    Qatar: "qa", Romania: "ro", Russia: "ru", Rwanda: "rw", "Saint Kitts and Nevis": "kn", "Saint Lucia": "lc", "Saint Vincent and the Grenadines": "vc", Samoa: "ws", "San Marino": "sm", "Sao Tome and Principe": "st", "Saudi Arabia": "sa", Senegal: "sn", Serbia: "rs", Seychelles: "sc", "Sierra Leone": "sl", Singapore: "sg", Slovakia: "sk", Slovenia: "si", "Solomon Islands": "sb", Somalia: "so", "South Africa": "za", "South Korea": "kr", "South Sudan": "ss", Spain: "es", "Sri Lanka": "lk", Sudan: "sd", Suriname: "sr", Sweden: "se", Switzerland: "ch", Syria: "sy",
+    Taiwan: "tw", Tajikistan: "tj", Tanzania: "tz", Thailand: "th", "Timor-Leste": "tl", Togo: "tg", Tonga: "to", "Trinidad and Tobago": "tt", Tunisia: "tn", Turkey: "tr", Turkmenistan: "tm", Tuvalu: "tv",
+    Uganda: "ug", Ukraine: "ua", "United Arab Emirates": "ae", "United Kingdom": "gb", "United States": "us", Uruguay: "uy", Uzbekistan: "uz", Vanuatu: "vu", Venezuela: "ve", Vietnam: "vn", Yemen: "ye", Zambia: "zm", Zimbabwe: "zw",
+    USA: "us" // Legacy support
 };
 
 /**
@@ -853,6 +831,57 @@ function ChurchMap() {
     const searchParams = useSearchParams();
     
     const [isMobile, setIsMobile] = useState(null);
+
+    // ─── Suggestion Form Persistence (CONSOLIDATED AT TOP) ─────────────────
+    const SUGGESTION_DRAFT_KEY = "bethel_suggestion_draft";
+    const getInitialSuggestionState = () => {
+        if (typeof window === 'undefined') return null;
+        try {
+            const saved = localStorage.getItem(SUGGESTION_DRAFT_KEY);
+            return saved ? JSON.parse(saved) : null;
+        } catch (e) {
+            console.error("Failed to parse suggestion draft:", e);
+            return null;
+        }
+    };
+    const initialDraft = getInitialSuggestionState();
+
+    const [showSuggestionModal, setShowSuggestionModal] = useState(!!initialDraft?.showSuggestionModal);
+    const [duplicateChurchModal, setDuplicateChurchModal] = useState({ isOpen: false, church: null });
+    const [suggestionType, setSuggestionType] = useState(initialDraft?.suggestionType || "new");
+    const [suggestionForm, setSuggestionForm] = useState(initialDraft?.suggestionForm || {
+        name: "",
+        city: "",
+        zipCode: "",
+        street: "",
+        number: "",
+        phone: "",
+        email: "",
+        website: "",
+        youtube: "",
+        facebook: "",
+        instagram: "",
+        country: "Belgium",
+        locationTitle: ""
+    });
+    const [suggestionStep, setSuggestionStep] = useState(initialDraft?.suggestionStep || 1);
+    const [submitterForm, setSubmitterForm] = useState(initialDraft?.submitterForm || {
+        firstName: "",
+        lastName: "",
+        phone: "",
+        email: "",
+        notes: ""
+    });
+    const [pendingEditChurchId, setPendingEditChurchId] = useState(initialDraft?.selectedChurchId || null);
+    const [suggestionSuccess, setSuggestionSuccess] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [formError, setFormError] = useState("");
+    const [initialFormValues, setInitialFormValues] = useState(null);
+
+    const isRestored = useRef(false);
+    useEffect(() => {
+        isRestored.current = true;
+    }, []);
     const [bottomSheetMode, setBottomSheetMode] = useState("collapsed"); // "hidden" | "collapsed" | "expanded"
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [showOtherCountries, setShowOtherCountries] = useState(false);
@@ -905,11 +934,6 @@ function ChurchMap() {
 
 
 
-    const [showSuggestionModal, setShowSuggestionModal] = useState(false);
-    const [duplicateChurchModal, setDuplicateChurchModal] = useState({ isOpen: false, church: null });
-    const [suggestionType, setSuggestionType] = useState("new"); // "new" | "edit"
-    const [suggestionSuccess, setSuggestionSuccess] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const { lang, setLang, supported } = useLang();
     // Lock body scroll on mount to prevent mobile conflict
     useEffect(() => {
@@ -926,9 +950,6 @@ function ChurchMap() {
     }, []);
 
     const t = makeT(worldMapTranslations, lang);
-
-    const [formError, setFormError] = useState("");
-    const [initialFormValues, setInitialFormValues] = useState(null);
 
     const langOptions = [
         { value: "ro", short: "RO", flag: "https://flagcdn.com/w40/ro.png" },
@@ -963,29 +984,37 @@ function ChurchMap() {
     }, []);
 
 
-    const [suggestionForm, setSuggestionForm] = useState({
-        name: "",
-        city: "",
-        zipCode: "",
-        street: "",
-        number: "",
-        phone: "",
-        email: "",
-        website: "",
-        youtube: "",
-        facebook: "",
-        instagram: "",
-        country: "Belgium",
-        locationTitle: ""
-    });
-    const [suggestionStep, setSuggestionStep] = useState(1);
-    const [submitterForm, setSubmitterForm] = useState({
-        firstName: "",
-        lastName: "",
-        phone: "",
-        email: "",
-        notes: ""
-    });
+    // ─── Recovery & Auto-Save Effects ─────────────────────────────────────────
+    // RECOVERY: If we loaded a draft that was an "edit", re-select the church once churches are loaded
+    useEffect(() => {
+        if (pendingEditChurchId && churches?.length > 0 && !selectedChurch) {
+            const church = churches.find(c => c.id === pendingEditChurchId);
+            if (church) {
+                setSelectedChurch(church);
+                setPendingEditChurchId(null);
+            }
+        }
+    }, [churches, pendingEditChurchId, selectedChurch]);
+
+    // AUTO-SAVE: Persistent draft across language changes
+    useEffect(() => {
+        if (!isRestored.current) return;
+
+        const draft = {
+            suggestionForm,
+            submitterForm,
+            suggestionStep,
+            suggestionType,
+            showSuggestionModal,
+            selectedChurchId: suggestionType === "edit" ? selectedChurch?.id : null
+        };
+        localStorage.setItem(SUGGESTION_DRAFT_KEY, JSON.stringify(draft));
+    }, [suggestionForm, submitterForm, suggestionStep, suggestionType, showSuggestionModal, selectedChurch]);
+
+    const clearSuggestionDraft = () => {
+        localStorage.removeItem(SUGGESTION_DRAFT_KEY);
+        setPendingEditChurchId(null);
+    };
 
     const SUGGESTION_COUNTRIES = Object.keys(COUNTRY_CODES).sort();
 
@@ -1167,6 +1196,7 @@ function ChurchMap() {
             }
 
             setSuggestionSuccess(true);
+            clearSuggestionDraft();
             setTimeout(() => {
                 setShowSuggestionModal(false);
                 setSuggestionSuccess(false);
@@ -2356,7 +2386,7 @@ function ChurchMap() {
                                                         value={suggestionForm.country}
                                                         onChange={(val) => setSuggestionForm({ ...suggestionForm, country: val })}
                                                         options={SUGGESTION_COUNTRIES.map(c => ({ value: c, label: getCountryLabel(c) }))}
-                                                        placeholder={t("selectCountry") || "Select country"}
+                                                        placeholder=""
                                                         inputClassName="suggestionInput" 
                                                     />
                                                 </div>
@@ -2517,7 +2547,10 @@ function ChurchMap() {
                                             <button
                                                 type="button"
                                                 className="suggestionCancelBtn"
-                                                onClick={() => setShowSuggestionModal(false)}
+                                                onClick={() => {
+                                                    clearSuggestionDraft();
+                                                    setShowSuggestionModal(false);
+                                                }}
                                             >
                                                 {t("cancel")}
                                             </button>
