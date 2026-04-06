@@ -2288,8 +2288,12 @@
     }
 
     .churchMapBottomSheet:has(.mobileChurchDetails) {
-        height: var(--dynamic-height, 40vh); /* MATCH list view height exactly */
-        max-height: 95vh;
+        height: max-content; /* Strictly adapt to content instead of inheriting 40vh from layout */
+        max-height: 55vh; /* reasonable limit before scrolling in collapsed mode */
+    }
+
+    .churchMapBottomSheet.is-dragging:has(.mobileChurchDetails) {
+        height: var(--dynamic-height); /* Obey manual inline height only while actively dragging */
     }
 
     .churchMapBottomSheet[data-mode="hidden"] {
@@ -2300,6 +2304,10 @@
 
     .churchMapBottomSheet[data-mode="expanded"] {
         height: var(--dynamic-height, calc(100dvh - var(--mobile-header-height) - 12px));
+    }
+
+    .churchMapBottomSheet:has(.mobileChurchDetails)[data-mode="expanded"] {
+        max-height: 100dvh;
     }
 
     /* Completely hide church list only when settings are active */
@@ -2533,7 +2541,7 @@
     }
 
     .churchMapBottomSheet:has(.mobileChurchDetails) .churchList {
-        flex: 1;
+        flex: 0 1 auto; /* Allow shrinking but DO NOT grow explicitly to avoid empty gap */
         padding-bottom: 0;
     }
 
@@ -2795,7 +2803,7 @@
 .mobileChurchDetails {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    height: auto; /* Removed height: 100% to stop it from artificially stretching the list */
     animation: slideUpDetails 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -2973,10 +2981,10 @@
 }
 
 .mobileDetailsBody {
-    flex: 1; /* Stretch to fill space */
+    flex: 0 1 auto; /* Allow shrinking if needed, but do not stretch */
     display: flex;
     flex-direction: column;
-    padding: 0 20px 20px 20px;
+    padding: 0 20px 12px 20px;
     overflow-y: auto;
     min-height: 0; /* Allow shrinking */
 }
@@ -2997,23 +3005,18 @@
 
 
 .mobileChurchDetails .churchDetailsInfoList {
-    flex: 1;
+    flex: 0 0 auto;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    margin-bottom: 0;
-    align-content: space-evenly; /* Spread rows vertically to fill the sheet in COLLAPSED mode */
-    gap: 16px 20px;
+    margin-bottom: 0px; /* Removed excess margin to bring buttons closer */
+    align-content: start;
+    gap: 16px 20px; /* Slightly tighter gap to save vertical space */
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    min-height: 180px; /* Minimum height to ensure it feels "spaced" even with few items */
 }
 
-/* When EXPANDED, links should NOT stretch; they should stay at the top with white space below */
+/* When EXPANDED, links stay at the top with a bit more spacing */
 .churchMapBottomSheet[data-mode="expanded"] .mobileChurchDetails .churchDetailsInfoList {
-    flex: 0 0 auto;
-    align-content: start;
-    justify-content: start;
-    gap: 24px 20px; /* Use a more stable gap when expanded */
-    margin-bottom: 20px;
+    gap: 24px 20px; 
 }
 
 .mobileChurchDetails .churchDetailsDisclaimer {

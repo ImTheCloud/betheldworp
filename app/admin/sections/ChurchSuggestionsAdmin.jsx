@@ -80,6 +80,9 @@ export default function ChurchSuggestionsAdmin() {
                     } else {
                         next[s.id] = { ...s.data };
                     }
+                    if (!next[s.id].locationTitle) {
+                        next[s.id].locationTitle = `Biserica penticostală ${next[s.id].name || ""} ${next[s.id].city || ""}`.trim();
+                    }
                 }
             });
             return hasChanges ? next : prev;

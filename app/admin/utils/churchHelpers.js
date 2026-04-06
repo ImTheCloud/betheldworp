@@ -188,7 +188,7 @@ export const FIELDS = [
 ];
 
 export function emptyChurch() {
-    return { name: "", locationTitle: "", street: "", number: "", city: "", country: "Romania", zipCode: "", lat: "", lng: "", phone: "", email: "", website: "", youtube: "", facebook: "", instagram: "", notes: "", isDraft: false, place_id: "", googleMapsUri: "" };
+    return { name: "", locationTitle: "Biserica penticostală ", street: "", number: "", city: "", country: "Romania", zipCode: "", lat: "", lng: "", phone: "", email: "", website: "", youtube: "", facebook: "", instagram: "", notes: "", isDraft: false, place_id: "", googleMapsUri: "" };
 }
 
 export const normalizeText = (text) => {

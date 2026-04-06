@@ -17,6 +17,25 @@ import SearchableSelect from "../../components/SearchableSelect";
  *   getHighlightClass - (field) => string — returns CSS class for green highlight
  *   disabled         - boolean — disable all fields (for processed suggestions)
  */
+    const FieldDiffWrapper = ({ field, magicDiff, revertField, children }) => {
+        const oldValue = magicDiff[field];
+        const hasDiff = !!oldValue;
+
+        return (
+            <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
+                {React.cloneElement(children, {
+                    className: `${children.props.className || ""} ${hasDiff ? "is-magic-new" : ""}`.trim()
+                })}
+                {hasDiff && (
+                    <div className="adminMagicOldValue" onClick={() => revertField(field)} title="Click to undo magic fill">
+                        <span>Original: {oldValue}</span>
+                        <div className="adminRevertIcon">Undo ↺</div>
+                    </div>
+                )}
+            </div>
+        );
+    };
+
 export default function ChurchFormFields({
     drafts,
     onChange,
@@ -84,25 +103,6 @@ export default function ChurchFormFields({
         }
     };
 
-    const FieldDiffWrapper = ({ field, children }) => {
-        const oldValue = magicDiff[field];
-        const hasDiff = !!oldValue;
-
-        return (
-            <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
-                {React.cloneElement(children, {
-                    className: `${children.props.className || ""} ${hasDiff ? "is-magic-new" : ""}`.trim()
-                })}
-                {hasDiff && (
-                    <div className="adminMagicOldValue" onClick={() => revertField(field)} title="Click to undo magic fill">
-                        <span>Original: {oldValue}</span>
-                        <div className="adminRevertIcon">Undo ↺</div>
-                    </div>
-                )}
-            </div>
-        );
-    };
-
     return (
         <>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 16px" }}>
@@ -158,7 +158,7 @@ export default function ChurchFormFields({
                     <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
                         <span>Name *</span>
                     </div>
-                    <FieldDiffWrapper field="name">
+                    <FieldDiffWrapper field="name" magicDiff={magicDiff} revertField={revertField}>
                         <input 
                             className={`adminInput ${getHighlightClass("name")}`} 
                             value={drafts.name ?? ""} 
@@ -172,7 +172,7 @@ export default function ChurchFormFields({
                     <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
                         <span>City / Locality *</span>
                     </div>
-                    <FieldDiffWrapper field="city">
+                    <FieldDiffWrapper field="city" magicDiff={magicDiff} revertField={revertField}>
                         <input 
                             className={`adminInput ${getHighlightClass("city")}`} 
                             value={drafts.city ?? ""} 
@@ -188,7 +188,7 @@ export default function ChurchFormFields({
                     <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
                         <span>Country</span>
                     </div>
-                    <FieldDiffWrapper field="country">
+                    <FieldDiffWrapper field="country" magicDiff={magicDiff} revertField={revertField}>
                         <SearchableSelect
                             className={getHighlightClass("country")}
                             value={drafts.country ?? ""}
@@ -204,7 +204,7 @@ export default function ChurchFormFields({
                     <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
                         <span>Postal Code</span>
                     </div>
-                    <FieldDiffWrapper field="zipCode">
+                    <FieldDiffWrapper field="zipCode" magicDiff={magicDiff} revertField={revertField}>
                         <input 
                             className={`adminInput ${getHighlightClass("zipCode")}`} 
                             value={drafts.zipCode ?? ""} 
@@ -236,7 +236,7 @@ export default function ChurchFormFields({
                             <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
                                 <span>Number</span>
                             </div>
-                            <FieldDiffWrapper field="number">
+                            <FieldDiffWrapper field="number" magicDiff={magicDiff} revertField={revertField}>
                                 <input 
                                     className={`adminInput ${getHighlightClass("number")}`} 
                                     value={drafts.number ?? ""} 
@@ -256,7 +256,7 @@ export default function ChurchFormFields({
                         <GoogleSearchButton query={`${searchQuery} phone number`} />
                     </div>
 
-                    <FieldDiffWrapper field="phone">
+                    <FieldDiffWrapper field="phone" magicDiff={magicDiff} revertField={revertField}>
                         <input 
                             className={`adminInput ${getHighlightClass("phone")}`} 
                             value={drafts.phone ?? ""} 
@@ -365,7 +365,7 @@ export default function ChurchFormFields({
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                     <div className="adminFieldGroup">
                         <label className="adminLabel">LATITUDE</label>
-                        <FieldDiffWrapper field="lat">
+                        <FieldDiffWrapper field="lat" magicDiff={magicDiff} revertField={revertField}>
                             <input 
                                 className={`adminInput ${getHighlightClass("lat")}`} 
                                 type="number" 
@@ -379,7 +379,7 @@ export default function ChurchFormFields({
                     </div>
                     <div className="adminFieldGroup">
                         <label className="adminLabel">LONGITUDE</label>
-                        <FieldDiffWrapper field="lng">
+                        <FieldDiffWrapper field="lng" magicDiff={magicDiff} revertField={revertField}>
                             <input 
                                 className={`adminInput ${getHighlightClass("lng")}`} 
                                 type="number" 
