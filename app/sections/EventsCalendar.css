@@ -129,6 +129,9 @@
     background: #ffffff;
     overflow: hidden;
     transition: all 0.3s ease;
+    /* Force clipping on mobile */
+    transform: translateZ(0);
+    isolation: isolate;
 }
 
 .ec-cell:hover {
@@ -203,6 +206,8 @@
     padding: 0;
     cursor: pointer;
     background: transparent;
+    border-radius: inherit;
+    overflow: hidden;
 }
 
 .ec-eventImgContainer {
@@ -424,6 +429,9 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    /* Force clipping on mobile */
+    transform: translateZ(0);
+    isolation: isolate;
 }
 
 @keyframes modalEnter {
@@ -643,6 +651,9 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    /* Force clipping on mobile */
+    transform: translateZ(0);
+    isolation: isolate;
 }
 
 .ev-imgBlurBg {
@@ -738,6 +749,8 @@
     background: #ffffff;
     border: 1px solid rgba(10, 42, 67, 0.08);
     box-shadow: 0 12px 40px rgba(10, 42, 67, 0.12);
+    /* Force clipping on mobile */
+    transform: translateZ(0);
 }
 
 .ev-map {
