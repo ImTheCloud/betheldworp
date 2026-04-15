@@ -41,6 +41,16 @@ export default function Header() {
     useEffect(() => {
         const onScroll = () => {
             setScrolled(window.scrollY > 40);
+
+            // Handle bottom of page for last section
+            const isAtBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100;
+            if (isAtBottom && !isManualScroll.current) {
+                const lastItem = NAV_ITEMS.findLast(item => item.type === "section");
+                if (lastItem && activeIdRef.current !== lastItem.id) {
+                    setActiveId(lastItem.id);
+                    window.history.replaceState(null, null, `#${lastItem.id}`);
+                }
+            }
         };
 
         onScroll();
@@ -54,8 +64,8 @@ export default function Header() {
     useEffect(() => {
         const observerOptions = {
             root: null,
-            rootMargin: "-20% 0px -70% 0px", // Focus on the upper-middle part of the screen
-            threshold: 0,
+            rootMargin: "-25% 0px -25% 0px", // More balanced band for detection
+            threshold: [0, 0.1, 0.2],
         };
 
         const observerCallback = (entries) => {
