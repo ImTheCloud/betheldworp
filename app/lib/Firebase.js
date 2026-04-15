@@ -1,5 +1,5 @@
-import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import { initializeApp, getApps, getApp } from "firebase/app";
+import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from "firebase/firestore";
 
 const firebaseConfig = {
     apiKey: "AIzaSyATfKWzTiu0K-bIgstl4cNaWi00X0MqGro",
@@ -11,6 +11,20 @@ const firebaseConfig = {
     measurementId: "G-QQC8KW5G0W"
 };
 
-const app = initializeApp(firebaseConfig);
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-export const db = getFirestore(app);
+let db;
+
+if (typeof document !== "undefined") {
+    try {
+        db = initializeFirestore(app, {
+            localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+        });
+    } catch (e) {
+        db = getFirestore(app);
+    }
+} else {
+    db = getFirestore(app);
+}
+
+export { db };
