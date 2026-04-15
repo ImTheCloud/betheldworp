@@ -2158,7 +2158,7 @@ function ChurchMap() {
 
                         <div className="churchSidebarFooter" ref={footerRef}>
                             <div className="mobileFooterActions">
-                                {(selectedChurch || isExiting) ? (
+                                {(selectedChurch || isExiting) && isMobile ? (
                                     <>
                                         <button className="sidebarSuggestBtn editMode" onClick={() => openSuggestionModal("edit", selectedChurch)}>
                                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
