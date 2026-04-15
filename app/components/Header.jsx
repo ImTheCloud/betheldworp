@@ -88,9 +88,7 @@ export default function Header() {
         // Handle initial hash on load
         const initialHash = window.location.hash.replace("#", "");
         if (initialHash) {
-            setTimeout(() => {
-                scrollToSection(initialHash, false);
-            }, 800);
+            scrollToSection(initialHash, false, "auto");
         }
 
         return () => observer.disconnect();
@@ -122,7 +120,7 @@ export default function Header() {
         };
     }, [menuOpen]);
 
-    const scrollToSection = (id, updateHash = true) => {
+    const scrollToSection = (id, updateHash = true, behavior = "smooth") => {
         setMenuOpen(false);
         setActiveId(id);
 
@@ -134,13 +132,14 @@ export default function Header() {
                 window.history.replaceState(null, null, `#${id}`);
             }
             // Allow observer to resume after scroll finishes
+            const duration = behavior === "smooth" ? 1000 : 50;
             setTimeout(() => {
                 isManualScroll.current = false;
-            }, 1000);
+            }, duration);
         }
 
         if (id === "acasa") {
-            window.scrollTo({ top: 0, behavior: "smooth" });
+            window.scrollTo({ top: 0, behavior });
             return;
         }
 
@@ -151,7 +150,7 @@ export default function Header() {
         const headerHeight = header?.offsetHeight ?? 82;
 
         const y = element.getBoundingClientRect().top + window.scrollY - headerHeight - 12;
-        window.scrollTo({ top: y, behavior: "smooth" });
+        window.scrollTo({ top: y, behavior });
     };
 
     const openContact = () => {
