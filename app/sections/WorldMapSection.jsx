@@ -77,10 +77,7 @@ export default function WorldMapSection() {
                 <div className="worldmap-content">
 
                     {/* Tag */}
-                    <div className="worldmap-tag">
-                        <span className="worldmap-tag-dot" />
-                        {t("tag")}
-                    </div>
+
 
                     {/* Title */}
                     <h2 className="worldmap-title">

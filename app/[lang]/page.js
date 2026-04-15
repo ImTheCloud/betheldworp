@@ -9,6 +9,7 @@ import Events from "../sections/EventsCalendar";
 import Gallery from "../sections/Gallery";
 import Donations from "../sections/Donations";
 import WorldMapSection from "../sections/WorldMapSection";
+import NewsletterSection from "../sections/NewsletterSection";
 
 export default function Home() {
     return (
@@ -24,9 +25,12 @@ export default function Home() {
                     <About />
                 </section>
 
+
                 <section id="program">
                     <Program />
                 </section>
+
+                <NewsletterSection />
 
                 <section id="evenimente">
                     <Events />
@@ -47,6 +51,7 @@ export default function Home() {
                 <section id="harta-mondiala">
                     <WorldMapSection />
                 </section>
+
 
                 <Footer />
                 <ContactWidget />

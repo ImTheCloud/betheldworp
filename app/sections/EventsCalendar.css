@@ -253,189 +253,6 @@
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.nl-section {
-    margin-top: 46px;
-}
-
-.nl-header {
-    margin-bottom: 24px;
-}
-
-.nl-subtitle {
-    font-size: clamp(26px, 3.6vw, 40px);
-    font-weight: 900;
-    color: #0a2a43;
-    letter-spacing: -0.02em;
-    margin: 0;
-    line-height: 1.1;
-    text-align: left;
-    padding-left: 30px;
-    position: relative;
-}
-
-.nl-share-btn {
-    position: absolute;
-    top: 14px;
-    right: 14px;
-    height: 34px;
-    min-width: 34px;
-    padding: 0 12px;
-    border-radius: 999px;
-    border: 1px solid rgba(10, 42, 67, 0.08);
-    background: rgba(10, 42, 67, 0.04);
-    color: rgba(10, 42, 67, 0.6);
-    cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    z-index: 10;
-}
-
-.nl-share-btn:hover {
-    transform: scale(1.04);
-    background: rgba(10, 42, 67, 0.08);
-    color: #0a2a43;
-}
-
-.nl-share-btn.is-copied {
-    background: #0a2a43;
-    color: #ffffff;
-    border-color: #0a2a43;
-}
-
-.nl-share-label {
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
-}
-
-.nl-subtitle::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 4px;
-    height: 30px;
-    background: linear-gradient(180deg, #0a2a43 0%, #164678 100%);
-    border-radius: 2px;
-}
-
-.nl-card {
-    position: relative;
-    border-radius: 28px;
-    background: #ffffff;
-    border: 1px solid rgba(10, 42, 67, 0.08);
-    box-shadow: 0 16px 50px rgba(10, 42, 67, 0.08);
-    padding: 42px 48px;
-    text-align: center;
-}
-
-
-.nl-description {
-    font-size: clamp(15px, 1.9vw, 18px);
-    line-height: 1.6;
-    color: #1a2332;
-    opacity: 0.75;
-    margin: 0 0 28px 0;
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-.nl-form {
-    max-width: 500px;
-    margin: 0 auto;
-}
-
-.nl-input-group {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 16px;
-}
-
-.nl-input {
-    flex: 1;
-    padding: 16px 20px;
-    font-size: 15px;
-    border-radius: 16px;
-    border: 1px solid rgba(10, 42, 67, 0.15);
-    background: rgba(255, 255, 255, 1);
-    outline: none;
-    color: #0a2a43;
-    font-weight: 500;
-    transition: all 0.2s ease;
-}
-
-.nl-input::placeholder {
-    color: rgba(10, 42, 67, 0.4);
-}
-
-.nl-input:focus {
-    border-color: rgba(22, 70, 120, 0.4);
-    box-shadow: 0 0 0 4px rgba(22, 70, 120, 0.08);
-}
-
-.nl-button {
-    padding: 16px 32px;
-    border-radius: 16px;
-    border: 0;
-    cursor: pointer;
-    background: linear-gradient(135deg, #0a2a43 0%, #164678 100%);
-    color: #ffffff;
-    font-size: 15px;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    box-shadow: 0 8px 24px rgba(10, 42, 67, 0.25);
-    transition: all 0.3s ease;
-    white-space: nowrap;
-}
-
-.nl-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 32px rgba(10, 42, 67, 0.35);
-}
-
-.nl-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-}
-
-.nl-error {
-    padding: 12px 16px;
-    border-radius: 12px;
-    font-size: 13px;
-    font-weight: 700;
-    color: #b00020;
-    background: rgba(176, 0, 32, 0.08);
-    border: 1px solid rgba(176, 0, 32, 0.15);
-    margin-bottom: 16px;
-}
-
-.nl-success {
-    padding: 24px;
-    border-radius: 20px;
-    background: rgba(34, 197, 94, 0.1);
-    border: 1px solid rgba(34, 197, 94, 0.2);
-}
-
-.nl-success-title {
-    font-size: 18px;
-    font-weight: 800;
-    color: #0a2a43;
-    margin-bottom: 8px;
-}
-
-.nl-success-text {
-    font-size: 14px;
-    font-weight: 600;
-    color: rgba(10, 42, 67, 0.7);
-    line-height: 1.5;
-}
 
 .ev-overlay {
     position: fixed;
@@ -815,21 +632,7 @@
         height: 112px;
     }
 
-    .nl-section {
-        margin-top: 40px;
-    }
 
-    .nl-card {
-        padding: 36px 28px;
-    }
-
-    .nl-input-group {
-        flex-direction: column;
-    }
-
-    .nl-button {
-        width: 100%;
-    }
 
     .ev-layout {
         grid-template-columns: 1fr;
@@ -1011,26 +814,7 @@
         object-position: center 15%; /* Show heads better on mobile grid too */
     }
 
-    .nl-section {
-        margin-top: 34px;
-    }
 
-    .nl-header {
-        margin-bottom: 18px;
-    }
-
-    .nl-subtitle {
-        padding-left: 20px;
-    }
-
-    .nl-subtitle::before {
-        height: 22px;
-    }
-
-    .nl-card {
-        padding: 28px 20px;
-        border-radius: 22px;
-    }
 
     .ev-heroImg {
         max-height: 280px;
@@ -1060,10 +844,7 @@
         transform: none;
     }
 
-    .nl-button:hover {
-        transform: none;
-        box-shadow: 0 8px 24px rgba(10, 42, 67, 0.25);
-    }
+
 
     .ev-close:hover {
         transform: none;

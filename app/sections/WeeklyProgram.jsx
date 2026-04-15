@@ -335,18 +335,7 @@ export default function Program() {
                     </div>
                 </div>
 
-                {(() => {
-                    const linkedCount = Object.keys(replacements).length + Object.keys(additions).length;
-                    if (!linkedCount) return null;
-                    const hintKey = linkedCount === 1 ? "clickable_hint_one" : "clickable_hint_many";
-                    const hintText = t(hintKey).replace("{n}", linkedCount);
-                    return (
-                        <div className="program-clickableBanner">
-                            <span className="program-clickableBannerIcon">↗</span>
-                            {hintText}
-                        </div>
-                    );
-                })()}
+
 
                 <div className="program-grid">
                     {LOCAL_PROGRAM_ITEMS.map((item, idx) => {
@@ -422,7 +411,6 @@ export default function Program() {
                 {/* FAQ Accordion Section */}
                 <div className="faq-header">
                     <h2 className="faq-title">{t("faq_section_title")}</h2>
-                    <p className="faq-intro">{t("faq_section_intro")}</p>
                 </div>
 
                 <div className="faq-list-wrap">

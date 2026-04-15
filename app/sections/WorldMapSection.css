@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500&display=swap');
+/* Use system fonts to match the rest of the site */
 
 /* ─────────────────────────────────────────
    BASE SECTION
@@ -6,12 +6,12 @@
 .worldmap-section {
     position: relative;
     padding: 80px 24px;
-    background: #05111f;
+    background: #0a2a43;
     display: flex;
     justify-content: center;
     overflow: hidden;
     color: #ffffff;
-    font-family: 'DM Sans', sans-serif;
+    color: #ffffff;
 }
 
 .worldmap-container {
@@ -50,46 +50,10 @@
     align-items: flex-start;
 }
 
-/* TAG PILL */
-.worldmap-tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: #e8c96a;
-    background: rgba(232, 201, 106, 0.08);
-    border: 0.5px solid rgba(232, 201, 106, 0.25);
-    padding: 6px 14px;
-    border-radius: 100px;
-    margin-bottom: 28px;
-}
 
-.worldmap-tag-dot {
-    width: 6px;
-    height: 6px;
-    background: #e8c96a;
-    border-radius: 50%;
-    flex-shrink: 0;
-    animation: wm-pulse 2s ease-in-out infinite;
-}
-
-@keyframes wm-pulse {
-    0%, 100% {
-        opacity: 1;
-        transform: scale(1);
-    }
-    50% {
-        opacity: 0.35;
-        transform: scale(0.65);
-    }
-}
 
 /* TITLE */
 .worldmap-title {
-    font-family: 'Syne', sans-serif;
     font-size: clamp(34px, 4vw, 54px);
     font-weight: 800;
     color: #ffffff;
@@ -109,7 +73,7 @@
     line-height: 1.65;
     color: rgba(255, 255, 255, 0.85);
     margin: 0 0 36px 0;
-    font-weight: 300;
+    font-weight: 500;
     max-width: 480px;
 }
 
@@ -140,11 +104,11 @@
 }
 
 .worldmap-stat-num {
-    font-family: 'Syne', sans-serif;
-    font-size: 20px;
-    font-weight: 800;
+    font-size: 26px;
+    font-weight: 900;
     color: #ffffff;
     line-height: 1;
+    letter-spacing: -0.01em;
 }
 
 
@@ -176,11 +140,10 @@
     max-width: 320px;
     height: 48px;
     background: #e8c96a;
-    color: #0a1a2e;
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
+    color: #0a2a43;
+    font-weight: 900;
     font-size: 14px;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.01em;
     padding: 0 28px;
     border-radius: 12px;
     text-decoration: none;
@@ -289,7 +252,7 @@
     }
 
     .worldmap-stat-num {
-        font-size: 26px;
+        font-size: 30px;
     }
 
     .worldmap-stat-num--live {

@@ -247,65 +247,7 @@ export default function EventsCalendar() {
         };
     }, [eventOpen]);
 
-    const [email, setEmail] = useState("");
-    const [sending, setSending] = useState(false);
-    const [success, setSuccess] = useState(false);
-    const [successText, setSuccessText] = useState("");
-    const [error, setError] = useState("");
 
-    const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
-
-    const onSubscribe = async (e) => {
-        e.preventDefault();
-        setError("");
-        setSuccess(false);
-        setSuccessText("");
-
-        const cleanEmail = String(email || "").trim();
-        const normalized = cleanEmail.toLowerCase();
-
-        if (!isValidEmail(cleanEmail)) {
-            setError(t("email_invalid"));
-            return;
-        }
-
-        try {
-            setSending(true);
-
-            await setDoc(doc(db, "newsletter", normalized), {
-                email: normalized,
-                createdAt: serverTimestamp(),
-            });
-
-            // Send real-time notification via ntfy.sh
-            try {
-                const topic = "bethel_churches_notifications_f93k2n8";
-                const notifyUrl = `https://ntfy.sh/${topic}?title=${encodeURIComponent("Abonare Nouă Newsletter")}&priority=default&tags=email,tada`;
-                fetch(notifyUrl, {
-                    method: 'POST',
-                    body: `Nou abonat: ${normalized}`
-                }).catch(e => console.error("Notification error:", e));
-            } catch (notifyErr) {
-                console.error("Failed to send notification:", notifyErr);
-            }
-
-            setSuccess(true);
-            setSuccessText(t("subscribe_success_short"));
-            setEmail("");
-        } catch (err) {
-            if (err?.code === "permission-denied") {
-                setSuccess(true);
-                setSuccessText(t("subscribe_already"));
-                setEmail("");
-                return;
-            }
-
-            console.error(err);
-            setError(t("subscribe_error"));
-        } finally {
-            setSending(false);
-        }
-    };
 
     const formatDate = (iso) => {
         const d = new Date(`${iso}T00:00:00`);
@@ -437,17 +379,7 @@ export default function EventsCalendar() {
 
     const mapQuery = selectedEvent ? encodeURIComponent([selectedEvent.place, selectedEvent.address].filter(Boolean).join(", ")) : "";
 
-    const [nlCopied, setNlCopied] = useState(false);
-    const handleNlShare = async () => {
-        const url = `${window.location.origin}${pathname}#newsletter`;
-        try {
-            await navigator.clipboard.writeText(url);
-            setNlCopied(true);
-            setTimeout(() => setNlCopied(false), 2000);
-        } catch (err) {
-            console.error("Clipboard copy failed:", err);
-        }
-    };
+
 
     return (
         <>
@@ -520,58 +452,7 @@ export default function EventsCalendar() {
                         </div>
                     </div>
 
-                    <div className="nl-section" id="newsletter">
-                        <div className="nl-header">
-                            <h3 className="nl-subtitle">{t("newsletter")}</h3>
-                        </div>
 
-                        <div className="nl-card">
-                            <button 
-                                type="button" 
-                                className={`nl-share-btn ${nlCopied ? "is-copied" : ""}`}
-                                onClick={handleNlShare}
-                                aria-label={t("share_link")}
-                                title={t("share_link")}
-                            >
-                                {nlCopied ? (
-                                    <span className="nl-share-label">{t("link_copied")}</span>
-                                ) : (
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-                                    </svg>
-                                )}
-                            </button>
-
-                            <p className="nl-description">{t("newsletter_desc")}</p>
-
-                            {success ? (
-                                <div className="nl-success">
-                                    <div className="nl-success-title">{successText || t("subscribe_success_short")}</div>
-                                    <div className="nl-success-text">{t("subscribe_success_long")}</div>
-                                </div>
-                            ) : (
-                                <form className="nl-form" onSubmit={onSubscribe}>
-                                    {error && <div className="nl-error">{error}</div>}
-
-                                    <div className="nl-input-group">
-                                        <input
-                                            className="nl-input"
-                                            type="email"
-                                            value={email}
-                                            onChange={(e) => setEmail(e.target.value)}
-                                            placeholder={t("email_placeholder")}
-                                            autoComplete="email"
-                                            disabled={sending}
-                                        />
-                                        <button className="nl-button" type="submit" disabled={sending}>
-                                            {sending ? t("sending") : t("subscribe")}
-                                        </button>
-                                    </div>
-                                </form>
-                            )}
-                        </div>
-                    </div>
                 </div>
             </section>
 
