@@ -1,46 +1,46 @@
 {
     "ro": {
         "tag": "Biserici în lume",
-        "title": "Găsește o biserică penticostală română oriunde în lume",
+        "title": "Găsește o biserică penticostală română",
+        "titleEm": "oriunde în lume",
         "description": "Descoperă biserici verificate din apropierea ta, cu locații, contacte și indicații.",
-        "cta": "Biserici din apropiere",
+        "cta": "Găsește o biserică",
         "statChurches": "Biserici",
         "statCountries": "Țări",
-        "statCities": "Orașe",
-        "globalConnect": "Conexiune Globală",
-        "realTime": "Actualizări în timp real"
+        "statLive": "Live",
+        "statLiveLabel": "Timp real"
     },
     "fr": {
         "tag": "Églises dans le monde",
-        "title": "Trouvez une église pentecôtiste roumaine partout dans le monde",
+        "title": "Trouvez une église pentecôtiste roumaine",
+        "titleEm": "partout dans le monde",
         "description": "Découvrez des églises vérifiées près de vous avec adresses, contacts et itinéraires.",
         "cta": "Trouver une église",
         "statChurches": "Églises",
         "statCountries": "Pays",
-        "statCities": "Villes",
-        "globalConnect": "Connexion Globale",
-        "realTime": "Mises à jour en temps réel"
+        "statLive": "Live",
+        "statLiveLabel": "Temps réel"
     },
     "en": {
         "tag": "Churches Worldwide",
-        "title": "Find a Romanian Pentecostal Church Anywhere in the World",
+        "title": "Find a Romanian Pentecostal Church",
+        "titleEm": "anywhere in the world",
         "description": "Discover verified churches near you with locations, contact details, and directions.",
         "cta": "Find a Church",
         "statChurches": "Churches",
         "statCountries": "Countries",
-        "statCities": "Cities",
-        "globalConnect": "Global Connection",
-        "realTime": "Real-time updates"
+        "statLive": "Live",
+        "statLiveLabel": "Real-time"
     },
     "nl": {
         "tag": "Kerken Wereldwijd",
-        "title": "Vind een Roemeense pinksterkerk overal ter wereld",
+        "title": "Vind een Roemeense pinksterkerk",
+        "titleEm": "overal ter wereld",
         "description": "Ontdek geverifieerde kerken bij jou in de buurt met locatie, contactgegevens en routebeschrijving.",
         "cta": "Vind een kerk",
         "statChurches": "Kerken",
         "statCountries": "Landen",
-        "statCities": "Steden",
-        "globalConnect": "Wereldwijde Verbinding",
-        "realTime": "Real-time updates"
+        "statLive": "Live",
+        "statLiveLabel": "Realtime"
     }
 }
