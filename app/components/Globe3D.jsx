@@ -33,8 +33,9 @@ function EarthSphere() {
             <sphereGeometry args={[2, 64, 64]} />
             <meshStandardMaterial
                 map={texture}
+                color="#ffffff"
                 roughness={0.8}
-                metalness={0.05}
+                metalness={0.1}
             />
         </mesh>
     );
@@ -101,22 +102,18 @@ export default function Globe3D({ className }) {
                 dpr={[1, 2]}
             >
                 {/* ── Bright lighting to keep globe clear ── */}
-                <ambientLight intensity={2.2} />
+                <ambientLight intensity={2.8} />
                 <directionalLight
-                    position={[5, 3, 5]}
-                    intensity={3.0}
+                    position={[10, 5, 10]}
+                    intensity={1.5}
                     color="#ffffff"
                 />
                 <directionalLight
-                    position={[-4, -2, 3]}
-                    intensity={1.2}
+                    position={[-10, -5, 5]}
+                    intensity={0.8}
                     color="#aad4ff"
                 />
-                <directionalLight
-                    position={[0, 5, -3]}
-                    intensity={0.8}
-                    color="#ffffff"
-                />
+                <pointLight position={[0, 0, 5]} intensity={1.0} color="#ffffff" />
 
                 <React.Suspense fallback={null}>
                     <ReadyNotifier onReady={() => setReady(true)} />
@@ -141,6 +138,10 @@ export default function Globe3D({ className }) {
 
 /* Tiny helper — fires onReady once mounted inside Suspense */
 function ReadyNotifier({ onReady }) {
-    useMemo(() => { onReady(); }, [onReady]);
+    React.useEffect(() => {
+        // Small delay to ensure Three.js has uploaded textures to GPU
+        const timer = setTimeout(onReady, 100);
+        return () => clearTimeout(timer);
+    }, [onReady]);
     return null;
 }
