@@ -273,6 +273,45 @@
     position: relative;
 }
 
+.nl-share-btn {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    height: 34px;
+    min-width: 34px;
+    padding: 0 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(10, 42, 67, 0.08);
+    background: rgba(10, 42, 67, 0.04);
+    color: rgba(10, 42, 67, 0.6);
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    z-index: 10;
+}
+
+.nl-share-btn:hover {
+    transform: scale(1.04);
+    background: rgba(10, 42, 67, 0.08);
+    color: #0a2a43;
+}
+
+.nl-share-btn.is-copied {
+    background: #0a2a43;
+    color: #ffffff;
+    border-color: #0a2a43;
+}
+
+.nl-share-label {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
 .nl-subtitle::before {
     content: "";
     position: absolute;
@@ -286,6 +325,7 @@
 }
 
 .nl-card {
+    position: relative;
     border-radius: 28px;
     background: #ffffff;
     border: 1px solid rgba(10, 42, 67, 0.08);
@@ -293,6 +333,7 @@
     padding: 42px 48px;
     text-align: center;
 }
+
 
 .nl-description {
     font-size: clamp(15px, 1.9vw, 18px);

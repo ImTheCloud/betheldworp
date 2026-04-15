@@ -5,34 +5,8 @@ import * as Tracker from "../lib/Tracker";
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "../lib/Firebase";
 
-// ── Known bot User-Agent signatures ──────────────────────────────────────────
-const BOT_PATTERNS = [
-    /bot/i, /crawl/i, /spider/i, /slurp/i, /search/i,
-    /googlebot/i, /bingbot/i, /yandex/i, /baidu/i, /duckduck/i,
-    /ahrefs/i, /semrush/i, /moz\.com/i, /rogerbot/i, /dotbot/i,
-    /facebookexternalhit/i, /twitterbot/i, /linkedinbot/i,
-    /whatsapp/i, /telegrambot/i, /applebot/i, /petalbot/i,
-    /bytespider/i, /gptbot/i, /claude-web/i, /anthropic/i,
-    /ccbot/i, /dataforseo/i, /serpstat/i, /majestic/i,
-    /screaming.?frog/i, /sitebulb/i, /archive\.org/i,
-    /wget/i, /curl/i, /python-requests/i, /axios/i, /node-fetch/i,
-    /go-http-client/i, /java\//i, /okhttp/i, /libwww/i,
-    /headlesschrome/i, /phantomjs/i, /selenium/i, /puppeteer/i,
-];
-
-function isBotUserAgent() {
-    try {
-        const ua = navigator?.userAgent || "";
-        if (!ua) return false;
-        return BOT_PATTERNS.some((p) => p.test(ua));
-    } catch {
-        return false;
-    }
-}
-
-
-// ── Human tracking ─────────────────────────────────────────────────────────
-async function trackHuman(cancelled) {
+// ── Tracking ───────────────────────────────────────────────────────────────
+async function trackVisit(cancelled) {
     const day = Tracker.getBrusselsDayKeySafe();
     const timeHM = Tracker.getBrusselsTimeHMSafe();
     const visitorId = Tracker.getOrCreateVisitorIdSafe();
@@ -116,10 +90,7 @@ export default function VisitTracker() {
         (async () => {
             try {
                 if (isCancelled) return;
-
-                if (!isBotUserAgent()) {
-                    await trackHuman(cancelled);
-                }
+                await trackVisit(cancelled);
             } catch { }
         })();
 

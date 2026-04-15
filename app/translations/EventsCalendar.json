@@ -29,7 +29,9 @@
     "time": "Ora",
     "date": "Data",
     "location": "Locație",
-    "map_title": "Locația evenimentului"
+    "map_title": "Locația evenimentului",
+    "share_link": "Copiază link",
+    "link_copied": "Link copiat!"
   },
   "fr": {
     "title": "Événements",
@@ -61,7 +63,9 @@
     "time": "Heure",
     "date": "Date",
     "location": "Lieu",
-    "map_title": "Lieu de l’événement"
+    "map_title": "Lieu de l’événement",
+    "share_link": "Partager le lien",
+    "link_copied": "Lien copié !"
   },
   "nl": {
     "title": "Evenementen",
@@ -93,7 +97,9 @@
     "time": "Tijd",
     "date": "Datum",
     "location": "Locatie",
-    "map_title": "Locatie van het evenement"
+    "map_title": "Locatie van het evenement",
+    "share_link": "Link kopiëren",
+    "link_copied": "Link gekopieerd!"
   },
   "en": {
     "title": "Events",
@@ -125,6 +131,8 @@
     "time": "Time",
     "date": "Date",
     "location": "Location",
-    "map_title": "Event location"
+    "map_title": "Event location",
+    "share_link": "Share link",
+    "link_copied": "Link copied!"
   }
 }
