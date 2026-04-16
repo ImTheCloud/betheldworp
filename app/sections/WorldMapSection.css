@@ -11,7 +11,6 @@
     justify-content: center;
     overflow: hidden;
     color: #ffffff;
-    color: #ffffff;
 }
 
 .worldmap-container {
@@ -62,8 +61,6 @@
     align-items: flex-start;
 }
 
-
-
 /* TITLE */
 .worldmap-title {
     font-size: clamp(34px, 4vw, 54px);
@@ -96,7 +93,7 @@
     display: flex;
     align-items: stretch;
     width: 100%;
-    max-width: 320px;
+    max-width: 480px;
     height: 48px;
     margin-bottom: 24px;
     background: rgba(255, 255, 255, 0.04);
@@ -123,8 +120,6 @@
     letter-spacing: -0.01em;
 }
 
-
-
 .worldmap-stat-label {
     font-size: 11px;
     font-weight: 600;
@@ -149,7 +144,7 @@
     justify-content: center;
     gap: 10px;
     width: 100%;
-    max-width: 320px;
+    max-width: 480px;
     height: 48px;
     background: #e8c96a;
     color: #0a2a43;
@@ -229,18 +224,15 @@
         padding: 0 24px;
         max-width: 100%;
         align-items: flex-start;
+        text-align: left;
     }
 
     /* Globe centered inline above stats */
     .worldmap-globe-wrap {
         width: 220px;
         height: 220px;
-        margin: 0 auto 20px;
+        margin: 0 auto 24px;
         align-self: center;
-    }
-
-    .worldmap-tag {
-        margin-bottom: 22px;
     }
 
     .worldmap-title {
@@ -254,26 +246,29 @@
 
     .worldmap-stats-row {
         width: 100%;
-        margin-bottom: 16px;
+        max-width: 480px;
+        margin: 0 auto 16px;
+        height: 54px;
+        align-self: center;
     }
 
     .worldmap-stat {
         flex: 1;
         align-items: center;
-        padding: 14px 12px;
+        padding: 0 12px;
     }
 
     .worldmap-stat-num {
-        font-size: 30px;
-    }
-
-    .worldmap-stat-num--live {
-        font-size: 16px;
+        font-size: 28px;
     }
 
     .worldmap-cta {
         width: 100%;
+        max-width: 480px;
+        margin: 0 auto;
         justify-content: center;
-        padding: 16px 24px;
+        padding: 0 24px;
+        height: 54px;
+        align-self: center;
     }
 }
