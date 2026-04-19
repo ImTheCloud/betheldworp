@@ -323,41 +323,46 @@ function OverrideCard({ item, expanded, draft, saveState, eventsList, weekKeyFor
                     </div>
 
                     {/* ── Section: Modifications ── */}
-                    {AFFECT_OPTIONS.filter((opt) => affectedSet.has(opt.id)).length > 0 && (
-                        <div className="overrideSection overrideSection--modify">
-                            <div className="overrideSectionHeader">
-                                <span className="overrideSectionIcon overrideSectionIcon--modify">
-                                    <IconModify />
-                                </span>
-                                <span className="overrideSectionTitle">Modifications</span>
-                            </div>
-                            {/* Replacement dropdowns for each affected day */}
-                            <div className="overrideSelectGrid">
-                                {AFFECT_OPTIONS.filter((opt) => affectedSet.has(opt.id)).map((opt) => {
-                                    const slotDate = dateForSlot(weekKeyValue, opt.id);
-                                    const filtered = safeArr(eventsList).filter((ev) => !slotDate || ev.dateISO === slotDate);
-                                    return (
-                                        <label className="overrideSelectCol" key={`${id}-repl-${opt.id}`}>
-                                            <span className="overrideSlotDay">{opt.label}</span>
-                                            <select
-                                                className="adminSelect"
-                                                value={safeStr(replacements[opt.id])}
-                                                onChange={(e) => {
-                                                    e.stopPropagation();
-                                                    onChangeReplacement(id, opt.id, e.target.value);
-                                                }}
-                                            >
-                                                <option value="">Cancelled</option>
-                                                {filtered.map((ev) => (
-                                                    <option key={ev.id} value={ev.id}>{ev.label}</option>
-                                                ))}
-                                            </select>
-                                        </label>
-                                    );
-                                })}
-                            </div>
+                    <div className="overrideSection overrideSection--modify">
+                        <div className="overrideSectionHeader">
+                            <span className="overrideSectionIcon overrideSectionIcon--modify">
+                                <IconModify />
+                            </span>
+                            <span className="overrideSectionTitle">Modifications</span>
                         </div>
-                    )}
+                        <div className="overrideSelectGrid">
+                            {AFFECT_OPTIONS.map((opt) => {
+                                const slotDate = dateForSlot(weekKeyValue, opt.id);
+                                const filtered = safeArr(eventsList).filter((ev) => !slotDate || ev.dateISO === slotDate);
+                                const isModified = affectedSet.has(opt.id);
+
+                                // Show day if it has matching events OR if it's currently replaced by an event
+                                if (!filtered.length && !replacements[opt.id]) return null;
+
+                                const currentValue = !isModified ? "__normal__" : (replacements[opt.id] || "");
+
+                                return (
+                                    <label className="overrideSelectCol" key={`${id}-repl-${opt.id}`}>
+                                        <span className="overrideSlotDay">{opt.label}</span>
+                                        <select
+                                            className="adminSelect"
+                                            value={currentValue}
+                                            onChange={(e) => {
+                                                e.stopPropagation();
+                                                onChangeReplacement(id, opt.id, e.target.value);
+                                            }}
+                                        >
+                                            <option value="__normal__">Normal Program</option>
+                                            <option value="">Cancelled</option>
+                                            {filtered.map((ev) => (
+                                                <option key={ev.id} value={ev.id}>{ev.label}</option>
+                                            ))}
+                                        </select>
+                                    </label>
+                                );
+                            })}
+                        </div>
+                    </div>
 
                     {/* ── Section: Extra Event ── */}
                     <div className="overrideSection overrideSection--extra">
@@ -482,40 +487,45 @@ function NewOverrideCard({ draft, saveState, eventsList, weekKeyForCard, onToggl
                 </div>
 
                 {/* ── Section: Modifications ── */}
-                {AFFECT_OPTIONS.filter((opt) => affectedSet.has(opt.id)).length > 0 && (
-                    <div className="overrideSection overrideSection--modify">
-                        <div className="overrideSectionHeader">
-                            <span className="overrideSectionIcon overrideSectionIcon--modify">
-                                <IconModify />
-                            </span>
-                            <span className="overrideSectionTitle">Modifications</span>
-                        </div>
-                        <div className="overrideSelectGrid">
-                            {AFFECT_OPTIONS.filter((opt) => affectedSet.has(opt.id)).map((opt) => {
-                                const slotDate = dateForSlot(weekKeyValue, opt.id);
-                                const filtered = safeArr(eventsList).filter((ev) => !slotDate || ev.dateISO === slotDate);
-                                return (
-                                    <label className="overrideSelectCol" key={`new-repl-${opt.id}`}>
-                                        <span className="overrideSlotDay">{opt.label}</span>
-                                        <select
-                                            className="adminSelect"
-                                            value={safeStr(replacements[opt.id])}
-                                            onChange={(e) => {
-                                                e.stopPropagation();
-                                                onChangeReplacement("__new__", opt.id, e.target.value);
-                                            }}
-                                        >
-                                            <option value="">Cancelled</option>
-                                            {filtered.map((ev) => (
-                                                <option key={ev.id} value={ev.id}>{ev.label}</option>
-                                            ))}
-                                        </select>
-                                    </label>
-                                );
-                            })}
-                        </div>
+                <div className="overrideSection overrideSection--modify">
+                    <div className="overrideSectionHeader">
+                        <span className="overrideSectionIcon overrideSectionIcon--modify">
+                            <IconModify />
+                        </span>
+                        <span className="overrideSectionTitle">Modifications</span>
                     </div>
-                )}
+                    <div className="overrideSelectGrid">
+                        {AFFECT_OPTIONS.map((opt) => {
+                            const slotDate = dateForSlot(weekKeyValue, opt.id);
+                            const filtered = safeArr(eventsList).filter((ev) => !slotDate || ev.dateISO === slotDate);
+                            const isModified = affectedSet.has(opt.id);
+
+                            if (!filtered.length && !replacements[opt.id]) return null;
+
+                            const currentValue = !isModified ? "__normal__" : (replacements[opt.id] || "");
+
+                            return (
+                                <label className="overrideSelectCol" key={`new-repl-${opt.id}`}>
+                                    <span className="overrideSlotDay">{opt.label}</span>
+                                    <select
+                                        className="adminSelect"
+                                        value={currentValue}
+                                        onChange={(e) => {
+                                            e.stopPropagation();
+                                            onChangeReplacement("__new__", opt.id, e.target.value);
+                                        }}
+                                    >
+                                        <option value="__normal__">Normal Program</option>
+                                        <option value="">Cancelled</option>
+                                        {filtered.map((ev) => (
+                                            <option key={ev.id} value={ev.id}>{ev.label}</option>
+                                        ))}
+                                    </select>
+                                </label>
+                            );
+                        })}
+                    </div>
+                </div>
 
                 {/* ── Section: Extra Event ── */}
                 <div className="overrideSection overrideSection--extra">
@@ -894,21 +904,39 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed }) {
 
         if (key === "__new__") {
             setNewDraft((d) => {
+                const affectedSet = toSet(d.affectedProgramIds);
                 const repl = { ...safeObj(d.replacements) };
-                if (eventId) repl[p] = eventId;
-                else delete repl[p];
-                return { ...d, replacements: repl };
+
+                if (eventId === "__normal__") {
+                    affectedSet.delete(p);
+                    delete repl[p];
+                } else {
+                    affectedSet.add(p);
+                    if (eventId) repl[p] = eventId;
+                    else delete repl[p];
+                }
+
+                return { ...d, affectedProgramIds: Array.from(affectedSet), replacements: repl };
             });
             return;
         }
 
         if (!key) return;
         setDraftsById((prev) => {
-            const cur = prev[key] || { weekKey: "", affectedProgramIds: [], replacements: {} };
+            const cur = prev[key] || { weekKey: "", affectedProgramIds: [], replacements: {}, additions: {} };
+            const affectedSet = toSet(cur.affectedProgramIds);
             const repl = { ...safeObj(cur.replacements) };
-            if (eventId) repl[p] = eventId;
-            else delete repl[p];
-            return { ...prev, [key]: { ...cur, replacements: repl } };
+
+            if (eventId === "__normal__") {
+                affectedSet.delete(p);
+                delete repl[p];
+            } else {
+                affectedSet.add(p);
+                if (eventId) repl[p] = eventId;
+                else delete repl[p];
+            }
+
+            return { ...prev, [key]: { ...cur, affectedProgramIds: Array.from(affectedSet), replacements: repl } };
         });
     };
 
