@@ -7,7 +7,15 @@
     "responsible": "Responsabil",
     "developer": "Developer",
     "email_dev_aria": "Trimite un email dezvoltatorului site-ului",
-    "email": "Email"
+    "email": "Email",
+    "newsletter_title": "Newsletter",
+    "newsletter_desc_short": "Abonează-te pentru a primi noutățile direct în inbox.",
+    "email_placeholder": "nume@email.com",
+    "subscribe": "Abonează-te",
+    "sending": "Se trimite...",
+    "subscribe_success": "Înscriere reușită!",
+    "subscribe_already": "Deja abonat!",
+    "subscribe_error": "Eroare. Mai încearcă."
   },
   "fr": {
     "logo_alt": "Bethel",
@@ -17,7 +25,15 @@
     "responsible": "Responsable",
     "developer": "Développeur",
     "email_dev_aria": "Envoyer un email au développeur du site",
-    "email": "Email"
+    "email": "Email",
+    "newsletter_title": "Newsletter",
+    "newsletter_desc_short": "Abonnez-vous pour recevoir les nouveautés directement dans votre boîte.",
+    "email_placeholder": "nom@email.com",
+    "subscribe": "S’abonner",
+    "sending": "Envoi...",
+    "subscribe_success": "Inscription réussie !",
+    "subscribe_already": "Déjà abonné(e) !",
+    "subscribe_error": "Erreur. Réessayez."
   },
   "nl": {
     "logo_alt": "Bethel",
@@ -27,7 +43,15 @@
     "responsible": "Verantwoordelijke",
     "developer": "Developer",
     "email_dev_aria": "Stuur een e-mail naar de developer",
-    "email": "E-mail"
+    "email": "E-mail",
+    "newsletter_title": "Nieuwsbrief",
+    "newsletter_desc_short": "Abonneer u om updates rechtstreeks in uw inbox te ontvangen.",
+    "email_placeholder": "naam@email.com",
+    "subscribe": "Abonneren",
+    "sending": "Verzenden...",
+    "subscribe_success": "Inschrijving gelukt!",
+    "subscribe_already": "Al geabonneerd!",
+    "subscribe_error": "Fout. Probeer opnieuw."
   },
   "en": {
     "logo_alt": "Bethel",
@@ -37,6 +61,14 @@
     "responsible": "Responsible",
     "developer": "Developer",
     "email_dev_aria": "Email the website developer",
-    "email": "Email"
+    "email": "Email",
+    "newsletter_title": "Newsletter",
+    "newsletter_desc_short": "Subscribe to receive updates directly in your inbox.",
+    "email_placeholder": "name@email.com",
+    "subscribe": "Subscribe",
+    "sending": "Sending...",
+    "subscribe_success": "Subscribed!",
+    "subscribe_already": "Already subscribed!",
+    "subscribe_error": "Error. Try again."
   }
 }
