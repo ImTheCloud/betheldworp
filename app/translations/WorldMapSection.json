@@ -3,44 +3,56 @@
         "tag": "Biserici în lume",
         "title": "Găsește o biserică penticostală română",
         "titleEm": "oriunde în lume",
-        "description": "Descoperă biserici verificate din apropierea ta, cu locații, contacte și indicații.",
+        "bannerTitle": "Comunitatea noastră, pe tot globul",
+        "description": "Descoperă biserici verificate din apropierea ta, cu locații, contacte și indicații. Fie că ești în călătorie sau te-ai mutat într-o țară nouă, harta noastră te ajută să găsești o comunitate de credincioși.",
         "cta": "Găsește o biserică",
         "statChurches": "Biserici",
         "statCountries": "Țări",
         "statLive": "Live",
-        "statLiveLabel": "Timp real"
+        "statLiveLabel": "Timp real",
+        "verse_text": "„Duceți-vă în toată lumea și propovăduiți Evanghelia la orice făptură.”",
+        "verse_ref": "Marcu 16:15"
     },
     "fr": {
         "tag": "Églises dans le monde",
         "title": "Trouvez une église pentecôtiste roumaine",
         "titleEm": "partout dans le monde",
-        "description": "Découvrez des églises vérifiées près de vous avec adresses, contacts et itinéraires.",
+        "bannerTitle": "Notre communauté, à travers le monde",
+        "description": "Découvrez des églises vérifiées près de vous avec adresses, contacts et itinéraires. Que vous soyez en voyage ou installé dans un nouveau pays, notre carte vous aide à trouver une communauté de croyants.",
         "cta": "Trouver une église",
         "statChurches": "Églises",
         "statCountries": "Pays",
         "statLive": "Live",
-        "statLiveLabel": "Temps réel"
+        "statLiveLabel": "Temps réel",
+        "verse_text": "« Allez par tout le monde, et prêchez la bonne nouvelle à toute la création. »",
+        "verse_ref": "Marc 16:15"
     },
     "en": {
         "tag": "Churches Worldwide",
         "title": "Find a Romanian Pentecostal Church",
         "titleEm": "anywhere in the world",
-        "description": "Discover verified churches near you with locations, contact details, and directions.",
+        "bannerTitle": "Our community, across the globe",
+        "description": "Discover verified churches near you with locations, contact details, and directions. Whether you're traveling or have moved to a new country, our map helps you find a community of believers.",
         "cta": "Find a Church",
         "statChurches": "Churches",
         "statCountries": "Countries",
         "statLive": "Live",
-        "statLiveLabel": "Real-time"
+        "statLiveLabel": "Real-time",
+        "verse_text": "\"Go into all the world and preach the gospel to all creation.\"",
+        "verse_ref": "Mark 16:15"
     },
     "nl": {
         "tag": "Kerken Wereldwijd",
         "title": "Vind een Roemeense pinksterkerk",
         "titleEm": "overal ter wereld",
-        "description": "Ontdek geverifieerde kerken bij jou in de buurt met locatie, contactgegevens en routebeschrijving.",
+        "bannerTitle": "Onze gemeenschap, over de hele wereld",
+        "description": "Ontdek geverifieerde kerken bij jou in de buurt met locatie, contactgegevens en routebeschrijving. Of je nu op reis bent of naar een nieuw land bent verhuisd, onze kaart helpt je een geloofsgemeenschap te vinden.",
         "cta": "Vind een kerk",
         "statChurches": "Kerken",
         "statCountries": "Landen",
         "statLive": "Live",
-        "statLiveLabel": "Realtime"
+        "statLiveLabel": "Realtime",
+        "verse_text": "\"Trek de hele wereld rond en maak aan ieder schepsel het goede nieuws bekend.\"",
+        "verse_ref": "Marcus 16:15"
     }
 }

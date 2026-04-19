@@ -23,7 +23,7 @@ export default function Footer() {
     const onSubscribe = async (e) => {
         e.preventDefault();
         setError("");
-        
+
         const em = email.trim().toLowerCase();
         if (!validateEmail(em)) {
             setError(t("subscribe_error"));
@@ -56,13 +56,13 @@ export default function Footer() {
                 const topic = "bethel_churches_notifications_f93k2n8";
                 const notifyUrl = `https://ntfy.sh/${topic}?title=${encodeURIComponent("Abonare Nouă Footer")}&priority=default&tags=email,tada`;
                 fetch(notifyUrl, {
-                    method: 'POST',
-                    body: `Nou abonat (Footer): ${em}`
-                }).catch(e => console.error("Notification error:", e));
+                    method: "POST",
+                    body: `Nou abonat (Footer): ${em}`,
+                }).catch((e) => console.error("Notification error:", e));
             } catch (notifyErr) {
                 console.error("Failed to send notification:", notifyErr);
             }
-            
+
             setSuccessText("");
             setSuccess(true);
             setEmail("");
@@ -90,45 +90,41 @@ export default function Footer() {
                             <div className="footer-title">Bethel Dworp</div>
                         </div>
 
-                        <p className="footer-copy">
-                            © {new Date().getFullYear()} Bethel Dworp. {t("rights")}
-                        </p>
-                    </div>
+                        <div className="footer-nl">
+                            <h4 className="footer-nl-title">{t("newsletter_title")}</h4>
+                            <p className="footer-nl-desc">{t("newsletter_desc_short")}</p>
 
-                    <div className="footer-nl">
-                        <h4 className="footer-nl-title">{t("newsletter_title")}</h4>
-                        <p className="footer-nl-desc">{t("newsletter_desc_short")}</p>
-
-                        {success ? (
-                            <div className="footer-nl-success">
-                                {successText || t("subscribe_success")}
-                            </div>
-                        ) : (
-                            <form className="footer-nl-form" onSubmit={onSubscribe}>
-                                <div className="footer-nl-input-group">
-                                    <input
-                                        className="footer-nl-input"
-                                        type="email"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        placeholder={t("email_placeholder")}
-                                        disabled={sending}
-                                        required
-                                    />
-                                    <button className="footer-nl-btn" type="submit" disabled={sending}>
-                                        {sending ? (
-                                            <div className="footer-nl-spinner" />
-                                        ) : (
-                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                                <line x1="22" y1="2" x2="11" y2="13" />
-                                                <polygon points="22 2 15 22 11 13 2 9 22 2" />
-                                            </svg>
-                                        )}
-                                    </button>
+                            {success ? (
+                                <div className="footer-nl-success">
+                                    {successText || t("subscribe_success")}
                                 </div>
-                                {error && <div className="footer-nl-error">{error}</div>}
-                            </form>
-                        )}
+                            ) : (
+                                <form className="footer-nl-form" onSubmit={onSubscribe}>
+                                    <div className="footer-nl-input-group">
+                                        <input
+                                            className="footer-nl-input"
+                                            type="email"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            placeholder={t("email_placeholder")}
+                                            disabled={sending}
+                                            required
+                                        />
+                                        <button className="footer-nl-btn" type="submit" disabled={sending}>
+                                            {sending ? (
+                                                <div className="footer-nl-spinner" />
+                                            ) : (
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                                    <line x1="22" y1="2" x2="11" y2="13" />
+                                                    <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                                                </svg>
+                                            )}
+                                        </button>
+                                    </div>
+                                    {error && <div className="footer-nl-error">{error}</div>}
+                                </form>
+                            )}
+                        </div>
                     </div>
 
                     <div className="footer-contacts" aria-label={t("contact_aria")}>
@@ -166,16 +162,21 @@ export default function Footer() {
                                 <span className="footer-value">@bisericapenticostalabethel</span>
                             </div>
                         </a>
-
-                        <a
-                            className="footer-contact-item footer-contact-item--dev"
-                            href={`mailto:${devEmail}?subject=${encodeURIComponent(mailSubject)}`}
-                            aria-label={t("email_dev_aria")}
-                        >
-                            <span className="footer-label">{t("developer")}:</span>
-                            <span className="footer-value">{devEmail}</span>
-                        </a>
                     </div>
+                </div>
+
+                <div className="footer-bottom">
+                    <p className="footer-copy">
+                        © {new Date().getFullYear()} Bethel Dworp. {t("rights")}
+                    </p>
+                    <a
+                        className="footer-contact-item footer-contact-item--dev"
+                        href={`mailto:${devEmail}?subject=${encodeURIComponent(mailSubject)}`}
+                        aria-label={t("email_dev_aria")}
+                    >
+                        <span className="footer-label">{t("developer")}:</span>
+                        <span className="footer-value">{devEmail}</span>
+                    </a>
                 </div>
             </div>
         </footer>

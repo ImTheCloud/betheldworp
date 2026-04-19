@@ -73,58 +73,67 @@ export default function WorldMapSection() {
 
             <div className="worldmap-container">
 
-                {/* ── Content ── */}
-                <div className="worldmap-content">
-
-                    {/* Tag */}
-
-
-                    {/* Title */}
+                {/* ── Header ── */}
+                <div className="worldmap-header">
                     <h2 className="worldmap-title">
-                        {t("title")}
-                        <em className="worldmap-title-em">{t("titleEm")}</em>
+                        {t("title")} {t("titleEm")}
                     </h2>
+                </div>
 
-                    {/* Description */}
-                    <p className="worldmap-description">{t("description")}</p>
+                {/* ── Dark banner with globe + content ── */}
+                <div className="worldmap-banner">
+                    <div className="worldmap-banner-layout">
 
-                    {/* 3D Globe — inline on mobile, repositioned on desktop */}
-                    <div className="worldmap-globe-wrap">
-                        <Globe3D className="worldmap-globe-3d" />
-                    </div>
+                        {/* Left: text content */}
+                        <div className="worldmap-body">
+                            <span className="worldmap-label">{t("tag")}</span>
 
-                    {/* Stats */}
-                    <div className="worldmap-stats-row">
-                        <div className="worldmap-stat">
-                            <span className="worldmap-stat-num">
-                                {isLoaded ? <CountUp end={stats.churches} duration={2.0} /> : 0}
-                            </span>
-                            <span className="worldmap-stat-label">{t("statChurches")}</span>
+                            <h3 className="worldmap-banner-title">{t("bannerTitle")}</h3>
+
+                            <p className="worldmap-description">{t("description")}</p>
+
+                            {/* Stats */}
+                            <div className="worldmap-stats-row">
+                                <div className="worldmap-stat">
+                                    <span className="worldmap-stat-num">
+                                        {isLoaded ? <CountUp end={stats.churches} duration={2.0} /> : 0}
+                                    </span>
+                                    <span className="worldmap-stat-label">{t("statChurches")}</span>
+                                </div>
+                                <div className="worldmap-stat">
+                                    <span className="worldmap-stat-num">
+                                        {isLoaded ? <CountUp end={stats.countries} duration={1.5} /> : 0}
+                                    </span>
+                                    <span className="worldmap-stat-label">{t("statCountries")}</span>
+                                </div>
+                            </div>
+
+                            {/* CTA */}
+                            <Link
+                                href={`/${lang}/romanian-pentecostal-churches-map`}
+                                className="worldmap-cta"
+                            >
+                                {t("cta")}
+                                <span className="worldmap-cta-arrow" aria-hidden="true">
+                                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                                        <path d="M2 5h6M5 2l3 3-3 3" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                    </svg>
+                                </span>
+                            </Link>
                         </div>
 
-                        <div className="worldmap-stat-divider" />
-
-                        <div className="worldmap-stat">
-                            <span className="worldmap-stat-num">
-                                {isLoaded ? <CountUp end={stats.countries} duration={1.5} /> : 0}
-                            </span>
-                            <span className="worldmap-stat-label">{t("statCountries")}</span>
+                        {/* Right: free-floating globe */}
+                        <div className="worldmap-globe-wrap">
+                            <Globe3D className="worldmap-globe-3d" />
                         </div>
+
                     </div>
+                </div>
 
-                    {/* CTA */}
-                    <Link
-                        href={`/${lang}/romanian-pentecostal-churches-map`}
-                        className="worldmap-cta"
-                    >
-                        {t("cta")}
-                        <span className="worldmap-cta-arrow" aria-hidden="true">
-                            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                                <path d="M2 5h6M5 2l3 3-3 3" stroke="#0a1a2e" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                        </span>
-                    </Link>
-
+                {/* ── Verse ── */}
+                <div className="worldmap-verse">
+                    <p className="worldmap-verse-text">{t("verse_text")}</p>
+                    <p className="worldmap-verse-ref">{t("verse_ref")}</p>
                 </div>
 
             </div>
