@@ -485,19 +485,6 @@ export default function EventsCalendar() {
                                 )}
                             </button>
 
-                            {eventsForSelectedDate.length > 1 && (
-                                <div className="ev-modal-nav ev-modal-nav--desktop">
-                                    <button className="ev-nav-btn prev" onClick={prevEventInList} aria-label={t("prev_event") || "Previous"}>
-                                        ‹
-                                    </button>
-                                    <span className="ev-nav-indicator">
-                                        {eventIndex + 1} / {eventsForSelectedDate.length}
-                                    </span>
-                                    <button className="ev-nav-btn next" onClick={nextEventInList} aria-label={t("next_event") || "Next"}>
-                                        ›
-                                    </button>
-                                </div>
-                            )}
                         </header>
 
                         <div className="ev-body">

@@ -420,11 +420,11 @@
 }
 
 .ev-modal-nav--desktop {
-    margin-left: auto;
+    display: none;
 }
 
 .ev-modal-nav--mobile {
-    display: none; /* Hidden by default, shown on mobile via media query */
+    display: flex; /* Always visible to solve PC overlap and unify UX */
     padding: 16px 20px;
     background: #ffffff;
     border-top: 1px solid rgba(10, 42, 67, 0.08);
@@ -569,8 +569,9 @@
 .ev-infoCard {
     border-radius: 16px;
     padding: 16px;
-    background: rgba(10, 42, 67, 0.04);
-    border: 1px solid rgba(10, 42, 67, 0.08);
+    background: #ffffff;
+    border: 1px solid rgba(10, 42, 67, 0.12);
+    box-shadow: 0 4px 12px rgba(10, 42, 67, 0.04);
 }
 
 .ev-infoCard--wide {
@@ -673,12 +674,8 @@
         max-height: calc(86vh - 78px);
     }
 
-    .ev-modal-nav--desktop {
-        display: none;
-    }
-
     .ev-modal-nav--mobile {
-        display: flex;
+        padding: 16px 20px;
     }
 
     .ev-nav-btn {
