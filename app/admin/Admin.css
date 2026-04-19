@@ -1347,16 +1347,40 @@ input:checked + .adminSlider:before {
 
 /* ── Program Overrides Sections ── */
 
+.overrideWeekRow {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: 12px;
+    margin-bottom: 20px;
+}
+
+@media (max-width: 1200px) {
+    .overrideWeekRow {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .overrideWeekRow {
+        grid-template-columns: 1fr;
+        margin-bottom: 16px;
+    }
+}
+
 .adminInputWrapper {
     display: flex;
     align-items: center;
     background: #fff;
     border: 1px solid rgba(10, 42, 67, 0.15);
     border-radius: 8px;
-    padding: 0 12px 0 0;
-    /* Padding right for the text */
+    padding: 0;
     transition: all 0.2s ease;
-    width: fit-content;
+    width: 100%; /* Fill the grid column */
+    position: relative;
+    height: 46px; /* Slightly taller for clarity */
+    cursor: pointer;
+    overflow: hidden;
 }
 
 .adminInputWrapper:focus-within {
@@ -1364,16 +1388,68 @@ input:checked + .adminSlider:before {
     box-shadow: 0 0 0 3px rgba(10, 42, 67, 0.05);
 }
 
+.adminInputDisplay {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 16px;
+    font-size: 15px; /* Slightly larger for better PC readability */
+    font-weight: 700;
+    color: #0a2a43;
+    pointer-events: none;
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    white-space: nowrap;
+    position: relative;
+    z-index: 1;
+}
+
+.adminInputHidden {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    border: none;
+    color: transparent;
+    cursor: pointer;
+    z-index: 2;
+    padding: 0;
+    margin: 0;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+/* Ensure the native indicator covers the whole field for 100% click reliability */
+.adminInputHidden::-webkit-calendar-picker-indicator {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.adminInputWrapper:hover {
+    border-color: #0a2a43;
+    background-color: #fcfcfc;
+}
+
 .adminSelect {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
     background: #fff;
     color: #0a2a43;
     border: 1px solid rgba(10, 42, 67, 0.2);
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-    /* Minimal shadow */
     border-radius: 8px;
-    /* Matching the 8px from buttons */
     height: 40px;
-    box-sizing: border-box;
     padding: 0 32px 0 16px;
     font-weight: 700;
     font-size: 14px;
@@ -1386,31 +1462,25 @@ input:checked + .adminSlider:before {
     background-repeat: no-repeat;
 }
 
-.adminSelect:hover {
-    border-color: #0a2a43;
-    background-color: #fff;
-    box-shadow: 0 2px 4px rgba(10, 42, 67, 0.1);
-}
-
 /* Unified styling for date, time, and week inputs */
 .adminInput[type="date"],
 .adminInput[type="time"],
 .adminInput[type="week"] {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
     background: #fff;
     color: #0a2a43;
     border: 1px solid rgba(10, 42, 67, 0.2);
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     border-radius: 8px;
     height: 40px;
-    box-sizing: border-box;
     padding: 0 16px;
     font-weight: 700;
     font-size: 14px;
     outline: none;
     appearance: none;
     cursor: pointer;
-    width: auto;
-    min-width: 150px;
 }
 
 .adminInput[type="date"]:hover,
@@ -2433,4 +2503,189 @@ input:checked + .adminSlider:before {
     margin-top: 6px;
     text-transform: uppercase;
     letter-spacing: 0.02em;
+}
+
+/* ── Weekly Program Overrides Grid ── */
+.overrideGrid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+    align-items: stretch;
+}
+
+@media (max-width: 1200px) {
+    .overrideGrid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .overrideGrid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        margin-top: 12px;
+    }
+}
+
+.overrideSlotCard {
+    background: #fff;
+    border: 1px solid rgba(10, 42, 67, 0.08);
+    border-radius: 14px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    height: 100%;
+    position: relative;
+    min-height: 160px;
+    min-width: 0;
+    overflow: hidden;
+}
+
+@media (max-width: 640px) {
+    .overrideSlotCard {
+        padding: 14px;
+        min-height: auto;
+        gap: 10px;
+        border-radius: 10px;
+    }
+
+    .overrideSlotLabel {
+        font-size: 10px;
+        padding-bottom: 6px;
+    }
+
+    .overrideSlotFields {
+        gap: 8px;
+    }
+
+    .overrideSlotField {
+        gap: 2px;
+    }
+
+    .overrideSlotFieldLabel {
+        font-size: 8px;
+    }
+
+    .overrideSlotCard .adminSelect {
+        height: 38px;
+        font-size: 14px;
+        padding: 0 24px 0 10px;
+    }
+
+    .overrideActionsWrapper {
+        margin-top: 20px;
+        padding-top: 16px;
+    }
+
+    .overrideActionsGrid {
+        grid-template-columns: 1fr;
+        width: 100%;
+        gap: 10px;
+    }
+}
+
+.overrideSlotCard:hover {
+    border-color: rgba(10, 42, 67, 0.15);
+    box-shadow: 0 4px 12px rgba(10, 42, 67, 0.05);
+}
+
+.overrideSlotCard.is-overridden,
+.overrideSlotCard.has-addition {
+    background: #fffcf0; /* Subtle yellow-ish background */
+    border-color: rgba(184, 134, 11, 0.2); /* Dark Goldenrod / Mustard border */
+}
+
+.overrideSlotCard.is-overridden:hover,
+.overrideSlotCard.has-addition:hover {
+    border-color: rgba(184, 134, 11, 0.4);
+}
+
+.overrideSlotCard.is-cancelled {
+    background: #fffafa; /* Subtle red background */
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+.overrideSlotLabel {
+    font-size: 11px;
+    font-weight: 800;
+    color: #0a2a43;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(10, 42, 67, 0.04);
+    padding-bottom: 8px;
+    margin-bottom: 2px;
+    white-space: nowrap;
+}
+
+.overrideSlotFields {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+}
+
+.overrideSlotField {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.overrideSlotFieldLabel {
+    font-size: 9px;
+    font-weight: 800;
+    color: rgba(10, 42, 67, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Force standard select to behave and truncate where possible */
+.overrideSlotCard .adminSelect {
+    width: 100%;
+    max-width: 100%;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    font-size: 13px;
+    padding: 0 28px 0 12px;
+}
+
+.overrideSlotBadgeGroup {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.overrideSlotCard .adminChip {
+    font-size: 8px;
+    padding: 1px 5px;
+    border-radius: 4px;
+}
+
+.overrideActionsWrapper {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(10, 42, 67, 0.06);
+    display: flex;
+    justify-content: center;
+}
+
+.overrideActionsGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Flexible columns instead of fixed 200px */
+    gap: 16px;
+    max-width: 420px; /* Optional cap for desktop readability */
+    width: 100%;
 }
