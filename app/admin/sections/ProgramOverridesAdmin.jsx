@@ -961,7 +961,7 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed, onD
                 additions: safeObj(newDraft.additions),
             };
 
-            await setDoc(doc(db, "program_overrides", id), data, { merge: true });
+            await setDoc(doc(db, "program_overrides", id), data);
 
             if (!mountedRef.current) return;
             setNewState("saved");
@@ -1001,9 +1001,9 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed, onD
                 additions: safeObj(draft.additions),
             };
 
-            // If ID changed (weekKey match), we might need to handle rename, but here ID is document ID, typically YYYY-Www
-            // If the document ID is different from weekKey, we might want to migrate, but for now we just update the doc with new fields.
-            await setDoc(doc(db, "program_overrides", key), data, { merge: true });
+            // Overwrite full override document so removed nested keys in replacements/additions
+            // are actually deleted in Firestore (merge would keep stale map keys).
+            await setDoc(doc(db, "program_overrides", key), data);
 
             if (!mountedRef.current) return;
             setTransientState(key, "saved");
