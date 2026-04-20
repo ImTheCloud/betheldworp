@@ -12,7 +12,13 @@ export default function Location() {
 
     const place = t("place");
     const address = t("address");
-    const full = `${place}, ${address}`;
+    const placeId = tr[lang]?.google_place_id || "ChIJWdWyrJPPw0cRL74a9ysasVE";
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+
+    // Use official Embed API if key is available, fallback to search query embed
+    const mapSrc = apiKey
+        ? `https://www.google.com/maps/embed/v1/place?key=${apiKey}&placeid=${placeId}`
+        : `https://www.google.com/maps?q=${encodeURIComponent(full)}&output=embed`;
 
     return (
         <section className="location-section">
@@ -35,7 +41,7 @@ export default function Location() {
                             loading="lazy"
                             allowFullScreen
                             referrerPolicy="no-referrer-when-downgrade"
-                            src={`https://www.google.com/maps?q=${encodeURIComponent(full)}&output=embed`}
+                            src={mapSrc}
                         />
                     </div>
                 </div>

@@ -15,7 +15,8 @@
     "sending": "Se trimite...",
     "subscribe_success": "Înscriere reușită!",
     "subscribe_already": "Deja abonat!",
-    "subscribe_error": "Eroare. Mai încearcă."
+    "subscribe_error": "Eroare. Mai încearcă.",
+    "address": "Adresă"
   },
   "fr": {
     "logo_alt": "Bethel",
@@ -33,7 +34,8 @@
     "sending": "Envoi...",
     "subscribe_success": "Inscription réussie !",
     "subscribe_already": "Déjà abonné(e) !",
-    "subscribe_error": "Erreur. Réessayez."
+    "subscribe_error": "Erreur. Réessayez.",
+    "address": "Adresse"
   },
   "nl": {
     "logo_alt": "Bethel",
@@ -51,7 +53,8 @@
     "sending": "Verzenden...",
     "subscribe_success": "Inschrijving gelukt!",
     "subscribe_already": "Al geabonneerd!",
-    "subscribe_error": "Fout. Probeer opnieuw."
+    "subscribe_error": "Fout. Probeer opnieuw.",
+    "address": "Adres"
   },
   "en": {
     "logo_alt": "Bethel",
@@ -69,6 +72,8 @@
     "sending": "Sending...",
     "subscribe_success": "Subscribed!",
     "subscribe_already": "Already subscribed!",
-    "subscribe_error": "Error. Try again."
+    "subscribe_error": "Error. Try again.",
+    "address": "Address"
+  }
   }
 }

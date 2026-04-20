@@ -193,7 +193,8 @@
     color: #ffffff;
 }
 
-.footer-yt-row {
+.footer-yt-row,
+.footer-map-row {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -207,8 +208,19 @@
     color: #FF0000;
 }
 
+.footer-map-icon {
+    width: 18px;
+    height: auto;
+    flex-shrink: 0;
+    color: #34A853; /* Google Green */
+}
+
 .footer-contact-item--yt:hover .footer-value {
     color: #FF0000;
+}
+
+.footer-contact-item--map:hover .footer-value {
+    color: #34A853;
 }
 
 /* Bottom */
@@ -268,6 +280,19 @@
 
     .footer-info {
         max-width: 100%;
+        display: contents; /* Unwraps children for ordering */
+    }
+
+    .footer-brand {
+        order: 1;
+    }
+
+    .footer-contacts {
+        order: 2;
+    }
+
+    .footer-nl {
+        order: 3;
     }
 
     .footer-bottom {

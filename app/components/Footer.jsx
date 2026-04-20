@@ -147,6 +147,22 @@ export default function Footer() {
                         </a>
 
                         <a
+                            className="footer-contact-item footer-contact-item--map"
+                            href="https://www.google.com/maps/search/?api=1&query=Alsembergsesteenweg+572B,+1653+Beersel&query_place_id=ChIJWdWyrJPPw0cRL74a9ysasVE"
+                            target="_blank"
+                            rel="noreferrer"
+                            aria-label="Google Maps Location"
+                        >
+                            <span className="footer-label">{t("address")}:</span>
+                            <div className="footer-map-row">
+                                <svg className="footer-map-icon" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/>
+                                </svg>
+                                <span className="footer-value">Alsembergsesteenweg 572, 1653 Beersel</span>
+                            </div>
+                        </a>
+
+                        <a
                             className="footer-contact-item footer-contact-item--yt"
                             href="https://www.youtube.com/@bisericapenticostalabethel7695"
                             target="_blank"
