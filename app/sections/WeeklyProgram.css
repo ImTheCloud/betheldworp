@@ -530,7 +530,21 @@
 
 .faq-q-text {
     flex: 1;
-    font-size: clamp(14px, 1.8vw, 16px);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.faq-q-header {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: rgba(10, 42, 67, 0.5);
+    font-weight: 800;
+}
+
+.faq-q-main {
+    font-size: clamp(14px, 1.8vw, 15px);
     font-weight: 700;
     color: #0a2a43;
     line-height: 1.4;
