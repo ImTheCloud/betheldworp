@@ -658,7 +658,11 @@
     }
 
     .ev-header {
-        padding: 16px 16px 10px;
+        padding: 16px 16px 14px;
+    }
+
+    .ev-headText {
+        padding-top: 6px;
     }
 
     .ev-body {
@@ -695,6 +699,11 @@
     .ev-layout {
         grid-template-columns: 1fr;
         gap: 12px;
+    }
+
+    .ev-heroImgWrap {
+        min-height: 260px;
+        max-height: 300px;
     }
 
     .ev-map {
@@ -749,6 +758,11 @@
 
     .ec-grid {
         gap: 6px;
+    }
+
+    .ev-heroImgWrap {
+        min-height: 220px;
+        max-height: 260px;
     }
 
     .ec-cell {
