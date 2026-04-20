@@ -13,24 +13,36 @@ export default function About() {
     return (
         <section className="about-section">
             <div className="about-content">
-                <div className="about-header">
-                    <h2 className="about-title">{t("title")}</h2>
-                </div>
+                <div className="about-grid">
+                    <article className="about-card">
+                        <h2 className="about-card-title">{t("who_title")}</h2>
+                        <div className="about-paragraphs">
+                            <p className="about-paragraph">{t("who_p1")}</p>
+                            <p className="about-paragraph">{t("who_p2")}</p>
+                            <p className="about-paragraph">{t("who_p3")}</p>
+                            <p className="about-paragraph">{t("who_p4")}</p>
+                        </div>
+                    </article>
 
-                <div className="about-text-block">
-                    <div className="about-paragraphs">
-                        <p className="about-paragraph">{t("p1")}</p>
-                        <p className="about-paragraph">{t("p2")}</p>
-                        <p className="about-paragraph">{t("p3")}</p>
-                        <p className="about-paragraph">{t("p4")}</p>
-                    </div>
-                </div>
-
-                <div className="about-verse-highlight">
-                    <div className="about-verse-content">
-                        <p className="about-verse-text">{t("verse_text")}</p>
-                        <p className="about-verse-ref">{t("verse_ref")}</p>
-                    </div>
+                    <article className="about-card about-card--vision">
+                        <h2 className="about-card-title">{t("vision_title")}</h2>
+                        <div className="about-paragraphs">
+                            <p className="about-paragraph">{t("vision_p1")}</p>
+                            <p className="about-paragraph">{t("vision_p2")}</p>
+                            <p className="about-paragraph">{t("vision_p3")}</p>
+                            <p className="about-paragraph">{t("vision_points_intro")}</p>
+                            <ul className="about-list">
+                                <li>{t("vision_point1")}</li>
+                                <li>{t("vision_point2")}</li>
+                                <li>{t("vision_point3")}</li>
+                            </ul>
+                            <p className="about-paragraph">{t("vision_p4")}</p>
+                            <p className="about-goal">
+                                <span className="about-goal-label">{t("vision_goal_label")}</span>{" "}
+                                {t("vision_goal_text")}
+                            </p>
+                        </div>
+                    </article>
                 </div>
             </div>
         </section>
