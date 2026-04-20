@@ -2183,8 +2183,20 @@ input:checked + .adminSlider:before {
     color: #10b981; /* Success Green */
 }
 
-/* ── Magic Fill Diff Visualization ── */
+/* ── Magic Fill & Suggestions Diff Visualization ── */
 .is-magic-new {
+    border-color: #10b981 !important;
+    background-color: #f0fdf4 !important;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1) !important;
+}
+
+.is-suggestion-modified {
+    border-color: #f59e0b !important;
+    background-color: #fffbeb !important;
+    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.1) !important;
+}
+
+.is-synced-highlight {
     border-color: #10b981 !important;
     background-color: #f0fdf4 !important;
     box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1) !important;

@@ -17,18 +17,23 @@ import SearchableSelect from "../../components/SearchableSelect";
  *   getHighlightClass - (field) => string — returns CSS class for green highlight
  *   disabled         - boolean — disable all fields (for processed suggestions)
  */
-    const FieldDiffWrapper = ({ field, magicDiff, revertField, children }) => {
-        const hasDiff = Object.prototype.hasOwnProperty.call(magicDiff, field);
-        const oldValue = magicDiff[field];
+    const FieldDiffWrapper = ({ field, magicDiff = {}, externalDiffs = {}, onRestore, onMagicRevert, children }) => {
+        const hasMagic = Object.prototype.hasOwnProperty.call(magicDiff, field);
+        const hasExternal = externalDiffs && Object.prototype.hasOwnProperty.call(externalDiffs, field);
+        const hasDiff = hasMagic || hasExternal;
+        
+        // Priority to magic diff if both exist
+        const oldValue = hasMagic ? magicDiff[field] : (hasExternal ? externalDiffs[field].old : null);
+        const handleRevert = hasMagic ? () => onMagicRevert(field) : (hasExternal ? () => onRestore(field, oldValue) : null);
 
         return (
             <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
                 {React.cloneElement(children, {
                     className: `${children.props.className || ""} ${hasDiff ? "is-magic-new" : ""}`.trim()
                 })}
-                {hasDiff && oldValue && (
-                    <div className="adminMagicOldValue" onClick={() => revertField(field)} title="Click to undo magic fill">
-                        <span>Original: {oldValue}</span>
+                {hasDiff && (oldValue !== undefined && oldValue !== null) && (
+                    <div className="adminMagicOldValue" onClick={handleRevert} title="Click to undo">
+                        <span>Original: {oldValue || "(empty)"}</span>
                         <div className="adminRevertIcon">Undo ↺</div>
                     </div>
                 )}
@@ -47,6 +52,18 @@ export default function ChurchFormFields({
     const [isResolving, setIsResolving] = React.useState(false);
     const [magicDiff, setMagicDiff] = React.useState({});
     const searchQuery = `Biserica penticostală ${drafts.name || ""} ${drafts.city || ""}`.trim();
+
+    const revertMagicField = (field) => {
+        const oldValue = magicDiff[field];
+        if (oldValue !== undefined) {
+            onChange(field, oldValue);
+            setMagicDiff(prev => {
+                const next = { ...prev };
+                delete next[field];
+                return next;
+            });
+        }
+    };
 
 
     const ModifiedBadge = ({ label }) => (
@@ -111,283 +128,213 @@ export default function ChurchFormFields({
         }
     };
 
-    const revertField = (field) => {
-        if (magicDiff[field]) {
-            onChange(field, magicDiff[field]);
-            setMagicDiff(prev => {
-                const next = { ...prev };
-                delete next[field];
-                return next;
-            });
-        }
-    };
-
     return (
-        <>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 16px" }}>
-                {/* Row 0: Location Title (Directions) */}
-                <div style={{ gridColumn: "span 2" }}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
-                        <label className="adminLabel" style={{ marginBottom: 0 }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, overflow: "hidden" }}>
-                                <span>TITLE</span>
-                                <div style={{ display: "flex", gap: 4 }}>
-                                    <button 
-                                        type="button" 
-                                        className="adminLinkSearchBtn"
-                                        title="Magic Fill everything from Title"
-                                        onClick={handleMagicFill}
-                                        disabled={isResolving || !drafts.locationTitle?.trim()}
-                                        style={{ padding: 0, border: "none", background: "none", cursor: "pointer", display: "flex", alignItems: "center" }}
-                                    >
-                                        {isResolving ? (
-                                            <div className="adminSpinner" style={{ width: 12, height: 12, borderWidth: 2, margin: 0 }} />
-                                        ) : (
-                                            <IconMagic />
-                                        )}
-                                    </button>
-                                </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px 16px" }}>
+            {/* Row 0: Location Title (Directions) */}
+            <div style={{ gridColumn: "span 2" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+                    <label className="adminLabel" style={{ marginBottom: 0 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, overflow: "hidden" }}>
+                            <span>Title (Search/Sync)</span>
+                            <div style={{ display: "flex", gap: 4 }}>
+                                <button 
+                                    type="button" 
+                                    className="adminLinkSearchBtn"
+                                    title="Magic Fill everything from Title"
+                                    onClick={handleMagicFill}
+                                    disabled={isResolving || !drafts.locationTitle?.trim()}
+                                    style={{ padding: 0, background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center" }}
+                                >
+                                    {isResolving ? (
+                                        <div className="adminSpinner" style={{ width: 12, height: 12, borderWidth: 2, margin: 0 }} />
+                                    ) : (
+                                        <IconMagic />
+                                    )}
+                                </button>
                             </div>
-                        </label>
-                        <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
                         </div>
-                    </div>
+                    </label>
+                </div>
+                <FieldDiffWrapper field="locationTitle" magicDiff={magicDiff} externalDiffs={syncedFields} onRestore={onRestore} onMagicRevert={revertMagicField}>
                     <input 
-                        className={`adminInput ${getHighlightClass("locationTitle")}`} 
+                        className="adminInput" 
                         value={drafts.locationTitle ?? ""} 
                         onChange={(e) => onChange("locationTitle", e.target.value)} 
                         disabled={disabled}
                     />
-                    <SyncDiffLabel field="locationTitle" syncedFields={syncedFields} onRestore={onRestore} />
+                </FieldDiffWrapper>
+            </div>
+
+            {/* Row 1: Name & City */}
+            <label className="adminLabel">
+                <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
+                    <span>Name *</span>
                 </div>
-
-                {/* Row 1: Name & City */}
-                <label className="adminLabel">
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
-                        <span>Name *</span>
-                    </div>
-                    <FieldDiffWrapper field="name" magicDiff={magicDiff} revertField={revertField}>
-                        <input 
-                            className={`adminInput ${getHighlightClass("name")}`} 
-                            value={drafts.name ?? ""} 
-                            onChange={(e) => onChange("name", e.target.value)} 
-                            disabled={disabled}
-                        />
-                    </FieldDiffWrapper>
-                    <SyncDiffLabel field="name" syncedFields={syncedFields} onRestore={onRestore} />
-                </label>
-                <label className="adminLabel">
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
-                        <span>City / Locality *</span>
-                    </div>
-                    <FieldDiffWrapper field="city" magicDiff={magicDiff} revertField={revertField}>
-                        <input 
-                            className={`adminInput ${getHighlightClass("city")}`} 
-                            value={drafts.city ?? ""} 
-                            onChange={(e) => onChange("city", e.target.value)} 
-                            disabled={disabled}
-                        />
-                    </FieldDiffWrapper>
-                    <SyncDiffLabel field="city" syncedFields={syncedFields} onRestore={onRestore} />
-                </label>
-
-                {/* Row 2: Country & Postal Code */}
-                <label className="adminLabel">
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
-                        <span>Country</span>
-                    </div>
-                    <FieldDiffWrapper field="country" magicDiff={magicDiff} revertField={revertField}>
-                        <SearchableSelect
-                            className={getHighlightClass("country")}
-                            value={drafts.country ?? ""}
-                            options={COUNTRY_OPTIONS}
-                            onChange={(val) => onChange("country", val)}
-                            disabled={disabled}
-                            placeholder="Type to search country..."
-                        />
-                    </FieldDiffWrapper>
-                    <SyncDiffLabel field="country" syncedFields={syncedFields} onRestore={onRestore} />
-                </label>
-                <label className="adminLabel">
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
-                        <span>Postal Code</span>
-                    </div>
-                    <FieldDiffWrapper field="zipCode" magicDiff={magicDiff} revertField={revertField}>
-                        <input 
-                            className={`adminInput ${getHighlightClass("zipCode")}`} 
-                            value={drafts.zipCode ?? ""} 
-                            onChange={(e) => onChange("zipCode", e.target.value)} 
-                            disabled={disabled}
-                        />
-                    </FieldDiffWrapper>
-                    <SyncDiffLabel field="zipCode" syncedFields={syncedFields} onRestore={onRestore} />
-                </label>
-
-                {/* Row 3: Street & Number */}
-                <div style={{ gridColumn: "span 2", display: "flex", gap: "12px" }}>
-                    <div style={{ flex: 3 }}>
-                        <label className="adminLabel">
-                            <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
-                                <span>Street</span>
-                            </div>
-                            <FieldDiffWrapper field="street" magicDiff={magicDiff} revertField={revertField}>
-                                <input 
-                                    className={`adminInput ${getHighlightClass("street")}`} 
-                                    value={drafts.street ?? ""} 
-                                    onChange={(e) => onChange("street", e.target.value)} 
-                                    disabled={disabled}
-                                />
-                            </FieldDiffWrapper>
-                            <SyncDiffLabel field="street" syncedFields={syncedFields} onRestore={onRestore} />
-                        </label>
-                    </div>
-                    <div style={{ flex: 1 }}>
-                        <label className="adminLabel">
-                            <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
-                                <span>Number</span>
-                            </div>
-                            <FieldDiffWrapper field="number" magicDiff={magicDiff} revertField={revertField}>
-                                <input 
-                                    className={`adminInput ${getHighlightClass("number")}`} 
-                                    value={drafts.number ?? ""} 
-                                    onChange={(e) => onChange("number", e.target.value)} 
-                                    disabled={disabled}
-                                />
-                            </FieldDiffWrapper>
-                            <SyncDiffLabel field="number" syncedFields={syncedFields} onRestore={onRestore} />
-                        </label>
-                    </div>
+                <FieldDiffWrapper field="name" magicDiff={magicDiff} externalDiffs={syncedFields} onRestore={onRestore} onMagicRevert={revertMagicField}>
+                    <input 
+                        className="adminInput" 
+                        value={drafts.name ?? ""} 
+                        onChange={(e) => onChange("name", e.target.value)} 
+                        disabled={disabled}
+                    />
+                </FieldDiffWrapper>
+            </label>
+            <label className="adminLabel">
+                <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
+                    <span>City / Locality *</span>
                 </div>
+                <FieldDiffWrapper field="city" magicDiff={magicDiff} externalDiffs={syncedFields} onRestore={onRestore} onMagicRevert={revertMagicField}>
+                    <input 
+                        className="adminInput" 
+                        value={drafts.city ?? ""} 
+                        onChange={(e) => onChange("city", e.target.value)} 
+                        disabled={disabled}
+                    />
+                </FieldDiffWrapper>
+            </label>
 
-                {/* Row 4: Phone & Email */}
-                <label className="adminLabel">
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
-                        Phone
-                        <GoogleSearchButton query={`${searchQuery} phone number`} />
-                    </div>
+            {/* Row 2: Country & Zip */}
+            <label className="adminLabel">
+                <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
+                    <span>Country</span>
+                </div>
+                <FieldDiffWrapper field="country" magicDiff={magicDiff} externalDiffs={syncedFields} onRestore={onRestore} onMagicRevert={revertMagicField}>
+                    <SearchableSelect
+                        value={drafts.country ?? ""}
+                        options={COUNTRY_OPTIONS}
+                        onChange={(val) => onChange("country", val)}
+                        disabled={disabled}
+                        placeholder="Type to search country..."
+                    />
+                </FieldDiffWrapper>
+            </label>
+            <label className="adminLabel">
+                <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
+                    <span>Postal Code</span>
+                </div>
+                <FieldDiffWrapper field="zipCode" magicDiff={magicDiff} externalDiffs={syncedFields} onRestore={onRestore} onMagicRevert={revertMagicField}>
+                    <input 
+                        className="adminInput" 
+                        value={drafts.zipCode ?? ""} 
+                        onChange={(e) => onChange("zipCode", e.target.value)} 
+                        disabled={disabled}
+                    />
+                </FieldDiffWrapper>
+            </label>
 
-                    <FieldDiffWrapper field="phone" magicDiff={magicDiff} revertField={revertField}>
+            {/* Row 3: Street & Number */}
+            <div style={{ gridColumn: "span 2", display: "flex", gap: "12px" }}>
+                <label className="adminLabel" style={{ flex: 3 }}>
+                    <span>Street</span>
+                    <FieldDiffWrapper field="street" magicDiff={magicDiff} externalDiffs={syncedFields} onRestore={onRestore} onMagicRevert={revertMagicField}>
                         <input 
-                            className={`adminInput ${getHighlightClass("phone")}`} 
-                            value={drafts.phone ?? ""} 
-                            onChange={(e) => onChange("phone", e.target.value)} 
+                            className="adminInput" 
+                            value={drafts.street ?? ""} 
+                            onChange={(e) => onChange("street", e.target.value)} 
                             disabled={disabled}
                         />
                     </FieldDiffWrapper>
-                    <SyncDiffLabel field="phone" syncedFields={syncedFields} onRestore={onRestore} />
                 </label>
-                <label className="adminLabel">
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
-                        Email
-                        <GoogleSearchButton query={`${searchQuery} email address contact`} />
-                    </div>
-                    <FieldDiffWrapper field="email" magicDiff={magicDiff} revertField={revertField}>
+                <label className="adminLabel" style={{ flex: 1 }}>
+                    <span>No.</span>
+                    <FieldDiffWrapper field="number" magicDiff={magicDiff} externalDiffs={syncedFields} onRestore={onRestore} onMagicRevert={revertMagicField}>
                         <input 
-                            className={`adminInput ${getHighlightClass("email")}`} 
-                            value={drafts.email ?? ""} 
-                            onChange={(e) => onChange("email", e.target.value)} 
+                            className="adminInput" 
+                            value={drafts.number ?? ""} 
+                            onChange={(e) => onChange("number", e.target.value)} 
                             disabled={disabled}
                         />
                     </FieldDiffWrapper>
-                    <SyncDiffLabel field="email" syncedFields={syncedFields} onRestore={onRestore} />
-                </label>
-
-                {/* Row 5: Website & Youtube */}
-                <label className="adminLabel">
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
-                        Website
-                        <div style={{ display: "flex", gap: 4 }}>
-                            <GoogleSearchButton query={`${searchQuery} official website`} />
-                            <PreviewLinkButton url={drafts.website} />
-                        </div>
-                    </div>
-                    <FieldDiffWrapper field="website" magicDiff={magicDiff} revertField={revertField}>
-                        <input 
-                            className={`adminInput ${getHighlightClass("website")}`} 
-                            placeholder="https://..." 
-                            value={drafts.website ?? ""} 
-                            onChange={(e) => onChange("website", e.target.value)} 
-                            disabled={disabled}
-                        />
-                    </FieldDiffWrapper>
-                    <SyncDiffLabel field="website" syncedFields={syncedFields} onRestore={onRestore} showPreview={true} />
-                </label>
-                <label className="adminLabel">
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
-                        YouTube
-                        <div style={{ display: "flex", gap: 4 }}>
-                            <GoogleSearchButton query={`${searchQuery} youtube channel`} />
-                            <PreviewLinkButton url={drafts.youtube} />
-                        </div>
-                    </div>
-
-                    <FieldDiffWrapper field="youtube" magicDiff={magicDiff} revertField={revertField}>
-                        <input 
-                            className={`adminInput ${getHighlightClass("youtube")}`} 
-                            placeholder="https://youtube.com/..." 
-                            value={drafts.youtube ?? ""} 
-                            onChange={(e) => onChange("youtube", e.target.value)} 
-                            disabled={disabled}
-                        />
-                    </FieldDiffWrapper>
-                    <SyncDiffLabel field="youtube" syncedFields={syncedFields} onRestore={onRestore} showPreview={true} />
-                </label>
-
-                {/* Row 6: Instagram & Facebook */}
-                <label className="adminLabel">
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
-                        Instagram
-                        <div style={{ display: "flex", gap: 4 }}>
-                            <GoogleSearchButton query={`${searchQuery} instagram`} />
-                            <PreviewLinkButton url={drafts.instagram} />
-                        </div>
-                    </div>
-                    <FieldDiffWrapper field="instagram" magicDiff={magicDiff} revertField={revertField}>
-                        <input 
-                            className={`adminInput ${getHighlightClass("instagram")}`} 
-                            placeholder="instagram.com/..." 
-                            value={drafts.instagram ?? ""} 
-                            onChange={(e) => onChange("instagram", e.target.value)} 
-                            disabled={disabled}
-                        />
-                    </FieldDiffWrapper>
-                    <SyncDiffLabel field="instagram" syncedFields={syncedFields} onRestore={onRestore} showPreview={true} />
-                </label>
-                <label className="adminLabel">
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
-                        Facebook
-                        <div style={{ display: "flex", gap: 4 }}>
-                            <GoogleSearchButton query={`${searchQuery} facebook page`} />
-                            <PreviewLinkButton url={drafts.facebook} />
-                        </div>
-                    </div>
-                    <FieldDiffWrapper field="facebook" magicDiff={magicDiff} revertField={revertField}>
-                        <input 
-                            className={`adminInput ${getHighlightClass("facebook")}`} 
-                            placeholder="facebook.com/..." 
-                            value={drafts.facebook ?? ""} 
-                            onChange={(e) => onChange("facebook", e.target.value)} 
-                            disabled={disabled}
-                        />
-                    </FieldDiffWrapper>
-                    <SyncDiffLabel field="facebook" syncedFields={syncedFields} onRestore={onRestore} showPreview={true} />
                 </label>
             </div>
 
+            {/* Row 4: Phone & Email */}
+            <label className="adminLabel">
+                <span>Phone</span>
+                <FieldDiffWrapper field="phone" magicDiff={magicDiff} externalDiffs={syncedFields} onRestore={onRestore} onMagicRevert={revertMagicField}>
+                    <input 
+                        className="adminInput" 
+                        value={drafts.phone ?? ""} 
+                        onChange={(e) => onChange("phone", e.target.value)} 
+                        disabled={disabled}
+                    />
+                </FieldDiffWrapper>
+            </label>
+            <label className="adminLabel">
+                <span>Email</span>
+                <FieldDiffWrapper field="email" magicDiff={magicDiff} externalDiffs={syncedFields} onRestore={onRestore} onMagicRevert={revertMagicField}>
+                    <input 
+                        className="adminInput" 
+                        value={drafts.email ?? ""} 
+                        onChange={(e) => onChange("email", e.target.value)} 
+                        disabled={disabled}
+                    />
+                </FieldDiffWrapper>
+            </label>
 
+            {/* Row 5: Web & YouTube */}
+            <label className="adminLabel">
+                <span>Website</span>
+                <FieldDiffWrapper field="website" magicDiff={magicDiff} externalDiffs={syncedFields} onRestore={onRestore} onMagicRevert={revertMagicField}>
+                    <input 
+                        className="adminInput" 
+                        placeholder="https://..." 
+                        value={drafts.website ?? ""} 
+                        onChange={(e) => onChange("website", e.target.value)} 
+                        disabled={disabled}
+                    />
+                </FieldDiffWrapper>
+            </label>
+            <label className="adminLabel">
+                <span>YouTube</span>
+                <FieldDiffWrapper field="youtube" magicDiff={magicDiff} externalDiffs={syncedFields} onRestore={onRestore} onMagicRevert={revertMagicField}>
+                    <input 
+                        className="adminInput" 
+                        placeholder="https://youtube.com/..." 
+                        value={drafts.youtube ?? ""} 
+                        onChange={(e) => onChange("youtube", e.target.value)} 
+                        disabled={disabled}
+                    />
+                </FieldDiffWrapper>
+            </label>
 
+            {/* Row 6: Instagram & Facebook */}
+            <label className="adminLabel">
+                <span>Instagram</span>
+                <FieldDiffWrapper field="instagram" magicDiff={magicDiff} externalDiffs={syncedFields} onRestore={onRestore} onMagicRevert={revertMagicField}>
+                    <input 
+                        className="adminInput" 
+                        placeholder="instagram.com/..." 
+                        value={drafts.instagram ?? ""} 
+                        onChange={(e) => onChange("instagram", e.target.value)} 
+                        disabled={disabled}
+                    />
+                </FieldDiffWrapper>
+            </label>
+            <label className="adminLabel">
+                <span>Facebook</span>
+                <FieldDiffWrapper field="facebook" magicDiff={magicDiff} externalDiffs={syncedFields} onRestore={onRestore} onMagicRevert={revertMagicField}>
+                    <input 
+                        className="adminInput" 
+                        placeholder="facebook.com/..." 
+                        value={drafts.facebook ?? ""} 
+                        onChange={(e) => onChange("facebook", e.target.value)} 
+                        disabled={disabled}
+                    />
+                </FieldDiffWrapper>
+            </label>
 
             {/* Coordinates Section */}
-            <div style={{ marginTop: 12, padding: 12, backgroundColor: "rgba(10, 42, 67, 0.03)", borderRadius: 8, border: "1px solid rgba(10, 42, 67, 0.08)" }}>
-                <div style={{ marginBottom: 8 }}>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(10, 42, 67, 0.7)" }}>Coordinates</span>
+            <div style={{ gridColumn: "span 2", marginTop: 12, padding: 12, backgroundColor: "rgba(10, 42, 67, 0.03)", borderRadius: 8, border: "1px solid rgba(10, 42, 67, 0.08)" }}>
+                <div style={{ marginBottom: 12 }}>
+                    <span style={{ fontSize: 11, fontWeight: 800, color: "rgba(10, 42, 67, 0.4)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Coordinates & ID</span>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px 16px" }}>
-                    <div className="adminFieldGroup">
-                        <label className="adminLabel">LATITUDE</label>
-                        <FieldDiffWrapper field="lat" magicDiff={magicDiff} revertField={revertField}>
+                    <label className="adminLabel">
+                        <span>Latitude</span>
+                        <FieldDiffWrapper field="lat" magicDiff={magicDiff} externalDiffs={syncedFields} onRestore={onRestore} onMagicRevert={revertMagicField}>
                             <input 
-                                className={`adminInput ${getHighlightClass("lat")}`} 
+                                className="adminInput" 
                                 type="number" 
                                 step="any" 
                                 value={drafts.lat ?? ""} 
@@ -395,13 +342,12 @@ export default function ChurchFormFields({
                                 disabled={disabled}
                             />
                         </FieldDiffWrapper>
-                        <SyncDiffLabel field="lat" syncedFields={syncedFields} onRestore={onRestore} />
-                    </div>
-                    <div className="adminFieldGroup">
-                        <label className="adminLabel">LONGITUDE</label>
-                        <FieldDiffWrapper field="lng" magicDiff={magicDiff} revertField={revertField}>
+                    </label>
+                    <label className="adminLabel">
+                        <span>Longitude</span>
+                        <FieldDiffWrapper field="lng" magicDiff={magicDiff} externalDiffs={syncedFields} onRestore={onRestore} onMagicRevert={revertMagicField}>
                             <input 
-                                className={`adminInput ${getHighlightClass("lng")}`} 
+                                className="adminInput" 
                                 type="number" 
                                 step="any" 
                                 value={drafts.lng ?? ""} 
@@ -409,30 +355,22 @@ export default function ChurchFormFields({
                                 disabled={disabled}
                             />
                         </FieldDiffWrapper>
-                        <SyncDiffLabel field="lng" syncedFields={syncedFields} onRestore={onRestore} />
-                    </div>
-                    
-                    <div className="adminFieldGroup" style={{ gridColumn: "span 2" }}>
-                        <label className="adminLabel" style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 8 }}>
-                            <span>PLACE ID</span>
-                            {drafts.place_id && (
-                                <PreviewLinkButton url={`https://www.google.com/maps/search/?api=1&query=Google&query_place_id=${drafts.place_id}`} />
-                            )}
-                        </label>
-                        <FieldDiffWrapper field="place_id" magicDiff={magicDiff} revertField={revertField}>
+                    </label>
+                
+                    <label className="adminLabel" style={{ gridColumn: "span 2" }}>
+                        <span>Google Place ID</span>
+                        <FieldDiffWrapper field="place_id" magicDiff={magicDiff} externalDiffs={syncedFields} onRestore={onRestore} onMagicRevert={revertMagicField}>
                             <input 
-                                className={`adminInput ${getHighlightClass("place_id")}`} 
+                                className="adminInput" 
                                 value={drafts.place_id ?? ""} 
                                 onChange={(e) => onChange("place_id", e.target.value)} 
                                 disabled={disabled}
                                 placeholder="ChI..."
                             />
                         </FieldDiffWrapper>
-                        <SyncDiffLabel field="place_id" syncedFields={syncedFields} onRestore={onRestore} />
-                    </div>
+                    </label>
                 </div>
             </div>
-
-        </>
+        </div>
     );
 }

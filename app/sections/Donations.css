@@ -93,7 +93,7 @@
 
 .don-copy-btn {
     padding: 14px 28px;
-    border-radius: 999px;
+    border-radius: 16px;
     border: 0;
     cursor: pointer;
     background: linear-gradient(135deg, #0a2a43 0%, #164678 100%);
@@ -163,7 +163,7 @@
 }
 
 .don-type-badge {
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.1em;
@@ -188,7 +188,7 @@
 }
 
 .don-type-title {
-    font-size: clamp(17px, 2vw, 22px);
+    font-size: clamp(19px, 2.2vw, 26px);
     font-weight: 800;
     line-height: 1.25;
     color: #1a2332;
@@ -198,7 +198,7 @@
 }
 
 .don-type-desc {
-    font-size: 13px;
+    font-size: 15px;
     line-height: 1.6;
     color: #164678;
     font-weight: 700;
@@ -317,18 +317,18 @@
     }
 
     .don-type-badge {
-        font-size: 10px;
+        font-size: 12px;
         margin-bottom: 8px;
     }
 
     .don-type-title {
-        font-size: 14px;
+        font-size: 16px;
         margin-bottom: 10px;
         line-height: 1.2;
     }
 
     .don-type-desc {
-        font-size: 11px;
+        font-size: 13px;
     }
 
     .don-verse-highlight {

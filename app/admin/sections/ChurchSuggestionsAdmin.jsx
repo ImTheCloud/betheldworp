@@ -9,7 +9,7 @@ import { IconCheck, IconX, IconChevronDown, IconEyeOff, IconHistory, IconTrash }
 import SearchableSelect from "../../components/SearchableSelect";
 import { normalizeText, COUNTRY_OPTIONS, geocodeAddress } from "../utils/churchHelpers";
 
-export default function ChurchSuggestionsAdmin() {
+export default function ChurchSuggestionsAdmin({ onDirtyChange }) {
     const [suggestions, setSuggestions] = useState([]);
     const [processedSuggestions, setProcessedSuggestions] = useState([]);
     const [churchesById, setChurchesById] = useState({});
@@ -88,6 +88,26 @@ export default function ChurchSuggestionsAdmin() {
             return hasChanges ? next : prev;
         });
     }, [suggestions, churchesById]);
+    // Report aggregate dirty state to parent
+    useEffect(() => {
+        if (!onDirtyChange) return;
+
+        const anyDirty = Array.from(expandedIds).some(id => {
+            const s = suggestions.find(s => s.id === id);
+            const draft = draftsById[id];
+            if (!s || !draft) return false;
+
+            const liveChurch = s.type === "edit" ? churchesById[s.originalChurchId] : null;
+            const baseline = liveChurch ? { ...liveChurch, ...s.data } : { ...s.data };
+            if (!baseline.locationTitle) {
+                baseline.locationTitle = `Biserica penticostală ${baseline.name || ""} ${baseline.city || ""}`.trim();
+            }
+
+            return FIELDS_TO_COMPARE.some(f => String(draft[f] ?? "") !== String(baseline[f] ?? ""));
+        });
+
+        onDirtyChange(anyDirty);
+    }, [expandedIds, draftsById, suggestions, churchesById, onDirtyChange]);
 
     // Compute diffs: compare suggestion data vs current DB church data
     // This runs whenever suggestions or churches change
@@ -102,11 +122,17 @@ export default function ChurchSuggestionsAdmin() {
                 const suggestion = suggestions.find(s => s.id === id);
                 const draft = draftsById[id];
                 if (suggestion && draft) {
-                    // Check if draft was modified compared to original suggestion data
-                    const original = suggestion.data;
-                    const fieldsToCheck = ["name", "locationTitle", "city", "country", "zipCode", "street", "number", "phone", "email", "website", "youtube", "facebook", "instagram", "lat", "lng"];
-                    const hasChanges = fieldsToCheck.some(f => 
-                        String(draft[f] ?? "") !== String(original[f] ?? "")
+                    // Check if draft was modified compared to the INITIAL MERGED state
+                    // (which includes live DB data for edits and falling back to a dummy title)
+                    const liveChurch = suggestion.type === "edit" ? churchesById[suggestion.originalChurchId] : null;
+                    const baseline = liveChurch ? { ...liveChurch, ...suggestion.data } : { ...suggestion.data };
+                    
+                    if (!baseline.locationTitle) {
+                        baseline.locationTitle = `Biserica penticostală ${baseline.name || ""} ${baseline.city || ""}`.trim();
+                    }
+
+                    const hasChanges = FIELDS_TO_COMPARE.some(f => 
+                        String(draft[f] ?? "") !== String(baseline[f] ?? "")
                     );
                     if (hasChanges) {
                         setModal({
@@ -115,8 +141,8 @@ export default function ChurchSuggestionsAdmin() {
                             message: "Are you sure you want to cancel all changes?",
                             onConfirm: () => {
                                 setModal(m => ({ ...m, isOpen: false }));
-                                // Revert draft to original suggestion data
-                                setDraftsById(d => ({ ...d, [id]: { ...original } }));
+                                // Revert draft to initial baseline state
+                                setDraftsById(d => ({ ...d, [id]: { ...baseline } }));
                                 // Trigger diff recomputation
                                 setDiffRecomputeTrigger(c => c + 1);
                                 setExpandedIds(curr => {
@@ -323,6 +349,27 @@ export default function ChurchSuggestionsAdmin() {
                                             <ChurchFormFields
                                                 drafts={draft}
                                                 onChange={(field, value) => changeDraft(s.id, field, value)}
+                                                syncedFields={(() => {
+                                                    const liveChurch = s.type === "edit" ? churchesById[s.originalChurchId] : null;
+                                                    if (!liveChurch) return {};
+                                                    const diffs = {};
+                                                    FIELDS_TO_COMPARE.forEach(f => {
+                                                        const newVal = String(draft[f] ?? "").trim();
+                                                        const oldVal = String(liveChurch[f] ?? "").trim();
+                                                        if (newVal !== oldVal) {
+                                                            diffs[f] = { old: liveChurch[f] };
+                                                        }
+                                                    });
+                                                    return diffs;
+                                                })()}
+                                                onRestore={(field, value) => handleRestore(s.id, field, value)}
+                                                getHighlightClass={(field) => {
+                                                    const liveChurch = s.type === "edit" ? churchesById[s.originalChurchId] : null;
+                                                    if (!liveChurch) return "";
+                                                    const newVal = String(draft[field] ?? "").trim();
+                                                    const oldVal = String(liveChurch[field] ?? "").trim();
+                                                    return newVal !== oldVal ? "is-suggestion-modified" : "";
+                                                }}
                                                 disabled={isProcessed}
                                             />
 

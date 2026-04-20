@@ -226,6 +226,15 @@
     background: #ffffff;
 }
 
+.cw-response-notice {
+    font-size: 14px;
+    line-height: 1.5;
+    color: rgba(10, 42, 67, 0.7);
+    font-weight: 500;
+    margin-bottom: 8px;
+    padding: 0 2px;
+}
+
 .cw-field {
     display: flex;
     flex-direction: column;
@@ -296,7 +305,7 @@
 .cw-send {
     width: 100%;
     padding: 15px;
-    border-radius: 999px;
+    border-radius: 16px;
     border: 0;
     cursor: pointer;
     background: linear-gradient(135deg, #0a2a43 0%, #164678 100%);

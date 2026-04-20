@@ -235,7 +235,7 @@ function NewSubscriberCard({ email, setEmail, saveState, onCancel, onSave }) {
 
 const PAGE_SIZE = 10;
 
-export default function NewsletterAdmin() {
+export default function NewsletterAdmin({ onDirtyChange }) {
     const mountedRef = useRef(true);
     const timeoutRef = useRef(null);
 
@@ -296,6 +296,21 @@ export default function NewsletterAdmin() {
         prevPage,
         totalItems,
     } = usePagination(sortedItems, PAGE_SIZE);
+
+    // Report aggregate dirty state to parent
+    useEffect(() => {
+        if (!onDirtyChange) return;
+
+        const anyExpandedDirty = Array.from(expandedIds).some(id => {
+            const draft = safeStr(draftsById[id] ?? id).trim();
+            return draft.toLowerCase() !== id.toLowerCase();
+        });
+
+        // "New" form is dirty if it has any content
+        const isNewDirty = showNew && newEmail.trim() !== "";
+        
+        onDirtyChange(isNewDirty || anyExpandedDirty);
+    }, [showNew, newEmail, expandedIds, draftsById, onDirtyChange]);
 
     const setTransientState = (id, value = "saved") => {
         setSaveStateById((m) => ({ ...m, [id]: value }));

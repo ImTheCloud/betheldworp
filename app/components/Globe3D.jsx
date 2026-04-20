@@ -29,7 +29,7 @@ function EarthSphere() {
     });
 
     return (
-        <mesh ref={meshRef} rotation={[0, -0.3, 0]}>
+        <mesh ref={meshRef} rotation={[0, 2.0, 0]}>
             <sphereGeometry args={[2, 64, 64]} />
             <meshStandardMaterial
                 map={texture}

@@ -360,6 +360,9 @@ export default function ContactWidget() {
                                 </div>
                             ) : (
                                 <form className="cw-form" onSubmit={onSend} noValidate>
+                                    <div className="cw-response-notice">
+                                        {t("response_notice")}
+                                    </div>
                                     <label className="cw-field">
                                         <span>{t("name_label")}</span>
                                         <input

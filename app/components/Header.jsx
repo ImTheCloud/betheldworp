@@ -28,6 +28,7 @@ export default function Header() {
             { id: "evenimente", labelKey: "nav_events", type: "section" },
             { id: "galerie", labelKey: "nav_gallery", type: "section" },
             { id: "donatii", labelKey: "nav_donations", type: "section" },
+            { id: "locatie", labelKey: "nav_address", type: "section" },
             { id: "harta-mondiala", labelKey: "nav_world_map", type: "section" },
             { id: "contact", labelKey: "nav_contact", type: "contact" }
         ],

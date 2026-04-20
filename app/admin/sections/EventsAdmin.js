@@ -464,7 +464,7 @@ function NewEventCard({ draft, saveState, activeLang, onLangChange, onChangeFiel
 
 const PAGE_SIZE = 10;
 
-export default function EventsAdmin({ onCreateOverride }) {
+export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
     const mountedRef = useRef(true);
     const timeoutRef = useRef(null);
 
@@ -552,6 +552,22 @@ export default function EventsAdmin({ onCreateOverride }) {
 
     const upcomingPagination = usePagination(upcomingItems, PAGE_SIZE);
     const historyPagination = usePagination(historyItems, PAGE_SIZE);
+
+    // Report aggregate dirty state to parent
+    useEffect(() => {
+        if (!onDirtyChange) return;
+
+        const anyExpandedDirty = Array.from(expandedIds).some(id => {
+            const item = items.find(it => it.id === id);
+            const draft = draftsById[id];
+            return item && draft && !eventEqual(item, draft);
+        });
+
+        // "New" form is dirty if it has any meaningful content or is just open
+        const isNewDirty = showNew && (newDraft.dateEvent || pickFallback(newDraft.title));
+        
+        onDirtyChange(isNewDirty || anyExpandedDirty);
+    }, [showNew, newDraft, expandedIds, draftsById, items, onDirtyChange]);
 
     const setTransientState = (id, value = "saved") => {
         setSaveStateById((m) => ({ ...m, [id]: value }));

@@ -53,8 +53,52 @@ export default function Admin() {
     const [pendingOverride, setPendingOverride] = useState(null);
     const [activeTab, setActiveTab] = useState("stats");
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [dirtyTabs, setDirtyTabs] = useState({});
 
-    const [modal, setModal] = useState({ isOpen: false, title: "", message: "", progress: null });
+    const [modal, setModal] = useState({ isOpen: false, title: "", message: "", progress: null, actions: null });
+
+    const handleDirtyChange = useCallback((tab, isDirty) => {
+        setDirtyTabs(prev => {
+            if (prev[tab] === isDirty) return prev;
+            return { ...prev, [tab]: isDirty };
+        });
+    }, []);
+
+    const handleTabChangeAttempt = (newTab) => {
+        if (newTab === activeTab) {
+            setSidebarOpen(false);
+            return;
+        }
+
+        if (dirtyTabs[activeTab]) {
+            setModal({
+                isOpen: true,
+                title: "Unsaved Changes",
+                message: "You have unsaved changes in this section. If you leave, they will be lost. Continue?",
+                actions: [
+                    {
+                        label: "Stay Here",
+                        variant: "secondary",
+                        onClick: () => setModal(prev => ({ ...prev, isOpen: false }))
+                    },
+                    {
+                        label: "Leave & Discard",
+                        variant: "danger",
+                        onClick: () => {
+                            handleDirtyChange(activeTab, false);
+                            setActiveTab(newTab);
+                            setSidebarOpen(false);
+                            setModal(prev => ({ ...prev, isOpen: false }));
+                        }
+                    }
+                ]
+            });
+        } else {
+            setActiveTab(newTab);
+            setSidebarOpen(false);
+        }
+    };
+
     const openInfoModal = useCallback((title, message) => {
         setModal({
             isOpen: true,
@@ -199,28 +243,30 @@ export default function Admin() {
     const busy = authLoading || adminLoading;
 
     const renderContent = () => {
+        const props = { onDirtyChange: (isDirty) => handleDirtyChange(activeTab, isDirty) };
         switch (activeTab) {
             case "stats":
-                return <StatsAdmin />;
+                return <StatsAdmin {...props} />;
             case "newsletter":
-                return <NewsletterAdmin />;
+                return <NewsletterAdmin {...props} />;
             case "verse":
-                return <MonthlyVerseAdmin />;
+                return <MonthlyVerseAdmin {...props} />;
             case "overrides":
                 return (
                     <ProgramOverridesAdmin
+                        {...props}
                         initialOverride={pendingOverride}
                         onConsumed={() => setPendingOverride(null)}
                     />
                 );
             case "events":
-                return <EventsAdmin onCreateOverride={navigateToOverride} />;
+                return <EventsAdmin {...props} onCreateOverride={navigateToOverride} />;
             case "churches":
-                return <ChurchesAdmin />;
+                return <ChurchesAdmin {...props} />;
             case "suggestions":
-                return <ChurchSuggestionsAdmin />;
+                return <ChurchSuggestionsAdmin {...props} />;
             default:
-                return <StatsAdmin />;
+                return <StatsAdmin {...props} />;
         }
     };
 
@@ -343,10 +389,7 @@ export default function Admin() {
                     <div className="adminSidebarWrap">
                         <AdminSidebar
                             activeTab={activeTab}
-                            onTabChange={(tab) => {
-                                setActiveTab(tab);
-                                setSidebarOpen(false);
-                            }}
+                            onTabChange={handleTabChangeAttempt}
                             onLogout={logout}
                         />
                     </div>

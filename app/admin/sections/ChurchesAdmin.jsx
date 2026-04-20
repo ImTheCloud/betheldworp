@@ -179,7 +179,7 @@ function NewChurchCard({ drafts, setDraft, saveState, onCancel, onSave }) {
     );
 }
 
-export default function ChurchesAdmin() {
+export default function ChurchesAdmin({ onDirtyChange }) {
     const mountedRef = useRef(true);
     const timeoutRef = useRef(null);
 
@@ -251,6 +251,20 @@ export default function ChurchesAdmin() {
         const set = new Set(relevant.map(it => safeStr(it.city).trim()).filter(Boolean));
         return Array.from(set).sort((a, b) => a.localeCompare(b));
     }, [items, selectedCountry]);
+
+    // Report aggregate dirty state to parent
+    useEffect(() => {
+        if (!onDirtyChange) return;
+
+        const anyExpandedDirty = Array.from(expandedIds).some(id => {
+            const item = items.find(it => it.id === id);
+            const draft = draftsById[id];
+            return item && draft && hasDraftChanges(item, draft);
+        });
+
+        // "New" form is always considered dirty if open
+        onDirtyChange(showNew || anyExpandedDirty);
+    }, [showNew, expandedIds, draftsById, items, onDirtyChange]);
 
     const setTransientState = (id, value = "saved") => {
         setSaveStateById(m => ({ ...m, [id]: value }));

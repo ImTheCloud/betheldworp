@@ -527,7 +527,7 @@ function dateToSlotIds(dateStr) {
     return map[day] ?? [];
 }
 
-export default function ProgramOverridesAdmin({ initialOverride, onConsumed }) {
+export default function ProgramOverridesAdmin({ initialOverride, onConsumed, onDirtyChange }) {
     const mountedRef = useRef(true);
     const timeoutRef = useRef(null);
 
@@ -601,6 +601,20 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed }) {
         if (!currentParsed) return new Date(Date.UTC(2000, 0, 1, 12, 0, 0));
         return startOfISOWeekUTC(currentParsed.year, currentParsed.week);
     }, [currentParsed]);
+
+    // Report aggregate dirty state to parent
+    useEffect(() => {
+        if (!onDirtyChange) return;
+
+        const anyExpandedDirty = Array.from(expandedIds).some(id => {
+            const item = items.find(it => it.id === id);
+            const draft = draftsById[id];
+            return item && draft && !overrideEqual(draft, item);
+        });
+
+        // "New" form is dirty if it's open (it always has pre-filled weekKey)
+        onDirtyChange(showNew || anyExpandedDirty);
+    }, [showNew, expandedIds, draftsById, items, onDirtyChange]);
 
     const setTransientState = (id, value = "saved") => {
         setSaveStateById((m) => ({ ...m, [id]: value }));

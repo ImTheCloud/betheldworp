@@ -361,7 +361,7 @@ function NewVerseCard({ newDraft, setNewDraft, newState, activeLang, onLangChang
     );
 }
 
-export default function MonthlyVerseAdmin() {
+export default function MonthlyVerseAdmin({ onDirtyChange }) {
     const mountedRef = useRef(true);
     const timeoutRef = useRef(null);
 
@@ -416,6 +416,25 @@ export default function MonthlyVerseAdmin() {
     }, [history, searchQuery]);
 
     const historyPagination = usePagination(filteredHistory, 10);
+
+    // Report aggregate dirty state to parent
+    useEffect(() => {
+        if (!onDirtyChange) return;
+
+        const anyHistoryDirty = Array.from(expandedHistoryIds).some(id => {
+            const base = history.find(h => h.id === id);
+            const draft = historyDrafts[id];
+            return base && draft && !verseEqualTrim(draft, { reference: base.reference, text: base.text });
+        });
+
+        // "New" form is dirty if it has any meaningful content or is just open
+        const isNewDirty = showNew && (pickFallback(newDraft.reference) || pickFallback(newDraft.text));
+        
+        // Current verse is dirty if expanded and has changes
+        const isCurrentDirtyActual = expandedCurrent && currentDirty;
+
+        onDirtyChange(isNewDirty || isCurrentDirtyActual || anyHistoryDirty);
+    }, [showNew, newDraft, expandedCurrent, currentDirty, expandedHistoryIds, historyDrafts, history, onDirtyChange]);
 
     const setTransientState = (setter, value = "saved") => {
         setter(value);

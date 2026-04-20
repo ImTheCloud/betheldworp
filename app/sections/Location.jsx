@@ -17,8 +17,8 @@ export default function Location() {
 
     // Use official Embed API if key is available, fallback to search query embed
     const mapSrc = apiKey
-        ? `https://www.google.com/maps/embed/v1/place?key=${apiKey}&placeid=${placeId}`
-        : `https://www.google.com/maps?q=${encodeURIComponent(full)}&output=embed`;
+        ? `https://www.google.com/maps/embed/v1/place?key=${apiKey}&q=place_id:${placeId}`
+        : `https://www.google.com/maps?q=${encodeURIComponent(address)}&output=embed`;
 
     return (
         <section className="location-section">
