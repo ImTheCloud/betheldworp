@@ -492,7 +492,6 @@ export default function EventsCalendar() {
                             <div className="ev-layout">
                                 <div className="ev-media">
                                     <div className="ev-heroImgWrap">
-                                        <div className="ev-imgBlurBg" style={{ backgroundImage: `url(${selectedEvent.image})` }} aria-hidden="true" />
                                         <img className="ev-heroImg" src={selectedEvent.image} alt={t("event")} />
                                     </div>
                                 </div>
