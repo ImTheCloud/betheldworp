@@ -11,17 +11,6 @@
     color: #0a2a43;
 }
 
-.worldmap-section::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 600px;
-    height: 600px;
-    background: radial-gradient(circle, rgba(10, 42, 67, 0.03) 0%, transparent 70%);
-    pointer-events: none;
-}
 
 .worldmap-container {
     width: 100%;
@@ -61,18 +50,6 @@
     overflow: hidden;
 }
 
-/* Subtle striped background texture */
-.worldmap-banner::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    opacity: 0.3;
-    background-image: repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(10, 42, 67, 0.015) 10px, rgba(10, 42, 67, 0.015) 20px);
-    pointer-events: none;
-}
 
 .worldmap-banner-layout {
     position: relative;
@@ -373,6 +350,9 @@
 
     .worldmap-banner-title {
         font-size: clamp(22px, 6vw, 30px);
+        max-width: 280px;
+        margin-left: auto;
+        margin-right: auto;
     }
 
     .worldmap-description {
