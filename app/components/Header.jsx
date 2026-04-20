@@ -23,9 +23,9 @@ export default function Header() {
     const NAV_ITEMS = useMemo(
         () => [
             { id: "acasa", labelKey: "nav_home", type: "section" },
-            { id: "despre-noi", labelKey: "nav_about", type: "section" },
             { id: "program", labelKey: "nav_program", type: "section" },
             { id: "evenimente", labelKey: "nav_events", type: "section" },
+            { id: "despre-noi", labelKey: "nav_about", type: "section" },
             { id: "galerie", labelKey: "nav_gallery", type: "section" },
             { id: "donatii", labelKey: "nav_donations", type: "section" },
             { id: "locatie", labelKey: "nav_address", type: "section" },
@@ -65,26 +65,28 @@ export default function Header() {
     useEffect(() => {
         const observerOptions = {
             root: null,
-            rootMargin: "-25% 0px -25% 0px", // More balanced band for detection
-            threshold: [0, 0.1, 0.2],
+            rootMargin: "-20% 0px -75% 0px", // Focus on top-ish band
+            threshold: 0,
         };
 
         const observerCallback = (entries) => {
             if (isManualScroll.current) return;
 
-            entries.forEach((entry) => {
-                if (entry.isIntersecting) {
-                    const id = entry.target.id;
-                    setActiveId(id);
+            // Find the most relevant entry that IS intersecting
+            const intersecting = entries.filter(e => e.isIntersecting);
+            if (intersecting.length > 0) {
+                // If multiple, pick the one that just entered or is most prominent
+                // Usually the first one in a narrow top margin is what we want
+                const id = intersecting[0].target.id;
+                setActiveId(id);
 
-                    // Update URL hash without adding to history
-                    if (id === "acasa") {
-                        window.history.replaceState(null, null, " ");
-                    } else {
-                        window.history.replaceState(null, null, `#${id}`);
-                    }
+                // Update URL hash without adding to history
+                if (id === "acasa") {
+                    window.history.replaceState(null, null, window.location.pathname);
+                } else {
+                    window.history.replaceState(null, null, `#${id}`);
                 }
-            });
+            }
         };
 
         const observer = new IntersectionObserver(observerCallback, observerOptions);
@@ -138,12 +140,13 @@ export default function Header() {
         if (updateHash) {
             isManualScroll.current = true;
             if (id === "acasa") {
-                window.history.replaceState(null, null, " ");
+                window.history.replaceState(null, null, window.location.pathname);
             } else {
                 window.history.replaceState(null, null, `#${id}`);
             }
             // Allow observer to resume after scroll finishes
-            const duration = behavior === "smooth" ? 1000 : 50;
+            // A bit more generous for long smooth scrolls
+            const duration = behavior === "smooth" ? 1200 : 100;
             setTimeout(() => {
                 isManualScroll.current = false;
             }, duration);

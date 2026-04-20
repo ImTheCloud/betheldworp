@@ -23,20 +23,20 @@ export default function Home() {
                     <Hero />
                 </section>
 
-                <section id="despre-noi">
-                    <About />
-                </section>
-
-
                 <section id="program">
                     <Program />
                 </section>
 
-                <NewsletterSection />
-
                 <section id="evenimente">
                     <Events />
                 </section>
+
+                <section id="despre-noi">
+                    <About />
+                </section>
+
+                <NewsletterSection />
+
 
                 <section id="galerie">
                     <Gallery />
