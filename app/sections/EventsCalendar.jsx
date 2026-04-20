@@ -168,8 +168,15 @@ export default function EventsCalendar() {
     }, [eventsSorted, eventsByDate, todayIso, selectedDate]);
 
     const [eventOpen, setEventOpen] = useState(false);
+    const [eventClosing, setEventClosing] = useState(false);
+    const closeTimerRef = useRef(null);
 
     const openEvent = useCallback((date, index = 0, eventIdOverride = null) => {
+        if (closeTimerRef.current) {
+            clearTimeout(closeTimerRef.current);
+            closeTimerRef.current = null;
+        }
+        setEventClosing(false);
         preventNextScrollRef.current = true;
         setSelectedDate(date);
         setEventIndex(index);
@@ -343,11 +350,33 @@ export default function EventsCalendar() {
     };
 
     const closeEvent = () => {
-        setEventOpen(false);
+        if (eventClosing) return;
+        setEventClosing(true);
+
+        if (closeTimerRef.current) {
+            clearTimeout(closeTimerRef.current);
+            closeTimerRef.current = null;
+        }
+
+        closeTimerRef.current = setTimeout(() => {
+            setEventOpen(false);
+            setEventClosing(false);
+            closeTimerRef.current = null;
+        }, 460);
+
         const params = new URLSearchParams(searchParams.toString());
         params.delete("event");
         router.replace(`${pathname}${params.toString() ? "?" + params.toString() : ""}`, { scroll: false });
     };
+
+    useEffect(() => {
+        return () => {
+            if (closeTimerRef.current) {
+                clearTimeout(closeTimerRef.current);
+                closeTimerRef.current = null;
+            }
+        };
+    }, []);
 
     const [copied, setCopied] = useState(false);
     const handleShare = async () => {
@@ -457,8 +486,8 @@ export default function EventsCalendar() {
             </section>
 
             {eventOpen && selectedEvent && (
-                <div className="ev-overlay" onClick={closeEvent}>
-                    <div className="ev-modal" onClick={(e) => e.stopPropagation()}>
+                <div className={`ev-overlay ${eventClosing ? "is-closing" : ""}`} onClick={closeEvent}>
+                    <div className={`ev-modal ${eventClosing ? "is-closing" : ""}`} onClick={(e) => e.stopPropagation()}>
                         <header className="ev-header">
                             <div className="ev-headText">
                                 <h2 className="ev-title">{selectedEvent.title || t("event")}</h2>
