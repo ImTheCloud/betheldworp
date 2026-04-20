@@ -81,7 +81,6 @@
     overflow: hidden;
     background: #ffffff;
     border: 1px solid rgba(10, 42, 67, 0.08);
-    box-shadow: 0 4px 20px rgba(10, 42, 67, 0.06);
     transition: all 0.3s ease;
     aspect-ratio: 16 / 10;
 }
@@ -96,7 +95,6 @@
 
 .gal-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 12px 40px rgba(10, 42, 67, 0.12);
 }
 
 .gal-card:hover .gal-img {
@@ -145,7 +143,6 @@
     overflow: hidden;
     background: #ffffff;
     border: 1px solid rgba(10, 42, 67, 0.08);
-    box-shadow: 0 4px 20px rgba(10, 42, 67, 0.06);
     transition: all 0.3s ease;
     margin-bottom: 20px;
 }
@@ -160,7 +157,6 @@
 
 .gal-featured:hover {
     transform: translateY(-4px);
-    box-shadow: 0 12px 40px rgba(10, 42, 67, 0.12);
 }
 
 .gal-featured:hover .gal-featuredThumb {
@@ -238,13 +234,11 @@
     overflow: hidden;
     background: #ffffff;
     border: 1px solid rgba(10, 42, 67, 0.08);
-    box-shadow: 0 4px 16px rgba(10, 42, 67, 0.06);
     transition: all 0.3s ease;
 }
 
 .gal-rowCard:hover {
     transform: translateY(-4px);
-    box-shadow: 0 12px 32px rgba(10, 42, 67, 0.12);
 }
 
 .gal-rowThumbWrap {
@@ -293,7 +287,6 @@
     border-radius: 20px;
     background: #ffffff;
     border: 1px solid rgba(10, 42, 67, 0.08);
-    box-shadow: 0 4px 16px rgba(10, 42, 67, 0.06);
     text-decoration: none;
     color: #0a2a43;
     transition: all 0.3s ease;
@@ -301,7 +294,6 @@
 
 .gal-ytCta:hover {
     transform: translateY(-4px);
-    box-shadow: 0 12px 32px rgba(10, 42, 67, 0.12);
 }
 
 .gal-ytSvg {
@@ -354,7 +346,6 @@
     overflow: hidden;
     background: #ffffff;
     border: 1px solid rgba(10, 42, 67, 0.12);
-    box-shadow: 0 40px 140px rgba(10, 42, 67, 0.4);
     position: relative;
     animation: galEnter 0.4s cubic-bezier(.2, .8, .2, 1);
 }

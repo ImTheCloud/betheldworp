@@ -39,7 +39,6 @@
     height: 48px; /* Slightly smaller */
     width: auto;
     object-fit: contain;
-    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.2));
 }
 
 .footer-title {
@@ -95,7 +94,6 @@
 .footer-nl-input-group:focus-within {
     background: rgba(255, 255, 255, 0.15);
     border-color: rgba(255, 255, 255, 0.3);
-    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.05);
 }
 
 .footer-nl-input {

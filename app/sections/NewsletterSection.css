@@ -19,7 +19,6 @@
     border-radius: 28px;
     background: #ffffff;
     border: 1px solid rgba(10, 42, 67, 0.08);
-    box-shadow: 0 16px 50px rgba(10, 42, 67, 0.08);
     padding: 42px 48px;
     text-align: center;
 }
@@ -132,7 +131,6 @@
 
 .nl-input:focus {
     border-color: rgba(22, 70, 120, 0.4);
-    box-shadow: 0 0 0 4px rgba(22, 70, 120, 0.08);
 }
 
 .nl-button {
@@ -143,16 +141,12 @@
     background: linear-gradient(135deg, #0a2a43 0%, #164678 100%);
     color: #ffffff;
     font-size: 15px;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    box-shadow: 0 8px 24px rgba(10, 42, 67, 0.25);
     transition: all 0.3s ease;
     white-space: nowrap;
 }
 
 .nl-button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 12px 32px rgba(10, 42, 67, 0.35);
 }
 
 .nl-button:disabled {
@@ -231,6 +225,5 @@
 @media (hover: none) {
     .nl-button:hover {
         transform: none;
-        box-shadow: 0 8px 24px rgba(10, 42, 67, 0.25);
     }
 }

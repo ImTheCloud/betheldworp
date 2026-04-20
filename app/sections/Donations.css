@@ -44,7 +44,6 @@
     padding: 48px 56px;
     border-radius: 28px;
     background: #ffffff;
-    box-shadow: 0 24px 80px rgba(10, 42, 67, 0.12);
     margin-bottom: 50px;
 }
 
@@ -101,14 +100,12 @@
     font-size: 14px;
     font-weight: 700;
     letter-spacing: 0.04em;
-    box-shadow: 0 8px 24px rgba(10, 42, 67, 0.25);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.2s ease;
     white-space: nowrap;
 }
 
 .don-copy-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 12px 32px rgba(10, 42, 67, 0.35);
 }
 
 .don-copy-btn:active {
@@ -132,7 +129,6 @@
     background: #ffffff;
     border-radius: 16px;
     border: 2px solid rgba(10, 42, 67, 0.08);
-    box-shadow: 0 4px 20px rgba(10, 42, 67, 0.04);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     overflow: hidden;
     display: flex;
@@ -155,7 +151,6 @@
 .don-type-card:hover {
     transform: translateY(-6px);
     border-color: rgba(10, 42, 67, 0.15);
-    box-shadow: 0 12px 40px rgba(10, 42, 67, 0.12);
 }
 
 .don-type-card:hover::before {
@@ -211,7 +206,6 @@
     border-radius: 28px;
     background: linear-gradient(135deg, #0a2a43 0%, #164678 100%);
     color: #ffffff;
-    box-shadow: 0 24px 80px rgba(10, 42, 67, 0.25);
     overflow: hidden;
 }
 

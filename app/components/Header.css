@@ -9,7 +9,7 @@
     align-items: center;
     justify-content: space-between;
     z-index: 30;
-    transition: background-color 0.25s ease, border-bottom-color 0.25s ease, box-shadow 0.25s ease, padding 0.25s ease;
+    transition: background-color 0.25s ease, border-bottom-color 0.25s ease, padding 0.25s ease;
 }
 
 .header-top {
@@ -22,7 +22,6 @@
     background: rgba(255, 255, 255, 0.96);
     backdrop-filter: blur(10px);
     border-bottom: 1px solid rgba(10, 42, 67, 0.1);
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
 }
 
 .brand {
@@ -120,20 +119,17 @@
     flex-direction: column;
     border: 1px solid rgba(10, 42, 67, 0.12);
     background: rgba(255, 255, 255, 0.86);
-    box-shadow: 0 10px 30px rgba(6, 24, 50, 0.10);
-    transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    transition: background 0.25s ease, border-color 0.25s ease;
 }
 
 .burger-top {
     border-color: rgba(255, 255, 255, 0.28);
     background: rgba(255, 255, 255, 0.18);
-    box-shadow: 0 10px 34px rgba(6, 24, 50, 0.10);
 }
 
 .burger-scrolled {
     border-color: rgba(10, 42, 67, 0.12);
     background: rgba(255, 255, 255, 0.86);
-    box-shadow: 0 10px 30px rgba(6, 24, 50, 0.10);
 }
 
 .burger span {
@@ -178,7 +174,6 @@
     background: #ffffff;
     border-radius: 22px;
     border: 1px solid rgba(10, 42, 67, 0.12);
-    box-shadow: 0 40px 140px rgba(6, 24, 50, 0.35);
     overflow: hidden;
     animation: mnavDown 0.22s ease;
 }
@@ -277,7 +272,6 @@
 .header.header-top .langBtn {
     background: rgba(255, 255, 255, 0.18);
     border-color: rgba(255, 255, 255, 0.28);
-    box-shadow: 0 10px 34px rgba(6, 24, 50, 0.10);
 }
 
 .header.header-top .langBtnCode {

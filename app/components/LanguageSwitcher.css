@@ -15,14 +15,12 @@
     padding: 0 8px 0 5px;
     cursor: pointer;
     user-select: none;
-    transition: transform 0.12s ease, background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
-    box-shadow: 0 10px 30px rgba(6, 24, 50, 0.10);
+    transition: transform 0.12s ease, background 0.18s ease, border-color 0.18s ease;
 }
 
 .langBtn:hover {
     transform: translateY(-1px);
     border-color: rgba(19, 75, 123, 0.18);
-    box-shadow: 0 14px 38px rgba(6, 24, 50, 0.14);
 }
 
 .langBtn:active {
@@ -97,7 +95,6 @@
     background: rgba(255, 255, 255, 0.98);
     border-radius: 18px;
     border: 1px solid rgba(10, 42, 67, 0.12);
-    box-shadow: 0 40px 140px rgba(6, 24, 50, 0.28);
     overflow: hidden;
     z-index: 1000;
     backdrop-filter: blur(10px);
