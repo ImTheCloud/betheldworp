@@ -1,7 +1,7 @@
 {
   "ro": {
     "newsletter": "Newsletter",
-    "newsletter_desc": "Lasă-ne adresa ta de email pentru a primi programul săptămânal al bisericii, noutăți importante și informații despre întâlnirile speciale. Fii mereu la curent cu tot ceea ce se întâmplă în comunitatea noastră și nu rata niciun eveniment important.",
+    "newsletter_desc": "Lasă-ți adresa de e-mail pentru a primi programul, noutățile și informațiile despre evenimentele viitoare.",
     "email_placeholder": "nume@email.com",
     "subscribe": "Abonează-te",
     "sending": "Se trimite...",
@@ -15,7 +15,7 @@
   },
   "fr": {
     "newsletter": "Newsletter",
-    "newsletter_desc": "Laissez-nous votre adresse e-mail pour recevoir le programme de l’église, les dernières actualités ainsi que les informations concernant les rencontres spéciales. Restez informé et ne manquez aucun événement important de notre communauté.",
+    "newsletter_desc": "Laissez votre e-mail pour recevoir le programme, les actualités et les informations sur les événements à venir.",
     "email_placeholder": "nom@email.com",
     "subscribe": "S’abonner",
     "sending": "Envoi...",
@@ -29,7 +29,7 @@
   },
   "nl": {
     "newsletter": "Nieuwsbrief",
-    "newsletter_desc": "Laat uw e-mailadres achter om het programma van de kerk, belangrijke updates en informatie over speciale bijeenkomsten te ontvangen. Blijf op de hoogte en mis geen enkel belangrijk moment binnen onze gemeenschap.",
+    "newsletter_desc": "Laat je e-mailadres achter om het programma, het nieuws en informatie over komende evenementen te ontvangen.",
     "email_placeholder": "naam@email.com",
     "subscribe": "Abonneren",
     "sending": "Verzenden...",
@@ -43,7 +43,7 @@
   },
   "en": {
     "newsletter": "Newsletter",
-    "newsletter_desc": "Leave us your email address to receive the church schedule, important updates, and information about special events. Stay informed and never miss anything happening in our community.",
+    "newsletter_desc": "Leave your email to receive the program, news, and information about upcoming events.",
     "email_placeholder": "name@email.com",
     "subscribe": "Subscribe",
     "sending": "Sending...",
