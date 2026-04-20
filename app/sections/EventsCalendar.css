@@ -449,14 +449,23 @@
     align-items: center;
     justify-content: center;
     box-shadow: 0 4px 12px rgba(10, 42, 67, 0.05);
+    -webkit-appearance: none;
+    appearance: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.ev-nav-btn:hover {
-    background: #0a2a43;
-    color: #ffffff;
-    border-color: #0a2a43;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(10, 42, 67, 0.2);
+.ev-nav-btn:focus {
+    outline: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .ev-nav-btn:hover {
+        background: #0a2a43;
+        color: #ffffff;
+        border-color: #0a2a43;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(10, 42, 67, 0.2);
+    }
 }
 
 .ev-nav-btn:active {
@@ -645,7 +654,7 @@
     .ev-modal {
         width: 100%;
         border-radius: 24px 24px 0 0;
-        max-height: 86vh;
+        max-height: 91vh;
     }
 
     .ev-header {
@@ -654,23 +663,25 @@
 
     .ev-body {
         padding: 12px 16px 16px;
-        max-height: calc(86vh - 78px);
+        max-height: calc(91vh - 78px);
     }
 
     .ev-modal-nav--mobile {
-        padding: 16px 20px;
+        padding: 8px 12px;
+        gap: 8px;
     }
 
     .ev-nav-btn {
-        width: 50px;
-        height: 50px;
-        font-size: 26px;
-        border-radius: 16px;
+        width: 40px;
+        height: 40px;
+        font-size: 22px;
+        border-radius: 12px;
     }
 
     .ev-nav-indicator {
-        font-size: 16px;
-        min-width: 80px;
+        font-size: 13px;
+        min-width: 54px;
+        letter-spacing: 0.03em;
     }
 
     .ev-close {
@@ -810,6 +821,16 @@
 
     .ec-eventCellBtn:hover .ec-eventBg {
         transform: none;
+    }
+
+    .ev-nav-btn:hover,
+    .ev-nav-btn:active,
+    .ev-nav-btn:focus {
+        background: #ffffff;
+        color: #0a2a43;
+        border-color: rgba(10, 42, 67, 0.1);
+        transform: none;
+        box-shadow: 0 4px 12px rgba(10, 42, 67, 0.05);
     }
 
 
