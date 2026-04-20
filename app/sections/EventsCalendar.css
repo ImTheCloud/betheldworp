@@ -1,6 +1,6 @@
 .ec-section {
     position: relative;
-    padding: 55px 24px 60px;
+    padding: 55px 24px 10px;
     display: flex;
     justify-content: center;
     background: #ffffff;
@@ -55,7 +55,7 @@
     border: 1px solid rgba(10, 42, 67, 0.08);
     box-shadow: 0 24px 80px rgba(10, 42, 67, 0.12);
     padding: 22px;
-    margin-bottom: 42px;
+    margin-bottom: 24px;
 }
 
 .ec-head {
@@ -653,12 +653,12 @@
 
 @media (max-width: 900px) {
     .ec-section {
-        padding: 50px 20px 55px;
+        padding: 50px 20px 20px;
     }
 
     .ec-card {
         padding: 20px;
-        margin-bottom: 38px;
+        margin-bottom: 20px;
     }
 
     .ec-cell {
@@ -759,7 +759,7 @@
 
 @media (max-width: 600px) {
     .ec-section {
-        padding: 50px 16px 50px;
+        padding: 45px 16px 10px;
     }
 
     .ec-header {

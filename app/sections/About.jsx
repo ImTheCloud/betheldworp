@@ -13,6 +13,9 @@ export default function About() {
     return (
         <section className="about-section">
             <div className="about-content">
+                <div className="about-header">
+                    <h2 className="about-section-title">{t("section_title")}</h2>
+                </div>
                 <div className="about-grid">
 
                     {/* WHO WE ARE */}

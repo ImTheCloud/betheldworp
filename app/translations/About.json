@@ -1,5 +1,6 @@
 {
   "ro": {
+    "section_title": "Despre noi",
     "who_title": "Cine suntem?",
     "who_p1": "Suntem o comunitate de creștini care Îl urmează pe Isus și doresc să își trăiască credința autentic, în fiecare zi.",
     "who_p2": "Credem în Dumnezeu Tatăl, Fiul și Duhul Sfânt, iar Isus a venit să ofere fiecăruia o viață nouă și o relație personală cu Dumnezeu. Biblia este baza noastră, călăuzindu-ne în alegeri și în modul în care trăim și creștem.",
@@ -17,9 +18,10 @@
     "vision_point2": "să construim relații sincere și solide",
     "vision_point3": "să aducem speranță în jurul nostru",
     "vision_goal_label": "Scopul nostru:",
-    "vision_goal_text": "Să fim o biserică primitoare, unde fiecare își găsește locul și se simte susținut."
+    "vision_goal_text": "O biserică primitoare, unde fiecare își găsește locul și se simte susținut."
   },
   "fr": {
+    "section_title": "À propos",
     "who_title": "Qui sommes-nous ?",
     "who_p1": "Nous sommes une communauté chrétienne qui suit Jésus-Christ et vit sa foi de manière authentique.",
     "who_p2": "Nous croyons en Dieu, le Père, le Fils et le Saint-Esprit. Jésus est venu offrir à chacun une vie nouvelle et une relation personnelle. La Bible est notre fondement, nous guidant dans nos choix et dans notre façon de vivre et de grandir.",
@@ -40,6 +42,7 @@
     "vision_goal_text": "être une Église accueillante où chacun trouve sa place et se sent soutenu."
   },
   "nl": {
+    "section_title": "Over ons",
     "who_title": "Wie zijn wij?",
     "who_p1": "Wij zijn een gemeenschap van christenen die Jezus Christus volgen en hun geloof elke dag puur willen beleven.",
     "who_p2": "Wij geloven in God de Vader, de Zoon en de Heilige Geest. Jezus kwam om iedereen nieuw leven en een relatie met God te geven. De Bijbel is onze basis en leidt ons in onze keuzes en in de manier waarop we leven en geestelijk groeien.",
@@ -60,6 +63,7 @@
     "vision_goal_text": "Een gastvrije kerk zijn waar iedereen zich welkom en gesteund voelt."
   },
   "en": {
+    "section_title": "About us",
     "who_title": "Who are we?",
     "who_p1": "We are a community of Christians who follow Jesus Christ and desire to live out our faith authentically every day.",
     "who_p2": "We believe in God the Father, the Son, and the Holy Spirit. Jesus came to give each person a new life and a personal relationship with God. The Bible is our foundation, guiding our choices and the way we live and grow together.",
@@ -77,6 +81,6 @@
     "vision_point2": "build sincere and strong relationships",
     "vision_point3": "bring hope to the people around us",
     "vision_goal_label": "Our goal:",
-    "vision_goal_text": "to be a welcoming church where everyone can find their place and feel supported."
+    "vision_goal_text": "be a welcoming church where all find their place and feel supported."
   }
 }

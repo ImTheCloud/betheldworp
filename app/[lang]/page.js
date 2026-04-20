@@ -31,11 +31,11 @@ export default function Home() {
                     <Events />
                 </section>
 
+                <NewsletterSection />
+
                 <section id="despre-noi">
                     <About />
                 </section>
-
-                <NewsletterSection />
 
 
                 <section id="galerie">
