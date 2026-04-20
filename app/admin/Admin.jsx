@@ -185,23 +185,75 @@ export default function Admin() {
             return;
         }
 
-        const ref = doc(db, "admins", user.uid);
-        const unsub = onSnapshot(
-            ref,
-            (snap) => {
-                if (!mountedRef.current) return;
-                setIsAdmin(snap.exists());
-                setAdminLoading(false);
-            },
-            (err) => {
-                console.error(err);
-                if (!mountedRef.current) return;
-                setIsAdmin(false);
-                setAdminLoading(false);
-            }
-        );
+        let unsub = () => { };
+        let retryTimer = null;
+        let cancelled = false;
+        let retryCount = 0;
 
-        return () => unsub();
+        const clearRetry = () => {
+            if (retryTimer) {
+                clearTimeout(retryTimer);
+                retryTimer = null;
+            }
+        };
+
+        const startAdminWatch = async (forceRefreshToken = false) => {
+            if (cancelled || !mountedRef.current) return;
+            clearRetry();
+
+            try {
+                // Ensure auth token is available/refreshed before opening Firestore listener.
+                await user.getIdToken(forceRefreshToken);
+            } catch {
+                // Retry if token fetching fails transiently.
+                const delay = Math.min(1000 * (2 ** retryCount), 10000);
+                retryCount += 1;
+                retryTimer = setTimeout(() => {
+                    startAdminWatch(true);
+                }, delay);
+                return;
+            }
+
+            if (cancelled || !mountedRef.current) return;
+
+            const ref = doc(db, "admins", user.uid);
+            unsub();
+            unsub = onSnapshot(
+                ref,
+                (snap) => {
+                    if (!mountedRef.current || cancelled) return;
+                    retryCount = 0;
+                    setIsAdmin(snap.exists());
+                    setAdminLoading(false);
+                },
+                (err) => {
+                    if (!mountedRef.current || cancelled) return;
+
+                    // In local dev this can happen transiently before auth context settles.
+                    if (err?.code === "permission-denied") {
+                        setAdminLoading(true);
+                        const delay = Math.min(1000 * (2 ** retryCount), 10000);
+                        retryCount += 1;
+                        retryTimer = setTimeout(() => {
+                            startAdminWatch(true);
+                        }, delay);
+                        return;
+                    }
+
+                    console.error(err);
+                    setIsAdmin(false);
+                    setAdminLoading(false);
+                }
+            );
+        };
+
+        startAdminWatch(false);
+
+        return () => {
+            cancelled = true;
+            clearRetry();
+            unsub();
+        };
     }, [user]);
 
     const login = async (e) => {

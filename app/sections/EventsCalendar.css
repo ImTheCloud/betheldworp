@@ -339,9 +339,11 @@
     font-weight: 650;
     color: rgba(10, 42, 67, 0.72);
     line-height: 1.55;
-    text-align: justify;
-    text-justify: inter-word;
-    hyphens: auto;
+    text-align: left;
+    text-justify: auto;
+    hyphens: none;
+    word-break: normal;
+    overflow-wrap: break-word;
 }
 
 .ev-close {
