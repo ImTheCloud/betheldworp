@@ -42,7 +42,7 @@
 .worldmap-banner {
     position: relative;
     border-radius: 28px;
-    background: #ffffff;
+    background: linear-gradient(160deg, rgba(22, 70, 120, 0.09) 0%, rgba(22, 70, 120, 0.02) 100%);
     border: 1px solid rgba(10, 42, 67, 0.08);
     padding: 48px 56px;
     margin-bottom: 50px;
