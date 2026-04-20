@@ -211,8 +211,8 @@ export default function EventsCalendar() {
             setEventIndex(idx >= 0 ? idx : 0);
             setEventOpen(true);
 
-            // Scroll to the events section (only if not prevented)
-            if (!preventNextScrollRef.current) {
+            // Scroll to the events section (only if not prevented and modal not already open)
+            if (!preventNextScrollRef.current && !eventOpen) {
                 setTimeout(() => {
                     const section = document.getElementById("evenimente");
                     if (section) section.scrollIntoView({ behavior: "smooth" });
@@ -220,7 +220,7 @@ export default function EventsCalendar() {
             }
             preventNextScrollRef.current = false;
         }
-    }, [eventsLoading, eventsSorted, eventsByDate, searchParams]);
+    }, [eventsLoading, eventsSorted, eventsByDate, searchParams, eventOpen]);
 
     // Listen for "open-event" dispatched from WeeklyProgram
     useEffect(() => {
@@ -326,6 +326,7 @@ export default function EventsCalendar() {
     const goNextMonth = () => setMonth((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1));
 
     const prevEventInList = () => {
+        preventNextScrollRef.current = true;
         const nextIdx = (eventIndex - 1 + eventsForSelectedDate.length) % eventsForSelectedDate.length;
         setEventIndex(nextIdx);
 
@@ -338,6 +339,7 @@ export default function EventsCalendar() {
     };
 
     const nextEventInList = () => {
+        preventNextScrollRef.current = true;
         const nextIdx = (eventIndex + 1) % eventsForSelectedDate.length;
         setEventIndex(nextIdx);
 
