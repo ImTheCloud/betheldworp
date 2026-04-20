@@ -1,4 +1,5 @@
 import Header from "../components/Header";
+import NextProgramBar from "../components/NextProgramBar";
 import Hero from "../sections/Hero";
 import About from "../sections/About";
 import Program from "../sections/WeeklyProgram";
@@ -14,6 +15,7 @@ import NewsletterSection from "../sections/NewsletterSection";
 export default function Home() {
     return (
         <>
+            <NextProgramBar />
             <Header />
 
             <main>

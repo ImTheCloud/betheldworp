@@ -9,6 +9,13 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+:root {
+  --next-program-bar-height: 38px;
+  --main-header-height: 82px;
+  --top-fixed-offset: calc(var(--next-program-bar-height) + env(safe-area-inset-top, 0px));
+  --fixed-stack-height: calc(var(--top-fixed-offset) + var(--main-header-height));
+}
+
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
@@ -25,4 +32,24 @@ button:active {
 
 html {
   font-size: 16px;
+}
+
+@media (max-width: 1024px) {
+  :root {
+    --next-program-bar-height: 36px;
+    --main-header-height: 72px;
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --next-program-bar-height: 34px;
+    --main-header-height: 64px;
+  }
+}
+
+@media (max-height: 768px) and (min-width: 1025px) {
+  :root {
+    --main-header-height: 70px;
+  }
 }

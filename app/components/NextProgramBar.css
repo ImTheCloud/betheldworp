@@ -1,0 +1,87 @@
+.nextProgramBar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    background: linear-gradient(90deg, #0a2a43 0%, #134b7b 100%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.24);
+    box-shadow: 0 6px 18px rgba(6, 24, 50, 0.2);
+    padding-top: env(safe-area-inset-top, 0px);
+}
+
+.nextProgramBar-inner {
+    min-height: var(--next-program-bar-height, 38px);
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: #ffffff;
+    font-size: 13px;
+    white-space: nowrap;
+    overflow-x: hidden;
+    text-align: center;
+    scrollbar-width: none;
+}
+
+.nextProgramBar-inner::-webkit-scrollbar {
+    display: none;
+}
+
+.nextProgramBar-prefix {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.nextProgramBar-kicker {
+    font-weight: 900;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    opacity: 0.96;
+}
+
+.nextProgramBar-date,
+.nextProgramBar-time,
+.nextProgramBar-title,
+.nextProgramBar-empty {
+    font-weight: 800;
+}
+
+.nextProgramBar-title {
+    max-width: min(72vw, 820px);
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nextProgramBar-sep {
+    opacity: 0.72;
+}
+
+@media (max-width: 1024px) {
+    .nextProgramBar-inner {
+        font-size: 12px;
+    }
+
+    .nextProgramBar-title {
+        max-width: min(64vw, 460px);
+    }
+}
+
+@media (max-width: 768px) {
+    .nextProgramBar-inner {
+        justify-content: center;
+        padding: 0 12px;
+        gap: 8px;
+    }
+
+    .nextProgramBar-prefix {
+        display: none;
+    }
+
+    .nextProgramBar-title {
+        max-width: min(62vw, 340px);
+    }
+}

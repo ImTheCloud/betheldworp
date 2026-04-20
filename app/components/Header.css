@@ -1,9 +1,9 @@
 .header {
     position: fixed;
-    top: 0;
+    top: var(--top-fixed-offset, 0px);
     left: 0;
     right: 0;
-    height: 82px;
+    height: var(--main-header-height, 82px);
     padding: 0 44px;
     display: flex;
     align-items: center;
@@ -166,7 +166,7 @@
     align-items: flex-start;
     justify-content: center;
     padding: 12px;
-    padding-top: 76px;
+    padding-top: calc(var(--fixed-stack-height, 120px) - 6px);
 }
 
 .mnav-overlay.is-open {
@@ -317,7 +317,6 @@
 @media (max-width: 1024px) {
     .header {
         padding: 0 22px;
-        height: 72px;
     }
 
     .logo-img {
@@ -338,7 +337,7 @@
     }
 
     .mnav-overlay {
-        padding-top: 70px;
+        padding-top: calc(var(--fixed-stack-height, 108px) - 2px);
     }
 
     .langBtn {
@@ -349,7 +348,6 @@
 @media (max-width: 768px) {
     .header {
         padding: 0 16px;
-        height: 64px;
     }
 
     .logo-img {
@@ -371,7 +369,7 @@
     }
 
     .mnav-overlay {
-        padding-top: 62px;
+        padding-top: calc(var(--fixed-stack-height, 98px) - 2px);
     }
 
     .langBtn {
@@ -386,7 +384,6 @@
 /* Fix for landscape laptops / zoomed in screens with very small heights */
 @media (max-height: 768px) and (min-width: 1025px) {
     .header {
-        height: 70px;
         padding: 0 32px;
     }
     

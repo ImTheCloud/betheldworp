@@ -11,7 +11,7 @@ import tr from "../translations/Header.json";
 
 
 export default function Header() {
-    const { lang, setLang } = useLang();
+    const { lang } = useLang();
     const t = useMemo(() => makeT(tr, lang), [lang]);
 
     const [scrolled, setScrolled] = useState(false);
@@ -158,7 +158,8 @@ export default function Header() {
         if (!element) return;
 
         const header = document.querySelector(".header");
-        const headerHeight = header?.offsetHeight ?? 82;
+        const topBar = document.querySelector(".nextProgramBar");
+        const headerHeight = (header?.offsetHeight ?? 82) + (topBar?.offsetHeight ?? 0);
 
         const y = element.getBoundingClientRect().top + window.scrollY - headerHeight - 12;
         window.scrollTo({ top: y, behavior });
