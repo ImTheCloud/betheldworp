@@ -331,7 +331,7 @@
     }
 
     .mnav-overlay {
-        padding-top: calc(var(--fixed-stack-height, 108px) - 2px);
+        padding-top: calc(var(--fixed-stack-height, 108px) - 24px);
     }
 
     .langBtn {
@@ -363,7 +363,17 @@
     }
 
     .mnav-overlay {
-        padding-top: calc(var(--fixed-stack-height, 98px) - 2px);
+        padding-top: calc(var(--fixed-stack-height, 98px) - 44px);
+    }
+
+    .burger {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+    }
+
+    .burger span {
+        width: 20px;
     }
 
     .langBtn {

@@ -44,7 +44,7 @@ html {
 @media (max-width: 768px) {
   :root {
     --next-program-bar-height: 34px;
-    --main-header-height: 64px;
+    --main-header-height: 56px;
   }
 }
 
