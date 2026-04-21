@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import posthog from "posthog-js";
 import { useLang } from "./LanguageProvider";
 import { makeT } from "../lib/i18n";
 import tr from "../translations/LanguageSwitcher.json";
@@ -51,6 +52,7 @@ export default function LanguageSwitcher({ className = "" }) {
     }, [open, close]);
 
     const pick = (value) => {
+        posthog.capture("language_changed", { from_lang: lang, to_lang: value });
         setLang(value);
         close();
     };

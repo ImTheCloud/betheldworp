@@ -11,14 +11,27 @@ export function PostHogProvider({ children }) {
     const host = process.env.NEXT_PUBLIC_POSTHOG_HOST
 
     if (!key || !host) {
+      console.warn('PostHog: Key or Host missing')
       return
+    }
+
+    // Pour le debug dans la console Chrome
+    if (typeof window !== 'undefined') {
+      window.posthog = posthog
     }
 
     posthog.init(key, {
       api_host: host,
       person_profiles: 'identified_only',
-      capture_pageview: false, // Handled by PostHogPageView
+      capture_pageview: false,
       capture_pageleave: true,
+      session_recording: {
+        maskAllInputs: false, // Changez à true si vous voulez cacher ce que les gens tapent
+        maskAllTextAttributes: false,
+      },
+      loaded: (ph) => {
+        if (process.env.NODE_ENV === 'development') ph.debug()
+      }
     })
   }, [])
 

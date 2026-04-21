@@ -60,17 +60,6 @@ export default async function RootLayout({ children, params }) {
         <html lang={lang} suppressHydrationWarning>
             <head>
                 <title>{SITE_TITLE}</title>
-                <link
-                    rel="preload"
-                    as="image"
-                    href="/images/landing_page/drone.jpg"
-                    fetchPriority="high"
-                />
-                <link
-                    rel="preload"
-                    as="image"
-                    href="/textures/earth-blue.jpg"
-                />
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
                 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet" />

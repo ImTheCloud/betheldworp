@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import posthog from "posthog-js";
 import "./Donations.css";
 import { useLang } from "../components/LanguageProvider";
 import { makeT } from "../lib/i18n";
@@ -62,6 +63,7 @@ export default function Donations() {
             setCopied(true);
             setTimeout(() => setCopied(false), 1500);
         }
+        posthog.capture("donation_iban_copied", { lang });
     };
 
     return (
