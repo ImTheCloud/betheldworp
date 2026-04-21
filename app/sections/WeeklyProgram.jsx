@@ -172,7 +172,9 @@ function normalizeWeekOverride(docId, data) {
     const affectedProgramIds = safeArr(data?.affectedProgramIds).map((v) => safeStr(v).trim()).filter(Boolean);
     const replacements = safeObj(data?.replacements);
     const additions = safeObj(data?.additions);
-    return { weekKey, affectedProgramIds, replacements, additions };
+    const customTitles = safeObj(data?.customTitles);
+    const customTimes = safeObj(data?.customTimes);
+    return { weekKey, affectedProgramIds, replacements, additions, customTitles, customTimes };
 }
 
 function pickByLang(value, lang) {
@@ -287,12 +289,18 @@ export default function Program() {
     }, [weekInfo.weekKey]);
 
     const overrideData = useMemo(() => {
-        if (!ovDoc) return { cancelledSet: new Set(), replacements: {}, additions: {} };
+        if (!ovDoc) return { cancelledSet: new Set(), replacements: {}, additions: {}, customTitles: {}, customTimes: {} };
         const o = normalizeWeekOverride(ovDoc.id, ovDoc.data);
-        return { cancelledSet: new Set(o.affectedProgramIds), replacements: o.replacements, additions: o.additions };
+        return { 
+            cancelledSet: new Set(o.affectedProgramIds), 
+            replacements: o.replacements, 
+            additions: o.additions,
+            customTitles: o.customTitles,
+            customTimes: o.customTimes
+        };
     }, [ovDoc]);
 
-    const { cancelledSet, replacements, additions } = overrideData;
+    const { cancelledSet, replacements, additions, customTitles, customTimes } = overrideData;
 
     // ── Events data for replacement & addition display ──
     const [eventsMap, setEventsMap] = useState(new Map());
@@ -352,20 +360,24 @@ export default function Program() {
                         const replacementEvent = replacementEventId ? eventsMap.get(replacementEventId) : null;
                         const isReplaced = isCancelled && !!replacementEvent;
 
+                        const customTitle = pickByLang(customTitles?.[id], lang);
+                        const customTime = safeStr(customTimes?.[id]).trim();
+                        const isManual = customTitle !== "" || customTime !== "";
+                        const finalIsReplaced = isReplaced || isManual;
 
                         let statusClass = "program-card--normal";
-                        if (isReplaced) statusClass = "program-card--replaced";
+                        if (finalIsReplaced) statusClass = "program-card--replaced";
                         else if (isCancelled) statusClass = "program-card--cancelled";
 
                         const dm = safeStr(dateMetaById?.[id]?.dm || "");
                         const full = safeStr(dateMetaById?.[id]?.full || "");
 
-                        const displayTitle = isReplaced ? replacementEvent.title : item?.title;
+                        const displayTitle = customTitle || (isReplaced ? replacementEvent.title : item?.title);
                         const displayTime = isReplaced && replacementEvent.time ? replacementEvent.time : null;
 
                         const cleanedTimes = times.map((x) => safeStr(x).trim()).filter(Boolean);
                         const defaultTimeLabel = cleanedTimes.length ? formatRange(cleanedTimes[0]) + (cleanedTimes.length > 1 ? " +" : "") : "";
-                        const timeLabel = isReplaced && displayTime ? displayTime : defaultTimeLabel;
+                        const timeLabel = customTime || (isReplaced && displayTime ? displayTime : defaultTimeLabel);
 
                         const additionEventId = safeStr(additions[id]).trim();
                         const additionEvent = additionEventId ? eventsMap.get(additionEventId) : null;
@@ -379,12 +391,12 @@ export default function Program() {
                                     <div className="program-cardInnerFlat">
                                         <div className="program-cardTop">
                                             <div className="program-day">{item?.day}</div>
-                                            {isReplaced && <div className="program-statusPill program-statusPill--replaced">{t("status_replaced")}</div>}
-                                            {isCancelled && !isReplaced && <div className="program-statusPill program-statusPill--cancelled">{t("status_cancelled")}</div>}
+                                            {finalIsReplaced && <div className="program-statusPill program-statusPill--replaced">{t("status_replaced")}</div>}
+                                            {isCancelled && !finalIsReplaced && <div className="program-statusPill program-statusPill--cancelled">{t("status_cancelled")}</div>}
                                         </div>
                                         <div className="program-activity">{displayTitle}</div>
                                         <div className="program-bottomRow">
-                                            {timeLabel && <div className={`program-timeLine ${isCancelled && !isReplaced ? "program-timeLine--cancelled" : ""} ${isReplaced ? "program-timeLine--replaced" : ""}`}>{timeLabel}</div>}
+                                            {timeLabel && <div className={`program-timeLine ${isCancelled && !finalIsReplaced ? "program-timeLine--cancelled" : ""} ${finalIsReplaced ? "program-timeLine--replaced" : ""}`}>{timeLabel}</div>}
                                             {dm && <div className="program-dateFixed" title={full}>{dm}</div>}
                                         </div>
                                     </div>

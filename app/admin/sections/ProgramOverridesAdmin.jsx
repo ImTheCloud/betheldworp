@@ -135,7 +135,9 @@ function overrideEqual(a, b) {
     const dirtyAffect = !sameArrayAsSet(a.affectedProgramIds, toSet(b.affectedProgramIds));
     const dirtyRepl = JSON.stringify(safeObj(a.replacements)) !== JSON.stringify(safeObj(b.replacements));
     const dirtyAdd = JSON.stringify(safeObj(a.additions)) !== JSON.stringify(safeObj(b.additions));
-    return !dirtyWeek && !dirtyAffect && !dirtyRepl && !dirtyAdd;
+    const dirtyCustomTitles = JSON.stringify(safeObj(a.customTitles)) !== JSON.stringify(safeObj(b.customTitles));
+    const dirtyCustomTimes = JSON.stringify(safeObj(a.customTimes)) !== JSON.stringify(safeObj(b.customTimes));
+    return !dirtyWeek && !dirtyAffect && !dirtyRepl && !dirtyAdd && !dirtyCustomTitles && !dirtyCustomTimes;
 }
 
 function makeAffectedSummary(arr, max = 60) {
@@ -162,6 +164,8 @@ function normalizeOverride(docId, data, currentWeekStartUTC) {
 
     const replacements = safeObj(data?.replacements);
     const additions = safeObj(data?.additions);
+    const customTitles = safeObj(data?.customTitles);
+    const customTimes = safeObj(data?.customTimes);
 
     const weekStartUTC = parsed ? startOfISOWeekUTC(parsed.year, parsed.week) : null;
     const upcoming = weekStartUTC ? weekStartUTC.getTime() >= currentWeekStartUTC.getTime() : false;
@@ -174,6 +178,8 @@ function normalizeOverride(docId, data, currentWeekStartUTC) {
         affectedProgramIds,
         replacements,
         additions,
+        customTitles,
+        customTimes
     };
 }
 
@@ -261,7 +267,20 @@ function IconCalendar(props) {
     );
 }
 
-function ProgramSlotGrid({ id, weekKey, replacements, additions, affectedSet, eventsList, onChangeReplacement, onChangeAddition }) {
+function ProgramSlotGrid({ 
+    id, 
+    weekKey, 
+    replacements, 
+    additions, 
+    customTitles, 
+    customTimes, 
+    affectedSet, 
+    eventsList, 
+    onChangeReplacement, 
+    onChangeAddition,
+    onChangeCustomTitle,
+    onChangeCustomTime
+}) {
     return (
         <div className="overrideGrid">
             {AFFECT_OPTIONS.map((opt) => {
@@ -272,8 +291,13 @@ function ProgramSlotGrid({ id, weekKey, replacements, additions, affectedSet, ev
                 const slotDate = dateForSlot(weekKey, opt.id);
                 const filtered = safeArr(eventsList).filter((ev) => !slotDate || ev.dateISO === slotDate);
 
+                const slotTitles = safeObj(customTitles[opt.id]);
+                const slotTime = safeStr(customTimes[opt.id]);
+                const hasManual = Object.keys(slotTitles).length > 0 || !!slotTime;
+                const isModified = !!replacements[opt.id] || hasManual;
+
                 return (
-                    <div key={`${id}-${opt.id}`} className={`overrideSlotCard${isOverridden ? (replacements[opt.id] ? " is-overridden" : " is-cancelled") : ""}${hasAddition ? " has-addition" : ""}`}>
+                    <div key={`${id}-${opt.id}`} className={`overrideSlotCard${isModified ? " is-overridden" : (isOverridden && !replacements[opt.id] ? " is-cancelled" : "")}${hasAddition ? " has-addition" : ""}`}>
                         <div className="overrideSlotLabel">
                             <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
                                 <IconCalendar width="14" height="14" opacity="0.6" />
@@ -283,7 +307,7 @@ function ProgramSlotGrid({ id, weekKey, replacements, additions, affectedSet, ev
                                 {isOverridden && !replacements[opt.id] && (
                                     <span className="adminChip" style={{ background: "#fee2e2", color: "#ef4444" }}>Cancelled</span>
                                 )}
-                                {replacements[opt.id] && (
+                                {isModified && (
                                     <span className="adminChip" style={{ background: "#fef9c3", color: "#854d0e" }}>Modified</span>
                                 )}
                                 {hasAddition && (
@@ -345,6 +369,50 @@ function ProgramSlotGrid({ id, weekKey, replacements, additions, affectedSet, ev
                                 </select>
                             </label>
                         </div>
+
+                        <details className="overrideSlotCustom" style={{ marginTop: 12, paddingTop: 12, borderTop: "1px dashed rgba(0,0,0,0.1)" }}>
+                            <summary className="overrideSlotFieldLabel" style={{ marginBottom: 8, fontSize: "0.7rem", opacity: 0.6, textTransform: "uppercase", letterSpacing: "0.05em", cursor: "pointer", listStyle: "none", display: "flex", alignItems: "center", gap: 4 }}>
+                                <IconPlus width="10" height="10" />
+                                Manual Text Override
+                            </summary>
+                            
+                            <div style={{ marginTop: 8 }}>
+                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 8 }}>
+                                    <input 
+                                        className="adminInput adminInput--small" 
+                                        placeholder="Title RO" 
+                                        value={safeStr(slotTitles.ro)} 
+                                        onChange={(e) => onChangeCustomTitle(id, opt.id, "ro", e.target.value)}
+                                    />
+                                    <input 
+                                        className="adminInput adminInput--small" 
+                                        placeholder="Title FR" 
+                                        value={safeStr(slotTitles.fr)} 
+                                        onChange={(e) => onChangeCustomTitle(id, opt.id, "fr", e.target.value)}
+                                    />
+                                    <input 
+                                        className="adminInput adminInput--small" 
+                                        placeholder="Title NL" 
+                                        value={safeStr(slotTitles.nl)} 
+                                        onChange={(e) => onChangeCustomTitle(id, opt.id, "nl", e.target.value)}
+                                    />
+                                    <input 
+                                        className="adminInput adminInput--small" 
+                                        placeholder="Title EN" 
+                                        value={safeStr(slotTitles.en)} 
+                                        onChange={(e) => onChangeCustomTitle(id, opt.id, "en", e.target.value)}
+                                    />
+                                </div>
+
+                                <input 
+                                    className="adminInput adminInput--small" 
+                                    style={{ width: "100%" }}
+                                    placeholder="Time Override (e.g. 19:00-20:30)" 
+                                    value={slotTime} 
+                                    onChange={(e) => onChangeCustomTime(id, opt.id, e.target.value)}
+                                />
+                            </div>
+                        </details>
                     </div>
                 );
             })}
@@ -352,12 +420,14 @@ function ProgramSlotGrid({ id, weekKey, replacements, additions, affectedSet, ev
     );
 }
 
-function OverrideCard({ item, expanded, draft, saveState, eventsList, weekKeyForCard, onToggleExpand, onToggleAffected, onChangeWeekKey, onChangeReplacement, onChangeAddition, onSave, onDelete }) {
+function OverrideCard({ item, expanded, draft, saveState, eventsList, weekKeyForCard, onToggleExpand, onToggleAffected, onChangeWeekKey, onChangeReplacement, onChangeAddition, onChangeCustomTitle, onChangeCustomTime, onSave, onDelete }) {
     const id = safeStr(item?.id).trim();
     const affectedSet = useMemo(() => toSet(draft?.affectedProgramIds ?? item?.affectedProgramIds), [draft, item]);
     const weekKeyValue = safeStr(draft?.weekKey ?? item?.weekKey);
     const replacements = safeObj(draft?.replacements ?? item?.replacements);
     const additions = safeObj(draft?.additions ?? item?.additions);
+    const customTitles = safeObj(draft?.customTitles ?? item?.customTitles);
+    const customTimes = safeObj(draft?.customTimes ?? item?.customTimes);
     const additionsCount = Object.values(additions).filter(Boolean).length;
 
     return (
@@ -412,10 +482,14 @@ function OverrideCard({ item, expanded, draft, saveState, eventsList, weekKeyFor
                         weekKey={weekKeyValue}
                         replacements={replacements}
                         additions={additions}
+                        customTitles={customTitles}
+                        customTimes={customTimes}
                         affectedSet={affectedSet}
                         eventsList={eventsList}
                         onChangeReplacement={onChangeReplacement}
                         onChangeAddition={onChangeAddition}
+                        onChangeCustomTitle={onChangeCustomTitle}
+                        onChangeCustomTime={onChangeCustomTime}
                     />
 
                     <div className="overrideActionsWrapper">
@@ -446,11 +520,13 @@ function OverrideCard({ item, expanded, draft, saveState, eventsList, weekKeyFor
     );
 }
 
-function NewOverrideCard({ draft, saveState, eventsList, weekKeyForCard, onToggleAffected, onChangeWeekKey, onChangeReplacement, onChangeAddition, onCancel, onSave }) {
+function NewOverrideCard({ draft, saveState, eventsList, weekKeyForCard, onToggleAffected, onChangeWeekKey, onChangeReplacement, onChangeAddition, onChangeCustomTitle, onChangeCustomTime, onCancel, onSave }) {
     const affectedSet = useMemo(() => toSet(draft?.affectedProgramIds), [draft]);
     const weekKeyValue = safeStr(draft?.weekKey);
     const replacements = safeObj(draft?.replacements);
     const additions = safeObj(draft?.additions);
+    const customTitles = safeObj(draft?.customTitles);
+    const customTimes = safeObj(draft?.customTimes);
 
     return (
         <div className="adminAnnCard is-active">
@@ -480,10 +556,14 @@ function NewOverrideCard({ draft, saveState, eventsList, weekKeyForCard, onToggl
                     weekKey={weekKeyValue}
                     replacements={replacements}
                     additions={additions}
+                    customTitles={customTitles}
+                    customTimes={customTimes}
                     affectedSet={affectedSet}
                     eventsList={eventsList}
                     onChangeReplacement={onChangeReplacement}
                     onChangeAddition={onChangeAddition}
+                    onChangeCustomTitle={onChangeCustomTitle}
+                    onChangeCustomTime={onChangeCustomTime}
                 />
 
                 <div className="overrideActionsWrapper">
@@ -546,6 +626,8 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed, onD
         affectedProgramIds: [],
         replacements: {},
         additions: {},
+        customTitles: {},
+        customTimes: {},
     }));
     const [newState, setNewState] = useState("idle");
 
@@ -732,6 +814,8 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed, onD
                             affectedProgramIds: safeArr(it.affectedProgramIds),
                             replacements: safeObj(it.replacements),
                             additions: safeObj(it.additions),
+                            customTitles: safeObj(it.customTitles),
+                            customTimes: safeObj(it.customTimes),
                         };
 
                         if (!next[id]) {
@@ -744,8 +828,10 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed, onD
                         const dirtyAffect = !sameArrayAsSet(cur.affectedProgramIds, toSet(base.affectedProgramIds));
                         const dirtyRepl = JSON.stringify(safeObj(cur.replacements)) !== JSON.stringify(safeObj(base.replacements));
                         const dirtyAdd = JSON.stringify(safeObj(cur.additions)) !== JSON.stringify(safeObj(base.additions));
+                        const dirtyCustomTitles = JSON.stringify(safeObj(cur.customTitles)) !== JSON.stringify(safeObj(base.customTitles));
+                        const dirtyCustomTimes = JSON.stringify(safeObj(cur.customTimes)) !== JSON.stringify(safeObj(base.customTimes));
 
-                        if (!dirtyWeek && !dirtyAffect && !dirtyRepl && !dirtyAdd) next[id] = base;
+                        if (!dirtyWeek && !dirtyAffect && !dirtyRepl && !dirtyAdd && !dirtyCustomTitles && !dirtyCustomTimes) next[id] = base;
                     });
 
                     return next;
@@ -911,6 +997,52 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed, onD
         });
     };
 
+    const changeCustomTitle = (id, programId, langCode, value) => {
+        const key = safeStr(id).trim();
+        if (key === "__new__") {
+            setNewDraft((d) => {
+                const ct = { ...safeObj(d.customTitles) };
+                const slot = { ...safeObj(ct[programId]) };
+                if (value) slot[langCode] = value;
+                else delete slot[langCode];
+                if (Object.keys(slot).length) ct[programId] = slot;
+                else delete ct[programId];
+                return { ...d, customTitles: ct };
+            });
+            return;
+        }
+        setDraftsById((prev) => {
+            const cur = prev[key] || {};
+            const ct = { ...safeObj(cur.customTitles) };
+            const slot = { ...safeObj(ct[programId]) };
+            if (value) slot[langCode] = value;
+            else delete slot[langCode];
+            if (Object.keys(slot).length) ct[programId] = slot;
+            else delete ct[programId];
+            return { ...prev, [key]: { ...cur, customTitles: ct } };
+        });
+    };
+
+    const changeCustomTime = (id, programId, value) => {
+        const key = safeStr(id).trim();
+        if (key === "__new__") {
+            setNewDraft((d) => {
+                const ct = { ...safeObj(d.customTimes) };
+                if (value) ct[programId] = value;
+                else delete ct[programId];
+                return { ...d, customTimes: ct };
+            });
+            return;
+        }
+        setDraftsById((prev) => {
+            const cur = prev[key] || {};
+            const ct = { ...safeObj(cur.customTimes) };
+            if (value) ct[programId] = value;
+            else delete ct[programId];
+            return { ...prev, [key]: { ...cur, customTimes: ct } };
+        });
+    };
+
 
     const startNew = () => {
         const defaultWeek = getCurrentWeekKeyUTC();
@@ -928,6 +1060,8 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed, onD
             affectedProgramIds: [],
             replacements: {},
             additions: {},
+            customTitles: {},
+            customTimes: {},
         });
         setNewState("idle");
     };
@@ -959,6 +1093,8 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed, onD
                 affectedProgramIds: safeArr(newDraft.affectedProgramIds),
                 replacements: safeObj(newDraft.replacements),
                 additions: safeObj(newDraft.additions),
+                customTitles: safeObj(newDraft.customTitles),
+                customTimes: safeObj(newDraft.customTimes),
             };
 
             await setDoc(doc(db, "program_overrides", id), data);
@@ -969,6 +1105,7 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed, onD
                 if (!mountedRef.current) return;
                 setShowNew(false);
                 setNewState("idle");
+                openInfoModal("Enregistré", "Le nouveau programme a été enregistré avec succès.");
             }, 900);
         } catch (err) {
             console.error(err);
@@ -994,19 +1131,23 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed, onD
         setSaveStateById((m) => ({ ...m, [key]: "saving" }));
 
         try {
+            const existing = items.find((it) => it.id === key);
+            
             const data = {
                 weekKey,
-                affectedProgramIds: safeArr(draft.affectedProgramIds),
-                replacements: safeObj(draft.replacements),
-                additions: safeObj(draft.additions),
+                affectedProgramIds: safeArr(draft.affectedProgramIds ?? existing?.affectedProgramIds),
+                replacements: safeObj(draft.replacements ?? existing?.replacements),
+                additions: safeObj(draft.additions ?? existing?.additions),
+                customTitles: safeObj(draft.customTitles ?? existing?.customTitles),
+                customTimes: safeObj(draft.customTimes ?? existing?.customTimes),
             };
 
-            // Overwrite full override document so removed nested keys in replacements/additions
-            // are actually deleted in Firestore (merge would keep stale map keys).
+            // Overwrite full override document
             await setDoc(doc(db, "program_overrides", key), data);
 
             if (!mountedRef.current) return;
             setTransientState(key, "saved");
+            openInfoModal("Enregistré", "Les modifications ont été enregistrées avec succès.");
         } catch (err) {
             console.error(err);
             if (!mountedRef.current) return;
@@ -1092,6 +1233,8 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed, onD
                                     onChangeWeekKey={changeWeekKey}
                                     onChangeReplacement={changeReplacement}
                                     onChangeAddition={changeAddition}
+                                    onChangeCustomTitle={changeCustomTitle}
+                                    onChangeCustomTime={changeCustomTime}
                                     onCancel={cancelNew}
                                     onSave={saveNew}
                                 />
@@ -1114,6 +1257,8 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed, onD
                                         onChangeWeekKey={changeWeekKey}
                                         onChangeReplacement={changeReplacement}
                                         onChangeAddition={changeAddition}
+                                        onChangeCustomTitle={changeCustomTitle}
+                                        onChangeCustomTime={changeCustomTime}
                                         onSave={onSave}
                                         onDelete={onDelete}
                                     />
@@ -1135,6 +1280,8 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed, onD
                                         onChangeWeekKey={changeWeekKey}
                                         onChangeReplacement={changeReplacement}
                                         onChangeAddition={changeAddition}
+                                        onChangeCustomTitle={changeCustomTitle}
+                                        onChangeCustomTime={changeCustomTime}
                                         onSave={onSave}
                                         onDelete={onDelete}
                                     />
