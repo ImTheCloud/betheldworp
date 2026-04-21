@@ -231,16 +231,22 @@ export default function Admin() {
 
                     // In local dev this can happen transiently before auth context settles.
                     if (err?.code === "permission-denied") {
-                        setAdminLoading(true);
-                        const delay = Math.min(1000 * (2 ** retryCount), 10000);
-                        retryCount += 1;
-                        retryTimer = setTimeout(() => {
-                            startAdminWatch(true);
-                        }, delay);
+                        if (retryCount < 5) {
+                            setAdminLoading(true);
+                            const delay = Math.min(1000 * (2 ** retryCount), 10000);
+                            retryCount += 1;
+                            retryTimer = setTimeout(() => {
+                                startAdminWatch(true);
+                            }, delay);
+                        } else {
+                            console.warn("Admin check: Permission denied after retries. User is likely not an admin.");
+                            setIsAdmin(false);
+                            setAdminLoading(false);
+                        }
                         return;
                     }
 
-                    console.error(err);
+                    console.error("Admin check error:", err);
                     setIsAdmin(false);
                     setAdminLoading(false);
                 }
