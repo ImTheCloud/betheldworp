@@ -417,6 +417,9 @@ export default function MonthlyVerseAdmin({ onDirtyChange }) {
 
     const historyPagination = usePagination(filteredHistory, 10);
 
+    const currentDirty = !verseEqualTrim(currentDraft, current);
+    const currentSummary = useMemo(() => makeSummary(currentDraft.reference, currentDraft.text), [currentDraft]);
+
     // Report aggregate dirty state to parent
     useEffect(() => {
         if (!onDirtyChange) return;
@@ -547,9 +550,6 @@ export default function MonthlyVerseAdmin({ onDirtyChange }) {
         return () => unsub();
     }, []);
 
-    const currentDirty = !verseEqualTrim(currentDraft, current);
-
-    const currentSummary = useMemo(() => makeSummary(currentDraft.reference, currentDraft.text), [currentDraft]);
 
     const saveCurrent = async () => {
         if (!isVerseValidAllLangs(currentDraft)) {
