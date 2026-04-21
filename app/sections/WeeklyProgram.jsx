@@ -46,7 +46,9 @@ function FAQItem({ question, answer, index, isOpen, onToggle }) {
             >
                 <div className="faq-q-number">{num}</div>
                 <div className="faq-q-text">
-                    <div className="faq-q-header">{question.split(" – ")[0]}</div>
+                    {question.includes(" – ") && question.split(" – ")[0] && (
+                        <div className="faq-q-header">{question.split(" – ")[0]}</div>
+                    )}
                     <div className="faq-q-main">{question.split(" – ")[1] || question}</div>
                 </div>
                 <ChevronIcon open={isOpen} />
