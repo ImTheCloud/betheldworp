@@ -25,10 +25,6 @@ export function PostHogProvider({ children }) {
       person_profiles: 'identified_only',
       capture_pageview: false,
       capture_pageleave: true,
-      session_recording: {
-        maskAllInputs: false, // Changez à true si vous voulez cacher ce que les gens tapent
-        maskAllTextAttributes: false,
-      },
       loaded: (ph) => {
         if (process.env.NODE_ENV === 'development') ph.debug()
       }
