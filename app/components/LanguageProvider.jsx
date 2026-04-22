@@ -31,7 +31,6 @@ export default function LanguageProvider({ children, initialLang = "ro" }) {
         const normalized = normalizeLang(next) || "ro";
         if (normalized === lang) return;
 
-        setLangState(normalized);
         writeCookieLang(normalized);
 
         const search = searchParams?.toString();
@@ -49,6 +48,13 @@ export default function LanguageProvider({ children, initialLang = "ro" }) {
             router.push(`/${normalized}${pathname}${suffix}`, { scroll: false });
         }
     };
+
+    useEffect(() => {
+        const normalized = normalizeLang(initialLang) || "ro";
+        if (normalized !== lang) {
+            setLangState(normalized);
+        }
+    }, [initialLang, lang]);
 
     useEffect(() => {
         if (typeof document !== "undefined") document.documentElement.lang = lang;
