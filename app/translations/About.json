@@ -7,9 +7,9 @@
     "who_p2": "Biblia, Cuvântul lui Dumnezeu, este temelia credinței noastre și ne călăuzește în tot ceea ce facem ca comunitate de credincioși.",
 
     "who_points_intro": "Trăim această credință în mod concret prin:",
-    "who_point1": "stăruința în rugăciune și laudă",
-    "who_point2": "participarea regulată la Casa Domnului",
-    "who_point3": "o viață trăită în conformitate cu Cuvântul lui Dumnezeu",
+    "who_point1": "Stăruința în rugăciune și laudă",
+    "who_point2": "Participarea regulată la Casa Domnului",
+    "who_point3": "O viață trăită în conformitate cu Cuvântul lui Dumnezeu",
 
     "who_goal_label": "Scopul nostru:",
     "who_goal_text": "să fim o lumină pentru cei din jurul nostru, astfel încât, prin viața noastră, ei să-L poată vedea pe Domnul nostru Isus Hristos.",
@@ -19,12 +19,11 @@
     "vision_p2": "Dorim să implicăm activ copiii, tinerii și adulții, fiecare la nivelul său, în slujirea bisericii.",
 
     "vision_points_intro": "Concret, ne dorim:",
-    "vision_point1": "să construim o comunitate primitoare, bazată pe dragoste",
-    "vision_point2": "să încurajăm creșterea spirituală printr-o învățătură biblică sănătoasă",
-    "vision_point3": "să investim în generația tânără, formând copiii și tinerii",
+    "vision_point1": "Să construim o comunitate primitoare, bazată pe dragoste",
+    "vision_point2": "Să încurajăm creșterea spirituală printr-o învățătură biblică sănătoasă",
+    "vision_point3": "Să investim în generația tânără, formând copiii și tinerii",
 
-    "conclusion_title": "În concluzie",
-    "conclusion_text": "Dorim să fim o biserică vie și primitoare, unde fiecare își găsește locul, este susținut și poate crește spiritual, spre slava lui Dumnezeu."
+    "vision_conclusion": "Dorim să fim o biserică vie și primitoare, unde fiecare își găsește locul, este susținut și poate crește spiritual, spre slava lui Dumnezeu."
   },
 
   "fr": {
@@ -35,9 +34,9 @@
     "who_p2": "La Bible, Parole de Dieu, est le fondement de notre foi et nous guide dans tout ce que nous faisons en tant que communauté de croyants.",
 
     "who_points_intro": "Nous vivons concrètement cette foi à travers :",
-    "who_point1": "la persévérance dans la prière et la louange",
-    "who_point2": "la participation régulière à la maison du Seigneur",
-    "who_point3": "une vie conforme à la Parole de Dieu",
+    "who_point1": "La persévérance dans la prière et la louange",
+    "who_point2": "La participation régulière à la maison du Seigneur",
+    "who_point3": "Une vie conforme à la Parole de Dieu",
 
     "who_goal_label": "Notre objectif :",
     "who_goal_text": "être une lumière pour ceux qui nous entourent, afin que, par notre vie, ils puissent voir notre Seigneur Jésus-Christ.",
@@ -47,12 +46,11 @@
     "vision_p2": "Nous désirons impliquer activement les enfants, les jeunes et les adultes, chacun à son niveau, dans le service de l'Église.",
 
     "vision_points_intro": "Concrètement, nous désirons :",
-    "vision_point1": "construire une communauté accueillante fondée sur l’amour",
-    "vision_point2": "encourager la croissance spirituelle par un enseignement biblique sain",
-    "vision_point3": "investir dans la jeune génération en formant les enfants et les jeunes",
+    "vision_point1": "Construire une communauté accueillante fondée sur l’amour",
+    "vision_point2": "Encourager la croissance spirituelle par un enseignement biblique sain",
+    "vision_point3": "Investir dans la jeune génération en formant les enfants et les jeunes",
 
-    "conclusion_title": "En conclusion",
-    "conclusion_text": "Nous désirons être une Église vivante et accueillante, où chacun trouve sa place, est soutenu et peut grandir spirituellement, pour la gloire de Dieu."
+    "vision_conclusion": "Nous désirons être une Église vivante et accueillante, où chacun trouve sa place, est soutenu et peut grandir spirituellement, pour la gloire de Dieu."
   },
 
   "nl": {
@@ -63,9 +61,9 @@
     "who_p2": "De Bijbel, het Woord van God, is het fundament van ons geloof en leidt ons in alles wat wij doen als gemeenschap van gelovigen.",
 
     "who_points_intro": "Wij beleven dit geloof concreet door:",
-    "who_point1": "volharding in gebed en lofprijzing",
-    "who_point2": "regelmatige deelname aan het huis van de Heer",
-    "who_point3": "een leven in overeenstemming met Gods Woord",
+    "who_point1": "Volharding in gebed en lofprijzing",
+    "who_point2": "Regelmatige deelname aan het huis van de Heer",
+    "who_point3": "Een leven in overeenstemming met Gods Woord",
 
     "who_goal_label": "Ons doel:",
     "who_goal_text": "een licht zijn voor de mensen om ons heen, zodat zij door ons leven onze Heer Jezus Christus kunnen zien.",
@@ -75,12 +73,11 @@
     "vision_p2": "Wij willen kinderen, jongeren en volwassenen actief betrekken, ieder op zijn eigen niveau, in de bediening van de kerk.",
 
     "vision_points_intro": "Concreet willen wij:",
-    "vision_point1": "een liefdevolle en gastvrije gemeenschap opbouwen",
-    "vision_point2": "geestelijke groei bevorderen door gezond Bijbels onderwijs",
-    "vision_point3": "investeren in de jonge generatie door kinderen en jongeren te vormen",
+    "vision_point1": "Een liefdevolle en gastvrije gemeenschap opbouwen",
+    "vision_point2": "Geestelijke groei bevorderen door gezond Bijbels onderwijs",
+    "vision_point3": "Investeren in de jonge generatie door kinderen en jongeren te vormen",
 
-    "conclusion_title": "Tot slot",
-    "conclusion_text": "Wij willen een levende en gastvrije kerk zijn waar iedereen zijn plaats vindt, zich gesteund voelt en geestelijk kan groeien, tot eer van God."
+    "vision_conclusion": "Wij willen een levende en gastvrije kerk zijn waar iedereen zijn plaats vindt, zich gesteund voelt en geestelijk kan groeien, tot eer van God."
   },
 
   "en": {
@@ -91,9 +88,9 @@
     "who_p2": "The Bible, the Word of God, is the foundation of our faith and guides us in everything we do as a community of believers.",
 
     "who_points_intro": "We live out this faith in practical ways through:",
-    "who_point1": "perseverance in prayer and worship",
-    "who_point2": "regular participation in the house of the Lord",
-    "who_point3": "a life lived according to the Word of God",
+    "who_point1": "Perseverance in prayer and worship",
+    "who_point2": "Regular participation in the house of the Lord",
+    "who_point3": "A life lived according to the Word of God",
 
     "who_goal_label": "Our goal:",
     "who_goal_text": "to be a light to those around us, so that through our lives they may see our Lord Jesus Christ.",
@@ -103,11 +100,10 @@
     "vision_p2": "We seek to actively involve children, youth and adults, each at their own level, in the ministry of the church.",
 
     "vision_points_intro": "In practical terms, we desire to:",
-    "vision_point1": "build a welcoming community rooted in love",
-    "vision_point2": "encourage spiritual growth through sound biblical teaching",
-    "vision_point3": "invest in the younger generation by shaping children and youth",
+    "vision_point1": "Build a welcoming community rooted in love",
+    "vision_point2": "Encourage spiritual growth through sound biblical teaching",
+    "vision_point3": "Invest in the younger generation by shaping children and youth",
 
-    "conclusion_title": "In conclusion",
-    "conclusion_text": "We desire to be a living and welcoming church where everyone finds their place, is supported and can grow spiritually, to the glory of God."
+    "vision_conclusion": "We desire to be a living and welcoming church where everyone finds their place, is supported and can grow spiritually, to the glory of God."
   }
 }
