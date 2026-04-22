@@ -25,9 +25,7 @@ export default function About() {
 
             <p className="about-paragraph">{t("who_p1")}</p>
 
-            <p className="about-paragraph">{t("who_p2")}</p>
-
-            <p className="about-paragraph">{t("who_points_intro")}</p>
+            <p className="about-paragraph about-paragraph--intro">{t("who_points_intro")}</p>
 
             <ul className="about-list">
               <li>{t("who_point1")}</li>
@@ -49,9 +47,7 @@ export default function About() {
 
             <p className="about-paragraph">{t("vision_p1")}</p>
 
-            <p className="about-paragraph">{t("vision_p2")}</p>
-
-            <p className="about-paragraph">{t("vision_points_intro")}</p>
+            <p className="about-paragraph about-paragraph--intro">{t("vision_points_intro")}</p>
 
             <ul className="about-list">
               <li>{t("vision_point1")}</li>
