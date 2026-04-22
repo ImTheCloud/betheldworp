@@ -169,6 +169,7 @@ export default function ChurchFormFields({
             <label className="adminLabel">
                 <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
                     <span>Name *</span>
+                    <GoogleSearchButton query={`${drafts.name || ""} ${drafts.city || ""} biserica penticostala`} />
                 </div>
                 <FieldDiffWrapper field="name" magicDiff={magicDiff} externalDiffs={syncedFields} onRestore={onRestore} onMagicRevert={revertMagicField}>
                     <input 
@@ -250,7 +251,10 @@ export default function ChurchFormFields({
 
             {/* Row 4: Phone & Email */}
             <label className="adminLabel">
-                <span>Phone</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span>Phone</span>
+                    <GoogleSearchButton query={`${drafts.name || ""} ${drafts.city || ""} phone number`} />
+                </div>
                 <FieldDiffWrapper field="phone" magicDiff={magicDiff} externalDiffs={syncedFields} onRestore={onRestore} onMagicRevert={revertMagicField}>
                     <input 
                         className="adminInput" 
@@ -261,7 +265,10 @@ export default function ChurchFormFields({
                 </FieldDiffWrapper>
             </label>
             <label className="adminLabel">
-                <span>Email</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span>Email</span>
+                    <GoogleSearchButton query={`${drafts.name || ""} ${drafts.city || ""} email`} />
+                </div>
                 <FieldDiffWrapper field="email" magicDiff={magicDiff} externalDiffs={syncedFields} onRestore={onRestore} onMagicRevert={revertMagicField}>
                     <input 
                         className="adminInput" 
@@ -274,7 +281,13 @@ export default function ChurchFormFields({
 
             {/* Row 5: Web & YouTube */}
             <label className="adminLabel">
-                <span>Website</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span>Website</span>
+                    <div style={{ display: "flex", gap: 4 }}>
+                        <GoogleSearchButton query={`${drafts.name || ""} ${drafts.city || ""} website`} />
+                        {drafts.website && <PreviewLinkButton url={drafts.website} />}
+                    </div>
+                </div>
                 <FieldDiffWrapper field="website" magicDiff={magicDiff} externalDiffs={syncedFields} onRestore={onRestore} onMagicRevert={revertMagicField}>
                     <input 
                         className="adminInput" 
@@ -286,7 +299,13 @@ export default function ChurchFormFields({
                 </FieldDiffWrapper>
             </label>
             <label className="adminLabel">
-                <span>YouTube</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span>YouTube</span>
+                    <div style={{ display: "flex", gap: 4 }}>
+                        <GoogleSearchButton query={`${drafts.name || ""} ${drafts.city || ""} youtube`} />
+                        {drafts.youtube && <PreviewLinkButton url={drafts.youtube} />}
+                    </div>
+                </div>
                 <FieldDiffWrapper field="youtube" magicDiff={magicDiff} externalDiffs={syncedFields} onRestore={onRestore} onMagicRevert={revertMagicField}>
                     <input 
                         className="adminInput" 
@@ -300,7 +319,13 @@ export default function ChurchFormFields({
 
             {/* Row 6: Instagram & Facebook */}
             <label className="adminLabel">
-                <span>Instagram</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span>Instagram</span>
+                    <div style={{ display: "flex", gap: 4 }}>
+                        <GoogleSearchButton query={`${drafts.name || ""} ${drafts.city || ""} instagram`} />
+                        {drafts.instagram && <PreviewLinkButton url={drafts.instagram} />}
+                    </div>
+                </div>
                 <FieldDiffWrapper field="instagram" magicDiff={magicDiff} externalDiffs={syncedFields} onRestore={onRestore} onMagicRevert={revertMagicField}>
                     <input 
                         className="adminInput" 
@@ -312,7 +337,13 @@ export default function ChurchFormFields({
                 </FieldDiffWrapper>
             </label>
             <label className="adminLabel">
-                <span>Facebook</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span>Facebook</span>
+                    <div style={{ display: "flex", gap: 4 }}>
+                        <GoogleSearchButton query={`${drafts.name || ""} ${drafts.city || ""} facebook`} />
+                        {drafts.facebook && <PreviewLinkButton url={drafts.facebook} />}
+                    </div>
+                </div>
                 <FieldDiffWrapper field="facebook" magicDiff={magicDiff} externalDiffs={syncedFields} onRestore={onRestore} onMagicRevert={revertMagicField}>
                     <input 
                         className="adminInput" 

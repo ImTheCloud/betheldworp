@@ -148,6 +148,7 @@ export default function EventsCalendar() {
     const [selectedDate, setSelectedDate] = useState(null);
     const [eventIndex, setEventIndex] = useState(0);
     const preventNextScrollRef = useRef(false);
+    const touchStartRef = useRef(null);
 
     const eventsForSelectedDate = useMemo(() => {
         if (!selectedDate) return [];
@@ -410,6 +411,35 @@ export default function EventsCalendar() {
 
     const mapQuery = selectedEvent ? encodeURIComponent([selectedEvent.place, selectedEvent.address].filter(Boolean).join(", ")) : "";
 
+    const handleTouchStart = (e) => {
+        touchStartRef.current = {
+            x: e.touches[0].clientX,
+            y: e.touches[0].clientY,
+        };
+    };
+
+    const handleTouchEnd = (e) => {
+        if (!touchStartRef.current) return;
+        const touchEnd = {
+            x: e.changedTouches[0].clientX,
+            y: e.changedTouches[0].clientY,
+        };
+
+        const dx = touchEnd.x - touchStartRef.current.x;
+        const dy = touchEnd.y - touchStartRef.current.y;
+        touchStartRef.current = null;
+
+        // Threshold of 50px for horizontal swipe
+        // Must be primarily horizontal (dx > dy)
+        if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+            if (dx > 0) {
+                prevEventInList();
+            } else {
+                nextEventInList();
+            }
+        }
+    };
+
 
 
     return (
@@ -489,7 +519,12 @@ export default function EventsCalendar() {
 
             {eventOpen && selectedEvent && (
                 <div className={`ev-overlay ${eventClosing ? "is-closing" : ""}`} onClick={closeEvent}>
-                    <div className={`ev-modal ${eventClosing ? "is-closing" : ""}`} onClick={(e) => e.stopPropagation()}>
+                    <div
+                        className={`ev-modal ${eventClosing ? "is-closing" : ""}`}
+                        onClick={(e) => e.stopPropagation()}
+                        onTouchStart={handleTouchStart}
+                        onTouchEnd={handleTouchEnd}
+                    >
                         <header className="ev-header">
                             <div className="ev-headText">
                                 <h2 className="ev-title">{selectedEvent.title || t("event")}</h2>
