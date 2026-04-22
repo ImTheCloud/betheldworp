@@ -85,3 +85,27 @@ export const GoogleSearchButton = ({ query }) => {
     );
 };
 
+export const PlaceSearchButton = ({ onClick, loading, title = "Find Place ID" }) => {
+    return (
+        <button 
+            type="button"
+            className={`adminLinkSearchBtn ${loading ? "is-spinning" : ""}`}
+            title={title}
+            disabled={loading}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (onClick) onClick(); }}
+            style={{ border: "none", background: "transparent", padding: 0 }}
+        >
+            {loading ? (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ animation: "spin 1s linear infinite" }}>
+                    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                </svg>
+            ) : (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+            )}
+        </button>
+    );
+};
+

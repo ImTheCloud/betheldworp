@@ -206,6 +206,12 @@ export const normalizeText = (text) => {
         .toLowerCase();
 };
 
+export const isMeaningfullyDifferent = (a, b) => {
+    const normA = String(a ?? "").trim().toLowerCase();
+    const normB = String(b ?? "").trim().toLowerCase();
+    return normA !== normB;
+};
+
 export const matchChurchSearch = (c, q) => {
     if (!q) return true;
     const normalizedQuery = normalizeText(q);
@@ -270,10 +276,15 @@ export function parseAddressComponents(components) {
     };
 }
 
-export async function resolveChurchFromTitle(title) {
+export async function resolveChurchFromTitle(title, context = {}) {
     if (!title) return null;
     try {
-        const res = await fetch(`/api/geocode?address=${encodeURIComponent(title)}`);
+        // Build a more specific query by appending country context for disambiguation
+        // e.g. "Biserica penticostală Elim Parma" + ", Romania" → finds Parma Romania, not Parma Italy
+        let query = title;
+        if (context.country) query += `, ${context.country}`;
+
+        const res = await fetch(`/api/geocode?address=${encodeURIComponent(query)}`);
         const data = await res.json();
         
         if (data.error || !data.address_components) return null;
@@ -285,12 +296,26 @@ export async function resolveChurchFromTitle(title) {
         const isEstablishment = data.types.some(t => ["establishment", "point_of_interest", "church", "place_of_worship"].includes(t));
         const isLowConfidence = !isEstablishment;
 
+        // Use the name returned by Google Places if it's an establishment
+        let name = "";
+        if (isEstablishment && data.name) {
+            name = data.name;
+        }
+
         // Try to find a clean name in address components if it's an establishment
-        const est = data.address_components.find(c => c.types.includes("establishment"));
-        let name = est ? est.long_name : "";
+        if (!name) {
+            const est = data.address_components.find(c => c.types.includes("establishment"));
+            name = est ? est.long_name : "";
+        }
 
         if (!name || isLowConfidence) {
+            // Strip "Biserica penticostală" prefix and also strip the city name from the end
             name = title.replace(/Biserica penticostal[a\u0103]/gi, "").trim();
+            // Remove trailing city name if present (e.g. "Elim Parma" → "Elim" when city is "Parma")
+            const city = parsed.city || context.city || "";
+            if (city && name.toLowerCase().endsWith(city.toLowerCase())) {
+                name = name.slice(0, -city.length).trim();
+            }
             if (name) name = name.charAt(0).toUpperCase() + name.slice(1);
         }
 

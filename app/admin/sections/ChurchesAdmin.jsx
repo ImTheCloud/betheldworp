@@ -9,7 +9,7 @@ import ConfirmModal from "../components/ConfirmModal";
 import AdminSearch from "../components/AdminSearch";
 import ChurchFormFields from "../components/ChurchFormFields";
 import { IconPlus, IconTrash, IconChevronDown, IconSave, IconEyeOff, IconEye, IconSync, IconMap, IconSearch } from "../components/ChurchIcons";
-import { safeStr, normalizeText, matchChurchSearch, hasDraftChanges, emptyChurch, COUNTRY_OPTIONS, isMeaningfullyDifferent, geocodeAddress } from "../utils/churchHelpers";
+import { safeStr, normalizeText, matchChurchSearch, hasDraftChanges, emptyChurch, COUNTRY_OPTIONS, isMeaningfullyDifferent, geocodeAddress, resolveChurchFromTitle } from "../utils/churchHelpers";
 import { toggleExpandWithConfirm } from "../utils/adminUI";
 
 const PAGE_SIZE = 10;
@@ -19,6 +19,7 @@ function ChurchCard({ item, expanded, drafts, saveState, onToggle, onChange, onS
     const isDraft = drafts.isDraft || false;
     const [syncedFields, setSyncedFields] = useState({});
     const [syncSuccess, setSyncSuccess] = useState(false);
+    const [placeSearchLoading, setPlaceSearchLoading] = useState(false);
 
     useEffect(() => {
         if (!expanded) {
@@ -34,6 +35,46 @@ function ChurchCard({ item, expanded, drafts, saveState, onToggle, onChange, onS
     }, [saveState]);
 
     const handleSync = null; // Sync function removed
+
+    const handlePlaceSearch = async () => {
+        const title = drafts.locationTitle;
+        if (!title || !title.trim()) return;
+        setPlaceSearchLoading(true);
+        try {
+            const result = await resolveChurchFromTitle(title, { country: drafts.country, city: drafts.city });
+            if (!result) return;
+            const PLACE_FILL_FIELDS = [
+                { key: "place_id", val: result.place_id },
+                { key: "name", val: result.name },
+                { key: "city", val: result.city },
+                { key: "country", val: result.country },
+                { key: "street", val: result.street },
+                { key: "number", val: result.number },
+                { key: "zipCode", val: result.zipCode },
+                { key: "lat", val: result.lat },
+                { key: "lng", val: result.lng },
+            ];
+            const newSynced = {};
+            for (const { key, val } of PLACE_FILL_FIELDS) {
+                const newVal = val != null ? String(val) : "";
+                const oldVal = safeStr(drafts[key]);
+                if (newVal && isMeaningfullyDifferent(oldVal, newVal)) {
+                    newSynced[key] = { old: oldVal };
+                    onChange(id, key, newVal);
+                } else if (newVal && !oldVal) {
+                    // Field was empty, just fill it without diff
+                    onChange(id, key, newVal);
+                }
+            }
+            if (Object.keys(newSynced).length > 0) {
+                setSyncedFields(prev => ({ ...prev, ...newSynced }));
+            }
+        } catch (e) {
+            console.error("Place search error:", e);
+        } finally {
+            setPlaceSearchLoading(false);
+        }
+    };
 
     const handleFieldChange = (field, value) => {
         onChange(id, field, value);
@@ -87,6 +128,8 @@ function ChurchCard({ item, expanded, drafts, saveState, onToggle, onChange, onS
                         syncedFields={syncedFields}
                         onRestore={handleRestore}
                         getHighlightClass={getHighlightClass}
+                        onPlaceSearch={handlePlaceSearch}
+                        placeSearchLoading={placeSearchLoading}
                     />
 
                     <div className="adminMsgActions adminMsgActions--3" style={{ marginTop: "20px" }}>
@@ -134,6 +177,7 @@ function ChurchCard({ item, expanded, drafts, saveState, onToggle, onChange, onS
 function NewChurchCard({ drafts, setDraft, saveState, onCancel, onSave }) {
     const [syncedFields, setSyncedFields] = useState({});
     const [syncSuccess, setSyncSuccess] = useState(false);
+    const [placeSearchLoading, setPlaceSearchLoading] = useState(false);
 
     useEffect(() => {
         if (saveState === "saved") {
@@ -156,6 +200,45 @@ function NewChurchCard({ drafts, setDraft, saveState, onCancel, onSave }) {
 
     const handleSync = null; // Sync function removed
 
+    const handlePlaceSearch = async () => {
+        const title = drafts.locationTitle;
+        if (!title || !title.trim()) return;
+        setPlaceSearchLoading(true);
+        try {
+            const result = await resolveChurchFromTitle(title, { country: drafts.country, city: drafts.city });
+            if (!result) return;
+            const PLACE_FILL_FIELDS = [
+                { key: "place_id", val: result.place_id },
+                { key: "name", val: result.name },
+                { key: "city", val: result.city },
+                { key: "country", val: result.country },
+                { key: "street", val: result.street },
+                { key: "number", val: result.number },
+                { key: "zipCode", val: result.zipCode },
+                { key: "lat", val: result.lat },
+                { key: "lng", val: result.lng },
+            ];
+            const newSynced = {};
+            for (const { key, val } of PLACE_FILL_FIELDS) {
+                const newVal = val != null ? String(val) : "";
+                const oldVal = safeStr(drafts[key]);
+                if (newVal && isMeaningfullyDifferent(oldVal, newVal)) {
+                    newSynced[key] = { old: oldVal };
+                    setDraft(key, newVal);
+                } else if (newVal && !oldVal) {
+                    setDraft(key, newVal);
+                }
+            }
+            if (Object.keys(newSynced).length > 0) {
+                setSyncedFields(prev => ({ ...prev, ...newSynced }));
+            }
+        } catch (e) {
+            console.error("Place search error:", e);
+        } finally {
+            setPlaceSearchLoading(false);
+        }
+    };
+
     return (
         <div className="adminAnnCard is-active">
             <div className="adminAnnHeader"><div className="adminAnnIdChip">New Church</div></div>
@@ -166,6 +249,8 @@ function NewChurchCard({ drafts, setDraft, saveState, onCancel, onSave }) {
                     syncedFields={syncedFields}
                     onRestore={handleRestore}
                     getHighlightClass={getHighlightClass}
+                    onPlaceSearch={handlePlaceSearch}
+                    placeSearchLoading={placeSearchLoading}
                 />
                 <div className="adminMsgActions adminMsgActions--3" style={{ marginTop: "20px" }}>
                     <button type="button" className="adminDeleteBtn" onClick={onCancel} disabled={saveState === "saving"}>Cancel</button>

@@ -2,20 +2,8 @@
 
 import React from "react";
 import { COUNTRY_OPTIONS } from "../utils/churchHelpers";
-import { PreviewLinkButton, GoogleSearchButton } from "./SyncDiffLabel";
+import { PreviewLinkButton, GoogleSearchButton, PlaceSearchButton } from "./SyncDiffLabel";
 import SearchableSelect from "../../components/SearchableSelect";
-
-/**
- * ChurchFormFields — Shared form fields component used by both ChurchCard, NewChurchCard, and Suggestions.
- * 
- * Props:
- *   drafts          - the current field values
- *   onChange         - (field, value) => void
- *   syncedFields    - map of { [field]: { old: string } } for strikethrough diffs
- *   onRestore       - (field, oldValue) => void — restore old value on click
- *   getHighlightClass - (field) => string — returns CSS class for green highlight
- *   disabled         - boolean — disable all fields (for processed suggestions)
- */
     const FieldDiffWrapper = ({ field, externalDiffs = {}, onRestore, children }) => {
         const hasExternal = externalDiffs && Object.prototype.hasOwnProperty.call(externalDiffs, field);
         const oldValue = hasExternal ? externalDiffs[field].old : null;
@@ -41,7 +29,9 @@ export default function ChurchFormFields({
     syncedFields = {},
     onRestore,
     getHighlightClass = () => "",
-    disabled = false
+    disabled = false,
+    onPlaceSearch,
+    placeSearchLoading = false
 }) {
     return (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px 16px" }}>
@@ -51,6 +41,13 @@ export default function ChurchFormFields({
                     <label className="adminLabel" style={{ marginBottom: 0 }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, overflow: "hidden" }}>
                             <span>Title (Search/Sync)</span>
+                            {onPlaceSearch && (
+                                <PlaceSearchButton 
+                                    onClick={onPlaceSearch} 
+                                    loading={placeSearchLoading} 
+                                    title="Find Place ID & auto-fill from Google Places" 
+                                />
+                            )}
                         </div>
                     </label>
                 </div>
@@ -68,7 +65,7 @@ export default function ChurchFormFields({
             <label className="adminLabel">
                 <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
                     <span>Name *</span>
-                    <GoogleSearchButton query={`${drafts.name || ""} ${drafts.city || ""} biserica penticostala`} />
+                    <GoogleSearchButton query={`${drafts.locationTitle || drafts.name || ""} biserica penticostala`} />
                 </div>
                 <FieldDiffWrapper field="name" externalDiffs={syncedFields} onRestore={onRestore}>
                     <input 
@@ -152,7 +149,7 @@ export default function ChurchFormFields({
             <label className="adminLabel">
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <span>Phone</span>
-                    <GoogleSearchButton query={`${drafts.name || ""} ${drafts.city || ""} phone number`} />
+                    <GoogleSearchButton query={`${drafts.locationTitle || drafts.name || ""} phone number`} />
                 </div>
                 <FieldDiffWrapper field="phone" externalDiffs={syncedFields} onRestore={onRestore}>
                     <input 
@@ -166,7 +163,7 @@ export default function ChurchFormFields({
             <label className="adminLabel">
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <span>Email</span>
-                    <GoogleSearchButton query={`${drafts.name || ""} ${drafts.city || ""} email`} />
+                    <GoogleSearchButton query={`${drafts.locationTitle || drafts.name || ""} email`} />
                 </div>
                 <FieldDiffWrapper field="email" externalDiffs={syncedFields} onRestore={onRestore}>
                     <input 
@@ -183,7 +180,7 @@ export default function ChurchFormFields({
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <span>Website</span>
                     <div style={{ display: "flex", gap: 4 }}>
-                        <GoogleSearchButton query={`${drafts.name || ""} ${drafts.city || ""} website`} />
+                        <GoogleSearchButton query={`${drafts.locationTitle || drafts.name || ""} website`} />
                         {drafts.website && <PreviewLinkButton url={drafts.website} />}
                     </div>
                 </div>
@@ -201,7 +198,7 @@ export default function ChurchFormFields({
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <span>YouTube</span>
                     <div style={{ display: "flex", gap: 4 }}>
-                        <GoogleSearchButton query={`${drafts.name || ""} ${drafts.city || ""} youtube`} />
+                        <GoogleSearchButton query={`${drafts.locationTitle || drafts.name || ""} youtube`} />
                         {drafts.youtube && <PreviewLinkButton url={drafts.youtube} />}
                     </div>
                 </div>
@@ -221,7 +218,7 @@ export default function ChurchFormFields({
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <span>Instagram</span>
                     <div style={{ display: "flex", gap: 4 }}>
-                        <GoogleSearchButton query={`${drafts.name || ""} ${drafts.city || ""} instagram`} />
+                        <GoogleSearchButton query={`${drafts.locationTitle || drafts.name || ""} instagram`} />
                         {drafts.instagram && <PreviewLinkButton url={drafts.instagram} />}
                     </div>
                 </div>
@@ -239,7 +236,7 @@ export default function ChurchFormFields({
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <span>Facebook</span>
                     <div style={{ display: "flex", gap: 4 }}>
-                        <GoogleSearchButton query={`${drafts.name || ""} ${drafts.city || ""} facebook`} />
+                        <GoogleSearchButton query={`${drafts.locationTitle || drafts.name || ""} facebook`} />
                         {drafts.facebook && <PreviewLinkButton url={drafts.facebook} />}
                     </div>
                 </div>
