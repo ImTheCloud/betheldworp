@@ -318,7 +318,20 @@ export default function ChurchesAdmin({ onDirtyChange }) {
 
     const startNew = () => { setShowNew(true); setNewDrafts(emptyChurch()); setNewState("idle"); };
     const cancelNew = () => { setShowNew(false); setNewState("idle"); };
-    const setNewField = (key, value) => setNewDrafts(prev => ({ ...prev, [key]: value }));
+    const setNewField = (key, value) => {
+        setNewDrafts(prev => {
+            let next = { ...prev, [key]: value };
+            if (key === "name" || key === "city") {
+                const oldAutoTitle = `Biserica penticostală ${prev.name || ""} ${prev.city || ""}`.trim();
+                const currentTitle = (prev.locationTitle || "").trim();
+                // If title was empty or matched the previous auto-generated formula, update it
+                if (!currentTitle || currentTitle === oldAutoTitle) {
+                    next.locationTitle = `Biserica penticostală ${next.name || ""} ${next.city || ""}`.trim();
+                }
+            }
+            return next;
+        });
+    };
 
     const saveNew = async (forcedDraftStatus = null) => {
         let isDraftValue = forcedDraftStatus !== null ? forcedDraftStatus : (newDrafts.isDraft || false);
@@ -351,7 +364,22 @@ export default function ChurchesAdmin({ onDirtyChange }) {
         } catch (e) { setNewState("error"); }
     };
 
-    const changeDraft = (id, key, value) => { setDraftsById(prev => ({ ...prev, [id]: { ...(prev[id] || items.find(i => i.id === id)), [key]: value } })); };
+    const changeDraft = (id, key, value) => {
+        setDraftsById(prev => {
+            const current = prev[id] || items.find(i => i.id === id) || emptyChurch();
+            let next = { ...current, [key]: value };
+
+            if (key === "name" || key === "city") {
+                const oldAutoTitle = `Biserica penticostală ${current.name || ""} ${current.city || ""}`.trim();
+                const currentTitle = (current.locationTitle || "").trim();
+                // If title was empty or matched the previous auto-generated formula, update it
+                if (!currentTitle || currentTitle === oldAutoTitle) {
+                    next.locationTitle = `Biserica penticostală ${next.name || ""} ${next.city || ""}`.trim();
+                }
+            }
+            return { ...prev, [id]: next };
+        });
+    };
 
     const saveOne = async (id, forcedDraftStatus = null) => {
         const item = items.find(i => i.id === id);

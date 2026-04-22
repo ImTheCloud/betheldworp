@@ -389,7 +389,12 @@ export default function ChurchFormFields({
                     </label>
                 
                     <label className="adminLabel" style={{ gridColumn: "span 2" }}>
-                        <span>Google Place ID</span>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <span>Google Place ID</span>
+                            {drafts.place_id && (
+                                <PreviewLinkButton url={`https://www.google.com/maps/search/?api=1&query=church&query_place_id=${drafts.place_id}`} />
+                            )}
+                        </div>
                         <FieldDiffWrapper field="place_id" magicDiff={magicDiff} externalDiffs={syncedFields} onRestore={onRestore} onMagicRevert={revertMagicField}>
                             <input 
                                 className="adminInput" 
