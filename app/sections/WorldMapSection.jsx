@@ -58,6 +58,14 @@ export default function WorldMapSection() {
 
     const [stats, setStats] = useState({ churches: 0, countries: 0 });
     const [isLoaded, setIsLoaded] = useState(false);
+    const [isMobile, setIsMobile] = useState(null);
+
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+        checkMobile();
+        window.addEventListener("resize", checkMobile);
+        return () => window.removeEventListener("resize", checkMobile);
+    }, []);
 
     useEffect(() => {
         const unsubscribe = onSnapshot(collection(db, "churches"), (snapshot) => {
@@ -113,6 +121,8 @@ export default function WorldMapSection() {
                             <Link
                                 href={`/${lang}/romanian-pentecostal-churches-map`}
                                 className="worldmap-cta"
+                                target={isMobile === false ? "_blank" : undefined}
+                                rel={isMobile === false ? "noopener noreferrer" : undefined}
                                 onClick={() => posthog.capture("church_map_cta_clicked", { lang })}
                             >
                                 {t("cta")}
