@@ -1,86 +1,113 @@
 {
   "ro": {
     "section_title": "Despre noi",
+
     "who_title": "Cine suntem?",
-    "who_p1": "Suntem o comunitate de creștini care Îl urmează pe Isus și doresc să își trăiască credința autentic, în fiecare zi.",
-    "who_p2": "Credem în Dumnezeu Tatăl, Fiul și Duhul Sfânt, iar Isus a venit să ofere fiecăruia o viață nouă și o relație personală cu Dumnezeu. Biblia este baza noastră, călăuzindu-ne în alegeri și în modul în care trăim și creștem.",
-    "who_points_intro": "Concret, trăim acest lucru prin:",
-    "who_point1": "rugăciune și relația cu Dumnezeu",
-    "who_point2": "sprijin și unitate între oameni",
-    "who_point3": "primirea tuturor, fără judecată",
+    "who_p1": "Suntem creștini penticostali. Credem în Dumnezeu Tatăl, Fiul și Duhul Sfânt și mărturisim că Domnul Isus Hristos a murit pe cruce pentru a ne salva, oferindu-ne fiecăruia harul mântuirii.",
+    "who_p2": "Biblia, Cuvântul lui Dumnezeu, este temelia credinței noastre și ne călăuzește în tot ceea ce facem ca comunitate de credincioși.",
+
+    "who_points_intro": "Trăim această credință în mod concret prin:",
+    "who_point1": "stăruința în rugăciune și laudă",
+    "who_point2": "participarea regulată la Casa Domnului",
+    "who_point3": "o viață trăită în conformitate cu Cuvântul lui Dumnezeu",
+
     "who_goal_label": "Scopul nostru:",
-    "who_goal_text": "Să fim aproape de oameni și să facem o diferență reală în viața lor.",
+    "who_goal_text": "să fim o lumină pentru cei din jurul nostru, astfel încât, prin viața noastră, ei să-L poată vedea pe Domnul nostru Isus Hristos.",
+
     "vision_title": "Viziunea noastră",
-    "vision_p1": "Viziunea noastră este să fim o biserică deschisă, care are un impact real și pozitiv în viața oamenilor.",
-    "vision_p2": "Oferim un spațiu primitor și deschis unde oricine poate descoperi credința, poate pune întrebări și poate învăța să trăiască practic, în libertate și fără presiune, reușind să crească sănătos, în propriul său ritm personal.",
+    "vision_p1": "Ne dorim să fim o biserică deschisă, atât fizic, cât și în gândire, un spațiu primitor unde oricine poate descoperi credința noastră, poate pune întrebări și poate învăța să trăiască după Cuvântul Domnului.",
+    "vision_p2": "Dorim să implicăm activ copiii, tinerii și adulții, fiecare la nivelul său, în slujirea bisericii.",
+
     "vision_points_intro": "Concret, ne dorim:",
-    "vision_point1": "să ajutăm oamenii în nevoile lor reale",
-    "vision_point2": "să construim relații sincere și solide",
-    "vision_point3": "să aducem speranță în jurul nostru",
-    "vision_goal_label": "Scopul nostru:",
-    "vision_goal_text": "O biserică primitoare, unde fiecare își găsește locul și se simte susținut."
+    "vision_point1": "să construim o comunitate primitoare, bazată pe dragoste",
+    "vision_point2": "să încurajăm creșterea spirituală printr-o învățătură biblică sănătoasă",
+    "vision_point3": "să investim în generația tânără, formând copiii și tinerii",
+
+    "conclusion_title": "În concluzie",
+    "conclusion_text": "Dorim să fim o biserică vie și primitoare, unde fiecare își găsește locul, este susținut și poate crește spiritual, spre slava lui Dumnezeu."
   },
+
   "fr": {
     "section_title": "À propos",
+
     "who_title": "Qui sommes-nous ?",
-    "who_p1": "Nous sommes une communauté chrétienne qui suit Jésus-Christ et vit sa foi de manière authentique.",
-    "who_p2": "Nous croyons en Dieu, le Père, le Fils et le Saint-Esprit. Jésus est venu offrir à chacun une vie nouvelle et une relation personnelle. La Bible est notre fondement, nous guidant dans nos choix et dans notre façon de vivre et de grandir.",
-    "who_points_intro": "Concrètement, nous vivons cela à travers :",
-    "who_point1": "la prière et la relation avec Dieu",
-    "who_point2": "le soutien et l’unité entre les personnes",
-    "who_point3": "l’accueil de tous, sans jugement",
-    "who_goal_label": "Notre but :",
-    "who_goal_text": "être proches des gens et faire une différence réelle dans leur vie.",
+    "who_p1": "Nous sommes des chrétiens pentecôtistes. Nous croyons en Dieu le Père, le Fils et le Saint-Esprit, et nous confessons que le Seigneur Jésus-Christ est mort sur la croix pour nous sauver, offrant à chacun la grâce du salut.",
+    "who_p2": "La Bible, Parole de Dieu, est le fondement de notre foi et nous guide dans tout ce que nous faisons en tant que communauté de croyants.",
+
+    "who_points_intro": "Nous vivons concrètement cette foi à travers :",
+    "who_point1": "la persévérance dans la prière et la louange",
+    "who_point2": "la participation régulière à la maison du Seigneur",
+    "who_point3": "une vie conforme à la Parole de Dieu",
+
+    "who_goal_label": "Notre objectif :",
+    "who_goal_text": "être une lumière pour ceux qui nous entourent, afin que, par notre vie, ils puissent voir notre Seigneur Jésus-Christ.",
+
     "vision_title": "Notre vision",
-    "vision_p1": "Notre vision est de bâtir une Église accueillante qui puisse avoir un impact réel et positif dans la vie des gens.",
-    "vision_p2": "Nous offrons un lieu simple, authentique et ouvert à tous pour découvrir la foi chrétienne, poser ses questions librement et apprendre à la vivre concrètement, sans aucune pression, afin de grandir sainement à son propre rythme.",
-    "vision_points_intro": "Concrètement, nous voulons :",
-    "vision_point1": "aider les personnes dans leurs besoins réels",
-    "vision_point2": "créer des relations sincères et solides",
-    "vision_point3": "apporter de l’espoir autour de nous",
-    "vision_goal_label": "Notre but :",
-    "vision_goal_text": "être une Église accueillante où chacun trouve sa place et se sent soutenu."
+    "vision_p1": "Nous souhaitons être une Église ouverte, physiquement et dans sa manière de penser, un espace accueillant où chacun peut découvrir notre foi, poser des questions et apprendre à vivre selon la Parole du Seigneur.",
+    "vision_p2": "Nous désirons impliquer activement les enfants, les jeunes et les adultes, chacun à son niveau, dans le service de l'Église.",
+
+    "vision_points_intro": "Concrètement, nous désirons :",
+    "vision_point1": "construire une communauté accueillante fondée sur l’amour",
+    "vision_point2": "encourager la croissance spirituelle par un enseignement biblique sain",
+    "vision_point3": "investir dans la jeune génération en formant les enfants et les jeunes",
+
+    "conclusion_title": "En conclusion",
+    "conclusion_text": "Nous désirons être une Église vivante et accueillante, où chacun trouve sa place, est soutenu et peut grandir spirituellement, pour la gloire de Dieu."
   },
+
   "nl": {
     "section_title": "Over ons",
+
     "who_title": "Wie zijn wij?",
-    "who_p1": "Wij zijn een gemeenschap van christenen die Jezus Christus volgen en hun geloof elke dag puur willen beleven.",
-    "who_p2": "Wij geloven in God de Vader, de Zoon en de Heilige Geest. Jezus kwam om iedereen nieuw leven en een relatie met God te geven. De Bijbel is onze basis en leidt ons in onze keuzes en in de manier waarop we leven en geestelijk groeien.",
-    "who_points_intro": "Concreet leven we dit uit door:",
-    "who_point1": "gebed en relatie met God",
-    "who_point2": "steun en eenheid tussen mensen",
-    "who_point3": "iedereen verwelkomen zonder oordeel",
+    "who_p1": "Wij zijn pinksterchristenen. Wij geloven in God de Vader, de Zoon en de Heilige Geest en belijden dat de Heer Jezus Christus aan het kruis is gestorven om ons te redden en ieder van ons de genade van het heil te schenken.",
+    "who_p2": "De Bijbel, het Woord van God, is het fundament van ons geloof en leidt ons in alles wat wij doen als gemeenschap van gelovigen.",
+
+    "who_points_intro": "Wij beleven dit geloof concreet door:",
+    "who_point1": "volharding in gebed en lofprijzing",
+    "who_point2": "regelmatige deelname aan het huis van de Heer",
+    "who_point3": "een leven in overeenstemming met Gods Woord",
+
     "who_goal_label": "Ons doel:",
-    "who_goal_text": "Dicht bij mensen staan en een echt verschil maken in hun leven.",
+    "who_goal_text": "een licht zijn voor de mensen om ons heen, zodat zij door ons leven onze Heer Jezus Christus kunnen zien.",
+
     "vision_title": "Onze visie",
-    "vision_p1": "Onze visie is om een warme kerk te zijn die een echte en positieve impact heeft op het dagelijks leven van mensen.",
-    "vision_p2": "Wij bieden een eenvoudige en open plek waar iedereen in alle vrijheid en zonder druk het christelijk geloof kan ontdekken, vragen kan stellen en kan leren dit concreet te beleven, om zo op een gezonde manier te groeien.",
-    "vision_points_intro": "Concreet willen we:",
-    "vision_point1": "mensen helpen in hun echte noden",
-    "vision_point2": "oprechte en sterke relaties opbouwen",
-    "vision_point3": "hoop brengen in onze omgeving",
-    "vision_goal_label": "Ons doel:",
-    "vision_goal_text": "Een gastvrije kerk zijn waar iedereen zich welkom en gesteund voelt."
+    "vision_p1": "Wij willen een open kerk zijn, zowel fysiek als in denken, een warme plek waar iedereen ons geloof kan ontdekken, vragen kan stellen en kan leren leven volgens Gods Woord.",
+    "vision_p2": "Wij willen kinderen, jongeren en volwassenen actief betrekken, ieder op zijn eigen niveau, in de bediening van de kerk.",
+
+    "vision_points_intro": "Concreet willen wij:",
+    "vision_point1": "een liefdevolle en gastvrije gemeenschap opbouwen",
+    "vision_point2": "geestelijke groei bevorderen door gezond Bijbels onderwijs",
+    "vision_point3": "investeren in de jonge generatie door kinderen en jongeren te vormen",
+
+    "conclusion_title": "Tot slot",
+    "conclusion_text": "Wij willen een levende en gastvrije kerk zijn waar iedereen zijn plaats vindt, zich gesteund voelt en geestelijk kan groeien, tot eer van God."
   },
+
   "en": {
     "section_title": "About us",
+
     "who_title": "Who are we?",
-    "who_p1": "We are a community of Christians who follow Jesus Christ and desire to live out our faith authentically every day.",
-    "who_p2": "We believe in God the Father, the Son, and the Holy Spirit. Jesus came to give each person a new life and a personal relationship with God. The Bible is our foundation, guiding our choices and the way we live and grow together.",
-    "who_points_intro": "In practical terms, we live this through:",
-    "who_point1": "prayer and relationship with God",
-    "who_point2": "support and unity among people",
-    "who_point3": "welcoming everyone without judgment",
+    "who_p1": "We are Pentecostal Christians. We believe in God the Father, the Son and the Holy Spirit, and we confess that the Lord Jesus Christ died on the cross to save us, offering each of us the grace of salvation.",
+    "who_p2": "The Bible, the Word of God, is the foundation of our faith and guides us in everything we do as a community of believers.",
+
+    "who_points_intro": "We live out this faith in practical ways through:",
+    "who_point1": "perseverance in prayer and worship",
+    "who_point2": "regular participation in the house of the Lord",
+    "who_point3": "a life lived according to the Word of God",
+
     "who_goal_label": "Our goal:",
-    "who_goal_text": "to stay close to people and make a real difference in their lives.",
+    "who_goal_text": "to be a light to those around us, so that through our lives they may see our Lord Jesus Christ.",
+
     "vision_title": "Our vision",
-    "vision_p1": "Our vision is to be a welcoming church that has a real and positive impact on people’s lives in our community.",
-    "vision_p2": "We offer a simple, open and friendly space to discover the Christian faith, ask questions, and learn to live it out practically, freely and without any pressure, allowing everyone to grow healthily at their own natural pace.",
-    "vision_points_intro": "In practical terms, we want to:",
-    "vision_point1": "help people with their real needs",
-    "vision_point2": "build sincere and strong relationships",
-    "vision_point3": "bring hope to the people around us",
-    "vision_goal_label": "Our goal:",
-    "vision_goal_text": "be a welcoming church where all find their place and feel supported."
+    "vision_p1": "We desire to be an open church, both physically and in mindset, a welcoming space where anyone can discover our faith, ask questions and learn to live according to the Word of the Lord.",
+    "vision_p2": "We seek to actively involve children, youth and adults, each at their own level, in the ministry of the church.",
+
+    "vision_points_intro": "In practical terms, we desire to:",
+    "vision_point1": "build a welcoming community rooted in love",
+    "vision_point2": "encourage spiritual growth through sound biblical teaching",
+    "vision_point3": "invest in the younger generation by shaping children and youth",
+
+    "conclusion_title": "In conclusion",
+    "conclusion_text": "We desire to be a living and welcoming church where everyone finds their place, is supported and can grow spiritually, to the glory of God."
   }
 }
