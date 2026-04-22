@@ -24,9 +24,11 @@ export default function About() {
             <h3 className="about-card-title">{t("who_title")}</h3>
 
             <p className="about-paragraph">{t("who_p1")}</p>
+
             <p className="about-paragraph">{t("who_p2")}</p>
 
             <p className="about-paragraph">{t("who_points_intro")}</p>
+
             <ul className="about-list">
               <li>{t("who_point1")}</li>
               <li>{t("who_point2")}</li>
@@ -46,23 +48,24 @@ export default function About() {
             <h3 className="about-card-title">{t("vision_title")}</h3>
 
             <p className="about-paragraph">{t("vision_p1")}</p>
+
             <p className="about-paragraph">{t("vision_p2")}</p>
 
             <p className="about-paragraph">{t("vision_points_intro")}</p>
+
             <ul className="about-list">
               <li>{t("vision_point1")}</li>
               <li>{t("vision_point2")}</li>
               <li>{t("vision_point3")}</li>
             </ul>
+
+            {/* CONCLUSION INSIDE VISION */}
+            <p className="about-goal about-goal--conclusion">
+              <strong>{t("vision_conclusion")}</strong>
+            </p>
           </article>
-        </div>
 
-        {/* CONCLUSION */}
-        <div className="about-conclusion">
-          <h3>{t("conclusion_title")}</h3>
-          <p>{t("conclusion_text")}</p>
         </div>
-
       </div>
     </section>
   );
