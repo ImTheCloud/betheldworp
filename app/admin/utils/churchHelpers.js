@@ -300,6 +300,9 @@ export async function resolveChurchFromTitle(title) {
             lat: data.lat,
             lng: data.lng,
             place_id: data.place_id,
+            phone: data.phone || "",
+            website: data.website || "",
+            googleMapsUri: data.googleMapsUri || "",
             locationTitle: title,
             isLowConfidence
         };

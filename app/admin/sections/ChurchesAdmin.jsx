@@ -322,11 +322,16 @@ export default function ChurchesAdmin({ onDirtyChange }) {
         setNewDrafts(prev => {
             let next = { ...prev, [key]: value };
             if (key === "name" || key === "city") {
-                const oldAutoTitle = `Biserica penticostală ${prev.name || ""} ${prev.city || ""}`.trim();
+                const n = (next.name || "").trim();
+                const c = (next.city || "").trim();
+                const oldN = (prev.name || "").trim();
+                const oldC = (prev.city || "").trim();
+                
+                const oldAutoTitle = `Biserica penticostală ${oldN}${oldC && !oldN.toLowerCase().includes(oldC.toLowerCase()) ? ` ${oldC}` : ""}`.trim();
                 const currentTitle = (prev.locationTitle || "").trim();
-                // If title was empty or matched the previous auto-generated formula, update it
+
                 if (!currentTitle || currentTitle === oldAutoTitle) {
-                    next.locationTitle = `Biserica penticostală ${next.name || ""} ${next.city || ""}`.trim();
+                    next.locationTitle = `Biserica penticostală ${n}${c && !n.toLowerCase().includes(c.toLowerCase()) ? ` ${c}` : ""}`.trim();
                 }
             }
             return next;
@@ -370,11 +375,16 @@ export default function ChurchesAdmin({ onDirtyChange }) {
             let next = { ...current, [key]: value };
 
             if (key === "name" || key === "city") {
-                const oldAutoTitle = `Biserica penticostală ${current.name || ""} ${current.city || ""}`.trim();
+                const n = (next.name || "").trim();
+                const c = (next.city || "").trim();
+                const oldN = (current.name || "").trim();
+                const oldC = (current.city || "").trim();
+
+                const oldAutoTitle = `Biserica penticostală ${oldN}${oldC && !oldN.toLowerCase().includes(oldC.toLowerCase()) ? ` ${oldC}` : ""}`.trim();
                 const currentTitle = (current.locationTitle || "").trim();
-                // If title was empty or matched the previous auto-generated formula, update it
+
                 if (!currentTitle || currentTitle === oldAutoTitle) {
-                    next.locationTitle = `Biserica penticostală ${next.name || ""} ${next.city || ""}`.trim();
+                    next.locationTitle = `Biserica penticostală ${n}${c && !n.toLowerCase().includes(c.toLowerCase()) ? ` ${c}` : ""}`.trim();
                 }
             }
             return { ...prev, [id]: next };

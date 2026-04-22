@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useRef } from "react";
-import { COUNTRY_OPTIONS, resolveChurchFromTitle } from "../utils/churchHelpers";
-import { IconMap, IconMagic } from "./ChurchIcons";
-import { SyncDiffLabel, PreviewLinkButton, GoogleSearchButton } from "./SyncDiffLabel";
+import React from "react";
+import { COUNTRY_OPTIONS } from "../utils/churchHelpers";
+import { PreviewLinkButton, GoogleSearchButton } from "./SyncDiffLabel";
 import SearchableSelect from "../../components/SearchableSelect";
 
 /**
@@ -17,22 +16,17 @@ import SearchableSelect from "../../components/SearchableSelect";
  *   getHighlightClass - (field) => string — returns CSS class for green highlight
  *   disabled         - boolean — disable all fields (for processed suggestions)
  */
-    const FieldDiffWrapper = ({ field, magicDiff = {}, externalDiffs = {}, onRestore, onMagicRevert, children }) => {
-        const hasMagic = Object.prototype.hasOwnProperty.call(magicDiff, field);
+    const FieldDiffWrapper = ({ field, externalDiffs = {}, onRestore, children }) => {
         const hasExternal = externalDiffs && Object.prototype.hasOwnProperty.call(externalDiffs, field);
-        const hasDiff = hasMagic || hasExternal;
-        
-        // Priority to magic diff if both exist
-        const oldValue = hasMagic ? magicDiff[field] : (hasExternal ? externalDiffs[field].old : null);
-        const handleRevert = hasMagic ? () => onMagicRevert(field) : (hasExternal ? () => onRestore(field, oldValue) : null);
+        const oldValue = hasExternal ? externalDiffs[field].old : null;
 
         return (
             <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
                 {React.cloneElement(children, {
-                    className: `${children.props.className || ""} ${hasDiff ? "is-magic-new" : ""}`.trim()
+                    className: `${children.props.className || ""} ${hasExternal ? "is-magic-new" : ""}`.trim()
                 })}
-                {hasDiff && (oldValue !== undefined && oldValue !== null) && (
-                    <div className="adminMagicOldValue" onClick={handleRevert} title="Click to undo">
+                {hasExternal && (oldValue !== undefined && oldValue !== null) && (
+                    <div className="adminMagicOldValue" onClick={() => onRestore(field, oldValue)} title="Click to undo">
                         <span>Original: {oldValue || "(empty)"}</span>
                         <div className="adminRevertIcon">Undo ↺</div>
                     </div>
@@ -49,85 +43,6 @@ export default function ChurchFormFields({
     getHighlightClass = () => "",
     disabled = false
 }) {
-    const [isResolving, setIsResolving] = React.useState(false);
-    const [magicDiff, setMagicDiff] = React.useState({});
-    const searchQuery = `Biserica penticostală ${drafts.name || ""} ${drafts.city || ""}`.trim();
-
-    const revertMagicField = (field) => {
-        const oldValue = magicDiff[field];
-        if (oldValue !== undefined) {
-            onChange(field, oldValue);
-            setMagicDiff(prev => {
-                const next = { ...prev };
-                delete next[field];
-                return next;
-            });
-        }
-    };
-
-
-    const ModifiedBadge = ({ label }) => (
-        <span style={{
-            fontSize: 9,
-            fontWeight: 800,
-            color: "#065f46",
-            backgroundColor: "#d1fae5",
-            padding: "2px 6px",
-            borderRadius: 4,
-            textTransform: "uppercase",
-            letterSpacing: "0.5px",
-            marginLeft: 8,
-            border: "1px solid #a7f3d0",
-            whiteSpace: "nowrap"
-        }}>
-            {label || "Modified"}
-        </span>
-    );
-
-    const handleMagicFill = async () => {
-        let query = (drafts.locationTitle || "").trim();
-        if (!query) {
-            // Fallback to name + city if title is empty
-            query = `${drafts.name || ""} ${drafts.city || ""}`.trim();
-        }
-        if (!query) return;
-
-        // Ensure denominator is in query for better precision
-        if (!query.toLowerCase().includes("biserica") && !query.toLowerCase().includes("penticostal")) {
-            query = `Biserica penticostală ${query}`;
-        }
-
-        setIsResolving(true);
-        const resolved = await resolveChurchFromTitle(query);
-        setIsResolving(false);
-
-        if (resolved) {
-            const newDiff = {};
-            // Bulk update all fields
-            Object.keys(resolved).forEach(key => {
-                if (key === "isLowConfidence") return; // Internal flag
-
-                const newValue = resolved[key];
-                const oldValue = drafts[key];
-                
-                // SAFETY: If result is a city center (low confidence), 
-                // do NOT overwrite existing coordinates/Place ID.
-                if (resolved.isLowConfidence && (key === "lat" || key === "lng" || key === "place_id")) {
-                    if (oldValue && String(oldValue).trim() !== "0" && String(oldValue).trim() !== "") {
-                        return; // Protect existing manual coordinates
-                    }
-                }
-
-                if (newValue && newValue !== (oldValue ?? "")) {
-                    onChange(key, newValue);
-                    // Always track diff if newValue is different, even if oldValue was empty
-                    newDiff[key] = oldValue ?? "";
-                }
-            });
-            setMagicDiff(newDiff);
-        }
-    };
-
     return (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px 16px" }}>
             {/* Row 0: Location Title (Directions) */}
@@ -136,26 +51,10 @@ export default function ChurchFormFields({
                     <label className="adminLabel" style={{ marginBottom: 0 }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, overflow: "hidden" }}>
                             <span>Title (Search/Sync)</span>
-                            <div style={{ display: "flex", gap: 4 }}>
-                                <button 
-                                    type="button" 
-                                    className="adminLinkSearchBtn"
-                                    title="Magic Fill everything from Title"
-                                    onClick={handleMagicFill}
-                                    disabled={isResolving || !drafts.locationTitle?.trim()}
-                                    style={{ padding: 0, background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center" }}
-                                >
-                                    {isResolving ? (
-                                        <div className="adminSpinner" style={{ width: 12, height: 12, borderWidth: 2, margin: 0 }} />
-                                    ) : (
-                                        <IconMagic />
-                                    )}
-                                </button>
-                            </div>
                         </div>
                     </label>
                 </div>
-                <FieldDiffWrapper field="locationTitle" magicDiff={magicDiff} externalDiffs={syncedFields} onRestore={onRestore} onMagicRevert={revertMagicField}>
+                <FieldDiffWrapper field="locationTitle" externalDiffs={syncedFields} onRestore={onRestore}>
                     <input 
                         className="adminInput" 
                         value={drafts.locationTitle ?? ""} 
@@ -171,7 +70,7 @@ export default function ChurchFormFields({
                     <span>Name *</span>
                     <GoogleSearchButton query={`${drafts.name || ""} ${drafts.city || ""} biserica penticostala`} />
                 </div>
-                <FieldDiffWrapper field="name" magicDiff={magicDiff} externalDiffs={syncedFields} onRestore={onRestore} onMagicRevert={revertMagicField}>
+                <FieldDiffWrapper field="name" externalDiffs={syncedFields} onRestore={onRestore}>
                     <input 
                         className="adminInput" 
                         value={drafts.name ?? ""} 
@@ -184,7 +83,7 @@ export default function ChurchFormFields({
                 <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
                     <span>City / Locality *</span>
                 </div>
-                <FieldDiffWrapper field="city" magicDiff={magicDiff} externalDiffs={syncedFields} onRestore={onRestore} onMagicRevert={revertMagicField}>
+                <FieldDiffWrapper field="city" externalDiffs={syncedFields} onRestore={onRestore}>
                     <input 
                         className="adminInput" 
                         value={drafts.city ?? ""} 
@@ -199,7 +98,7 @@ export default function ChurchFormFields({
                 <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
                     <span>Country</span>
                 </div>
-                <FieldDiffWrapper field="country" magicDiff={magicDiff} externalDiffs={syncedFields} onRestore={onRestore} onMagicRevert={revertMagicField}>
+                <FieldDiffWrapper field="country" externalDiffs={syncedFields} onRestore={onRestore}>
                     <SearchableSelect
                         value={drafts.country ?? ""}
                         options={COUNTRY_OPTIONS}
@@ -213,7 +112,7 @@ export default function ChurchFormFields({
                 <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, overflow: "hidden" }}>
                     <span>Postal Code</span>
                 </div>
-                <FieldDiffWrapper field="zipCode" magicDiff={magicDiff} externalDiffs={syncedFields} onRestore={onRestore} onMagicRevert={revertMagicField}>
+                <FieldDiffWrapper field="zipCode" externalDiffs={syncedFields} onRestore={onRestore}>
                     <input 
                         className="adminInput" 
                         value={drafts.zipCode ?? ""} 
@@ -227,7 +126,7 @@ export default function ChurchFormFields({
             <div style={{ gridColumn: "span 2", display: "flex", gap: "12px" }}>
                 <label className="adminLabel" style={{ flex: 3 }}>
                     <span>Street</span>
-                    <FieldDiffWrapper field="street" magicDiff={magicDiff} externalDiffs={syncedFields} onRestore={onRestore} onMagicRevert={revertMagicField}>
+                    <FieldDiffWrapper field="street" externalDiffs={syncedFields} onRestore={onRestore}>
                         <input 
                             className="adminInput" 
                             value={drafts.street ?? ""} 
@@ -238,7 +137,7 @@ export default function ChurchFormFields({
                 </label>
                 <label className="adminLabel" style={{ flex: 1 }}>
                     <span>No.</span>
-                    <FieldDiffWrapper field="number" magicDiff={magicDiff} externalDiffs={syncedFields} onRestore={onRestore} onMagicRevert={revertMagicField}>
+                    <FieldDiffWrapper field="number" externalDiffs={syncedFields} onRestore={onRestore}>
                         <input 
                             className="adminInput" 
                             value={drafts.number ?? ""} 
@@ -255,7 +154,7 @@ export default function ChurchFormFields({
                     <span>Phone</span>
                     <GoogleSearchButton query={`${drafts.name || ""} ${drafts.city || ""} phone number`} />
                 </div>
-                <FieldDiffWrapper field="phone" magicDiff={magicDiff} externalDiffs={syncedFields} onRestore={onRestore} onMagicRevert={revertMagicField}>
+                <FieldDiffWrapper field="phone" externalDiffs={syncedFields} onRestore={onRestore}>
                     <input 
                         className="adminInput" 
                         value={drafts.phone ?? ""} 
@@ -269,7 +168,7 @@ export default function ChurchFormFields({
                     <span>Email</span>
                     <GoogleSearchButton query={`${drafts.name || ""} ${drafts.city || ""} email`} />
                 </div>
-                <FieldDiffWrapper field="email" magicDiff={magicDiff} externalDiffs={syncedFields} onRestore={onRestore} onMagicRevert={revertMagicField}>
+                <FieldDiffWrapper field="email" externalDiffs={syncedFields} onRestore={onRestore}>
                     <input 
                         className="adminInput" 
                         value={drafts.email ?? ""} 
@@ -288,7 +187,7 @@ export default function ChurchFormFields({
                         {drafts.website && <PreviewLinkButton url={drafts.website} />}
                     </div>
                 </div>
-                <FieldDiffWrapper field="website" magicDiff={magicDiff} externalDiffs={syncedFields} onRestore={onRestore} onMagicRevert={revertMagicField}>
+                <FieldDiffWrapper field="website" externalDiffs={syncedFields} onRestore={onRestore}>
                     <input 
                         className="adminInput" 
                         placeholder="https://..." 
@@ -306,7 +205,7 @@ export default function ChurchFormFields({
                         {drafts.youtube && <PreviewLinkButton url={drafts.youtube} />}
                     </div>
                 </div>
-                <FieldDiffWrapper field="youtube" magicDiff={magicDiff} externalDiffs={syncedFields} onRestore={onRestore} onMagicRevert={revertMagicField}>
+                <FieldDiffWrapper field="youtube" externalDiffs={syncedFields} onRestore={onRestore}>
                     <input 
                         className="adminInput" 
                         placeholder="https://youtube.com/..." 
@@ -326,7 +225,7 @@ export default function ChurchFormFields({
                         {drafts.instagram && <PreviewLinkButton url={drafts.instagram} />}
                     </div>
                 </div>
-                <FieldDiffWrapper field="instagram" magicDiff={magicDiff} externalDiffs={syncedFields} onRestore={onRestore} onMagicRevert={revertMagicField}>
+                <FieldDiffWrapper field="instagram" externalDiffs={syncedFields} onRestore={onRestore}>
                     <input 
                         className="adminInput" 
                         placeholder="instagram.com/..." 
@@ -344,7 +243,7 @@ export default function ChurchFormFields({
                         {drafts.facebook && <PreviewLinkButton url={drafts.facebook} />}
                     </div>
                 </div>
-                <FieldDiffWrapper field="facebook" magicDiff={magicDiff} externalDiffs={syncedFields} onRestore={onRestore} onMagicRevert={revertMagicField}>
+                <FieldDiffWrapper field="facebook" externalDiffs={syncedFields} onRestore={onRestore}>
                     <input 
                         className="adminInput" 
                         placeholder="facebook.com/..." 
@@ -363,7 +262,7 @@ export default function ChurchFormFields({
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px 16px" }}>
                     <label className="adminLabel">
                         <span>Latitude</span>
-                        <FieldDiffWrapper field="lat" magicDiff={magicDiff} externalDiffs={syncedFields} onRestore={onRestore} onMagicRevert={revertMagicField}>
+                        <FieldDiffWrapper field="lat" externalDiffs={syncedFields} onRestore={onRestore}>
                             <input 
                                 className="adminInput" 
                                 type="number" 
@@ -376,7 +275,7 @@ export default function ChurchFormFields({
                     </label>
                     <label className="adminLabel">
                         <span>Longitude</span>
-                        <FieldDiffWrapper field="lng" magicDiff={magicDiff} externalDiffs={syncedFields} onRestore={onRestore} onMagicRevert={revertMagicField}>
+                        <FieldDiffWrapper field="lng" externalDiffs={syncedFields} onRestore={onRestore}>
                             <input 
                                 className="adminInput" 
                                 type="number" 
@@ -395,7 +294,7 @@ export default function ChurchFormFields({
                                 <PreviewLinkButton url={`https://www.google.com/maps/search/?api=1&query=church&query_place_id=${drafts.place_id}`} />
                             )}
                         </div>
-                        <FieldDiffWrapper field="place_id" magicDiff={magicDiff} externalDiffs={syncedFields} onRestore={onRestore} onMagicRevert={revertMagicField}>
+                        <FieldDiffWrapper field="place_id" externalDiffs={syncedFields} onRestore={onRestore}>
                             <input 
                                 className="adminInput" 
                                 value={drafts.place_id ?? ""} 
