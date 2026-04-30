@@ -342,9 +342,10 @@ export default function NewsletterAdmin({ onDirtyChange }) {
                         const data = d.data() || {};
                         let createdAtText = "";
                         let createdAtMs = 0;
-                        if (data.createdAt) {
+                        const timestampField = data.createdAt || data.subscribedAt;
+                        if (timestampField) {
                             try {
-                                const dObj = data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt);
+                                const dObj = timestampField.toDate ? timestampField.toDate() : new Date(timestampField);
                                 createdAtText = dObj.toLocaleDateString("en-US", { year: 'numeric', month: 'long', day: 'numeric' });
                                 createdAtMs = dObj.getTime();
                             } catch (e) {
@@ -437,7 +438,7 @@ export default function NewsletterAdmin({ onDirtyChange }) {
             const ref = doc(db, "newsletter", clean);
             const snap = await getDoc(ref);
             const prev = snap.exists() ? snap.data() || {} : {};
-            const createdAt = prev.createdAt || serverTimestamp();
+            const createdAt = prev.createdAt || prev.subscribedAt || serverTimestamp();
 
             await setDoc(
                 ref,
@@ -517,7 +518,7 @@ export default function NewsletterAdmin({ onDirtyChange }) {
             const oldRef = doc(db, "newsletter", key);
             const oldSnap = await getDoc(oldRef);
             const oldData = oldSnap.exists() ? oldSnap.data() || {} : {};
-            const createdAt = oldData.createdAt || serverTimestamp();
+            const createdAt = oldData.createdAt || oldData.subscribedAt || serverTimestamp();
 
             await setDoc(
                 doc(db, "newsletter", clean),
