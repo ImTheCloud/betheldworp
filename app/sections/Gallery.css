@@ -285,7 +285,7 @@
     gap: 16px;
     padding: 20px 24px;
     border-radius: 20px;
-    background: #ffffff;
+    background: linear-gradient(180deg, rgba(10, 42, 67, 0.03) 0%, rgba(10, 42, 67, 0.01) 100%);
     border: 1px solid rgba(10, 42, 67, 0.15);
     text-decoration: none;
     color: #0a2a43;
