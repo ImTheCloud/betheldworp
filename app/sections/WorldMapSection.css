@@ -42,8 +42,8 @@
 .worldmap-banner {
     position: relative;
     border-radius: 28px;
-    background: linear-gradient(160deg, rgba(22, 70, 120, 0.09) 0%, rgba(22, 70, 120, 0.02) 100%);
-    border: 1px solid rgba(10, 42, 67, 0.08);
+    background: linear-gradient(180deg, rgba(10, 42, 67, 0.03) 0%, rgba(10, 42, 67, 0.01) 100%);
+    border: 1px solid rgba(10, 42, 67, 0.15);
     padding: 48px 56px;
     margin-bottom: 50px;
     overflow: hidden;
@@ -111,8 +111,8 @@
 .worldmap-stat {
     border-radius: 16px;
     padding: 20px 16px;
-    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-    border: 1px solid rgba(10, 42, 67, 0.08);
+    background: linear-gradient(180deg, rgba(10, 42, 67, 0.03) 0%, rgba(10, 42, 67, 0.01) 100%);
+    border: 1px solid rgba(10, 42, 67, 0.15);
     display: flex;
     flex-direction: column;
     align-items: center;

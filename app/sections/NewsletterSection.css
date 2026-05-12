@@ -17,8 +17,8 @@
 .nl-card {
     position: relative;
     border-radius: 28px;
-    background: #ffffff;
-    border: 1px solid rgba(10, 42, 67, 0.08);
+    background: linear-gradient(180deg, rgba(10, 42, 67, 0.03) 0%, rgba(10, 42, 67, 0.01) 100%);
+    border: 1px solid rgba(10, 42, 67, 0.15);
     padding: 42px 48px;
     text-align: center;
 }
@@ -59,7 +59,7 @@
     min-width: 34px;
     padding: 0 12px;
     border-radius: 999px;
-    border: 1px solid rgba(10, 42, 67, 0.08);
+    border: 1px solid rgba(10, 42, 67, 0.15);
     background: rgba(10, 42, 67, 0.04);
     color: rgba(10, 42, 67, 0.6);
     cursor: pointer;
@@ -73,7 +73,7 @@
 
 .nl-share-btn:hover {
     transform: scale(1.04);
-    background: rgba(10, 42, 67, 0.08);
+    background: rgba(10, 42, 67, 0.15);
     color: #0a2a43;
 }
 

@@ -43,7 +43,8 @@
     position: relative;
     padding: 48px 56px;
     border-radius: 28px;
-    background: #ffffff;
+    background: linear-gradient(180deg, rgba(10, 42, 67, 0.03) 0%, rgba(10, 42, 67, 0.01) 100%);
+    border: 1px solid rgba(10, 42, 67, 0.15);
     margin-bottom: 50px;
 }
 
@@ -126,9 +127,9 @@
 .don-type-card {
     position: relative;
     padding: 24px 26px;
-    background: #ffffff;
+    background: linear-gradient(180deg, rgba(10, 42, 67, 0.03) 0%, rgba(10, 42, 67, 0.01) 100%);
     border-radius: 16px;
-    border: 2px solid rgba(10, 42, 67, 0.08);
+    border: 2px solid rgba(10, 42, 67, 0.15);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     overflow: hidden;
     display: flex;

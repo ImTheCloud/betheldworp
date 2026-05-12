@@ -46,14 +46,15 @@
     gap: 0;
     border-radius: 28px;
     background: #ffffff;
+    border: 1px solid rgba(10, 42, 67, 0.15);
     overflow: hidden;
     margin-bottom: 50px;
 }
 
 .location-info-wrapper {
     padding: 48px 56px;
-    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-    border-bottom: 1px solid rgba(10, 42, 67, 0.08);
+    background: linear-gradient(180deg, rgba(10, 42, 67, 0.03) 0%, rgba(10, 42, 67, 0.01) 100%);
+    border-bottom: 1px solid rgba(10, 42, 67, 0.15);
 }
 
 .location-label {
