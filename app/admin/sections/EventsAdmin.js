@@ -720,25 +720,34 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
             return;
         }
 
-        setNewState("saving");
+        setModal({
+            isOpen: true,
+            title: "Confirm New Event",
+            message: "Are you sure you want to save this new event?",
+            variant: "primary",
+            onConfirm: async () => {
+                setModal(m => ({ ...m, isOpen: false }));
+                setNewState("saving");
 
-        try {
-            const ref = doc(collection(db, "events"));
-            await setDoc(ref, d);
+                try {
+                    const ref = doc(collection(db, "events"));
+                    await setDoc(ref, d);
 
-            if (!mountedRef.current) return;
-            setNewState("saved");
-            setTimeout(() => {
-                if (!mountedRef.current) return;
-                setShowNew(false);
-                setNewState("idle");
-            }, 900);
-        } catch (err) {
-            console.error(err);
-            if (!mountedRef.current) return;
-            setNewState("error");
-            openInfoModal("Save Error", "Could not save event.");
-        }
+                    if (!mountedRef.current) return;
+                    setNewState("saved");
+                    setTimeout(() => {
+                        if (!mountedRef.current) return;
+                        setShowNew(false);
+                        setNewState("idle");
+                    }, 900);
+                } catch (err) {
+                    console.error(err);
+                    if (!mountedRef.current) return;
+                    setNewState("error");
+                    openInfoModal("Save Error", "Could not save event.");
+                }
+            }
+        });
     };
 
     const saveOne = async (id) => {
@@ -793,7 +802,16 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
             return;
         }
 
-        executeSaveOne(id, draft, original, false);
+        setModal({
+            isOpen: true,
+            title: "Confirm Modification",
+            message: "Are you sure you want to save these modifications?",
+            variant: "primary",
+            onConfirm: () => {
+                setModal({ isOpen: false });
+                executeSaveOne(id, draft, original, false);
+            }
+        });
     };
 
     const executeSaveOne = async (id, draft, original, dateChanged) => {

@@ -180,63 +180,72 @@ export default function ChurchSuggestionsAdmin({ onDirtyChange }) {
         const draft = draftsById[suggestion.id];
         if (!draft) return;
 
-        setProcessingId(suggestion.id);
-        try {
-            const { type, originalChurchId } = suggestion;
+        setModal({
+            isOpen: true,
+            title: saveAsDraft ? "Confirm Save as Draft" : "Confirm Approval",
+            message: saveAsDraft ? "Are you sure you want to save this suggestion as a draft?" : "Are you sure you want to approve this suggestion?",
+            variant: "primary",
+            onConfirm: async () => {
+                setModal(m => ({ ...m, isOpen: false }));
+                setProcessingId(suggestion.id);
+                try {
+                    const { type, originalChurchId } = suggestion;
 
-            let finalLat = parseFloat(draft.lat);
-            let finalLng = parseFloat(draft.lng);
-            let finalPlaceId = draft.place_id || "";
+                    let finalLat = parseFloat(draft.lat);
+                    let finalLng = parseFloat(draft.lng);
+                    let finalPlaceId = draft.place_id || "";
 
-            // If coordinates are missing or it's a new entry, try to geocode
-            if (!finalLat || !finalLng || type === "new") {
-                const geo = await geocodeAddress(draft);
-                if (geo) {
-                    finalLat = geo.lat;
-                    finalLng = geo.lng;
-                    finalPlaceId = geo.place_id;
+                    // If coordinates are missing or it's a new entry, try to geocode
+                    if (!finalLat || !finalLng || type === "new") {
+                        const geo = await geocodeAddress(draft);
+                        if (geo) {
+                            finalLat = geo.lat;
+                            finalLng = geo.lng;
+                            finalPlaceId = geo.place_id;
+                        }
+                    }
+
+                    // 2. Attribution Info
+                    const submitter = suggestion.data?.submitter || {};
+                    const submitterName = `${submitter.firstName || ""} ${submitter.lastName || ""}`.trim() || "Unknown";
+                    const attribution = { name: submitterName, at: serverTimestamp() };
+
+                    let targetId = originalChurchId;
+                    let newDocRef = null;
+                    if (type === "new") {
+                        newDocRef = doc(collection(db, "churches"));
+                        targetId = newDocRef.id;
+                    }
+
+                    const finalData = { 
+                        ...draft, 
+                        lat: finalLat || 0,
+                        lng: finalLng || 0,
+                        place_id: finalPlaceId,
+                        isDraft: saveAsDraft,
+                        updatedAt: serverTimestamp() 
+                    };
+
+                    if (type === "new") {
+                        finalData.createdBy = attribution;
+                        await setDoc(newDocRef, finalData);
+                    } else if (type === "edit" && originalChurchId) {
+                        await updateDoc(doc(db, "churches", originalChurchId), finalData);
+                    }
+
+                    // 3. Mark suggestion as approved
+                    await updateDoc(doc(db, "church_suggestions", suggestion.id), {
+                        status: "approved",
+                        processedAt: serverTimestamp()
+                    });
+                } catch (err) {
+                    console.error("Approval failed:", err);
+                    alert("Approval failed. Check console.");
+                } finally {
+                    setProcessingId(null);
                 }
             }
-
-            // 2. Attribution Info
-            const submitter = suggestion.data?.submitter || {};
-            const submitterName = `${submitter.firstName || ""} ${submitter.lastName || ""}`.trim() || "Unknown";
-            const attribution = { name: submitterName, at: serverTimestamp() };
-
-            let targetId = originalChurchId;
-            let newDocRef = null;
-            if (type === "new") {
-                newDocRef = doc(collection(db, "churches"));
-                targetId = newDocRef.id;
-            }
-
-            const finalData = { 
-                ...draft, 
-                lat: finalLat || 0,
-                lng: finalLng || 0,
-                place_id: finalPlaceId,
-                isDraft: saveAsDraft,
-                updatedAt: serverTimestamp() 
-            };
-
-            if (type === "new") {
-                finalData.createdBy = attribution;
-                await setDoc(newDocRef, finalData);
-            } else if (type === "edit" && originalChurchId) {
-                await updateDoc(doc(db, "churches", originalChurchId), finalData);
-            }
-
-            // 3. Mark suggestion as approved
-            await updateDoc(doc(db, "church_suggestions", suggestion.id), {
-                status: "approved",
-                processedAt: serverTimestamp()
-            });
-        } catch (err) {
-            console.error("Approval failed:", err);
-            alert("Approval failed. Check console.");
-        } finally {
-            setProcessingId(null);
-        }
+        });
     };
 
     const handleReject = async (suggestionId) => {

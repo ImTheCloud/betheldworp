@@ -432,42 +432,51 @@ export default function NewsletterAdmin({ onDirtyChange }) {
             return;
         }
 
-        setNewState("saving");
+        setModal({
+            isOpen: true,
+            title: "Confirm Subscription",
+            message: "Are you sure you want to add this new subscriber?",
+            variant: "primary",
+            onConfirm: async () => {
+                setModal(m => ({ ...m, isOpen: false }));
+                setNewState("saving");
 
-        try {
-            const ref = doc(db, "newsletter", clean);
-            const snap = await getDoc(ref);
-            const prev = snap.exists() ? snap.data() || {} : {};
-            const createdAt = prev.createdAt || prev.subscribedAt || serverTimestamp();
+                try {
+                    const ref = doc(db, "newsletter", clean);
+                    const snap = await getDoc(ref);
+                    const prev = snap.exists() ? snap.data() || {} : {};
+                    const createdAt = prev.createdAt || prev.subscribedAt || serverTimestamp();
 
-            await setDoc(
-                ref,
-                {
-                    email: clean,
-                    createdAt,
-                    updatedAt: serverTimestamp(),
-                },
-                { merge: true }
-            );
+                    await setDoc(
+                        ref,
+                        {
+                            email: clean,
+                            createdAt,
+                            updatedAt: serverTimestamp(),
+                        },
+                        { merge: true }
+                    );
 
-            if (!mountedRef.current) return;
-            setNewState("saved");
-            setTimeout(() => {
-                if (!mountedRef.current) return;
-                setShowNew(false);
-                setExpandedIds((prevSet) => {
-                    const next = new Set(prevSet);
-                    next.add(clean);
-                    return next;
-                });
-                setNewState("idle");
-            }, 900);
-        } catch (err) {
-            console.error(err);
-            if (!mountedRef.current) return;
-            setNewState("error");
-            openInfoModal("Save Error", "Could not save email.");
-        }
+                    if (!mountedRef.current) return;
+                    setNewState("saved");
+                    setTimeout(() => {
+                        if (!mountedRef.current) return;
+                        setShowNew(false);
+                        setExpandedIds((prevSet) => {
+                            const next = new Set(prevSet);
+                            next.add(clean);
+                            return next;
+                        });
+                        setNewState("idle");
+                    }, 900);
+                } catch (err) {
+                    console.error(err);
+                    if (!mountedRef.current) return;
+                    setNewState("error");
+                    openInfoModal("Save Error", "Could not save email.");
+                }
+            }
+        });
     };
 
     const changeDraft = (id, value) => {
@@ -486,29 +495,29 @@ export default function NewsletterAdmin({ onDirtyChange }) {
             return;
         }
 
-        setSaveStateById((m) => ({ ...m, [key]: "saving" }));
-
-        try {
-            if (clean !== key.toLowerCase()) {
-                setModal({
-                    isOpen: true,
-                    title: "Change Email",
-                    message: `You changed the email. This will create/update: ${clean} and delete the old one: ${key}. Continue?`,
-                    onConfirm: () => {
-                        setModal({ isOpen: false });
-                        executeSaveOne(id, clean, key);
-                    }
-                });
-                return;
-            }
-
-            executeSaveOne(id, clean, key);
-        } catch (err) {
-            console.error(err);
-            if (!mountedRef.current) return;
-            setSaveStateById((m) => ({ ...m, [key]: "error" }));
-            openInfoModal("Save Error", "Could not save email.");
+        if (clean !== key.toLowerCase()) {
+            setModal({
+                isOpen: true,
+                title: "Change Email",
+                message: `You changed the email. This will create/update: ${clean} and delete the old one: ${key}. Continue?`,
+                onConfirm: () => {
+                    setModal({ isOpen: false });
+                    executeSaveOne(id, clean, key);
+                }
+            });
+            return;
         }
+
+        setModal({
+            isOpen: true,
+            title: "Confirm Modification",
+            message: "Are you sure you want to save these modifications?",
+            variant: "primary",
+            onConfirm: () => {
+                setModal({ isOpen: false });
+                executeSaveOne(id, clean, key);
+            }
+        });
     };
 
     const executeSaveOne = async (id, clean, key) => {
@@ -603,19 +612,28 @@ export default function NewsletterAdmin({ onDirtyChange }) {
         const key = safeStr(id).trim();
         if (!key) return;
 
-        setSaveStateById((m) => ({ ...m, [key]: "saving" }));
+        setModal({
+            isOpen: true,
+            title: "Confirm Resubscribe",
+            message: "Are you sure you want to resubscribe this email?",
+            variant: "primary",
+            onConfirm: async () => {
+                setModal(m => ({ ...m, isOpen: false }));
+                setSaveStateById((m) => ({ ...m, [key]: "saving" }));
 
-        try {
-            await setDoc(doc(db, "newsletter", key), { unsubscribed: false, updatedAt: serverTimestamp() }, { merge: true });
-            
-            if (!mountedRef.current) return;
-            setTransientState(key, "saved");
-        } catch (err) {
-            console.error(err);
-            if (!mountedRef.current) return;
-            setSaveStateById((m) => ({ ...m, [key]: "error" }));
-            openInfoModal("Action Failed", "Could not resubscribe.");
-        }
+                try {
+                    await setDoc(doc(db, "newsletter", key), { unsubscribed: false, updatedAt: serverTimestamp() }, { merge: true });
+                    
+                    if (!mountedRef.current) return;
+                    setTransientState(key, "saved");
+                } catch (err) {
+                    console.error(err);
+                    if (!mountedRef.current) return;
+                    setSaveStateById((m) => ({ ...m, [key]: "error" }));
+                    openInfoModal("Action Failed", "Could not resubscribe.");
+                }
+            }
+        });
     };
 
     return (

@@ -428,30 +428,39 @@ export default function ChurchesAdmin({ onDirtyChange }) {
         if (!newDrafts.name.trim() || !newDrafts.city.trim()) { openInfoModal("Action Required", "The Church Name and City fields are required."); return; }
         if (findDuplicateChurch(newDrafts.name, newDrafts.city)) { openInfoModal("Duplicate Church", "A church already exists with this name and city."); return; }
 
-        let lat = Number(newDrafts.lat);
-        let lng = Number(newDrafts.lng);
-        let place_id = newDrafts.place_id || "";
+        setModal({
+            isOpen: true,
+            title: "Confirm Save",
+            message: "Are you sure you want to save this new church?",
+            variant: "primary",
+            onConfirm: async () => {
+                setModal(m => ({ ...m, isOpen: false }));
+                let lat = Number(newDrafts.lat);
+                let lng = Number(newDrafts.lng);
+                let place_id = newDrafts.place_id || "";
 
-        if (!lat || !lng) {
-            setNewState("saving");
-            const geo = await geocodeAddress(newDrafts);
-            if (geo) {
-                lat = geo.lat;
-                lng = geo.lng;
-                place_id = geo.place_id;
-            } else {
-                lat = lat || 0;
-                lng = lng || 0;
+                if (!lat || !lng) {
+                    setNewState("saving");
+                    const geo = await geocodeAddress(newDrafts);
+                    if (geo) {
+                        lat = geo.lat;
+                        lng = geo.lng;
+                        place_id = geo.place_id;
+                    } else {
+                        lat = lat || 0;
+                        lng = lng || 0;
+                    }
+                }
+
+                try {
+                    const finalData = { ...newDrafts, lat, lng, place_id, isDraft: isDraftValue, createdAt: serverTimestamp(), updatedAt: serverTimestamp() };
+                    await setDoc(doc(collection(db, "churches")), finalData);
+                    setNewDrafts(finalData); // Update local state for immediate reflected UI
+                    setNewState("saved");
+                    setTimeout(() => { setShowNew(false); setNewState("idle"); }, 900);
+                } catch (e) { setNewState("error"); }
             }
-        }
-
-        try {
-            const finalData = { ...newDrafts, lat, lng, place_id, isDraft: isDraftValue, createdAt: serverTimestamp(), updatedAt: serverTimestamp() };
-            await setDoc(doc(collection(db, "churches")), finalData);
-            setNewDrafts(finalData); // Update local state for immediate reflected UI
-            setNewState("saved");
-            setTimeout(() => { setShowNew(false); setNewState("idle"); }, 900);
-        } catch (e) { setNewState("error"); }
+        });
     };
 
     const changeDraft = (id, key, value) => {
@@ -481,46 +490,55 @@ export default function ChurchesAdmin({ onDirtyChange }) {
         const draft = draftsById[id] || item;
         if (!draft) return;
         
-        let isDraftValue = forcedDraftStatus !== null ? forcedDraftStatus : (draft.isDraft || false);
-        let finalDraft = { ...draft };
-        const addressChanged = 
-            safeStr(item.street) !== safeStr(draft.street) ||
-            safeStr(item.number) !== safeStr(draft.number) ||
-            safeStr(item.city) !== safeStr(draft.city) ||
-            safeStr(item.country) !== safeStr(draft.country);
+        setModal({
+            isOpen: true,
+            title: "Confirm Modification",
+            message: "Are you sure you want to save these modifications?",
+            variant: "primary",
+            onConfirm: async () => {
+                setModal(m => ({ ...m, isOpen: false }));
+                let isDraftValue = forcedDraftStatus !== null ? forcedDraftStatus : (draft.isDraft || false);
+                let finalDraft = { ...draft };
+                const addressChanged = 
+                    safeStr(item.street) !== safeStr(draft.street) ||
+                    safeStr(item.number) !== safeStr(draft.number) ||
+                    safeStr(item.city) !== safeStr(draft.city) ||
+                    safeStr(item.country) !== safeStr(draft.country);
 
-        const infoChanged = 
-            addressChanged ||
-            safeStr(item.name) !== safeStr(draft.name) ||
-            safeStr(item.locationTitle) !== safeStr(draft.locationTitle);
+                const infoChanged = 
+                    addressChanged ||
+                    safeStr(item.name) !== safeStr(draft.name) ||
+                    safeStr(item.locationTitle) !== safeStr(draft.locationTitle);
 
-        setTransientState(id, "saving");
+                setTransientState(id, "saving");
 
-        if (infoChanged || !draft.lat || !draft.lng) {
-            const geo = await geocodeAddress(draft);
-            if (geo) {
-                finalDraft = { ...finalDraft, lat: geo.lat, lng: geo.lng, place_id: geo.place_id };
+                if (infoChanged || !draft.lat || !draft.lng) {
+                    const geo = await geocodeAddress(draft);
+                    if (geo) {
+                        finalDraft = { ...finalDraft, lat: geo.lat, lng: geo.lng, place_id: geo.place_id };
+                    }
+                }
+
+                try {
+                    const finalData = { 
+                        ...finalDraft, 
+                        isDraft: isDraftValue, 
+                        updatedAt: serverTimestamp() 
+                    };
+                    await updateDoc(doc(db, "churches", id), finalData);
+                    setDraftsById(prev => ({ ...prev, [id]: finalData })); // Update local state for immediate reflected UI
+                    setTransientState(id, "saved");
+                    
+                    setTimeout(() => {
+                        setExpandedIds(prev => {
+                            const next = new Set(prev);
+                            next.delete(id);
+                            return next;
+                        });
+                    }, 800);
+                } catch (e) { setTransientState(id, "error"); }
             }
-        }
-
-        try {
-            const finalData = { 
-                ...finalDraft, 
-                isDraft: isDraftValue, 
-                updatedAt: serverTimestamp() 
-            };
-            await updateDoc(doc(db, "churches", id), finalData);
-            setDraftsById(prev => ({ ...prev, [id]: finalData })); // Update local state for immediate reflected UI
-            setTransientState(id, "saved");
-            
-            setTimeout(() => {
-                setExpandedIds(prev => {
-                    const next = new Set(prev);
-                    next.delete(id);
-                    return next;
-                });
-            }, 800);
-        } catch (e) { setTransientState(id, "error"); }
+        });
     };
 
     const deleteOne = async id => {

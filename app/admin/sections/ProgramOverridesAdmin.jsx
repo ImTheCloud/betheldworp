@@ -1084,35 +1084,44 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed, onD
             return;
         }
 
-        setNewState("saving");
+        setModal({
+            isOpen: true,
+            title: "Confirm New Override",
+            message: "Are you sure you want to save this new program override?",
+            variant: "primary",
+            onConfirm: async () => {
+                setModal(m => ({ ...m, isOpen: false }));
+                setNewState("saving");
 
-        try {
-            const id = weekKey;
-            const data = {
-                weekKey,
-                affectedProgramIds: safeArr(newDraft.affectedProgramIds),
-                replacements: safeObj(newDraft.replacements),
-                additions: safeObj(newDraft.additions),
-                customTitles: safeObj(newDraft.customTitles),
-                customTimes: safeObj(newDraft.customTimes),
-            };
+                try {
+                    const id = weekKey;
+                    const data = {
+                        weekKey,
+                        affectedProgramIds: safeArr(newDraft.affectedProgramIds),
+                        replacements: safeObj(newDraft.replacements),
+                        additions: safeObj(newDraft.additions),
+                        customTitles: safeObj(newDraft.customTitles),
+                        customTimes: safeObj(newDraft.customTimes),
+                    };
 
-            await setDoc(doc(db, "program_overrides", id), data);
+                    await setDoc(doc(db, "program_overrides", id), data);
 
-            if (!mountedRef.current) return;
-            setNewState("saved");
-            setTimeout(() => {
-                if (!mountedRef.current) return;
-                setShowNew(false);
-                setNewState("idle");
-                openInfoModal("Enregistré", "Le nouveau programme a été enregistré avec succès.");
-            }, 900);
-        } catch (err) {
-            console.error(err);
-            if (!mountedRef.current) return;
-            setNewState("error");
-            openInfoModal("Save Error", "Could not save new override.");
-        }
+                    if (!mountedRef.current) return;
+                    setNewState("saved");
+                    setTimeout(() => {
+                        if (!mountedRef.current) return;
+                        setShowNew(false);
+                        setNewState("idle");
+                        openInfoModal("Enregistré", "Le nouveau programme a été enregistré avec succès.");
+                    }, 900);
+                } catch (err) {
+                    console.error(err);
+                    if (!mountedRef.current) return;
+                    setNewState("error");
+                    openInfoModal("Save Error", "Could not save new override.");
+                }
+            }
+        });
     };
 
     const onSave = async (id) => {
@@ -1128,32 +1137,41 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed, onD
             return;
         }
 
-        setSaveStateById((m) => ({ ...m, [key]: "saving" }));
+        setModal({
+            isOpen: true,
+            title: "Confirm Modification",
+            message: "Are you sure you want to save these modifications to the program override?",
+            variant: "primary",
+            onConfirm: async () => {
+                setModal(m => ({ ...m, isOpen: false }));
+                setSaveStateById((m) => ({ ...m, [key]: "saving" }));
 
-        try {
-            const existing = items.find((it) => it.id === key);
-            
-            const data = {
-                weekKey,
-                affectedProgramIds: safeArr(draft.affectedProgramIds ?? existing?.affectedProgramIds),
-                replacements: safeObj(draft.replacements ?? existing?.replacements),
-                additions: safeObj(draft.additions ?? existing?.additions),
-                customTitles: safeObj(draft.customTitles ?? existing?.customTitles),
-                customTimes: safeObj(draft.customTimes ?? existing?.customTimes),
-            };
+                try {
+                    const existing = items.find((it) => it.id === key);
+                    
+                    const data = {
+                        weekKey,
+                        affectedProgramIds: safeArr(draft.affectedProgramIds ?? existing?.affectedProgramIds),
+                        replacements: safeObj(draft.replacements ?? existing?.replacements),
+                        additions: safeObj(draft.additions ?? existing?.additions),
+                        customTitles: safeObj(draft.customTitles ?? existing?.customTitles),
+                        customTimes: safeObj(draft.customTimes ?? existing?.customTimes),
+                    };
 
-            // Overwrite full override document
-            await setDoc(doc(db, "program_overrides", key), data);
+                    // Overwrite full override document
+                    await setDoc(doc(db, "program_overrides", key), data);
 
-            if (!mountedRef.current) return;
-            setTransientState(key, "saved");
-            openInfoModal("Enregistré", "Les modifications ont été enregistrées avec succès.");
-        } catch (err) {
-            console.error(err);
-            if (!mountedRef.current) return;
-            setSaveStateById((m) => ({ ...m, [key]: "error" }));
-            openInfoModal("Save Error", "Could not save override.");
-        }
+                    if (!mountedRef.current) return;
+                    setTransientState(key, "saved");
+                    openInfoModal("Enregistré", "Les modifications ont été enregistrées avec succès.");
+                } catch (err) {
+                    console.error(err);
+                    if (!mountedRef.current) return;
+                    setSaveStateById((m) => ({ ...m, [key]: "error" }));
+                    openInfoModal("Save Error", "Could not save override.");
+                }
+            }
+        });
     };
 
     const onDelete = async (id) => {

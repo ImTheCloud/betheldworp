@@ -557,21 +557,30 @@ export default function MonthlyVerseAdmin({ onDirtyChange }) {
             return;
         }
 
-        setSaveCurrentState("saving");
-        try {
-            const v = cleanVerse(currentDraft);
-            await setDoc(CURRENT_REF, { reference: v.reference, text: v.text }, { merge: true });
+        setModal({
+            isOpen: true,
+            title: "Confirm Modification",
+            message: "Are you sure you want to save these modifications?",
+            variant: "primary",
+            onConfirm: async () => {
+                setModal(m => ({ ...m, isOpen: false }));
+                setSaveCurrentState("saving");
+                try {
+                    const v = cleanVerse(currentDraft);
+                    await setDoc(CURRENT_REF, { reference: v.reference, text: v.text }, { merge: true });
 
-            if (!mountedRef.current) return;
-            setCurrent(v);
-            setCurrentDraft(v);
-            setTransientState(setSaveCurrentState, "saved");
-        } catch (err) {
-            console.error(err);
-            if (!mountedRef.current) return;
-            setSaveCurrentState("error");
-            openInfoModal("Save Error", "Saving failed.");
-        }
+                    if (!mountedRef.current) return;
+                    setCurrent(v);
+                    setCurrentDraft(v);
+                    setTransientState(setSaveCurrentState, "saved");
+                } catch (err) {
+                    console.error(err);
+                    if (!mountedRef.current) return;
+                    setSaveCurrentState("error");
+                    openInfoModal("Save Error", "Saving failed.");
+                }
+            }
+        });
     };
 
     const deleteCurrent = async () => {
@@ -614,29 +623,38 @@ export default function MonthlyVerseAdmin({ onDirtyChange }) {
             return;
         }
 
-        setNewState("saving");
+        setModal({
+            isOpen: true,
+            title: "Confirm New Verse",
+            message: "Are you sure you want to save this new verse?",
+            variant: "primary",
+            onConfirm: async () => {
+                setModal(m => ({ ...m, isOpen: false }));
+                setNewState("saving");
 
-        try {
-            const prev = cleanVerse(current);
-            const hasPrev =
-                pickFallback(prev.reference) || pickFallback(prev.text);
+                try {
+                    const prev = cleanVerse(current);
+                    const hasPrev =
+                        pickFallback(prev.reference) || pickFallback(prev.text);
 
-            if (hasPrev) {
-                await setDoc(doc(db, "monthly_verse", getArchiveId()), { reference: prev.reference, text: prev.text });
+                    if (hasPrev) {
+                        await setDoc(doc(db, "monthly_verse", getArchiveId()), { reference: prev.reference, text: prev.text });
+                    }
+
+                    const v = cleanVerse(newDraft);
+                    await setDoc(CURRENT_REF, { reference: v.reference, text: v.text }, { merge: true });
+
+                    if (!mountedRef.current) return;
+                    setNewState("saved");
+                    setTimeout(() => mountedRef.current && cancelNew(), 900);
+                } catch (err) {
+                    console.error(err);
+                    if (!mountedRef.current) return;
+                    setNewState("error");
+                    openInfoModal("Save Error", "Could not save new verse.");
+                }
             }
-
-            const v = cleanVerse(newDraft);
-            await setDoc(CURRENT_REF, { reference: v.reference, text: v.text }, { merge: true });
-
-            if (!mountedRef.current) return;
-            setNewState("saved");
-            setTimeout(() => mountedRef.current && cancelNew(), 900);
-        } catch (err) {
-            console.error(err);
-            if (!mountedRef.current) return;
-            setNewState("error");
-            openInfoModal("Save Error", "Could not save new verse.");
-        }
+        });
     };
 
     const toggleHistory = (id) => {
@@ -681,21 +699,30 @@ export default function MonthlyVerseAdmin({ onDirtyChange }) {
 
         if (base && verseEqualTrim(draft, { reference: base.reference, text: base.text })) return;
 
-        setSavingHistoryById((m) => ({ ...m, [key]: "saving" }));
+        setModal({
+            isOpen: true,
+            title: "Confirm Modification",
+            message: "Are you sure you want to save these modifications to history?",
+            variant: "primary",
+            onConfirm: async () => {
+                setModal(m => ({ ...m, isOpen: false }));
+                setSavingHistoryById((m) => ({ ...m, [key]: "saving" }));
 
-        try {
-            const v = cleanVerse(draft);
-            await setDoc(doc(db, "monthly_verse", key), { reference: v.reference, text: v.text }, { merge: true });
+                try {
+                    const v = cleanVerse(draft);
+                    await setDoc(doc(db, "monthly_verse", key), { reference: v.reference, text: v.text }, { merge: true });
 
-            if (!mountedRef.current) return;
-            setSavingHistoryById((m) => ({ ...m, [key]: "saved" }));
-            setTimeout(() => mountedRef.current && setSavingHistoryById((m) => ({ ...m, [key]: "idle" })), 900);
-        } catch (err) {
-            console.error(err);
-            if (!mountedRef.current) return;
-            setSavingHistoryById((m) => ({ ...m, [key]: "error" }));
-            openInfoModal("Save Error", "Could not save history verse.");
-        }
+                    if (!mountedRef.current) return;
+                    setSavingHistoryById((m) => ({ ...m, [key]: "saved" }));
+                    setTimeout(() => mountedRef.current && setSavingHistoryById((m) => ({ ...m, [key]: "idle" })), 900);
+                } catch (err) {
+                    console.error(err);
+                    if (!mountedRef.current) return;
+                    setSavingHistoryById((m) => ({ ...m, [key]: "error" }));
+                    openInfoModal("Save Error", "Could not save history verse.");
+                }
+            }
+        });
     };
 
     const deleteHistory = async (id) => {
