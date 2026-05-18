@@ -881,15 +881,6 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed, onD
 
         if (key === "__new__") {
             const val = (weekKey || safeStr(wk).trim()).toUpperCase();
-            
-            // Smart Redirect: Check if this week already exists
-            const existing = items.find(it => it.weekKey === val);
-            if (existing) {
-                setShowNew(false);
-                setExpandedIds(new Set([existing.id]));
-                return;
-            }
-
             setNewDraft((d) => ({ ...d, weekKey: val }));
             return;
         }
@@ -1046,13 +1037,6 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed, onD
 
     const startNew = () => {
         const defaultWeek = getCurrentWeekKeyUTC();
-        
-        // Smart Redirect: If current week already exists, just open it
-        const existing = items.find(it => it.weekKey === defaultWeek);
-        if (existing) {
-            setExpandedIds(new Set([existing.id]));
-            return;
-        }
 
         setShowNew(true);
         setNewDraft({
