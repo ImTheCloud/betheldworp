@@ -723,6 +723,7 @@ export default function NewsletterAdmin({ onDirtyChange }) {
                         isOpen={modal.isOpen}
                         title={modal.title}
                         message={modal.message}
+                        variant={modal.variant}
                         actions={modal.actions}
                         onConfirm={modal.onConfirm}
                         onCancel={() => setModal({ ...modal, isOpen: false })}

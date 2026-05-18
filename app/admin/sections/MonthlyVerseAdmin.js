@@ -913,6 +913,7 @@ export default function MonthlyVerseAdmin({ onDirtyChange }) {
                         isOpen={modal.isOpen}
                         title={modal.title}
                         message={modal.message}
+                        variant={modal.variant}
                         onConfirm={modal.onConfirm}
                         onCancel={() => setModal({ ...modal, isOpen: false })}
                     />

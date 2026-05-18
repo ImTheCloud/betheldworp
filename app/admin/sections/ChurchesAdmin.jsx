@@ -594,6 +594,7 @@ export default function ChurchesAdmin({ onDirtyChange }) {
                 isOpen={modal.isOpen}
                 title={modal.title}
                 message={modal.message}
+                variant={modal.variant}
                 progress={modal.progress}
                 status={""}
                 actions={modal.actions}
