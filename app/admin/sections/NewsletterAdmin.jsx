@@ -391,10 +391,9 @@ export default function NewsletterAdmin({ onDirtyChange }) {
                 setLoading(false);
             },
             (err) => {
-                console.error(err);
+                console.error("NewsletterAdmin snapshot error:", err);
                 if (!mountedRef.current) return;
                 setLoading(false);
-                openInfoModal("Loading Error", "Could not load newsletter.");
             }
         );
 

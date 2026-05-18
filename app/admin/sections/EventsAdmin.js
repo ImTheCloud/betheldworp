@@ -635,10 +635,9 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
                 setLoading(false);
             },
             (err) => {
-                console.error(err);
+                console.error("EventsAdmin snapshot error:", err);
                 if (!mountedRef.current) return;
                 setLoading(false);
-                openInfoModal("Loading Error", "Could not load events.");
             }
         );
 

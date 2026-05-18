@@ -29,6 +29,8 @@ export default function ChurchSuggestionsAdmin({ onDirtyChange }) {
             const map = {};
             snap.docs.forEach(d => { map[d.id] = { id: d.id, ...d.data() }; });
             setChurchesById(map);
+        }, (error) => {
+            console.error("ChurchSuggestionsAdmin churches snapshot error:", error);
         });
         return () => unsub();
     }, []);
@@ -51,6 +53,9 @@ export default function ChurchSuggestionsAdmin({ onDirtyChange }) {
 
 
 
+            setLoading(false);
+        }, (error) => {
+            console.error("ChurchSuggestionsAdmin suggestions snapshot error:", error);
             setLoading(false);
         });
         return () => unsub();

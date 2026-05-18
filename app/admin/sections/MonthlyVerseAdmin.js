@@ -468,10 +468,9 @@ export default function MonthlyVerseAdmin({ onDirtyChange }) {
                 setLoading(false);
             },
             (err) => {
-                console.error(err);
+                console.error("MonthlyVerseAdmin snapshot error:", err);
                 if (!mountedRef.current) return;
                 setLoading(false);
-                openInfoModal("Loading Error", "Could not load verse.");
             }
         );
 
@@ -544,7 +543,7 @@ export default function MonthlyVerseAdmin({ onDirtyChange }) {
                     return next;
                 });
             },
-            (err) => console.error(err)
+            (err) => console.error("MonthlyVerseAdmin snapshot error (history):", err)
         );
 
         return () => unsub();

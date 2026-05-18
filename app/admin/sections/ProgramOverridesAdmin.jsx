@@ -847,10 +847,9 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed, onD
                 setLoading(false);
             },
             (err) => {
-                console.error(err);
+                console.error("ProgramOverridesAdmin snapshot error:", err);
                 if (!mountedRef.current) return;
                 setLoading(false);
-                openInfoModal("Loading Error", "Could not load program overrides.");
             }
         );
 

@@ -385,6 +385,9 @@ export default function ChurchesAdmin({ onDirtyChange }) {
             });
             setItems(list);
             setLoading(false);
+        }, (error) => {
+            console.error("ChurchesAdmin snapshot error:", error);
+            if (mountedRef.current) setLoading(false);
         });
         return () => unsub();
     }, []);

@@ -106,13 +106,13 @@ export default function AdminSidebar({ activeTab, onTabChange, onLogout }) {
         const qSug = query(collection(db, "church_suggestions"), where("status", "==", "pending"));
         const unsubSug = onSnapshot(qSug, (snap) => {
             setPendingCount(snap.size);
-        });
+        }, (err) => console.error("AdminSidebar suggestions snapshot error:", err));
 
         // Draft churches count
         const qChurches = query(collection(db, "churches"), where("isDraft", "==", true));
         const unsubChurches = onSnapshot(qChurches, (snap) => {
             setDraftChurchesCount(snap.size);
-        });
+        }, (err) => console.error("AdminSidebar churches snapshot error:", err));
 
         return () => {
             unsubSug();
