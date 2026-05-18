@@ -834,7 +834,7 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
 
                 // Show success message but keep "saving" state briefly to show something happened
                 setTransientState(key, "saved");
-                alert("New event created successfully!");
+
             } else {
                 // Normal update
                 await setDoc(doc(db, "events", key), d, { merge: true });

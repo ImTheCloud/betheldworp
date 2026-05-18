@@ -1112,7 +1112,7 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed, onD
                         if (!mountedRef.current) return;
                         setShowNew(false);
                         setNewState("idle");
-                        openInfoModal("Enregistré", "Le nouveau programme a été enregistré avec succès.");
+
                     }, 900);
                 } catch (err) {
                     console.error(err);
@@ -1163,7 +1163,7 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed, onD
 
                     if (!mountedRef.current) return;
                     setTransientState(key, "saved");
-                    openInfoModal("Enregistré", "Les modifications ont été enregistrées avec succès.");
+
                 } catch (err) {
                     console.error(err);
                     if (!mountedRef.current) return;
