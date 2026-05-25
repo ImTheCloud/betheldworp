@@ -146,6 +146,7 @@
     margin-bottom: 12px;
     color: #0a2a43;
     min-height: 26px;
+    white-space: nowrap;
 }
 
 .hero-verseText {
