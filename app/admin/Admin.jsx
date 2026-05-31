@@ -260,7 +260,7 @@ export default function Admin() {
             clearRetry();
             unsub();
         };
-    }, [user]);
+    }, [user?.uid]);
 
     const login = async (e) => {
         e?.preventDefault?.();

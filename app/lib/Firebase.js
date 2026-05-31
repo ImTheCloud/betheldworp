@@ -17,9 +17,13 @@ let db;
 
 if (typeof document !== "undefined") {
     try {
-        db = initializeFirestore(app, {
-            localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
-        });
+        if (process.env.NODE_ENV === "development") {
+            db = getFirestore(app);
+        } else {
+            db = initializeFirestore(app, {
+                localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+            });
+        }
     } catch (e) {
         db = getFirestore(app);
     }
