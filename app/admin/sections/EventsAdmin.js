@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState, useMemo } from "react";
-import { collection, deleteDoc, doc, onSnapshot, setDoc } from "firebase/firestore";
+import { useEffect, useRef, useState, useMemo, useCallback } from "react";
+import { collection, deleteDoc, doc, onSnapshot, setDoc, updateDoc, deleteField } from "firebase/firestore";
 import { db } from "../../lib/Firebase";
 import { usePagination } from "../hooks/usePagination";
 import PaginationControls from "../components/PaginationControls";
@@ -100,14 +100,15 @@ function dateToWeekKey(dateStr) {
     return `${year}-W${String(week).padStart(2, "0")}`;
 }
 
-function IconOverride(props) {
-    return (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
-            <path d="M8 6H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M18 2l4 4-9 9H9v-4L18 2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-    );
+function dateToSlotIds(dateStr) {
+    if (!dateStr) return [];
+    const d = new Date(`${dateStr}T12:00:00Z`);
+    if (isNaN(d)) return [];
+    const day = d.getUTCDay();
+    const map = { 0: ["sun_am", "sun_pm"], 1: ["mon"], 2: ["tue"], 3: ["wed"], 4: ["thu"], 5: ["fri"], 6: ["sat"] };
+    return map[day] ?? [];
 }
+
 
 function IconPlus(props) {
     return (
@@ -168,9 +169,9 @@ function IconSave(props) {
     );
 }
 
-function EventCard({ item, expanded, draft, saveState, activeLang, onToggle, onLangChange, onChangeField, onSave, onDelete, onOverrideWeek }) {
+function EventCard({ item, expanded, draft, saveState, activeLang, onToggle, onLangChange, onChangeField, onSave, onDelete, isEventOverride, onToggleOverride }) {
     const id = safeStr(item?.id);
-    const dirty = !eventEqual(draft, item);
+    const dirty = !eventEqual(draft, item) || (draft?.isOverride !== undefined && draft.isOverride !== isEventOverride);
     const langKey = activeLang || "ro";
 
     const title = pickFallback(draft?.title);
@@ -201,7 +202,7 @@ function EventCard({ item, expanded, draft, saveState, activeLang, onToggle, onL
 
             {expanded ? (
                 <div className="adminAnnBody">
-                    <div className="adminGrid2">
+                    <div className="adminGrid-EventTop">
                         <label className="adminLabel">
                             Date
                             <input
@@ -219,6 +220,20 @@ function EventCard({ item, expanded, draft, saveState, activeLang, onToggle, onL
                                 onChange={(e) => onChangeField(id, "time", null, e.target.value)}
                             />
                         </label>
+                        <div
+                            className={`adminToggleWrap ${(draft?.isOverride !== undefined ? draft.isOverride : isEventOverride) ? 'is-active' : ''}`}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                const currentVal = draft?.isOverride !== undefined ? draft.isOverride : isEventOverride;
+                                const newVal = !currentVal;
+                                onChangeField(id, "isOverride", null, newVal);
+                            }}
+                        >
+                            <div className={`adminToggle ${(draft?.isOverride !== undefined ? draft.isOverride : isEventOverride) ? 'is-active' : ''}`}>
+                                <div className="adminToggleKnob" />
+                            </div>
+                            Program Override
+                        </div>
                     </div>
 
                     <label className="adminLabel">
@@ -283,7 +298,7 @@ function EventCard({ item, expanded, draft, saveState, activeLang, onToggle, onL
                         />
                     </div>
 
-                    <div className="adminMsgActions">
+                    <div className="adminMsgActions" style={{ marginTop: '16px' }}>
                         <button
                             type="button"
                             className="adminDeleteBtn"
@@ -310,21 +325,6 @@ function EventCard({ item, expanded, draft, saveState, activeLang, onToggle, onL
                             {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved ✓" : "Save"}
                         </button>
                     </div>
-
-                    {onOverrideWeek && date && (
-                        <button
-                            type="button"
-                            className="adminOverrideLink"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                const wk = dateToWeekKey(date);
-                                if (wk) onOverrideWeek(id, wk, id, date, dirty);
-                            }}
-                        >
-                            <IconOverride />
-                            Override program for week {dateToWeekKey(date)}
-                        </button>
-                    )}
                 </div>
             ) : null}
         </div>
@@ -365,7 +365,7 @@ function NewEventCard({ draft, saveState, activeLang, onLangChange, onChangeFiel
                     </select>
                 </div>
 
-                <div className="adminGrid2">
+                <div className="adminGrid-EventTop">
                     <label className="adminLabel">
                         Date
                         <input
@@ -383,6 +383,19 @@ function NewEventCard({ draft, saveState, activeLang, onLangChange, onChangeFiel
                             onChange={(e) => onChangeField("time", null, e.target.value)}
                         />
                     </label>
+                    <div
+                        className={`adminToggleWrap ${(draft?.isOverride !== undefined ? draft.isOverride : true) ? 'is-active' : ''}`}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            const currentVal = draft?.isOverride !== undefined ? draft.isOverride : true;
+                            onChangeField("isOverride", null, !currentVal);
+                        }}
+                    >
+                        <div className={`adminToggle ${(draft?.isOverride !== undefined ? draft.isOverride : true) ? 'is-active' : ''}`}>
+                            <div className="adminToggleKnob" />
+                        </div>
+                        Program Override
+                    </div>
                 </div>
 
                 <label className="adminLabel">
@@ -447,7 +460,7 @@ function NewEventCard({ draft, saveState, activeLang, onLangChange, onChangeFiel
                     />
                 </div>
 
-                <div className="adminMsgActions">
+                <div className="adminMsgActions" style={{ marginTop: '16px' }}>
                     <button type="button" className="adminDeleteBtn" onClick={onCancel} disabled={saveState === "saving"}>
                         Cancel
                     </button>
@@ -469,6 +482,7 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
     const timeoutRef = useRef(null);
 
     const [loading, setLoading] = useState(true);
+    const [overrides, setOverrides] = useState([]);
     const [items, setItems] = useState([]);
     const [draftsById, setDraftsById] = useState({});
     const [saveStateById, setSaveStateById] = useState({});
@@ -589,7 +603,7 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
     useEffect(() => {
         setLoading(true);
 
-        const unsub = onSnapshot(
+        const unsubEvents = onSnapshot(
             collection(db, "events"),
             (snap) => {
                 if (!mountedRef.current) return;
@@ -641,7 +655,16 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
             }
         );
 
-        return () => unsub();
+    const unsubOverrides = onSnapshot(collection(db, "program_overrides"), (snap) => {
+            if (!mountedRef.current) return;
+            const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            setOverrides(list);
+        });
+
+        return () => {
+            unsubEvents();
+            unsubOverrides();
+        };
     }, []);
 
     const toggleExpand = (id) => {
@@ -649,7 +672,7 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
             id,
             items,
             draftsById,
-            isDirtyFn: (item, draft) => !eventEqual(item, draft),
+            isDirtyFn: (item, draft) => !eventEqual(item, draft) || (draft?.isOverride !== undefined && draft.isOverride !== isEventOverride(item.id, item.dateEvent)),
             setModal,
             setExpandedIds,
             setDraftsById
@@ -730,7 +753,9 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
 
                 try {
                     const ref = doc(collection(db, "events"));
-                    await setDoc(ref, d);
+                await setDoc(ref, d);
+                const isOv = newDraft?.isOverride !== undefined ? newDraft.isOverride : true;
+                await syncOverride(ref.id, d.dateEvent, isOv);
 
                     if (!mountedRef.current) return;
                     setNewState("saved");
@@ -824,6 +849,8 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
                 // Create new event
                 const ref = doc(collection(db, "events"));
                 await setDoc(ref, d);
+                const isOv = draft?.isOverride !== undefined ? draft.isOverride : (original ? isEventOverride(original.id, original.dateEvent) : true);
+                await syncOverride(ref.id, d.dateEvent, isOv);
 
                 if (!mountedRef.current) return;
 
@@ -837,8 +864,11 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
             } else {
                 // Normal update
                 await setDoc(doc(db, "events", key), d, { merge: true });
+                const isOv = draft.isOverride !== undefined ? draft.isOverride : isEventOverride(original.id, original.dateEvent);
+                await syncOverride(key, d.dateEvent, isOv, key, original.dateEvent);
 
                 if (!mountedRef.current) return;
+
                 setTransientState(key, "saved");
             }
         } catch (err) {
@@ -846,6 +876,89 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
             if (!mountedRef.current) return;
             setSaveStateById((m) => ({ ...m, [key]: "error" }));
             openInfoModal("Save Error", "Could not save event.");
+        }
+    };
+
+    
+    const isEventOverride = useCallback((eventId, dateStr) => {
+        if (!eventId || !dateStr) return false;
+        const wk = dateToWeekKey(dateStr);
+        if (!wk) return false;
+        const override = overrides.find(o => o.id === wk || o.weekKey === wk);
+        if (!override) return false;
+        return Object.values(override.replacements || {}).includes(eventId);
+    }, [overrides]);
+
+    const syncOverride = async (eventId, dateStr, isOverride, oldEventId = null, oldDateStr = null) => {
+        if (!eventId || !dateStr) return;
+
+        if (oldEventId && oldDateStr && (oldEventId !== eventId || oldDateStr !== dateStr)) {
+            const oldWk = dateToWeekKey(oldDateStr);
+            const oldSlots = dateToSlotIds(oldDateStr);
+            if (oldWk && oldSlots.length > 0) {
+                const oldOverride = overrides.find(o => o.id === oldWk || o.weekKey === oldWk);
+                if (oldOverride && oldOverride.replacements) {
+                    const updates = {};
+                    let changed = false;
+                    for (const s of oldSlots) {
+                        if (oldOverride.replacements[s] === oldEventId) {
+                            updates[`replacements.${s}`] = deleteField();
+                            changed = true;
+                        }
+                    }
+                    if (changed) {
+                        updates['affectedProgramIds'] = (oldOverride.affectedProgramIds || []).filter(id => {
+                            if (oldSlots.includes(id) && oldOverride.replacements[id] === oldEventId) return false;
+                            return true;
+                        });
+                        await updateDoc(doc(db, "program_overrides", oldWk), updates);
+                    }
+                }
+            }
+        }
+
+        const wk = dateToWeekKey(dateStr);
+        const slots = dateToSlotIds(dateStr);
+        if (!wk || slots.length === 0) return;
+
+        const overrideDoc = overrides.find(o => o.id === wk || o.weekKey === wk);
+        const base = overrideDoc || { weekKey: wk, affectedProgramIds: [], replacements: {} };
+        const newReplacements = { ...(base.replacements || {}) };
+        
+        let changed = false;
+        if (isOverride) {
+            slots.forEach(s => {
+                if (newReplacements[s] !== eventId) {
+                    newReplacements[s] = eventId;
+                    changed = true;
+                }
+            });
+            const newAffected = [...new Set([...(base.affectedProgramIds || []), ...slots])];
+            if (changed || base.affectedProgramIds?.length !== newAffected.length) {
+                await setDoc(doc(db, "program_overrides", wk), {
+                    ...base,
+                    affectedProgramIds: newAffected,
+                    replacements: newReplacements
+                }, { merge: true });
+            }
+        } else {
+            if (overrideDoc) {
+                const updates = {};
+                const newAffected = (base.affectedProgramIds || []).filter(id => {
+                    if (slots.includes(id) && newReplacements[id] === eventId) return false;
+                    return true;
+                });
+                slots.forEach(s => {
+                    if (newReplacements[s] === eventId) {
+                        updates[`replacements.${s}`] = deleteField();
+                        changed = true;
+                    }
+                });
+                if (changed) {
+                    updates['affectedProgramIds'] = newAffected;
+                    await updateDoc(doc(db, "program_overrides", wk), updates);
+                }
+            }
         }
     };
 
@@ -862,7 +975,9 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
                 setSaveStateById((m) => ({ ...m, [key]: "saving" }));
 
                 try {
+                    const original = items.find((x) => x.id === key);
                     await deleteDoc(doc(db, "events", key));
+                    if (original) await syncOverride(key, original.dateEvent, false);
                 } catch (err) {
                     console.error(err);
                     if (!mountedRef.current) return;
@@ -870,28 +985,6 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
                     openInfoModal("Action Failed", "Could not delete event.");
                 }
             }
-        });
-    };
-
-    const requestOverride = (eventId, weekKey, _unused, dateStr, dirty) => {
-        const hasDirty = dirty;
-        setModal({
-            isOpen: true,
-            title: "Override Week",
-            variant: "primary",
-            confirmText: "Continue →",
-            message: hasDirty
-                ? "Unsaved changes to this event will be saved automatically before continuing.\n\nGo to Program Overrides for this event's week?"
-                : "Go to Program Overrides for this event's week?",
-            onConfirm: async () => {
-                setModal({ isOpen: false });
-                if (hasDirty) {
-                    await saveOne(eventId);
-                }
-                if (onCreateOverride) {
-                    onCreateOverride({ weekKey, eventId, dateStr });
-                }
-            },
         });
     };
 
@@ -974,7 +1067,10 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
                                         onChangeField={changeField}
                                         onSave={saveOne}
                                         onDelete={deleteOne}
-                                        onOverrideWeek={requestOverride}
+                                        isEventOverride={isEventOverride(it.id, it.dateEvent)}
+                                        onToggleOverride={(id, dateStr, isOverride) => {
+                                            syncOverride(id, dateStr, isOverride);
+                                        }}
                                     />
                                 ))}
                             </>

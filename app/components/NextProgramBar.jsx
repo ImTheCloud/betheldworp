@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../lib/Firebase";
 import { useLang } from "./LanguageProvider";
@@ -140,18 +140,33 @@ function normalizeWeekOverride(docId, data) {
     return { weekKey, affectedProgramIds, replacements, additions };
 }
 
-function parseStartMinutes(timeValue, fallback = null) {
+function parseTimeRange(timeValue, fallbackStart = null, fallbackEnd = null) {
     const raw = safeStr(timeValue).trim();
-    if (!raw) return fallback;
+    if (!raw) return { start: fallbackStart, end: fallbackEnd };
     const normalized = raw.replace(/\s+/g, "");
-    const m = normalized.match(/(\d{1,2})[:hH](\d{2})/);
-    if (!m) return fallback;
-    const hh = Number(m[1]);
-    const mm = Number(m[2]);
-    if (!Number.isFinite(hh) || !Number.isFinite(mm) || hh < 0 || hh > 23 || mm < 0 || mm > 59) {
-        return fallback;
+    
+    // Check for HH:MM-HH:MM
+    const m = normalized.match(/(\d{1,2})[:hH](\d{2})-(\d{1,2})[:hH](\d{2})/);
+    if (m) {
+        const sh = Number(m[1]), sm = Number(m[2]);
+        const eh = Number(m[3]), em = Number(m[4]);
+        if (sh >= 0 && sh <= 23 && sm >= 0 && sm <= 59 && eh >= 0 && eh <= 23 && em >= 0 && em <= 59) {
+            let endMins = eh * 60 + em;
+            if (endMins < sh * 60 + sm) endMins += 24 * 60; // handles crossing midnight
+            return { start: sh * 60 + sm, end: endMins };
+        }
     }
-    return hh * 60 + mm;
+    
+    // Check for just HH:MM
+    const startM = normalized.match(/(\d{1,2})[:hH](\d{2})/);
+    if (startM) {
+        const sh = Number(startM[1]), sm = Number(startM[2]);
+        if (sh >= 0 && sh <= 23 && sm >= 0 && sm <= 59) {
+            return { start: sh * 60 + sm, end: sh * 60 + sm + 120 }; // Default 2 hours if no end
+        }
+    }
+    
+    return { start: fallbackStart, end: fallbackEnd };
 }
 
 function brusselsDateNumber(dateObj) {
@@ -198,7 +213,7 @@ function dateLabelForBar(dateObj, nowMeta, lang, tBar) {
 function isFutureOrNow(candidate, nowMeta) {
     if (candidate.dateNumber > nowMeta.dateNumber) return true;
     if (candidate.dateNumber < nowMeta.dateNumber) return false;
-    return candidate.startMinutes >= nowMeta.minuteOfDay;
+    return candidate.endMinutes > nowMeta.minuteOfDay;
 }
 
 export default function NextProgramBar() {
@@ -209,6 +224,22 @@ export default function NextProgramBar() {
     const [tick, setTick] = useState(() => Date.now());
     const [overridesMap, setOverridesMap] = useState(new Map());
     const [eventsMap, setEventsMap] = useState(new Map());
+
+    const titleRef = useRef(null);
+    const titleWrapRef = useRef(null);
+    const [isMarquee, setIsMarquee] = useState(false);
+
+    useEffect(() => {
+        const checkMarquee = () => {
+            if (titleWrapRef.current && titleRef.current) {
+                // If the text natural width is greater than the wrapper's clientWidth
+                setIsMarquee(titleRef.current.scrollWidth - (isMarquee ? 30 : 0) > titleWrapRef.current.clientWidth);
+            }
+        };
+        checkMarquee();
+        window.addEventListener("resize", checkMarquee);
+        return () => window.removeEventListener("resize", checkMarquee);
+    }, [isMarquee]);
 
     useEffect(() => {
         const id = setInterval(() => setTick(Date.now()), 30000);
@@ -289,29 +320,31 @@ export default function NextProgramBar() {
             programSlots.forEach((slot) => {
                 const slotDate = addDaysUTC(weekStart, slot.dayOffset);
                 const slotDateNumber = brusselsDateNumber(slotDate);
-                const defaultStart = parseStartMinutes(slot.defaultTime, null);
+                const defaultRange = parseTimeRange(slot.defaultTime, null, null);
 
                 const cancelled = overrideForWeek.cancelledSet.has(slot.id);
                 const replacementEventId = safeStr(overrideForWeek.replacements?.[slot.id]).trim();
                 const replacementEvent = replacementEventId ? eventsMap.get(replacementEventId) : null;
 
                 if (!cancelled) {
-                    if (defaultStart != null) {
+                    if (defaultRange.start != null) {
                         candidates.push({
                             title: slot.title,
                             timeLabel: slot.defaultTime,
-                            startMinutes: defaultStart,
+                            startMinutes: defaultRange.start,
+                            endMinutes: defaultRange.end,
                             dateObj: slotDate,
                             dateNumber: slotDateNumber,
                         });
                     }
                 } else if (replacementEvent) {
-                    const replacementStart = parseStartMinutes(replacementEvent.time, defaultStart);
-                    if (replacementStart != null) {
+                    const replacementRange = parseTimeRange(replacementEvent.time, defaultRange.start, defaultRange.end);
+                    if (replacementRange.start != null) {
                         candidates.push({
                             title: replacementEvent.title || slot.title,
                             timeLabel: replacementEvent.time || slot.defaultTime,
-                            startMinutes: replacementStart,
+                            startMinutes: replacementRange.start,
+                            endMinutes: replacementRange.end,
                             dateObj: slotDate,
                             dateNumber: slotDateNumber,
                         });
@@ -321,12 +354,13 @@ export default function NextProgramBar() {
                 const additionEventId = safeStr(overrideForWeek.additions?.[slot.id]).trim();
                 const additionEvent = additionEventId ? eventsMap.get(additionEventId) : null;
                 if (additionEvent) {
-                    const additionStart = parseStartMinutes(additionEvent.time, null);
-                    if (additionStart != null) {
+                    const additionRange = parseTimeRange(additionEvent.time, null, null);
+                    if (additionRange.start != null) {
                         candidates.push({
                             title: additionEvent.title || slot.title,
                             timeLabel: additionEvent.time,
-                            startMinutes: additionStart,
+                            startMinutes: additionRange.start,
+                            endMinutes: additionRange.end,
                             dateObj: slotDate,
                             dateNumber: slotDateNumber,
                         });
@@ -343,33 +377,82 @@ export default function NextProgramBar() {
         const found = candidates.find((candidate) => isFutureOrNow(candidate, nowMeta));
         if (!found) return null;
 
+        const isNow = found.dateNumber === nowMeta.dateNumber && nowMeta.minuteOfDay >= found.startMinutes && nowMeta.minuteOfDay < found.endMinutes;
+
         return {
             ...found,
-            dateLabel: dateLabelForBar(found.dateObj, nowMeta, lang, tBar),
+            isNow,
+            dateLabel: isNow ? tBar("happening_now") : dateLabelForBar(found.dateObj, nowMeta, lang, tBar),
         };
     }, [eventsMap, lang, overridesMap, programSlots, tBar, tick]);
 
+    useEffect(() => {
+        const wrap = titleWrapRef.current;
+        const text = titleRef.current;
+        if (!wrap || !text) return;
+
+        let frameId;
+        const check = () => {
+            if (!wrap || !text) return;
+            const hasMarquee = text.classList.contains("marquee");
+            const naturalWidth = text.scrollWidth - (hasMarquee ? 30 : 0);
+            setIsMarquee(naturalWidth > wrap.clientWidth);
+        };
+
+        const ro = new ResizeObserver(() => {
+            cancelAnimationFrame(frameId);
+            frameId = requestAnimationFrame(check);
+        });
+
+        ro.observe(wrap);
+        ro.observe(text);
+        check();
+
+        return () => {
+            ro.disconnect();
+            cancelAnimationFrame(frameId);
+        };
+    }, [nextProgram?.title]);
+
+    const renderContent = () => (
+        <>
+            {nextProgram.isNow && <span className="nextProgramBar-liveIndicator" aria-hidden="true"></span>}
+            {!nextProgram.isNow && (
+                <span className="nextProgramBar-prefix">
+                    <span className="nextProgramBar-kicker">{tBar("next_program")}</span>
+                    <span className="nextProgramBar-sep" aria-hidden="true">•</span>
+                </span>
+            )}
+            <span className="nextProgramBar-date">{nextProgram.dateLabel}</span>
+            <span className="nextProgramBar-sep" aria-hidden="true">•</span>
+            <span className="nextProgramBar-time">{nextProgram.timeLabel}</span>
+            {safeStr(nextProgram.title).trim() ? (
+                <>
+                    <span className="nextProgramBar-sep" aria-hidden="true">•</span>
+                    <span className="nextProgramBar-title">{nextProgram.title}</span>
+                </>
+            ) : null}
+        </>
+    );
+
     return (
         <div className="nextProgramBar" role="status" aria-live="polite">
-            <div className="nextProgramBar-inner">
+            <div ref={titleWrapRef} className={`nextProgramBar-inner ${isMarquee ? "is-marquee" : ""}`}>
                 {nextProgram ? (
                     <>
-                        <span className="nextProgramBar-prefix">
-                            <span className="nextProgramBar-kicker">{tBar("next_program")}</span>
-                            <span className="nextProgramBar-sep" aria-hidden="true">•</span>
-                        </span>
-                        <span className="nextProgramBar-date">{nextProgram.dateLabel}</span>
-                        <span className="nextProgramBar-sep" aria-hidden="true">•</span>
-                        <span className="nextProgramBar-time">{nextProgram.timeLabel}</span>
-                        {safeStr(nextProgram.title).trim() ? (
-                            <>
-                                <span className="nextProgramBar-sep" aria-hidden="true">•</span>
-                                <span className="nextProgramBar-title">{nextProgram.title}</span>
-                            </>
-                        ) : null}
+                        <div ref={titleRef} className={`nextProgramBar-content ${isMarquee ? "marquee" : ""}`}>
+                            {renderContent()}
+                        </div>
+                        {isMarquee && (
+                            <div className="nextProgramBar-content marquee" aria-hidden="true">
+                                {renderContent()}
+                            </div>
+                        )}
                     </>
                 ) : (
-                    <span className="nextProgramBar-empty">{tBar("no_program")}</span>
+                    <div className="nextProgramBar-content">
+                        <span className="nextProgramBar-empty">{tBar("no_program")}</span>
+                    </div>
                 )}
             </div>
         </div>

@@ -355,9 +355,12 @@ export default function Program() {
                     {LOCAL_PROGRAM_ITEMS.map((item, idx) => {
                         const id = safeStr(item?.id || `day-${idx}`).trim();
                         const times = safeArr(item?.times);
-                        const isCancelled = cancelledSet.has(id);
+                        
                         const replacementEventId = safeStr(replacements[id]).trim();
                         const replacementEvent = replacementEventId ? eventsMap.get(replacementEventId) : null;
+                        
+                        const isBrokenOverride = replacementEventId && !replacementEvent;
+                        const isCancelled = cancelledSet.has(id) && !isBrokenOverride;
                         const isReplaced = isCancelled && !!replacementEvent;
 
                         const customTitle = pickByLang(customTitles?.[id], lang);

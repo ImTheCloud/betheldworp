@@ -1,0 +1,10 @@
+<div style="display: flex; width: 300px; border: 1px solid red; overflow: hidden;">
+    <div>Fix text</div>
+    <div id="wrap" style="display: flex; overflow: hidden; white-space: nowrap; position: relative;">
+        <span id="title" style="display: inline-block; white-space: nowrap; flex-shrink: 0;">Very long text that overflows the container by a lot</span>
+    </div>
+</div>
+<script>
+    console.log(document.getElementById("wrap").clientWidth);
+    console.log(document.getElementById("title").scrollWidth);
+</script>

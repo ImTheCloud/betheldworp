@@ -11,17 +11,40 @@
 
 .nextProgramBar-inner {
     min-height: var(--next-program-bar-height, 38px);
-    padding: 0 16px;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
     color: #ffffff;
     font-size: 13px;
     white-space: nowrap;
     overflow-x: hidden;
-    text-align: center;
-    scrollbar-width: none;
+}
+
+.nextProgramBar-inner.is-marquee {
+    justify-content: flex-start;
+}
+
+.nextProgramBar-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 0 16px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin: 0 auto;
+}
+
+.nextProgramBar-content.marquee {
+    padding-right: 50px;
+    margin: 0;
+    animation: marquee-continuous 25s linear infinite;
+    justify-content: flex-start;
+}
+
+@keyframes marquee-continuous {
+    from { transform: translateX(0); }
+    to { transform: translateX(-100%); }
 }
 
 .nextProgramBar-inner::-webkit-scrollbar {
@@ -49,10 +72,7 @@
 }
 
 .nextProgramBar-title {
-    max-width: min(72vw, 820px);
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-weight: 800;
 }
 
 .nextProgramBar-sep {
@@ -63,15 +83,10 @@
     .nextProgramBar-inner {
         font-size: 12px;
     }
-
-    .nextProgramBar-title {
-        max-width: min(64vw, 460px);
-    }
 }
 
 @media (max-width: 768px) {
-    .nextProgramBar-inner {
-        justify-content: center;
+    .nextProgramBar-content {
         padding: 0 12px;
         gap: 8px;
     }
@@ -79,8 +94,26 @@
     .nextProgramBar-prefix {
         display: none;
     }
+}
 
-    .nextProgramBar-title {
-        max-width: min(62vw, 340px);
+.nextProgramBar-liveIndicator {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background-color: #ef4444; /* red-500 */
+    border-radius: 50%;
+    margin-right: 8px;
+    animation: pulse-red 2s infinite;
+}
+
+@keyframes pulse-red {
+    0% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
     }
 }

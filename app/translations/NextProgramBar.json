@@ -1,24 +1,28 @@
 {
   "ro": {
     "next_program": "Următorul program",
+    "happening_now": "În desfășurare",
     "today": "Astăzi",
     "tomorrow": "Mâine",
     "no_program": "Nu există programe viitoare"
   },
   "fr": {
     "next_program": "Prochain programme",
+    "happening_now": "En ce moment",
     "today": "Aujourd’hui",
     "tomorrow": "Demain",
     "no_program": "Aucun programme à venir"
   },
   "nl": {
     "next_program": "Volgend programma",
+    "happening_now": "Nu bezig",
     "today": "Vandaag",
     "tomorrow": "Morgen",
     "no_program": "Geen volgend programma"
   },
   "en": {
     "next_program": "Next program",
+    "happening_now": "Happening now",
     "today": "Today",
     "tomorrow": "Tomorrow",
     "no_program": "No upcoming program"

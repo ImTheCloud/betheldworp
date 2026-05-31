@@ -2665,3 +2665,69 @@ input:checked + .adminSlider:before {
     max-width: 420px; /* Optional cap for desktop readability */
     width: 100%;
 }
+
+/* Toggle Switch */
+.adminToggleWrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748b;
+    transition: color 0.2s ease;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+.adminToggleWrap:hover {
+    color: #0a2a43;
+}
+.adminToggleWrap.is-active {
+    color: #0a2a43;
+}
+.adminToggle {
+    position: relative;
+    width: 40px;
+    height: 22px;
+    background: #e2e8f0;
+    border-radius: 22px;
+    transition: background 0.3s ease;
+    flex-shrink: 0;
+}
+.adminToggle.is-active {
+    background: #0a2a43;
+}
+.adminToggleKnob {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 18px;
+    height: 18px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+.adminToggle.is-active .adminToggleKnob {
+    transform: translateX(18px);
+}
+
+.adminGrid-EventTop {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 16px;
+    width: 100%;
+    min-width: 0;
+    align-items: flex-end; /* Aligns the toggle with the bottom of the input fields */
+}
+
+@media (max-width: 768px) {
+    .adminGrid-EventTop {
+        grid-template-columns: 1fr;
+    }
+    .adminGrid-EventTop > .adminToggleWrap {
+        order: -1; /* Moves it to the top on mobile */
+        margin-bottom: 8px; /* Adds space between toggle and Date field */
+    }
+}
+
