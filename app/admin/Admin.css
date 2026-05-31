@@ -887,6 +887,10 @@
     border-top: 1px solid rgba(10, 42, 67, 0.06);
     padding-top: 12px;
     margin-top: 4px;
+    width: 100%;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
 }
 
 .adminAnnIdChip {
@@ -1104,6 +1108,8 @@ input:checked + .adminSlider:before {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 16px;
+    width: 100%;
+    min-width: 0;
 }
 
 /* ── Pagination Buttons ── */
