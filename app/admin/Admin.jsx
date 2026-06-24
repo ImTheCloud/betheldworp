@@ -135,7 +135,7 @@ export default function Admin() {
     // Sync tab -> hash
     useEffect(() => {
         if (!isAdmin) return;
-        if (activeTab) {
+        if (activeTab && window.location.hash !== `#${activeTab}`) {
             window.history.replaceState(null, null, `#${activeTab}`);
         }
     }, [activeTab, isAdmin]);
@@ -206,11 +206,17 @@ export default function Admin() {
                 await user.getIdToken(forceRefreshToken);
             } catch {
                 // Retry if token fetching fails transiently.
-                const delay = Math.min(1000 * (2 ** retryCount), 10000);
-                retryCount += 1;
-                retryTimer = setTimeout(() => {
-                    startAdminWatch(true);
-                }, delay);
+                if (retryCount < 5) {
+                    const delay = Math.min(1000 * (2 ** retryCount), 10000);
+                    retryCount += 1;
+                    retryTimer = setTimeout(() => {
+                        startAdminWatch(true);
+                    }, delay);
+                } else {
+                    console.warn("Token fetch failed after retries.");
+                    setIsAdmin(false);
+                    setAdminLoading(false);
+                }
                 return;
             }
 
@@ -223,8 +229,23 @@ export default function Admin() {
                 (snap) => {
                     if (!mountedRef.current || cancelled) return;
                     retryCount = 0;
-                    setIsAdmin(snap.exists());
-                    setAdminLoading(false);
+                    
+                    if (snap.exists()) {
+                        // Force refresh token to ensure custom claims are loaded
+                        user.getIdToken(true).then(() => {
+                            if (!mountedRef.current || cancelled) return;
+                            setIsAdmin(true);
+                            setAdminLoading(false);
+                        }).catch(err => {
+                            console.error("Token refresh failed", err);
+                            if (!mountedRef.current || cancelled) return;
+                            setIsAdmin(true); // fallback to true anyway
+                            setAdminLoading(false);
+                        });
+                    } else {
+                        setIsAdmin(false);
+                        setAdminLoading(false);
+                    }
                 },
                 (err) => {
                     if (!mountedRef.current || cancelled) return;
