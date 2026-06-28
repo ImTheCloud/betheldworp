@@ -189,6 +189,7 @@ export default function Admin() {
         let retryTimer = null;
         let cancelled = false;
         let retryCount = 0;
+        let hasRefreshedToken = false;
 
         const clearRetry = () => {
             if (retryTimer) {
@@ -231,17 +232,24 @@ export default function Admin() {
                     retryCount = 0;
                     
                     if (snap.exists()) {
-                        // Force refresh token to ensure custom claims are loaded
-                        user.getIdToken(true).then(() => {
+                        if (!hasRefreshedToken) {
+                            hasRefreshedToken = true;
+                            // Force refresh token to ensure custom claims are loaded
+                            user.getIdToken(true).then(() => {
+                                if (!mountedRef.current || cancelled) return;
+                                setIsAdmin(true);
+                                setAdminLoading(false);
+                            }).catch(err => {
+                                console.error("Token refresh failed", err);
+                                if (!mountedRef.current || cancelled) return;
+                                setIsAdmin(true); // fallback to true anyway
+                                setAdminLoading(false);
+                            });
+                        } else {
                             if (!mountedRef.current || cancelled) return;
                             setIsAdmin(true);
                             setAdminLoading(false);
-                        }).catch(err => {
-                            console.error("Token refresh failed", err);
-                            if (!mountedRef.current || cancelled) return;
-                            setIsAdmin(true); // fallback to true anyway
-                            setAdminLoading(false);
-                        });
+                        }
                     } else {
                         setIsAdmin(false);
                         setAdminLoading(false);
