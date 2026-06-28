@@ -383,6 +383,57 @@
     letter-spacing: 0.05em;
 }
 
+/* ── Summer Notice ── */
+.program-summerNotice {
+    display: flex;
+    align-items: stretch;
+    background: #fffcf5;
+    border: 1px solid rgba(217, 155, 25, 0.18);
+    border-radius: 14px;
+    margin: 0 auto 24px auto;
+    width: 100%;
+    overflow: hidden;
+}
+
+.program-summerNoticeAccent {
+    width: 4px;
+    flex-shrink: 0;
+    background: linear-gradient(180deg, #e8a308 0%, #d4910a 100%);
+    border-radius: 14px 0 0 14px;
+}
+
+.program-summerNoticeBody {
+    flex: 1;
+    padding: 14px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.program-summerNoticeLabel {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #92600a;
+}
+
+.program-summerNoticeSvg {
+    flex-shrink: 0;
+    color: #b8800e;
+}
+
+.program-summerNoticeText {
+    font-size: 13.5px;
+    color: rgba(10, 42, 67, 0.7);
+    line-height: 1.45;
+    font-weight: 500;
+}
+
 @media (max-width: 900px) {
     .program-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
