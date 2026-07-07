@@ -137,7 +137,9 @@ function normalizeWeekOverride(docId, data) {
     const affectedProgramIds = safeArr(data?.affectedProgramIds).map((v) => safeStr(v).trim()).filter(Boolean);
     const replacements = safeObj(data?.replacements);
     const additions = safeObj(data?.additions);
-    return { weekKey, affectedProgramIds, replacements, additions };
+    const customTitles = safeObj(data?.customTitles);
+    const customTimes = safeObj(data?.customTimes);
+    return { weekKey, affectedProgramIds, replacements, additions, customTitles, customTimes };
 }
 
 function parseTimeRange(timeValue, fallbackStart = null, fallbackEnd = null) {
@@ -188,6 +190,16 @@ function brusselsDateNumber(dateObj) {
     return yy * 10000 + mm * 100 + dd;
 }
 
+function getDayName(dateObj, lang) {
+    const locale = getLocaleFromLang(lang);
+    const dtf = new Intl.DateTimeFormat(locale, {
+        weekday: "long",
+        timeZone: "Europe/Brussels",
+    });
+    const name = dtf.format(dateObj);
+    return name.charAt(0).toUpperCase() + name.slice(1);
+}
+
 function formatDateForBar(dateObj, lang) {
     const locale = getLocaleFromLang(lang);
     const dtf = new Intl.DateTimeFormat(locale, {
@@ -195,17 +207,19 @@ function formatDateForBar(dateObj, lang) {
         month: "2-digit",
         timeZone: "Europe/Brussels",
     });
-    return dtf.format(dateObj);
+    return `${getDayName(dateObj, lang)} ${dtf.format(dateObj)}`;
 }
 
 function dateLabelForBar(dateObj, nowMeta, lang, tBar) {
     const candidateDateNumber = brusselsDateNumber(dateObj);
-    if (candidateDateNumber === nowMeta.dateNumber) return tBar("today");
+    const dayName = getDayName(dateObj, lang);
+
+    if (candidateDateNumber === nowMeta.dateNumber) return `${dayName} · ${tBar("today")}`;
 
     const brusselsTodayNoonUTC = new Date(Date.UTC(nowMeta.yy, nowMeta.mm - 1, nowMeta.dd, 12, 0, 0));
     const brusselsTomorrowNoonUTC = addDaysUTC(brusselsTodayNoonUTC, 1);
     const tomorrowDateNumber = brusselsDateNumber(brusselsTomorrowNoonUTC);
-    if (candidateDateNumber === tomorrowDateNumber) return tBar("tomorrow");
+    if (candidateDateNumber === tomorrowDateNumber) return `${dayName} · ${tBar("tomorrow")}`;
 
     return formatDateForBar(dateObj, lang);
 }
@@ -258,6 +272,8 @@ export default function NextProgramBar() {
                             cancelledSet: new Set(normalized.affectedProgramIds),
                             replacements: normalized.replacements,
                             additions: normalized.additions,
+                            customTitles: normalized.customTitles,
+                            customTimes: normalized.customTimes,
                         });
                     }
                 });
@@ -315,6 +331,8 @@ export default function NextProgramBar() {
                 cancelledSet: new Set(),
                 replacements: {},
                 additions: {},
+                customTitles: {},
+                customTimes: {},
             };
 
             programSlots.forEach((slot) => {
@@ -326,30 +344,42 @@ export default function NextProgramBar() {
                 const replacementEventId = safeStr(overrideForWeek.replacements?.[slot.id]).trim();
                 const replacementEvent = replacementEventId ? eventsMap.get(replacementEventId) : null;
 
+                // Check for custom title/time overrides (manual modifications without cancellation)
+                const customTitle = pickByLang(overrideForWeek.customTitles?.[slot.id], lang);
+                const customTime = safeStr(overrideForWeek.customTimes?.[slot.id]).trim();
+                const hasManualOverride = customTitle !== "" || customTime !== "";
+
                 if (!cancelled) {
-                    if (defaultRange.start != null) {
+                    // Not cancelled: show with possible custom title/time
+                    const effectiveTime = customTime || slot.defaultTime;
+                    const effectiveRange = customTime ? parseTimeRange(customTime, defaultRange.start, defaultRange.end) : defaultRange;
+                    if (effectiveRange.start != null) {
                         candidates.push({
-                            title: slot.title,
-                            timeLabel: slot.defaultTime,
-                            startMinutes: defaultRange.start,
-                            endMinutes: defaultRange.end,
+                            title: customTitle || slot.title,
+                            timeLabel: effectiveTime,
+                            startMinutes: effectiveRange.start,
+                            endMinutes: effectiveRange.end,
                             dateObj: slotDate,
                             dateNumber: slotDateNumber,
                         });
                     }
-                } else if (replacementEvent) {
-                    const replacementRange = parseTimeRange(replacementEvent.time, defaultRange.start, defaultRange.end);
-                    if (replacementRange.start != null) {
+                } else if (replacementEvent || hasManualOverride) {
+                    // Cancelled but replaced by an event or has manual override
+                    const effectiveTitle = customTitle || (replacementEvent ? replacementEvent.title : "") || slot.title;
+                    const effectiveTime = customTime || (replacementEvent ? replacementEvent.time : "") || slot.defaultTime;
+                    const effectiveRange = parseTimeRange(effectiveTime, defaultRange.start, defaultRange.end);
+                    if (effectiveRange.start != null) {
                         candidates.push({
-                            title: replacementEvent.title || slot.title,
-                            timeLabel: replacementEvent.time || slot.defaultTime,
-                            startMinutes: replacementRange.start,
-                            endMinutes: replacementRange.end,
+                            title: effectiveTitle,
+                            timeLabel: effectiveTime,
+                            startMinutes: effectiveRange.start,
+                            endMinutes: effectiveRange.end,
                             dateObj: slotDate,
                             dateNumber: slotDateNumber,
                         });
                     }
                 }
+                // If cancelled and no replacement/manual override => skip (truly cancelled)
 
                 const additionEventId = safeStr(overrideForWeek.additions?.[slot.id]).trim();
                 const additionEvent = additionEventId ? eventsMap.get(additionEventId) : null;
