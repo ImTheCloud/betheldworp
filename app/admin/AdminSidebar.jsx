@@ -133,7 +133,7 @@ export default function AdminSidebar({ activeTab, onTabChange, onLogout }) {
     return (
         <aside className="adminSidebar">
             <div className="adminSidebarHeader">
-                <div className="adminMarkSmall">B</div>
+                <img src="/icon.png" alt="Bethel Logo" className="adminMarkSmall" />
                 <div className="adminSidebarTitle">Bethel Admin</div>
             </div>
 
@@ -164,6 +164,13 @@ export default function AdminSidebar({ activeTab, onTabChange, onLogout }) {
             </nav>
 
             <div className="adminSidebarFooter">
+                <Link href="/" target="_blank" className="adminSidebarLink adminSidebarLink--sub">
+                    <span className="adminSidebarIcon">
+                        <IconExternal />
+                    </span>
+                    Go to Website
+                </Link>
+
                 <Link href="/romanian-pentecostal-churches-map" target="_blank" className="adminSidebarLink adminSidebarLink--sub">
                     <span className="adminSidebarIcon">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -172,13 +179,6 @@ export default function AdminSidebar({ activeTab, onTabChange, onLogout }) {
                         </svg>
                     </span>
                     World Church Map
-                </Link>
-
-                <Link href="/" target="_blank" className="adminSidebarLink adminSidebarLink--sub">
-                    <span className="adminSidebarIcon">
-                        <IconExternal />
-                    </span>
-                    Go to Website
                 </Link>
 
                 <button type="button" className="adminSidebarLink adminSidebarLink--sub" onClick={onLogout}>

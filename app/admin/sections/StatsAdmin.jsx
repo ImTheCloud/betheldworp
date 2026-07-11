@@ -351,6 +351,7 @@ function DonutWithLegend({ title, rows, total, search, centerLabel, nameLabel })
 
                 <div className="statsLegend">
                     <div className="statsLegendHead">
+                        <div className="statsLegendHeadCell"></div>
                         <div className="statsLegendHeadCell">{nameLabel || "Name"}</div>
                         <div className="statsLegendHeadCell statsRight">Visits</div>
                         <div className="statsLegendHeadCell statsRight">100%</div>
