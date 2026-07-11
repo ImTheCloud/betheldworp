@@ -2,7 +2,7 @@
   "ro": {
     "title": "Vă așteptăm la biserica Bethel",
     "subtitle": "în casa lui Dumnezeu",
-    "monthly_verse": "Versetul nostru actual",
+    "monthly_verse": "Versetul lunii",
     "loading": "(se încarcă...)",
     "error_no_verse": "Momentan nu este setat niciun verset.",
     "error_load_verse": "Eroare la încărcarea versetului actual."
@@ -10,7 +10,7 @@
   "fr": {
     "title": "Nous vous attendons à l’église Bethel",
     "subtitle": "dans la maison de Dieu",
-    "monthly_verse": "Notre verset actuel",
+    "monthly_verse": "Le verset du mois",
     "loading": "(chargement...)",
     "error_no_verse": "Aucun verset n'est actuellement disponible.",
     "error_load_verse": "Erreur lors du chargement du verset actuel."
@@ -18,7 +18,7 @@
   "nl": {
     "title": "Welkom in de Bethelkerk",
     "subtitle": "in het huis van God",
-    "monthly_verse": "Ons huidige vers",
+    "monthly_verse": "Het vers van de maand",
     "loading": "(laden...)",
     "error_no_verse": "Er is momenteel geen vers beschikbaar.",
     "error_load_verse": "Fout bij het laden van het huidige vers."
@@ -26,7 +26,7 @@
   "en": {
     "title": "Welcome to Bethel church",
     "subtitle": "in the house of God",
-    "monthly_verse": "Our current verse",
+    "monthly_verse": "The verse of the month",
     "loading": "(loading...)",
     "error_no_verse": "No current verse has been set yet.",
     "error_load_verse": "Failed to load the current verse."
