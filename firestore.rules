@@ -1,0 +1,126 @@
+rules_version = '2';
+
+// IMPORTANT — les règles Firestore se combinent en OU : il n'existe pas de refus,
+// seulement des autorisations. Un « allow write: if false » n'interdit donc rien si
+// un autre bloc accorde l'écriture. C'est pourquoi il n'y a PLUS de règle d'écriture
+// récursive ici : les écritures sont accordées collection par collection.
+//
+// => Si tu ajoutes une collection gérée depuis l'admin, ajoute-lui son bloc
+//    « allow write: if isAdmin(); » ci-dessous, sinon l'admin ne pourra pas y écrire.
+//    La LECTURE admin, elle, reste récursive : rien à faire pour les nouvelles collections.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAdmin() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    function changedKeys() {
+      return request.resource.data.diff(resource.data).affectedKeys();
+    }
+
+    // --- LISTE DES ADMINS ---
+
+    // Volontairement en lecture seule pour TOUS les clients, admins compris :
+    // aucune règle d'écriture ne correspond à ce chemin, donc promouvoir ou
+    // retirer un admin ne peut se faire que depuis la console Firebase.
+    match /admins/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // --- LECTURE ADMIN (RÉCURSIVE) ---
+
+    // Un admin peut tout lire, y compris les futures collections.
+    // Les écritures sont accordées explicitement plus bas, jamais ici.
+    match /{document=**} {
+      allow read: if isAdmin();
+    }
+
+    // --- CONTENU DU SITE (LECTURE PUBLIQUE, ÉCRITURE ADMIN) ---
+
+    match /monthly_verse/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /events/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /program_overrides/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // --- NEWSLETTER ---
+
+    // L'identifiant du document est l'adresse email en minuscules, donc n'importe qui
+    // connaissant une adresse peut viser son document : create et update sont limités
+    // aux champs que le site écrit réellement.
+    match /newsletter/{email} {
+      allow get: if true;                 // vérifier une adresse précise (lister reste réservé à l'admin)
+      allow write: if isAdmin();
+
+      // Abonnement depuis le site ou le pied de page.
+      allow create: if request.resource.data.keys().hasOnly(['email', 'subscribedAt', 'source'])
+                    && request.resource.data.email is string
+                    && request.resource.data.email == email
+                    && request.resource.data.source is string;
+
+      // Désabonnement / réabonnement : rien d'autre que l'indicateur de statut.
+      allow update: if changedKeys().hasOnly(['unsubscribed', 'updatedAt'])
+                    && request.resource.data.unsubscribed is bool;
+    }
+
+    // --- CARTE DES ÉGLISES ---
+
+    match /churches/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+
+      // Bouton « j'aime » public : un seul champ, un seul cran à la fois.
+      allow update: if changedKeys().hasOnly(['likes'])
+                    && request.resource.data.likes is int
+                    && request.resource.data.likes >= 0
+                    && (request.resource.data.likes == resource.data.get('likes', 0) + 1
+                        || request.resource.data.likes == resource.data.get('likes', 0) - 1);
+    }
+
+    match /church_suggestions/{docId} {
+      allow write: if isAdmin();
+
+      // Proposition publique : uniquement les champs du formulaire, et toujours
+      // « pending » — impossible de déposer une suggestion déjà approuvée.
+      allow create: if request.resource.data.keys().hasOnly(['type', 'originalChurchId', 'status', 'data', 'createdAt'])
+                    && request.resource.data.status == 'pending'
+                    && request.resource.data.type is string;
+    }
+
+    // --- TRACKING ET STATS (CRÉATION PUBLIQUE) ---
+
+    // Les chemins { path=** } sont nécessaires : les requêtes collectionGroup de la
+    // page Statistiques ne sont autorisées que par une règle écrite sous cette forme.
+    match /{path=**}/visitors/{visitorId} {
+      allow create: if true;
+      allow read: if isAdmin();
+    }
+
+    match /{path=**}/map_visitors/{visitorId} {
+      allow create, update: if true;
+      allow read: if isAdmin();
+    }
+
+    match /bot_visits/{visitorId} {
+      allow create: if true;
+      allow read: if isAdmin();
+    }
+
+    match /visits_global/{visitorId} {
+      allow create: if true;
+      allow read: if isAdmin();
+    }
+  }
+}
