@@ -244,15 +244,15 @@ export default function Program() {
     };
 
     const LOCAL_PROGRAM_ITEMS = useMemo(() => [
-        { day: t("dayp_mon"), id: "mon", times: ["20:00-21:30"], title: t("act_mon") },
-        { day: t("dayp_tue_fast"), id: "tue_fast", times: ["10:00-14:00"], title: t("act_tue_fast") },
-        { day: t("dayp_tue"), id: "tue", times: ["20:00-21:30"], title: t("act_tue") },
-        { day: t("dayp_wed"), id: "wed", times: ["20:00-21:30"], title: t("act_wed") },
-        { day: t("dayp_thu"), id: "thu", times: ["20:00-21:30"], title: t("act_thu") },
-        { day: t("dayp_fri"), id: "fri", times: ["20:00-21:30"], title: t("act_fri") },
-        { day: t("dayp_sat"), id: "sat", times: ["11:00-13:30"], title: t("act_sat") },
-        { day: t("dayp_sun_am"), id: "sun_am", times: ["10:00-12:00"], title: t("act_sun_am") },
-        { day: t("dayp_sun_pm"), id: "sun_pm", times: ["18:00-20:00"], title: t("act_sun_pm") },
+        { day: t("day_mon"), id: "mon", times: ["20:00-21:30"], title: t("act_mon") },
+        { day: t("day_tue"), id: "tue_fast", times: ["10:00-14:00"], title: t("act_tue_fast") },
+        { day: t("day_tue"), id: "tue", times: ["20:00-21:30"], title: t("act_tue") },
+        { day: t("day_wed"), id: "wed", times: ["20:00-21:30"], title: t("act_wed") },
+        { day: t("day_thu"), id: "thu", times: ["20:00-21:30"], title: t("act_thu") },
+        { day: t("day_fri"), id: "fri", times: ["20:00-21:30"], title: t("act_fri") },
+        { day: t("day_sat"), id: "sat", times: ["11:00-13:30"], title: t("act_sat") },
+        { day: t("day_sun"), id: "sun_am", times: ["10:00-12:00"], title: t("act_sun_am") },
+        { day: t("day_sun"), id: "sun_pm", times: ["18:00-20:00"], title: t("act_sun_pm") },
     ], [t]);
 
     const [weekOffset, setWeekOffset] = useState(0);
@@ -415,10 +415,10 @@ export default function Program() {
                     {LOCAL_PROGRAM_ITEMS.map((item, idx) => {
                         const id = safeStr(item?.id || `day-${idx}`).trim();
                         const times = safeArr(item?.times);
-                        
+
                         const replacementEventId = safeStr(replacements[id]).trim();
                         const replacementEvent = replacementEventId ? eventsMap.get(replacementEventId) : null;
-                        
+
                         const isBrokenOverride = replacementEventId && !replacementEvent;
                         const isSummerBreak = !!dateMetaById?.[id]?.summerBreak;
                         const isCancelled = (cancelledSet.has(id) && !isBrokenOverride) || isSummerBreak;
@@ -440,8 +440,10 @@ export default function Program() {
                         const displayTime = isReplaced && replacementEvent.time ? replacementEvent.time : null;
 
                         const cleanedTimes = times.map((x) => safeStr(x).trim()).filter(Boolean);
-                        const defaultTimeLabel = cleanedTimes.length ? formatRange(cleanedTimes[0]) + (cleanedTimes.length > 1 ? " +" : "") : "";
-                        const timeLabel = customTime || (isReplaced && displayTime ? displayTime : defaultTimeLabel);
+                        // Chaque creneau a sa propre pastille horaire, plutot qu'un « + » muet.
+                        const timeLabels = customTime
+                            ? [customTime]
+                            : (isReplaced && displayTime ? [displayTime] : cleanedTimes.map(formatRange));
 
                         const additionEventId = safeStr(additions[id]).trim();
                         const additionEvent = additionEventId ? eventsMap.get(additionEventId) : null;
@@ -460,7 +462,14 @@ export default function Program() {
                                         </div>
                                         <div className="program-activity">{displayTitle}</div>
                                         <div className="program-bottomRow">
-                                            {timeLabel && <div className={`program-timeLine ${isCancelled && !finalIsReplaced ? "program-timeLine--cancelled" : ""} ${finalIsReplaced ? "program-timeLine--replaced" : ""}`}>{timeLabel}</div>}
+                                            {timeLabels.map((label) => (
+                                                <div
+                                                    key={label}
+                                                    className={`program-timeLine ${isCancelled && !finalIsReplaced ? "program-timeLine--cancelled" : ""} ${finalIsReplaced ? "program-timeLine--replaced" : ""}`}
+                                                >
+                                                    {label}
+                                                </div>
+                                            ))}
                                             {dm && <div className="program-dateFixed" title={full}>{dm}</div>}
                                         </div>
                                     </div>

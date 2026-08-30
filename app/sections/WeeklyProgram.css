@@ -458,11 +458,6 @@
         grid-column: auto;
     }
 
-    .program-grid > .program-card:last-child:nth-child(odd) {
-        grid-column: 1 / -1;
-        justify-self: center;
-        width: calc(50% - var(--program-gap) / 2);
-    }
 
     .program-card {
         min-height: 140px;
@@ -503,15 +498,15 @@
         --program-gap: 10px;
     }
 
-    /* Hauteur calee sur une carte a titre de 2 lignes : les programmes habituels
-       font tous exactement la meme taille, quel que soit le nombre de lignes.
-       Seul un titre d'evenement de 3 lignes depasse, ce qui est voulu. */
+    /* Hauteur commune calee sur un titre de 2 lignes : toutes les cartes du
+       programme habituel font exactement la meme taille. Seul un titre
+       d'evenement plus long depasse, ce qui est voulu. */
     .program-card {
         min-height: 132px;
     }
 
     .program-cardInnerFlat {
-        padding: 10px 14px 14px;
+        padding: 14px;
     }
 
     .program-activity {
@@ -528,14 +523,10 @@
         font-size: 12px;
     }
 
-    /* Les deux lignes sont reservees sur la RANGEE, pas sur le libelle, et le
-       contenu est cale en bas : un libelle d'une seule ligne reste donc collé
-       au titre, la ligne vide se fond dans la marge haute de la carte. */
     .program-cardTop {
-        align-items: flex-end;
+        align-items: center;
         gap: 6px;
-        min-height: 25px;
-        margin-bottom: 6px;
+        margin-bottom: 8px;
     }
 
     .program-day {

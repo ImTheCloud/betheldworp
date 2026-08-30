@@ -2,7 +2,8 @@
 
 import "./Admin.css";
 import { useEffect, useState } from "react";
-import { collection, onSnapshot, query, where } from "firebase/firestore";
+import { collection, doc, getDocFromServer, onSnapshot, query, where } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 import { db } from "../lib/Firebase";
 import Link from "next/link";
 
@@ -106,6 +107,33 @@ export default function AdminSidebar({ activeTab, onTabChange, onLogout }) {
         let unsubChurches = () => { };
         let stopped = false;
 
+        // A denied read here means the rules engine evaluated isAdmin() as false. Probe the
+        // server once to tell apart the only two causes, instead of guessing from symptoms.
+        let probed = false;
+        const probeSession = async () => {
+            if (probed) return;
+            probed = true;
+            const u = getAuth().currentUser;
+            if (!u) {
+                console.warn("[diagnostic] No signed-in user in the SDK at all.");
+                return;
+            }
+            try {
+                const snap = await getDocFromServer(doc(db, "admins", u.uid));
+                console.warn(
+                    `[diagnostic] Server read of admins/${u.uid} SUCCEEDED, exists=${snap.exists()}. ` +
+                    (snap.exists()
+                        ? "Session valid AND the admin document exists: the rules engine should have allowed the read."
+                        : "The session is valid but no admin document exists for this UID.")
+                );
+            } catch (e) {
+                console.warn(
+                    `[diagnostic] Server read of admins/${u.uid} FAILED with "${e?.code}": ` +
+                    "the server does not see a valid session for this browser."
+                );
+            }
+        };
+
         // Firestore keeps re-establishing a rejected listener, so a denied read floods the
         // console with the same error. Detach on failure and report it once instead.
         const handleError = (label, detach) => (err) => {
@@ -113,6 +141,7 @@ export default function AdminSidebar({ activeTab, onTabChange, onLogout }) {
             detach();
             if (err?.code === "permission-denied") {
                 console.warn(`AdminSidebar: no read access to "${label}" — badge count hidden.`);
+                probeSession();
             } else {
                 console.error(`AdminSidebar ${label} snapshot error:`, err);
             }
