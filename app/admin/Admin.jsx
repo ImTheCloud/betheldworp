@@ -46,6 +46,7 @@ export default function Admin() {
 
     const [isAdmin, setIsAdmin] = useState(false);
     const [adminLoading, setAdminLoading] = useState(true);
+    const [adminError, setAdminError] = useState("");
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -198,6 +199,20 @@ export default function Admin() {
             }
         };
 
+        // Last resort: never leave the page on a spinner with no way out.
+        let failsafe = setTimeout(() => {
+            if (!mountedRef.current || cancelled) return;
+            setAdminError("The admin check timed out. Check your connection, then log out and back in.");
+            setAdminLoading(false);
+        }, 15000);
+
+        const clearFailsafe = () => {
+            if (failsafe) {
+                clearTimeout(failsafe);
+                failsafe = null;
+            }
+        };
+
         const startAdminWatch = async (forceRefreshToken = false) => {
             if (cancelled || !mountedRef.current) return;
             clearRetry();
@@ -229,28 +244,41 @@ export default function Admin() {
                 ref,
                 (snap) => {
                     if (!mountedRef.current || cancelled) return;
-                    retryCount = 0;
-                    
+                    // A cached snapshot proves nothing about the current session: refilling the
+                    // retry budget on one makes the server denial below retry forever, which is
+                    // what left the page spinning between the panel and the loader.
+                    if (!snap.metadata.fromCache) retryCount = 0;
+
                     if (snap.exists()) {
                         if (!hasRefreshedToken) {
                             hasRefreshedToken = true;
                             // Force refresh token to ensure custom claims are loaded
                             user.getIdToken(true).then(() => {
                                 if (!mountedRef.current || cancelled) return;
+                                clearFailsafe();
+                                setAdminError("");
                                 setIsAdmin(true);
                                 setAdminLoading(false);
                             }).catch(err => {
                                 console.error("Token refresh failed", err);
                                 if (!mountedRef.current || cancelled) return;
+                                clearFailsafe();
+                                setAdminError("");
                                 setIsAdmin(true); // fallback to true anyway
                                 setAdminLoading(false);
                             });
                         } else {
                             if (!mountedRef.current || cancelled) return;
+                            clearFailsafe();
+                            setAdminError("");
                             setIsAdmin(true);
                             setAdminLoading(false);
                         }
                     } else {
+                        clearFailsafe();
+                        setAdminError(snap.metadata.fromCache
+                            ? "No admins/<your-uid> document found (read from cache — you may be offline)."
+                            : "No admins/<your-uid> document exists for this account.");
                         setIsAdmin(false);
                         setAdminLoading(false);
                     }
@@ -269,6 +297,8 @@ export default function Admin() {
                             }, delay);
                         } else {
                             console.warn("Admin check: Permission denied after retries. User is likely not an admin.");
+                            clearFailsafe();
+                            setAdminError("Firestore refused to read admins/<your-uid>. Your sign-in session is probably stale: log out and back in.");
                             setIsAdmin(false);
                             setAdminLoading(false);
                         }
@@ -276,6 +306,8 @@ export default function Admin() {
                     }
 
                     console.error("Admin check error:", err);
+                    clearFailsafe();
+                    setAdminError(`Admin check failed: ${err?.code || "unknown error"}.`);
                     setIsAdmin(false);
                     setAdminLoading(false);
                 }
@@ -287,6 +319,7 @@ export default function Admin() {
         return () => {
             cancelled = true;
             clearRetry();
+            clearFailsafe();
             unsub();
         };
     }, [user?.uid]);
@@ -439,7 +472,12 @@ export default function Admin() {
                 <div className="adminLoginWrap">
                     <div className="adminCard adminCard--center">
                         <h2 className="adminTitle">Access Denied</h2>
-                        <div className="adminMuted">You do not have permission to access this section.</div>
+                        <div className="adminMuted">{adminError || "You do not have permission to access this section."}</div>
+                        {user?.uid && (
+                            <div className="adminMuted" style={{ marginTop: 10, fontSize: 12, wordBreak: "break-all" }}>
+                                Signed in as {user.email} · UID {user.uid}
+                            </div>
+                        )}
                         <button className="adminBtn" onClick={logout} style={{ marginTop: 20 }}>
                             Logout
                         </button>
