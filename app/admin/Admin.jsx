@@ -362,6 +362,17 @@ export default function Admin() {
 
     const busy = authLoading || adminLoading;
 
+    // A stuck session used to leave the page on a spinner with no way out.
+    const [slowAuth, setSlowAuth] = useState(false);
+    useEffect(() => {
+        if (!busy) {
+            setSlowAuth(false);
+            return;
+        }
+        const t = setTimeout(() => setSlowAuth(true), 4000);
+        return () => clearTimeout(t);
+    }, [busy]);
+
     const renderContent = () => {
         const props = { onDirtyChange: (isDirty) => handleDirtyChange(activeTab, isDirty) };
         switch (activeTab) {
@@ -419,7 +430,14 @@ export default function Admin() {
         <div className="adminPage">
             {busy ? (
                 <div className="adminLoginWrap">
-                    <div className="adminSpinner" />
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 20 }}>
+                        <div className="adminSpinner" />
+                        {slowAuth && (
+                            <button className="adminBtn" onClick={logout}>
+                                Taking too long? Log out
+                            </button>
+                        )}
+                    </div>
                 </div>
             ) : !user ? (
                 <div className="adminLoginWrap">
@@ -501,6 +519,18 @@ export default function Admin() {
                             </svg>
                         </button>
                         <span className="adminMobileTitle">Bethel Admin</span>
+                        <button
+                            className="adminHamburger adminMobileLogout"
+                            onClick={logout}
+                            aria-label="Log out"
+                            title="Log out"
+                        >
+                            <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                <polyline points="16 17 21 12 16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                <line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                        </button>
                     </div>
 
                     {/* Sidebar Overlay */}

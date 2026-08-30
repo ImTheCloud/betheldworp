@@ -1581,6 +1581,15 @@ input:checked + .adminSlider:before {
     place-items: center;
 }
 
+.adminMobileLogout {
+    margin-left: auto;
+    color: rgba(10, 42, 67, 0.55);
+}
+
+.adminMobileLogout:hover {
+    color: #0a2a43;
+}
+
 .adminMobileTitle {
     font-size: 16px;
     font-weight: 700;
