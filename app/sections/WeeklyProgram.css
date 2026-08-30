@@ -503,12 +503,15 @@
         --program-gap: 10px;
     }
 
+    /* Hauteur calee sur une carte a titre de 2 lignes : les programmes habituels
+       font tous exactement la meme taille, quel que soit le nombre de lignes.
+       Seul un titre d'evenement de 3 lignes depasse, ce qui est voulu. */
     .program-card {
-        min-height: 124px;
+        min-height: 132px;
     }
 
     .program-cardInnerFlat {
-        padding: 14px;
+        padding: 10px 14px 14px;
     }
 
     .program-activity {
@@ -525,16 +528,19 @@
         font-size: 12px;
     }
 
+    /* Les deux lignes sont reservees sur la RANGEE, pas sur le libelle, et le
+       contenu est cale en bas : un libelle d'une seule ligne reste donc collé
+       au titre, la ligne vide se fond dans la marge haute de la carte. */
     .program-cardTop {
-        align-items: flex-start;
+        align-items: flex-end;
         gap: 6px;
+        min-height: 25px;
+        margin-bottom: 6px;
     }
 
     .program-day {
         font-size: 10px;
         letter-spacing: 0.05em;
-        /* reserve two lines so titles line up whether or not a card shows a pill */
-        min-height: 25px;
     }
 
     .program-statusPill {

@@ -2,7 +2,7 @@
 
 import "./Admin.css";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { doc, onSnapshot } from "firebase/firestore";
+import { doc, getDocFromServer } from "firebase/firestore";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { db } from "../lib/Firebase";
 
@@ -177,152 +177,87 @@ export default function Admin() {
         };
     }, [auth]);
 
+    // Admin check — one authoritative read from the server.
+    //
+    // The previous version watched admins/{uid} with onSnapshot. Firestore answers a
+    // listener from its local cache first, so a dead session produced an endless
+    // cache-says-yes / server-says-no ping-pong: the panel appeared, the sidebar
+    // attached listeners that were refused, the loader came back, and round again.
+    //
+    // getDocFromServer removes the ambiguity: it only resolves on a real server answer.
+    // The rule "allow read: if request.auth.uid == uid" lets you read your own document
+    // even when it does not exist, so the two outcomes are unambiguous:
+    //   - resolves            -> snap.exists() is the definitive admin answer
+    //   - permission-denied   -> the server sees no valid session, not a missing document
     useEffect(() => {
-        setIsAdmin(false);
-        setAdminLoading(true);
-
         if (!user?.uid) {
+            setIsAdmin(false);
+            setAdminError("");
             setAdminLoading(false);
             return;
         }
 
-        let unsub = () => { };
-        let retryTimer = null;
         let cancelled = false;
-        let retryCount = 0;
-        let hasRefreshedToken = false;
+        setIsAdmin(false);
+        setAdminError("");
+        setAdminLoading(true);
 
-        const clearRetry = () => {
-            if (retryTimer) {
-                clearTimeout(retryTimer);
-                retryTimer = null;
-            }
+        const isSessionError = (code) =>
+            code === "permission-denied" ||
+            code === "unauthenticated" ||
+            String(code || "").startsWith("auth/");
+
+        const readAdminDoc = async (forceRefreshToken) => {
+            await user.getIdToken(forceRefreshToken);
+            return getDocFromServer(doc(db, "admins", user.uid));
         };
 
-        // Last resort: never leave the page on a spinner with no way out.
-        let failsafe = setTimeout(() => {
-            if (!mountedRef.current || cancelled) return;
-            setAdminError("The admin check timed out. Check your connection, then log out and back in.");
-            setAdminLoading(false);
-        }, 15000);
-
-        const clearFailsafe = () => {
-            if (failsafe) {
-                clearTimeout(failsafe);
-                failsafe = null;
-            }
-        };
-
-        const startAdminWatch = async (forceRefreshToken = false) => {
-            if (cancelled || !mountedRef.current) return;
-            clearRetry();
-
+        (async () => {
             try {
-                // Ensure auth token is available/refreshed before opening Firestore listener.
-                await user.getIdToken(forceRefreshToken);
-            } catch {
-                // Retry if token fetching fails transiently.
-                if (retryCount < 5) {
-                    const delay = Math.min(1000 * (2 ** retryCount), 10000);
-                    retryCount += 1;
-                    retryTimer = setTimeout(() => {
-                        startAdminWatch(true);
-                    }, delay);
+                let snap;
+                try {
+                    snap = await Promise.race([
+                        readAdminDoc(false),
+                        new Promise((_, reject) =>
+                            setTimeout(() => reject(Object.assign(new Error("timeout"), { code: "timeout" })), 15000)
+                        ),
+                    ]);
+                } catch (err) {
+                    if (!isSessionError(err?.code)) throw err;
+                    // One retry with a freshly minted token, in case it had simply expired.
+                    snap = await readAdminDoc(true);
+                }
+
+                if (cancelled || !mountedRef.current) return;
+                setIsAdmin(snap.exists());
+                setAdminError(snap.exists() ? "" : "This account is not registered as an administrator.");
+                setAdminLoading(false);
+            } catch (err) {
+                if (cancelled || !mountedRef.current) return;
+                console.error("Admin check failed:", err);
+                setIsAdmin(false);
+                setAdminLoading(false);
+
+                if (isSessionError(err?.code)) {
+                    // The token cannot be renewed: end the session instead of looping,
+                    // so the login form comes back on its own.
+                    setAdminError("Your session expired. Please sign in again.");
+                    signOut(auth).catch(() => { });
+                } else if (err?.code === "timeout") {
+                    setAdminError("The admin check timed out. Check your connection and try again.");
                 } else {
-                    console.warn("Token fetch failed after retries.");
-                    setIsAdmin(false);
-                    setAdminLoading(false);
-                }
-                return;
-            }
-
-            if (cancelled || !mountedRef.current) return;
-
-            const ref = doc(db, "admins", user.uid);
-            unsub();
-            unsub = onSnapshot(
-                ref,
-                (snap) => {
-                    if (!mountedRef.current || cancelled) return;
-                    // A cached snapshot proves nothing about the current session: refilling the
-                    // retry budget on one makes the server denial below retry forever, which is
-                    // what left the page spinning between the panel and the loader.
-                    if (!snap.metadata.fromCache) retryCount = 0;
-
-                    if (snap.exists()) {
-                        if (!hasRefreshedToken) {
-                            hasRefreshedToken = true;
-                            // Force refresh token to ensure custom claims are loaded
-                            user.getIdToken(true).then(() => {
-                                if (!mountedRef.current || cancelled) return;
-                                clearFailsafe();
-                                setAdminError("");
-                                setIsAdmin(true);
-                                setAdminLoading(false);
-                            }).catch(err => {
-                                console.error("Token refresh failed", err);
-                                if (!mountedRef.current || cancelled) return;
-                                clearFailsafe();
-                                setAdminError("");
-                                setIsAdmin(true); // fallback to true anyway
-                                setAdminLoading(false);
-                            });
-                        } else {
-                            if (!mountedRef.current || cancelled) return;
-                            clearFailsafe();
-                            setAdminError("");
-                            setIsAdmin(true);
-                            setAdminLoading(false);
-                        }
-                    } else {
-                        clearFailsafe();
-                        setAdminError(snap.metadata.fromCache
-                            ? "No admins/<your-uid> document found (read from cache — you may be offline)."
-                            : "No admins/<your-uid> document exists for this account.");
-                        setIsAdmin(false);
-                        setAdminLoading(false);
-                    }
-                },
-                (err) => {
-                    if (!mountedRef.current || cancelled) return;
-
-                    // In local dev this can happen transiently before auth context settles.
-                    if (err?.code === "permission-denied") {
-                        if (retryCount < 5) {
-                            setAdminLoading(true);
-                            const delay = Math.min(1000 * (2 ** retryCount), 10000);
-                            retryCount += 1;
-                            retryTimer = setTimeout(() => {
-                                startAdminWatch(true);
-                            }, delay);
-                        } else {
-                            console.warn("Admin check: Permission denied after retries. User is likely not an admin.");
-                            clearFailsafe();
-                            setAdminError("Firestore refused to read admins/<your-uid>. Your sign-in session is probably stale: log out and back in.");
-                            setIsAdmin(false);
-                            setAdminLoading(false);
-                        }
-                        return;
-                    }
-
-                    console.error("Admin check error:", err);
-                    clearFailsafe();
                     setAdminError(`Admin check failed: ${err?.code || "unknown error"}.`);
-                    setIsAdmin(false);
-                    setAdminLoading(false);
                 }
-            );
-        };
-
-        startAdminWatch(false);
+            }
+        })();
 
         return () => {
             cancelled = true;
-            clearRetry();
-            clearFailsafe();
-            unsub();
         };
-    }, [user?.uid]);
+        // Keyed on the uid on purpose: the user object identity changes on every token
+        // refresh, which would re-run this check needlessly.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user?.uid, auth]);
 
     const login = async (e) => {
         e?.preventDefault?.();
