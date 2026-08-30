@@ -7,10 +7,12 @@ import { useLang } from "./LanguageProvider";
 import { makeT } from "../lib/i18n";
 import trBar from "../translations/NextProgramBar.json";
 import trProgram from "../translations/WeeklyProgram.json";
+import { isSlotOnSummerBreak } from "../lib/programSchedule";
 import "./NextProgramBar.css";
 
 const PROGRAM_SLOTS = [
     { id: "mon", dayOffset: 0, defaultTime: "20:00-21:30", titleKey: "act_mon" },
+    { id: "tue_fast", dayOffset: 1, defaultTime: "10:00-14:00", titleKey: "act_tue_fast" },
     { id: "tue", dayOffset: 1, defaultTime: "20:00-21:30", titleKey: "act_tue" },
     { id: "wed", dayOffset: 2, defaultTime: "20:00-21:30", titleKey: "act_wed" },
     { id: "thu", dayOffset: 3, defaultTime: "20:00-21:30", titleKey: "act_thu" },
@@ -340,7 +342,7 @@ export default function NextProgramBar() {
                 const slotDateNumber = brusselsDateNumber(slotDate);
                 const defaultRange = parseTimeRange(slot.defaultTime, null, null);
 
-                const cancelled = overrideForWeek.cancelledSet.has(slot.id);
+                const cancelled = overrideForWeek.cancelledSet.has(slot.id) || isSlotOnSummerBreak(slot.id, slotDate);
                 const replacementEventId = safeStr(overrideForWeek.replacements?.[slot.id]).trim();
                 const replacementEvent = replacementEventId ? eventsMap.get(replacementEventId) : null;
 

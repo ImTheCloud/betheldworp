@@ -49,9 +49,6 @@ async function getInitialLang() {
 }
 
 
-
-import { PostHogProvider } from "../components/PostHogProvider";
-
 export default async function RootLayout({ children, params }) {
     const { lang } = await params;
     
@@ -65,15 +62,13 @@ export default async function RootLayout({ children, params }) {
                 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet" />
             </head>
             <body>
-                <PostHogProvider>
-                    <LanguageProvider initialLang={lang}>
-                        <VisitTracker />
-                        {children}
+                <LanguageProvider initialLang={lang}>
+                    <VisitTracker />
+                    {children}
 
-                        <Analytics />
+                    <Analytics />
 
-                    </LanguageProvider>
-                </PostHogProvider>
+                </LanguageProvider>
             </body>
         </html>
     );

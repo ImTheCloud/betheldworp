@@ -8,12 +8,14 @@ import { usePagination } from "../hooks/usePagination";
 import PaginationControls from "../components/PaginationControls";
 import ConfirmModal from "../components/ConfirmModal";
 import { toggleExpandWithConfirm } from "../utils/adminUI";
+import { isSlotOnSummerBreakISO } from "../../lib/programSchedule";
 
 const safeObj = (v) => (v && typeof v === "object" && !Array.isArray(v) ? v : {});
 
 const AFFECT_OPTIONS = [
     { id: "mon", label: "Monday" },
-    { id: "tue", label: "Tuesday" },
+    { id: "tue_fast", label: "Tuesday (Fasting)" },
+    { id: "tue", label: "Tuesday (Evening)" },
     { id: "wed", label: "Wednesday" },
     { id: "thu", label: "Thursday" },
     { id: "fri", label: "Friday" },
@@ -23,7 +25,7 @@ const AFFECT_OPTIONS = [
 ];
 
 // Days offset from Monday (ISO week start) for each program slot
-const DAY_OFFSET = { mon: 0, tue: 1, wed: 2, thu: 3, fri: 4, sat: 5, sun_am: 6, sun_pm: 6 };
+const DAY_OFFSET = { mon: 0, tue_fast: 1, tue: 1, wed: 2, thu: 3, fri: 4, sat: 5, sun_am: 6, sun_pm: 6 };
 
 function pad2(n) { return String(n).padStart(2, "0"); }
 
@@ -290,6 +292,7 @@ function ProgramSlotGrid({
 
                 const slotDate = dateForSlot(weekKey, opt.id);
                 const filtered = safeArr(eventsList).filter((ev) => !slotDate || ev.dateISO === slotDate);
+                const onSummerBreak = isSlotOnSummerBreakISO(opt.id, slotDate);
 
                 const slotTitles = safeObj(customTitles[opt.id]);
                 const slotTime = safeStr(customTimes[opt.id]);
@@ -304,7 +307,16 @@ function ProgramSlotGrid({
                                 {opt.label}
                             </span>
                             <div className="overrideSlotBadgeGroup">
-                                {isOverridden && !replacements[opt.id] && (
+                                {onSummerBreak && (
+                                    <span
+                                        className="adminChip"
+                                        style={{ background: "#fee2e2", color: "#ef4444" }}
+                                        title="July and August: this slot is cancelled automatically every year. Only Friday and Sunday keep running. Set a replacement event or a manual title to show something here anyway."
+                                    >
+                                        Summer break
+                                    </span>
+                                )}
+                                {isOverridden && !replacements[opt.id] && !onSummerBreak && (
                                     <span className="adminChip" style={{ background: "#fee2e2", color: "#ef4444" }}>Cancelled</span>
                                 )}
                                 {isModified && (
@@ -603,7 +615,7 @@ function dateToSlotIds(dateStr) {
     const d = new Date(`${dateStr}T12:00:00Z`);
     if (isNaN(d)) return [];
     const day = d.getUTCDay(); // 0=Sun, 1=Mon ... 6=Sat
-    const map = { 0: ["sun_am", "sun_pm"], 1: ["mon"], 2: ["tue"], 3: ["wed"], 4: ["thu"], 5: ["fri"], 6: ["sat"] };
+    const map = { 0: ["sun_am", "sun_pm"], 1: ["mon"], 2: ["tue_fast", "tue"], 3: ["wed"], 4: ["thu"], 5: ["fri"], 6: ["sat"] };
     return map[day] ?? [];
 }
 

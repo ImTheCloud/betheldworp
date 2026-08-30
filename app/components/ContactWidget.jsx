@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
-import posthog from "posthog-js";
 import emailjs from "@emailjs/browser";
 import "./ContactWidget.css";
 import { useLang } from "./LanguageProvider";
@@ -122,7 +121,6 @@ export default function ContactWidget() {
         stopTimers();
         setPulse(false);
         if (typeof document !== "undefined") document.activeElement?.blur?.();
-        posthog.capture("contact_form_opened", { lang });
         setOpen(true);
     }, [stopTimers, lang]);
 
@@ -296,7 +294,6 @@ export default function ContactWidget() {
                 process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
             );
 
-            posthog.capture("contact_message_sent", { lang, has_phone: Boolean(phone.trim()) });
             setSuccess(true);
             setName("");
             setFromEmail("");

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import posthog from "posthog-js";
 import { collection, serverTimestamp, setDoc, doc } from "firebase/firestore";
 import { db } from "../lib/Firebase";
 import "./NewsletterSection.css";
@@ -30,13 +29,11 @@ export default function NewsletterSection() {
                     title: "Newsletter Bethel Dworp",
                     url: shareUrl
                 });
-                posthog.capture("newsletter_link_shared", { method: "native_share", lang });
                 return;
             }
             await navigator.clipboard.writeText(shareUrl);
             setNlCopied(true);
             setTimeout(() => setNlCopied(false), 2000);
-            posthog.capture("newsletter_link_shared", { method: "clipboard", lang });
         } catch (e) {
             console.error("Nl share error:", e);
             if (e.name === "AbortError") {
@@ -47,7 +44,6 @@ export default function NewsletterSection() {
                 await navigator.clipboard.writeText(shareUrl);
                 setNlCopied(true);
                 setTimeout(() => setNlCopied(false), 2000);
-                posthog.capture("newsletter_link_shared", { method: "clipboard_fallback", lang });
             } catch (err) {
                 console.error("Clipboard fallback failed:", err);
             }
@@ -75,7 +71,6 @@ export default function NewsletterSection() {
             const snapshot = await getDoc(docRef);
 
             if (snapshot.exists()) {
-                posthog.capture("newsletter_subscription_duplicate", { lang });
                 setSuccessText(t("subscribe_already"));
                 setSuccess(true);
                 setSending(false);
@@ -87,8 +82,6 @@ export default function NewsletterSection() {
                 subscribedAt: serverTimestamp(),
                 source: "website",
             });
-
-            posthog.capture("newsletter_subscribed", { lang, source: "website" });
 
             // Send real-time notification via ntfy.sh
             try {

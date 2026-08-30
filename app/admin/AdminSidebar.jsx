@@ -102,19 +102,40 @@ export default function AdminSidebar({ activeTab, onTabChange, onLogout }) {
     const [draftChurchesCount, setDraftChurchesCount] = useState(0);
 
     useEffect(() => {
+        let unsubSug = () => { };
+        let unsubChurches = () => { };
+        let stopped = false;
+
+        // Firestore keeps re-establishing a rejected listener, so a denied read floods the
+        // console with the same error. Detach on failure and report it once instead.
+        const handleError = (label, detach) => (err) => {
+            if (stopped) return;
+            detach();
+            if (err?.code === "permission-denied") {
+                console.warn(`AdminSidebar: no read access to "${label}" — badge count hidden.`);
+            } else {
+                console.error(`AdminSidebar ${label} snapshot error:`, err);
+            }
+        };
+
         // Suggestions pending count
         const qSug = query(collection(db, "church_suggestions"), where("status", "==", "pending"));
-        const unsubSug = onSnapshot(qSug, (snap) => {
-            setPendingCount(snap.size);
-        }, (err) => console.error("AdminSidebar suggestions snapshot error:", err));
+        unsubSug = onSnapshot(
+            qSug,
+            (snap) => setPendingCount(snap.size),
+            handleError("church_suggestions", () => unsubSug())
+        );
 
         // Draft churches count
         const qChurches = query(collection(db, "churches"), where("isDraft", "==", true));
-        const unsubChurches = onSnapshot(qChurches, (snap) => {
-            setDraftChurchesCount(snap.size);
-        }, (err) => console.error("AdminSidebar churches snapshot error:", err));
+        unsubChurches = onSnapshot(
+            qChurches,
+            (snap) => setDraftChurchesCount(snap.size),
+            handleError("churches", () => unsubChurches())
+        );
 
         return () => {
+            stopped = true;
             unsubSug();
             unsubChurches();
         };

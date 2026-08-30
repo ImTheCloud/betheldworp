@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import posthog from "posthog-js";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../../lib/Firebase";
 
@@ -27,8 +26,6 @@ export default function UnsubscribePage() {
             
             if (snap.exists()) {
                 await setDoc(ref, { unsubscribed: true, updatedAt: new Date() }, { merge: true });
-
-                posthog.capture("newsletter_unsubscribed");
 
                 // Send ntfy notification
                 try {
@@ -75,7 +72,6 @@ export default function UnsubscribePage() {
                                         setStatus("loading");
                                         const ref = doc(db, "newsletter", email.trim().toLowerCase());
                                         await setDoc(ref, { unsubscribed: false, updatedAt: new Date() }, { merge: true });
-                                        posthog.capture("newsletter_resubscribed");
                                         setStatus("idle");
                                         setEmail("");
                                     } catch (err) {

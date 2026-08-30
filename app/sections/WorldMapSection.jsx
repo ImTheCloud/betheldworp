@@ -2,7 +2,6 @@
 
 import "./WorldMapSection.css";
 import React, { useMemo, useState, useEffect, useRef } from "react";
-import posthog from "posthog-js";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useLang } from "../components/LanguageProvider";
@@ -123,7 +122,6 @@ export default function WorldMapSection() {
                                 className="worldmap-cta"
                                 target={isMobile === false ? "_blank" : undefined}
                                 rel={isMobile === false ? "noopener noreferrer" : undefined}
-                                onClick={() => posthog.capture("church_map_cta_clicked", { lang })}
                             >
                                 {t("cta")}
                                 <span className="worldmap-cta-arrow" aria-hidden="true">

@@ -9,6 +9,15 @@ import ImagePicker from "../components/ImagePicker";
 import ConfirmModal from "../components/ConfirmModal";
 import AdminSearch from "../components/AdminSearch";
 import { toggleExpandWithConfirm } from "../utils/adminUI";
+import locationTr from "../../translations/Location.json";
+
+// Prefilled on every new event; kept in sync with the Location section of the site.
+const DEFAULT_PLACE = locationTr.ro.place;
+const DEFAULT_ADDRESS = locationTr.ro.address;
+
+function newEventDraft() {
+    return cleanEvent({ place: DEFAULT_PLACE, address: DEFAULT_ADDRESS });
+}
 
 function safeStr(v) {
     return String(v ?? "");
@@ -105,7 +114,7 @@ function dateToSlotIds(dateStr) {
     const d = new Date(`${dateStr}T12:00:00Z`);
     if (isNaN(d)) return [];
     const day = d.getUTCDay();
-    const map = { 0: ["sun_am", "sun_pm"], 1: ["mon"], 2: ["tue"], 3: ["wed"], 4: ["thu"], 5: ["fri"], 6: ["sat"] };
+    const map = { 0: ["sun_am", "sun_pm"], 1: ["mon"], 2: ["tue_fast", "tue"], 3: ["wed"], 4: ["thu"], 5: ["fri"], 6: ["sat"] };
     return map[day] ?? [];
 }
 
@@ -491,15 +500,7 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
     const [searchQuery, setSearchQuery] = useState("");
 
     const [showNew, setShowNew] = useState(false);
-    const [newDraft, setNewDraft] = useState(() => cleanEvent({
-        place: "",
-        address: "",
-        image: "",
-        time: "",
-        dateEvent: "",
-        title: emptyLangMap(),
-        description: emptyLangMap(),
-    }));
+    const [newDraft, setNewDraft] = useState(newEventDraft);
     const [newState, setNewState] = useState("idle");
     const [newLang, setNewLang] = useState("ro");
     const [migrating, setMigrating] = useState(false);
@@ -713,7 +714,7 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
 
     const startNew = () => {
         setShowNew(true);
-        setNewDraft(cleanEvent({}));
+        setNewDraft(newEventDraft());
         setNewState("idle");
     };
 

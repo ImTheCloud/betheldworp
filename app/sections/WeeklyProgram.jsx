@@ -7,6 +7,10 @@ import { db } from "../lib/Firebase";
 import { useLang } from "../components/LanguageProvider";
 import { makeT } from "../lib/i18n";
 import tr from "../translations/WeeklyProgram.json";
+import { isSlotOnSummerBreak, isSummerBreakWeek } from "../lib/programSchedule";
+
+const WEEK_STORAGE_KEY = "bethel:program-week";
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 const safeArr = (v) => (Array.isArray(v) ? v : []);
 const safeStr = (v) => String(v ?? "");
@@ -144,9 +148,13 @@ function getLocaleFromLang(lang) {
 function formatWeekRangeLong(startUTC, endUTC, lang, t) {
     const locale = getLocaleFromLang(lang);
     const dayMonthLong = new Intl.DateTimeFormat(locale, { day: "numeric", month: "long", timeZone: "Europe/Brussels" });
+    const dayOnly = new Intl.DateTimeFormat(locale, { day: "numeric", timeZone: "Europe/Brussels" });
+    const monthNum = new Intl.DateTimeFormat("en-GB", { month: "2-digit", timeZone: "Europe/Brussels" });
     const yearLong = new Intl.DateTimeFormat(locale, { year: "numeric", timeZone: "Europe/Brussels" });
 
-    const startPart = safeStr(dayMonthLong.format(startUTC));
+    // Same month on both ends: name it once ("7 — 13 septembrie 2026")
+    const sameMonth = monthNum.format(startUTC) === monthNum.format(endUTC);
+    const startPart = safeStr((sameMonth ? dayOnly : dayMonthLong).format(startUTC));
     const endPart = safeStr(dayMonthLong.format(endUTC));
     const yearPart = safeStr(yearLong.format(endUTC));
 
@@ -222,6 +230,7 @@ export default function Program() {
         { key: "q5", q: `${t("faq_q5_day")} – ${t("faq_q5_title")}`, a: t("faq_q5_body") },
         { key: "q6", q: `${t("faq_q6_day")} – ${t("faq_q6_title")}`, a: t("faq_q6_body") },
         { key: "q7", q: `${t("faq_q7_day")} – ${t("faq_q7_title")}`, a: t("faq_q7_body") },
+        { key: "q8", q: `${t("faq_q8_day")} – ${t("faq_q8_title")}`, a: t("faq_q8_body") },
     ];
 
     const handleToggle = (index) => {
@@ -235,14 +244,15 @@ export default function Program() {
     };
 
     const LOCAL_PROGRAM_ITEMS = useMemo(() => [
-        { day: t("day_mon"), id: "mon", times: ["20:00-21:30"], title: t("act_mon") },
-        { day: t("day_tue"), id: "tue", times: ["20:00-21:30"], title: t("act_tue") },
-        { day: t("day_wed"), id: "wed", times: ["20:00-21:30"], title: t("act_wed") },
-        { day: t("day_thu"), id: "thu", times: ["20:00-21:30"], title: t("act_thu") },
-        { day: t("day_fri"), id: "fri", times: ["20:00-21:30"], title: t("act_fri") },
-        { day: t("day_sat"), id: "sat", times: ["11:00-13:30"], title: t("act_sat") },
-        { day: t("day_sun"), id: "sun_am", times: ["10:00-12:00"], title: t("act_sun_am") },
-        { day: t("day_sun"), id: "sun_pm", times: ["18:00-20:00"], title: t("act_sun_pm") },
+        { day: t("dayp_mon"), id: "mon", times: ["20:00-21:30"], title: t("act_mon") },
+        { day: t("dayp_tue_fast"), id: "tue_fast", times: ["10:00-14:00"], title: t("act_tue_fast") },
+        { day: t("dayp_tue"), id: "tue", times: ["20:00-21:30"], title: t("act_tue") },
+        { day: t("dayp_wed"), id: "wed", times: ["20:00-21:30"], title: t("act_wed") },
+        { day: t("dayp_thu"), id: "thu", times: ["20:00-21:30"], title: t("act_thu") },
+        { day: t("dayp_fri"), id: "fri", times: ["20:00-21:30"], title: t("act_fri") },
+        { day: t("dayp_sat"), id: "sat", times: ["11:00-13:30"], title: t("act_sat") },
+        { day: t("dayp_sun_am"), id: "sun_am", times: ["10:00-12:00"], title: t("act_sun_am") },
+        { day: t("dayp_sun_pm"), id: "sun_pm", times: ["18:00-20:00"], title: t("act_sun_pm") },
     ], [t]);
 
     const [weekOffset, setWeekOffset] = useState(0);
@@ -262,8 +272,33 @@ export default function Program() {
     const goNext = () => setWeekOffset((o) => o + 1);
     const goToday = () => setWeekOffset(0);
 
+    // Switching language pushes /ro/... -> /fr/..., which remounts this page and would
+    // drop the week being browsed. Remember it for the tab, as the Monday it starts on,
+    // so the offset stays correct however much time passes between the two renders.
+    useEffect(() => {
+        try {
+            const stored = window.sessionStorage.getItem(WEEK_STORAGE_KEY);
+            if (!stored || !/^\d{4}-\d{2}-\d{2}$/.test(stored)) return;
+            const target = new Date(`${stored}T12:00:00Z`);
+            if (Number.isNaN(target.getTime())) return;
+            const { start } = getBrusselsWeekRange(new Date());
+            const diff = Math.round((target.getTime() - start.getTime()) / WEEK_MS);
+            if (diff !== 0) setWeekOffset(diff);
+        } catch {
+            // sessionStorage can throw in private mode
+        }
+    }, []);
 
-    const dayIdToIndex = { mon: 0, tue: 1, wed: 2, thu: 3, fri: 4, sat: 5, sun_am: 6, sun_pm: 6 };
+    useEffect(() => {
+        try {
+            window.sessionStorage.setItem(WEEK_STORAGE_KEY, weekInfo.start.toISOString().slice(0, 10));
+        } catch {
+            // ignore
+        }
+    }, [weekInfo.start]);
+
+
+    const dayIdToIndex = { mon: 0, tue_fast: 1, tue: 1, wed: 2, thu: 3, fri: 4, sat: 5, sun_am: 6, sun_pm: 6 };
 
     const dateMetaById = useMemo(() => {
         const byId = {};
@@ -272,6 +307,7 @@ export default function Program() {
             byId[id] = {
                 dm: formatBrusselsDDMM(d),
                 full: formatBrusselsDDMMYYYY(d),
+                summerBreak: isSlotOnSummerBreak(id, d),
             };
         });
         return byId;
@@ -350,7 +386,7 @@ export default function Program() {
                 </div>
 
                 {/* Summer Info Notice */}
-                {weekInfo.start >= new Date("2026-06-28T00:00:00Z") && weekInfo.start < new Date("2026-08-31T00:00:00Z") && (
+                {isSummerBreakWeek(weekInfo.start) && (
                     <div className="program-summerNotice">
                         <div className="program-summerNoticeAccent" aria-hidden="true" />
                         <div className="program-summerNoticeBody">
@@ -384,7 +420,8 @@ export default function Program() {
                         const replacementEvent = replacementEventId ? eventsMap.get(replacementEventId) : null;
                         
                         const isBrokenOverride = replacementEventId && !replacementEvent;
-                        const isCancelled = cancelledSet.has(id) && !isBrokenOverride;
+                        const isSummerBreak = !!dateMetaById?.[id]?.summerBreak;
+                        const isCancelled = (cancelledSet.has(id) && !isBrokenOverride) || isSummerBreak;
                         const isReplaced = isCancelled && !!replacementEvent;
 
                         const customTitle = pickByLang(customTitles?.[id], lang);

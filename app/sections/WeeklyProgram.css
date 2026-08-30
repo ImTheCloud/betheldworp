@@ -27,6 +27,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 10px;
     width: 100%;
     max-width: 320px;
 }
@@ -108,8 +109,10 @@
 
 .program-navText {
     display: flex;
+    flex: 1 1 auto;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     line-height: 1.1;
     text-align: center;
     min-width: 0;
@@ -127,11 +130,18 @@
 }
 
 .program-grid {
+    --program-gap: 20px;
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--program-gap);
     margin-bottom: 0;
     align-items: stretch;
+}
+
+/* Odd number of cards: the lone last one keeps a normal card width and is
+   centred on its row, instead of stretching or leaving a hole on one side. */
+.program-grid > .program-card:last-child:nth-child(3n + 1) {
+    grid-column: 2 / 3;
 }
 
 .program-card {
@@ -141,7 +151,7 @@
     border: 1px solid rgba(10, 42, 67, 0.15);
     background: linear-gradient(180deg, rgba(10, 42, 67, 0.03) 0%, rgba(10, 42, 67, 0.01) 100%);
     transition: transform 0.25s ease, border-color 0.25s ease;
-    min-height: 128px;
+    min-height: 164px;
     min-width: 0;
     overflow: hidden;
 }
@@ -152,7 +162,7 @@
 }
 
 .program-cardInnerFlat {
-    padding: 18px 18px;
+    padding: 22px 24px;
     display: flex;
     flex-direction: column;
     min-width: 0;
@@ -169,12 +179,14 @@
 }
 
 .program-day {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.08em;
+    line-height: 1.25;
     color: rgba(10, 42, 67, 0.55);
     margin: 0;
+    min-width: 0;
 }
 
 
@@ -185,6 +197,8 @@
     border-radius: 6px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .program-statusPill--cancelled {
@@ -196,11 +210,11 @@
 
 
 .program-activity {
-    font-size: 16px;
+    font-size: 19px;
     font-weight: 800;
     line-height: 1.3;
     color: #0a2a43;
-    margin: 0 0 16px 0;
+    margin: 0 0 18px 0;
     letter-spacing: -0.015em;
     flex-grow: 1;
 }
@@ -217,18 +231,18 @@
     flex: 0 0 auto;
     display: inline-flex;
     align-items: center;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 700;
     color: #164678;
     background: rgba(22, 70, 120, 0.06);
-    padding: 6px 10px;
+    padding: 7px 12px;
     border-radius: 8px;
 }
 
 
 .program-dateFixed {
     margin-left: auto;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 700;
     color: rgba(10, 42, 67, 0.4);
     font-variant-numeric: tabular-nums;
@@ -436,7 +450,30 @@
 
 @media (max-width: 900px) {
     .program-grid {
+        --program-gap: 16px;
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .program-grid > .program-card:last-child:nth-child(3n + 1) {
+        grid-column: auto;
+    }
+
+    .program-grid > .program-card:last-child:nth-child(odd) {
+        grid-column: 1 / -1;
+        justify-self: center;
+        width: calc(50% - var(--program-gap) / 2);
+    }
+
+    .program-card {
+        min-height: 140px;
+    }
+
+    .program-cardInnerFlat {
+        padding: 18px;
+    }
+
+    .program-activity {
+        font-size: 17px;
     }
 }
 
@@ -457,8 +494,17 @@
         font-size: 15px;
     }
 
+    .program-weekNav {
+        max-width: 100%;
+        gap: 8px;
+    }
+
     .program-grid {
-        gap: 10px;
+        --program-gap: 10px;
+    }
+
+    .program-card {
+        min-height: 124px;
     }
 
     .program-cardInnerFlat {
@@ -470,21 +516,30 @@
         margin-bottom: 12px;
     }
 
+    .program-timeLine {
+        font-size: 12px;
+        padding: 6px 10px;
+    }
+
+    .program-dateFixed {
+        font-size: 12px;
+    }
+
     .program-cardTop {
-        gap: 4px;
+        align-items: flex-start;
+        gap: 6px;
     }
 
     .program-day {
         font-size: 10px;
+        letter-spacing: 0.05em;
+        /* reserve two lines so titles line up whether or not a card shows a pill */
+        min-height: 25px;
     }
 
     .program-statusPill {
         font-size: 8.5px;
-        padding: 2px 5px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 65%;
+        padding: 3px 6px;
     }
 }
 

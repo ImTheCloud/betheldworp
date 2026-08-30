@@ -13,7 +13,6 @@ import { useLang } from "../../components/LanguageProvider";
 import LanguageSwitcher from "../../components/LanguageSwitcher";
 import { makeT } from "../../lib/i18n";
 import worldMapTranslations from "../../translations/WorldMap.json";
-import posthog from "posthog-js";
 import SearchableSelect from "../../components/SearchableSelect";
 import "./WorldMap.css";
 
@@ -1196,7 +1195,6 @@ function ChurchMap() {
                 console.error("Failed to send notification:", notifyErr);
             }
 
-            posthog.capture("church_suggestion_submitted", { suggestion_type: suggestionType, country: suggestionForm.country });
             setSuggestionSuccess(true);
             clearSuggestionDraft();
             setTimeout(() => {
