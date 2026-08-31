@@ -422,6 +422,23 @@ export default function NewsletterAdmin({ onDirtyChange }) {
         });
     }, [items, draftsById]);
 
+    // Répercute une action de l'admin sur la liste Brevo. Firestore reste la
+    // source de vérité : un échec côté Brevo ne doit jamais bloquer l'admin.
+    const syncBrevo = useCallback((action, email) => {
+        fetch(`/api/newsletter/${action}`, {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ email }),
+        }).catch((e) => console.error(`Brevo ${action} error:`, e));
+    }, []);
+
+    // Retire l'adresse de la liste d'envoi. Si la personne s'était désabonnée, on
+    // la met en blocklist au lieu de la supprimer : effacer le contact effacerait
+    // aussi la trace du désabonnement, et plus rien n'empêcherait de lui réécrire.
+    const removeFromBrevo = useCallback((email, wasUnsubscribed) => {
+        syncBrevo(wasUnsubscribed ? "unsubscribe" : "delete", email);
+    }, [syncBrevo]);
+
     // Export active subscribers as a Brevo-ready CSV (unsubscribed contacts excluded).
     const exportCsv = useCallback(() => {
         const active = items.filter((it) => !it.unsubscribed);
@@ -490,6 +507,8 @@ export default function NewsletterAdmin({ onDirtyChange }) {
                         },
                         { merge: true }
                     );
+
+                    syncBrevo("subscribe", clean);
 
                     if (!mountedRef.current) return;
                     setNewState("saved");
@@ -569,8 +588,11 @@ export default function NewsletterAdmin({ onDirtyChange }) {
                 { merge: true }
             );
 
+            syncBrevo("subscribe", clean);
+
             if (clean !== key) {
                 await deleteDoc(doc(db, "newsletter", key));
+                removeFromBrevo(key, !!oldData.unsubscribed);
             }
 
             if (!mountedRef.current) return;
@@ -605,6 +627,8 @@ export default function NewsletterAdmin({ onDirtyChange }) {
         const key = safeStr(id).trim();
         if (!key) return;
 
+        const wasUnsubscribed = !!items.find((it) => it.id === key)?.unsubscribed;
+
         setModal({
             isOpen: true,
             title: "Delete Subscriber",
@@ -615,6 +639,7 @@ export default function NewsletterAdmin({ onDirtyChange }) {
 
                 try {
                     await deleteDoc(doc(db, "newsletter", key));
+                    removeFromBrevo(key, wasUnsubscribed);
 
                     if (!mountedRef.current) return;
                     setDraftsById((prev) => {
@@ -657,6 +682,7 @@ export default function NewsletterAdmin({ onDirtyChange }) {
 
                 try {
                     await setDoc(doc(db, "newsletter", key), { unsubscribed: false, updatedAt: serverTimestamp() }, { merge: true });
+                    syncBrevo("resubscribe", key);
                     
                     if (!mountedRef.current) return;
                     setTransientState(key, "saved");

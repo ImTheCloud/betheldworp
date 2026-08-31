@@ -58,3 +58,19 @@ export function blocklistContact(email) {
         body: JSON.stringify({ emailBlacklisted: true }),
     });
 }
+
+// Supprime définitivement le contact de Brevo.
+export function deleteContact(email) {
+    return brevoFetch(`/contacts/${encodeURIComponent(email)}`, { method: "DELETE" });
+}
+
+// Lève la blocklist et remet le contact dans la liste newsletter.
+export function resubscribeContact(email) {
+    return brevoFetch(`/contacts/${encodeURIComponent(email)}`, {
+        method: "PUT",
+        body: JSON.stringify({
+            emailBlacklisted: false,
+            listIds: [getListId()],
+        }),
+    });
+}
