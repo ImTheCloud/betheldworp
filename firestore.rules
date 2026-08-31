@@ -96,10 +96,14 @@ service cloud.firestore {
       // « pending » — impossible de déposer une suggestion déjà approuvée.
       //
       // Ces documents contiennent les coordonnées de la personne qui propose.
-      // expiresAt est donc obligatoire : sans lui, la règle TTL posée sur cette
-      // collection n'aurait rien à effacer et les coordonnées resteraient
-      // indéfiniment. Le plafond sur le nombre de clés empêche d'y déverser
-      // une charge arbitraire.
+      // expiresAt est obligatoire pour que la suppression automatique soit
+      // possible le jour où on la voudra — mais AUCUNE règle TTL n'est active
+      // sur cette collection (choix assumé du 31/08/2026) : la date est écrite,
+      // rien ne l'exploite, et les propositions se suppriment à la main depuis
+      // l'admin. Ne pas lire ce champ comme une garantie d'effacement.
+      //
+      // Le plafond sur le nombre de clés, lui, empêche d'y déverser une charge
+      // arbitraire, et il est bien actif.
       allow create: if request.resource.data.keys().hasOnly(['type', 'originalChurchId', 'status', 'data', 'createdAt', 'expiresAt'])
                     && request.resource.data.keys().hasAll(['type', 'status', 'data', 'createdAt', 'expiresAt'])
                     && request.resource.data.status == 'pending'

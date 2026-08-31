@@ -24,10 +24,18 @@ const MAP_SELECTED_CHURCH_STORAGE_KEY = "bethel_worldmap_selected_church";
 
 // Une proposition contient le prénom, le nom, le téléphone et l'e-mail de la
 // personne qui l'envoie. Ces coordonnées ne servent qu'à vérifier l'église
-// proposée : passé un an, elles n'ont plus d'objet et le document s'efface
-// tout seul, via la règle TTL posée sur church_suggestions.
-// Cette durée est annoncée dans la politique de confidentialité : si elle
-// change ici, elle doit changer là-bas aussi.
+// proposée : passé un an, elles n'ont plus d'objet.
+//
+// ATTENTION — cette date ne supprime rien aujourd'hui. Firestore n'efface un
+// document daté que si une règle TTL a été créée sur la collection, depuis la
+// console Firebase, et elle ne l'a PAS été pour church_suggestions (choix
+// assumé du 31/08/2026). Les propositions se suppriment donc à la main, avec
+// le bouton Delete de l'onglet Suggestions.
+//
+// Le champ est écrit quand même : le jour où la règle TTL sera activée, tout
+// ce qui aura été enregistré depuis s'effacera sans autre intervention. Si
+// cette durée change, la politique de confidentialité doit suivre — elle
+// n'annonce actuellement aucun délai pour les propositions.
 const SUGGESTION_RETENTION_DAYS = 365;
 
 const COUNTRY_CODES = {
