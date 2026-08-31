@@ -22,6 +22,14 @@ const MAP_ID = "5b50d76db2afedb8ba67cff4";
 const BELGIUM_CENTER = { lat: 50.77198, lng: 4.30396 }; // Coordinates roughly near Brussels/Halle
 const MAP_SELECTED_CHURCH_STORAGE_KEY = "bethel_worldmap_selected_church";
 
+// Une proposition contient le prénom, le nom, le téléphone et l'e-mail de la
+// personne qui l'envoie. Ces coordonnées ne servent qu'à vérifier l'église
+// proposée : passé un an, elles n'ont plus d'objet et le document s'efface
+// tout seul, via la règle TTL posée sur church_suggestions.
+// Cette durée est annoncée dans la politique de confidentialité : si elle
+// change ici, elle doit changer là-bas aussi.
+const SUGGESTION_RETENTION_DAYS = 365;
+
 const COUNTRY_CODES = {
     Afghanistan: "af", Albania: "al", Algeria: "dz", Andorra: "ad", Angola: "ao", "Antigua and Barbuda": "ag", Argentina: "ar", Armenia: "am", Australia: "au", Austria: "at", Azerbaijan: "az",
     Bahamas: "bs", Bahrain: "bh", Bangladesh: "bd", Barbados: "bb", Belarus: "by", Belgium: "be", Belize: "bz", Benin: "bj", Bhutan: "bt", Bolivia: "bo", "Bosnia and Herzegovina": "ba", Botswana: "bw", Brazil: "br", Brunei: "bn", Bulgaria: "bg", "Burkina Faso": "bf", Burundi: "bi",
@@ -1156,7 +1164,8 @@ function ChurchMap() {
                     ...suggestionForm,
                     submitter: submitterForm
                 },
-                createdAt: serverTimestamp()
+                createdAt: serverTimestamp(),
+                expiresAt: new Date(Date.now() + SUGGESTION_RETENTION_DAYS * 24 * 60 * 60 * 1000)
             });
             
             // Save submitter info to localStorage for next time (excluding notes)

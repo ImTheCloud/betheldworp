@@ -94,9 +94,19 @@ service cloud.firestore {
 
       // Proposition publique : uniquement les champs du formulaire, et toujours
       // « pending » — impossible de déposer une suggestion déjà approuvée.
-      allow create: if request.resource.data.keys().hasOnly(['type', 'originalChurchId', 'status', 'data', 'createdAt'])
+      //
+      // Ces documents contiennent les coordonnées de la personne qui propose.
+      // expiresAt est donc obligatoire : sans lui, la règle TTL posée sur cette
+      // collection n'aurait rien à effacer et les coordonnées resteraient
+      // indéfiniment. Le plafond sur le nombre de clés empêche d'y déverser
+      // une charge arbitraire.
+      allow create: if request.resource.data.keys().hasOnly(['type', 'originalChurchId', 'status', 'data', 'createdAt', 'expiresAt'])
+                    && request.resource.data.keys().hasAll(['type', 'status', 'data', 'createdAt', 'expiresAt'])
                     && request.resource.data.status == 'pending'
-                    && request.resource.data.type is string;
+                    && request.resource.data.type in ['new', 'edit']
+                    && request.resource.data.expiresAt is timestamp
+                    && request.resource.data.data is map
+                    && request.resource.data.data.keys().size() <= 20;
     }
 
     // --- TRACKING ET STATS (CRÉATION PUBLIQUE) ---

@@ -61,12 +61,31 @@ await check("anon NE PEUT PAS ecraser l'email d'un abonne", false, () =>
 await check("anon NE PEUT PAS supprimer un abonne", false, () => deleteDoc(doc(anon, "newsletter", "bob@x.be")));
 
 console.log("\n— Suggestions d'eglises —");
+const inUnAn = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+const suggestion = (extra = {}) => ({
+    type: "new", originalChurchId: null, status: "pending",
+    data: { name: "x" }, createdAt: serverTimestamp(), expiresAt: inUnAn, ...extra,
+});
 await check("anon propose une eglise (pending)", true, () =>
-    addDoc(collection(anon, "church_suggestions"), { type: "new", originalChurchId: null, status: "pending", data: {}, createdAt: serverTimestamp() }));
+    addDoc(collection(anon, "church_suggestions"), suggestion()));
 await check("anon NE PEUT PAS deposer une suggestion deja approuvee", false, () =>
-    addDoc(collection(anon, "church_suggestions"), { type: "new", originalChurchId: null, status: "approved", data: {}, createdAt: serverTimestamp() }));
+    addDoc(collection(anon, "church_suggestions"), suggestion({ status: "approved" })));
 await check("anon NE PEUT PAS lire les suggestions", false, () =>
     getDocs(query(collection(anon, "church_suggestions"), where("status", "==", "pending"))));
+// La date d'expiration porte l'effacement automatique : sans elle, les
+// coordonnees du proposant resteraient indefiniment.
+await check("anon NE PEUT PAS proposer sans date d'expiration", false, () =>
+    addDoc(collection(anon, "church_suggestions"), { type: "new", originalChurchId: null, status: "pending", data: {}, createdAt: serverTimestamp() }));
+await check("anon NE PEUT PAS mettre autre chose qu'une date en expiresAt", false, () =>
+    addDoc(collection(anon, "church_suggestions"), suggestion({ expiresAt: "jamais" })));
+await check("anon NE PEUT PAS inventer un type", false, () =>
+    addDoc(collection(anon, "church_suggestions"), suggestion({ type: "pirate" })));
+await check("anon NE PEUT PAS deverser 21 champs dans data", false, () =>
+    addDoc(collection(anon, "church_suggestions"),
+        suggestion({ data: Object.fromEntries(Array.from({ length: 21 }, (_, i) => [`k${i}`, "x"])) })));
+await check("anon propose avec 20 champs dans data (limite haute)", true, () =>
+    addDoc(collection(anon, "church_suggestions"),
+        suggestion({ data: Object.fromEntries(Array.from({ length: 20 }, (_, i) => [`k${i}`, "x"])) })));
 
 console.log("\n— Likes publics —");
 await check("anon +1 like", true, () => updateDoc(doc(anon, "churches", "c1"), { likes: 6 }));
