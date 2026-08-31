@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import * as Tracker from "../lib/Tracker";
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "../lib/Firebase";
+import { isOptedOut, expiresAt } from "../lib/tracking";
 
 // ── Tracking ───────────────────────────────────────────────────────────────
 async function trackVisit(cancelled) {
@@ -27,6 +28,7 @@ async function trackVisit(cancelled) {
             language,
             country: geo.country,
             city: geo.city,
+            expiresAt: expiresAt(),
         };
 
         try {
@@ -76,7 +78,7 @@ async function trackVisit(cancelled) {
     const visitorRef = doc(db, "visits", `day_${day}`, "visitors", visitorId);
 
     try {
-        await setDoc(visitorRef, payload);
+        await setDoc(visitorRef, { ...payload, expiresAt: expiresAt() });
         Tracker.safeStorageSet(doneKey, "1");
     } catch { }
 }
@@ -88,7 +90,9 @@ export default function VisitTracker() {
         const cancelled = () => isCancelled;
 
         (async () => {
-            if (isCancelled) return;
+            // Le visiteur peut refuser la mesure depuis la page de
+            // confidentialité : son choix est vérifié à chaque visite.
+            if (isCancelled || isOptedOut()) return;
             try {
                 await trackVisit(cancelled);
             } catch { }

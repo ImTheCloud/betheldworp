@@ -1,8 +1,10 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import { useLang } from "../../components/LanguageProvider";
 import { makeT } from "../../lib/i18n";
 import tr from "../../translations/Privacy.json";
+import { isOptedOut, optOut, optIn } from "../../lib/tracking";
 import "./privacy.css";
 
 const CONTACT = "info@betheldworp.be";
@@ -11,6 +13,37 @@ const CONTACT = "info@betheldworp.be";
 // ce qu'il nous a donné, ce qu'on mesure, à qui ça va, et comment reprendre
 // la main.
 const SECTIONS = ["s1", "s2", "s3", "s4", "s5", "s6", "s7"];
+
+// Le choix vit dans localStorage, pas dans React : on le lit via un abonnement
+// pour éviter tout écart entre le rendu serveur et le navigateur.
+const OPT_EVENT = "bethel:track-opt";
+
+function subscribe(onChange) {
+    window.addEventListener(OPT_EVENT, onChange);
+    return () => window.removeEventListener(OPT_EVENT, onChange);
+}
+
+function OptOutControl({ t }) {
+    const optedOut = useSyncExternalStore(subscribe, isOptedOut, () => false);
+
+    const toggle = () => {
+        if (optedOut) {
+            optIn();
+        } else {
+            optOut();
+        }
+        window.dispatchEvent(new CustomEvent(OPT_EVENT));
+    };
+
+    return (
+        <div className={`privacy-opt ${optedOut ? "is-off" : ""}`}>
+            <span className="privacy-opt-state">{optedOut ? t("opt_off") : t("opt_on")}</span>
+            <button type="button" className="privacy-opt-btn" onClick={toggle}>
+                {optedOut ? t("opt_on_btn") : t("opt_off_btn")}
+            </button>
+        </div>
+    );
+}
 
 export default function PrivacyPage() {
     const { lang } = useLang();
@@ -28,6 +61,7 @@ export default function PrivacyPage() {
                     <section key={s} className="privacy-section">
                         <h2 className="privacy-h2">{t(`${s}t`)}</h2>
                         <p className="privacy-body" dangerouslySetInnerHTML={{ __html: t(`${s}b`) }} />
+                        {s === "s2" ? <OptOutControl t={t} /> : null}
                     </section>
                 ))}
 

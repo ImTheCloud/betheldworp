@@ -1,5 +1,6 @@
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "./Firebase";
+import { isOptedOut, expiresAt } from "./tracking";
 
 const VID_KEY = "bethel_vid";
 
@@ -160,6 +161,10 @@ export async function getGeoClientSideRobust(ms = 900) {
 }
 
 export async function trackWorldMapVisit(geoStatus = "initial", coords = null) {
+    // Verrou placé ici plutôt qu'aux quatre appels de la carte : aucun appel,
+    // présent ou futur, ne peut contourner l'opposition du visiteur.
+    if (isOptedOut()) return;
+
     try {
         const visitorId = getOrCreateVisitorIdSafe();
         const day = getBrusselsDayKeySafe();
@@ -178,7 +183,8 @@ export async function trackWorldMapVisit(geoStatus = "initial", coords = null) {
             country: geo.country,
             city: geo.city,
             geoStatus, // "initial", "granted", "denied"
-            timestamp: Date.now()
+            timestamp: Date.now(),
+            expiresAt: expiresAt()
         };
 
         if (coords?.lat && coords?.lng) {
