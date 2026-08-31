@@ -14,10 +14,20 @@ const OPT_OUT_KEY = "bethel_no_track";
 
 // Clés déposées par le suivi, effacées lorsque le visiteur s'oppose : garder
 // son identifiant alors qu'il refuse d'être compté n'aurait aucun sens.
-const TRACKING_KEYS = ["bethel_vid", "bethel_geo_last_ok", "bethel_map_geo_asked"];
+const TRACKING_KEYS = ["bethel_vid", "bethel_vid_at", "bethel_geo_last_ok", "bethel_map_geo_asked"];
 
 // 13 mois, la durée maximale admise pour un identifiant de mesure d'audience.
-const RETENTION_DAYS = 396;
+// Elle borne à la fois la conservation des documents et la vie de
+// l'identifiant : un identifiant permanent rendrait un visiteur traçable
+// pendant des années, ce que la durée sur les seules données n'empêche pas.
+export const RETENTION_DAYS = 396;
+const RETENTION_MS = RETENTION_DAYS * 24 * 60 * 60 * 1000;
+
+// Vrai si l'identifiant a dépassé sa durée de vie et doit être remplacé.
+export function isExpired(createdAtMs) {
+    if (!createdAtMs) return true;
+    return Date.now() - createdAtMs > RETENTION_MS;
+}
 
 export function isOptedOut() {
     if (typeof window === "undefined") return false;
@@ -47,5 +57,5 @@ export function optIn() {
 // Date au-delà de laquelle Firestore supprime automatiquement le document,
 // via la règle TTL configurée sur chaque collection de suivi.
 export function expiresAt() {
-    return new Date(Date.now() + RETENTION_DAYS * 24 * 60 * 60 * 1000);
+    return new Date(Date.now() + RETENTION_MS);
 }

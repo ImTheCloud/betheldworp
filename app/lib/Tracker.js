@@ -1,8 +1,9 @@
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "./Firebase";
-import { isOptedOut, expiresAt } from "./tracking";
+import { isOptedOut, expiresAt, isExpired } from "./tracking";
 
 const VID_KEY = "bethel_vid";
+const VID_AT_KEY = "bethel_vid_at";
 
 export function pad2(n) {
     return String(n).padStart(2, "0");
@@ -96,9 +97,37 @@ export function safeStorageSet(key, value) {
 
 let memoryVisitorId = null;
 
+// Les marqueurs « déjà compté » sont indexés par identifiant. Quand celui-ci
+// change, les anciens ne servent plus à rien et empêcheraient le nouveau
+// visiteur d'être enregistré dans visits_global.
+function clearVisitMarkers() {
+    try {
+        Object.keys(localStorage)
+            .filter((k) => k.startsWith("bethel_global_done_") || k.startsWith("bethel_visit_"))
+            .forEach((k) => localStorage.removeItem(k));
+    } catch { }
+}
+
 export function getOrCreateVisitorIdSafe() {
     const existing = safeStorageGet(VID_KEY);
-    if (existing) return existing;
+    const createdAt = Number(safeStorageGet(VID_AT_KEY)) || 0;
+
+    // Un identifiant sans date vient d'avant l'introduction de la rotation :
+    // on le date à maintenant plutôt que de le jeter, pour ne pas remettre à
+    // zéro d'un coup tous les visiteurs déjà connus.
+    if (existing && !createdAt) {
+        safeStorageSet(VID_AT_KEY, String(Date.now()));
+        return existing;
+    }
+
+    if (existing && !isExpired(createdAt)) return existing;
+
+    // Au-delà de 13 mois, l'identifiant est remplacé et les marqueurs effacés :
+    // le visiteur repart anonyme, comme s'il arrivait pour la première fois.
+    if (existing) {
+        clearVisitMarkers();
+        memoryVisitorId = null;
+    }
 
     if (memoryVisitorId) return memoryVisitorId;
 
@@ -114,6 +143,7 @@ export function getOrCreateVisitorIdSafe() {
 
     memoryVisitorId = id;
     safeStorageSet(VID_KEY, id);
+    safeStorageSet(VID_AT_KEY, String(Date.now()));
     return id;
 }
 
