@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Header from "../components/Header";
 import NextProgramBar from "../components/NextProgramBar";
 import Hero from "../sections/Hero";
@@ -27,8 +28,14 @@ export default function Home() {
                     <Program />
                 </section>
 
+                {/* Le calendrier lit les paramètres de l'URL pour ouvrir un
+                    événement précis. Isolé ici, il est seul à être rendu côté
+                    navigateur : sans cette limite, c'est toute la page d'accueil
+                    qui le serait, et le HTML servi arriverait vide. */}
                 <section id="evenimente">
-                    <Events />
+                    <Suspense fallback={null}>
+                        <Events />
+                    </Suspense>
                 </section>
 
                 <NewsletterSection />

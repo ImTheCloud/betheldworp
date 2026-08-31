@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 const LangContext = createContext(null);
 
@@ -24,7 +24,6 @@ function writeCookieLang(value) {
 export default function LanguageProvider({ children, initialLang = "ro" }) {
     const router = useRouter();
     const pathname = usePathname();
-    const searchParams = useSearchParams();
     const [lang, setLangState] = useState(() => normalizeLang(initialLang) || "ro");
 
     const setLang = (next) => {
@@ -33,9 +32,13 @@ export default function LanguageProvider({ children, initialLang = "ro" }) {
 
         writeCookieLang(normalized);
 
-        const search = searchParams?.toString();
+        // Lus directement depuis l'URL du navigateur, et non via useSearchParams :
+        // ce hook force la page entière à être rendue côté navigateur, alors qu'on
+        // n'a besoin de ces valeurs qu'ici, au moment où l'on clique sur le
+        // sélecteur de langue. Le hash était déjà lu de cette façon.
+        const search = typeof window !== "undefined" ? window.location.search : "";
         const hash = typeof window !== "undefined" ? window.location.hash : "";
-        const suffix = `${search ? `?${search}` : ""}${hash}`;
+        const suffix = `${search}${hash}`;
 
         // Update URL: /ro/foo -> /fr/foo
         const segments = pathname.split("/");
