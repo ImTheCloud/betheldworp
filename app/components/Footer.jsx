@@ -56,20 +56,8 @@ export default function Footer() {
             fetch("/api/newsletter/subscribe", {
                 method: "POST",
                 headers: { "content-type": "application/json" },
-                body: JSON.stringify({ email: em }),
+                body: JSON.stringify({ email: em, source: "footer" }),
             }).catch((e) => console.error("Brevo sync error:", e));
-
-            // Send real-time notification
-            try {
-                const topic = "bethel_churches_notifications_f93k2n8";
-                const notifyUrl = `https://ntfy.sh/${topic}?title=${encodeURIComponent("Abonare Nouă Footer")}&priority=default&tags=email,tada`;
-                fetch(notifyUrl, {
-                    method: "POST",
-                    body: `Nou abonat (Footer): ${em}`,
-                }).catch((e) => console.error("Notification error:", e));
-            } catch (notifyErr) {
-                console.error("Failed to send notification:", notifyErr);
-            }
 
             setSuccessText("");
             setSuccess(true);

@@ -8,6 +8,7 @@ import PaginationControls from "../components/PaginationControls";
 import ConfirmModal from "../components/ConfirmModal";
 import AdminSearch from "../components/AdminSearch";
 import { toggleExpandWithConfirm } from "../utils/adminUI";
+import { adminAuthHeaders } from "../utils/churchHelpers";
 
 const safeStr = (v) => String(v ?? "");
 
@@ -424,12 +425,19 @@ export default function NewsletterAdmin({ onDirtyChange }) {
 
     // Répercute une action de l'admin sur la liste Brevo. Firestore reste la
     // source de vérité : un échec côté Brevo ne doit jamais bloquer l'admin.
-    const syncBrevo = useCallback((action, email) => {
-        fetch(`/api/newsletter/${action}`, {
-            method: "POST",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify({ email }),
-        }).catch((e) => console.error(`Brevo ${action} error:`, e));
+    const syncBrevo = useCallback(async (action, email) => {
+        try {
+            await fetch(`/api/newsletter/${action}`, {
+                method: "POST",
+                headers: {
+                    "content-type": "application/json",
+                    ...(await adminAuthHeaders()),
+                },
+                body: JSON.stringify({ email, source: "admin" }),
+            });
+        } catch (e) {
+            console.error(`Brevo ${action} error:`, e);
+        }
     }, []);
 
     // Retire l'adresse de la liste d'envoi. Si la personne s'était désabonnée, on

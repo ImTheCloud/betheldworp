@@ -1,11 +1,16 @@
 import { NextResponse } from "next/server";
 import { resubscribeContact } from "../../../lib/brevo";
+import { isAdminRequest } from "../../../lib/adminAuth";
 
 const isValidEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v || "").trim());
 
 // Appelée quand un abonné est réactivé depuis le panneau admin : lève la
 // blocklist Brevo, sans quoi il resterait bloqué malgré son retour en base.
 export async function POST(request) {
+    if (!(await isAdminRequest(request))) {
+        return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    }
+
     let payload;
     try {
         payload = await request.json();

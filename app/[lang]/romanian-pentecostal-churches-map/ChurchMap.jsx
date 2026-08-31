@@ -1178,22 +1178,18 @@ function ChurchMap() {
                 console.error("Failed to save submitter info:", e);
             }
 
-            // Send real-time notification via ntfy.sh
-            try {
-                const topic = "bethel_churches_notifications_f93k2n8";
-                const title = suggestionType === "new" ? t("suggestionNotificationNew") : t("suggestionNotificationEdit");
-                const message = `${suggestionForm.name} ${suggestionForm.city} (${getCountryLabel(suggestionForm.country)})`;
-                
-                // Use query params instead of headers to avoid CORS preflight issues in browsers
-                const notifyUrl = `https://ntfy.sh/${topic}?title=${encodeURIComponent(title)}&priority=high&tags=church,pray`;
-                
-                fetch(notifyUrl, {
-                    method: 'POST',
-                    body: message
-                }).catch(e => console.error("Notification error:", e));
-            } catch (notifyErr) {
-                console.error("Failed to send notification:", notifyErr);
-            }
+            // Notification côté serveur : le nom du canal ntfy ne doit pas
+            // se retrouver dans le code envoyé au navigateur.
+            fetch("/api/notify/suggestion", {
+                method: "POST",
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify({
+                    type: suggestionType,
+                    name: suggestionForm.name,
+                    city: suggestionForm.city,
+                    country: getCountryLabel(suggestionForm.country),
+                }),
+            }).catch((e) => console.error("Notification error:", e));
 
             setSuggestionSuccess(true);
             clearSuggestionDraft();

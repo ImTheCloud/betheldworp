@@ -35,18 +35,6 @@ export default function UnsubscribePage() {
                     body: JSON.stringify({ email: cleanEmail }),
                 }).catch((err) => console.error("Brevo sync error:", err));
 
-                // Send ntfy notification
-                try {
-                    const topic = "bethel_churches_notifications_f93k2n8";
-                    const notifyUrl = `https://ntfy.sh/${topic}?title=${encodeURIComponent("Dezabonare Newsletter")}&priority=default&tags=email,warning`;
-                    fetch(notifyUrl, {
-                        method: 'POST',
-                        body: `E-mailul ${cleanEmail} s-a dezabonat.`
-                    }).catch(err => console.error("ntfy error:", err));
-                } catch (notifyErr) {
-                    console.error("Failed to send notification:", notifyErr);
-                }
-
                 setStatus("success");
                 setMessage("V-ați dezabonat cu succes.");
             } else {

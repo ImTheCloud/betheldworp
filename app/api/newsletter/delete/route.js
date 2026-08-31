@@ -1,10 +1,15 @@
 import { NextResponse } from "next/server";
 import { deleteContact } from "../../../lib/brevo";
+import { isAdminRequest } from "../../../lib/adminAuth";
 
 const isValidEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v || "").trim());
 
 // Appelée quand un abonné est supprimé depuis le panneau admin.
 export async function POST(request) {
+    if (!(await isAdminRequest(request))) {
+        return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    }
+
     let payload;
     try {
         payload = await request.json();

@@ -1,4 +1,20 @@
+import { getAuth } from "firebase/auth";
+
 export const safeStr = (v) => String(v ?? "");
+
+// Les routes API réservées à l'admin exigent le jeton Firebase de la session.
+// Sans lui, le serveur répond 401 — c'est ce qui empêche un visiteur d'utiliser
+// notre quota Google Places.
+export async function adminAuthHeaders() {
+    const user = getAuth().currentUser;
+    if (!user) return {};
+    try {
+        return { authorization: `Bearer ${await user.getIdToken()}` };
+    } catch (e) {
+        console.error("Could not get admin token:", e);
+        return {};
+    }
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // URL & contact sanitizers to avoid saving placeholder/fake links
@@ -242,7 +258,9 @@ export async function geocodeAddress(church) {
     if (!address) return null;
 
     try {
-        const res = await fetch(`/api/geocode?address=${encodeURIComponent(address)}`);
+        const res = await fetch(`/api/geocode?address=${encodeURIComponent(address)}`, {
+            headers: await adminAuthHeaders(),
+        });
         const data = await res.json();
         if (data.error) return null;
         return {
@@ -284,7 +302,9 @@ export async function resolveChurchFromTitle(title, context = {}) {
         let query = title;
         if (context.country) query += `, ${context.country}`;
 
-        const res = await fetch(`/api/geocode?address=${encodeURIComponent(query)}`);
+        const res = await fetch(`/api/geocode?address=${encodeURIComponent(query)}`, {
+            headers: await adminAuthHeaders(),
+        });
         const data = await res.json();
         
         if (data.error || !data.address_components) return null;

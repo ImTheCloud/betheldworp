@@ -1,8 +1,15 @@
 import { NextResponse } from "next/server";
+import { isAdminRequest } from "../../lib/adminAuth";
 
 const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
 export async function GET(request) {
+    // Chaque appel déclenche deux requêtes Google Places facturées : la route
+    // ne sert qu'au panneau admin et ne doit répondre qu'à lui.
+    if (!(await isAdminRequest(request))) {
+        return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const address = searchParams.get("address");
 
