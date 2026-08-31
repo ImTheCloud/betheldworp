@@ -51,6 +51,14 @@ export default function Footer() {
                 source: "footer",
             });
 
+            // Réplique le contact dans la liste Brevo. Un échec ici ne doit pas
+            // faire échouer l'abonnement : Firestore reste la source de vérité.
+            fetch("/api/newsletter/subscribe", {
+                method: "POST",
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify({ email: em }),
+            }).catch((e) => console.error("Brevo sync error:", e));
+
             // Send real-time notification
             try {
                 const topic = "bethel_churches_notifications_f93k2n8";
