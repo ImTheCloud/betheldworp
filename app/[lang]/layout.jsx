@@ -1,13 +1,9 @@
 import "./globals.css";
 import VisitTracker from "../components/VisitTracker";
 import LanguageProvider from "../components/LanguageProvider";
-import { cookies, headers } from "next/headers";
-// 1. L'import est correct ici
 import { Analytics } from "@vercel/analytics/next";
 
 const SITE_TITLE = "Bethel Dworp";
-const COOKIE = "bethel_lang";
-const SUPPORTED = ["ro", "fr", "nl", "en"];
 
 export const metadata = {
     title: SITE_TITLE,
@@ -15,39 +11,19 @@ export const metadata = {
     icons: { icon: "/icon.png" },
 };
 
+// Ni maximumScale ni userScalable : bloquer le zoom empêche d'agrandir le texte
+// à deux doigts, ce qui met le site en échec sur le critère WCAG 1.4.4 et gêne
+// d'abord les visiteurs qui en ont le plus besoin.
 export const viewport = {
     width: "device-width",
     initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
     interactiveWidget: "resizes-content",
     viewportFit: "cover",
 };
 
-function normalizeLang(v) {
-    const base = String(v || "").toLowerCase().split("-")[0];
-    return SUPPORTED.includes(base) ? base : null;
-}
-
-function pickFromAcceptLanguagePrimaryOnly(al) {
-    const firstToken = String(al || "").split(",")[0]?.trim() || "";
-    const langPart = firstToken.split(";")[0]?.trim() || "";
-    return normalizeLang(langPart);
-}
-
-async function getInitialLang() {
-    const ck = await cookies();
-    const c = ck.get(COOKIE)?.value;
-    const fromCookie = normalizeLang(c);
-    if (fromCookie) return fromCookie;
-
-    const hd = await headers();
-    const al = hd.get("accept-language");
-    const fromHeader = pickFromAcceptLanguagePrimaryOnly(al);
-
-    return fromHeader || "ro";
-}
-
+// La langue est déjà choisie en amont : `middleware.js` lit le cookie puis
+// l'en-tête Accept-Language et redirige vers /ro, /fr, /nl ou /en. Ce fichier
+// n'a plus qu'à lire le segment d'URL qui en résulte.
 
 export default async function RootLayout({ children, params }) {
     const { lang } = await params;
@@ -56,7 +32,9 @@ export default async function RootLayout({ children, params }) {
     return (
         <html lang={lang} suppressHydrationWarning>
             <head>
-                <title>{SITE_TITLE}</title>
+                {/* Pas de <title> écrit à la main : Next en pose déjà un depuis
+                    `metadata`, et celui-ci, placé plus haut dans le <head>,
+                    l'emportait — écrasant les titres traduits de chaque page. */}
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
                 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet" />
