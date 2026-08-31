@@ -316,17 +316,12 @@ export async function resolveChurchFromTitle(title, context = {}) {
         const isEstablishment = data.types.some(t => ["establishment", "point_of_interest", "church", "place_of_worship"].includes(t));
         const isLowConfidence = !isEstablishment;
 
-        // Use the name returned by Google Places if it's an establishment
-        let name = "";
-        if (isEstablishment && data.name) {
-            name = data.name;
-        }
-
-        // Try to find a clean name in address components if it's an establishment
-        if (!name) {
-            const est = data.address_components.find(c => c.types.includes("establishment"));
-            name = est ? est.long_name : "";
-        }
+        // Le nom vient des composants d'adresse. L'API Places, qui renvoyait
+        // aussi le nom de l'établissement, son téléphone et son site, n'est plus
+        // utilisée : Google a retiré sa version « legacy » et le projet ne l'a
+        // jamais activée, la branche échouait donc silencieusement.
+        const est = data.address_components.find(c => c.types.includes("establishment"));
+        let name = est ? est.long_name : "";
 
         if (!name || isLowConfidence) {
             // Strip "Biserica penticostală" prefix and also strip the city name from the end
@@ -345,9 +340,6 @@ export async function resolveChurchFromTitle(title, context = {}) {
             lat: data.lat,
             lng: data.lng,
             place_id: data.place_id,
-            phone: data.phone || "",
-            website: data.website || "",
-            googleMapsUri: data.googleMapsUri || "",
             locationTitle: title,
             isLowConfidence
         };

@@ -1,11 +1,18 @@
 import { NextResponse } from "next/server";
 import { isAdminRequest } from "../../lib/adminAuth";
 
-const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+// Clé distincte de celle du navigateur, et c'est nécessaire : Google refuse
+// une clé restreinte par référent pour l'API Geocoding, alors que la carte
+// côté navigateur exige justement cette restriction. Une seule clé ne peut pas
+// faire les deux.
+//
+// Celle-ci ne porte pas le préfixe NEXT_PUBLIC : elle ne quitte jamais le
+// serveur, et cette route exige déjà un jeton admin.
+const API_KEY = process.env.GOOGLE_GEOCODING_API_KEY;
 
 export async function GET(request) {
-    // Chaque appel déclenche deux requêtes Google Places facturées : la route
-    // ne sert qu'au panneau admin et ne doit répondre qu'à lui.
+    // Chaque appel est facturé par Google : la route ne sert qu'au panneau
+    // admin et ne doit répondre qu'à lui.
     if (!(await isAdminRequest(request))) {
         return NextResponse.json({ error: "unauthorized" }, { status: 401 });
     }
@@ -18,76 +25,31 @@ export async function GET(request) {
     }
 
     if (!API_KEY) {
-        return NextResponse.json({ error: "Google Maps API Key not configured" }, { status: 500 });
+        return NextResponse.json({ error: "GOOGLE_GEOCODING_API_KEY not configured" }, { status: 500 });
     }
 
     try {
-        // 1. Try Places API Text Search
-        const searchUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(address)}&key=${API_KEY}`;
-        const searchRes = await fetch(searchUrl);
-        const searchData = await searchRes.json();
+        const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${API_KEY}`;
+        const res = await fetch(url);
+        const data = await res.json();
 
-        if (searchData.status === "OK" && searchData.results.length > 0) {
-            // STRATEGY: Prioritize results that are NOT 'locality' or 'political'
-            // We want an 'establishment' or specific types like 'church', 'place_of_worship'
-            const ESTABLISHMENT_TYPES = ["establishment", "point_of_interest", "church", "place_of_worship", "school"];
-            
-            let bestResult = searchData.results.find(r => 
-                r.types.some(t => ESTABLISHMENT_TYPES.includes(t))
-            );
-
-            // Fallback to first result if no specific establishment found
-            if (!bestResult) bestResult = searchData.results[0];
-
-            const place_id = bestResult.place_id;
-
-            // 2. Get full details including website and phone number
-            const detailsUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place_id}&fields=name,formatted_address,geometry,address_components,formatted_phone_number,website,url,types&key=${API_KEY}`;
-            const detailsRes = await fetch(detailsUrl);
-            const detailsData = await detailsRes.json();
-
-            if (detailsData.status === "OK") {
-                const result = detailsData.result;
-                const { lat, lng } = result.geometry.location;
-
-                return NextResponse.json({
-                    lat,
-                    lng,
-                    place_id,
-                    name: result.name,
-                    types: result.types || [],
-                    address_components: result.address_components,
-                    formatted_address: result.formatted_address,
-                    phone: result.formatted_phone_number,
-                    website: result.website,
-                    googleMapsUri: result.url
-                });
-            }
+        if (data.status !== "OK" || !data.results?.length) {
+            return NextResponse.json({ error: data.status || "Not found" }, { status: 404 });
         }
 
-        // 3. Fallback to standard Geocoding
-        const geoUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${API_KEY}`;
-        const geoRes = await fetch(geoUrl);
-        const geoData = await geoRes.json();
+        const result = data.results[0];
+        const { lat, lng } = result.geometry.location;
 
-        if (geoData.status === "OK") {
-            const result = geoData.results[0];
-            const { lat, lng } = result.geometry.location;
-
-            return NextResponse.json({
-                lat,
-                lng,
-                place_id: result.place_id,
-                types: result.types || [],
-                address_components: result.address_components,
-                formatted_address: result.formatted_address
-            });
-        }
-
-        return NextResponse.json({ error: geoData.status || "Not found" }, { status: 404 });
-
+        return NextResponse.json({
+            lat,
+            lng,
+            place_id: result.place_id,
+            types: result.types || [],
+            address_components: result.address_components,
+            formatted_address: result.formatted_address,
+        });
     } catch (err) {
-        console.error("Geocoding/Places error:", err);
+        console.error("Geocoding error:", err);
         return NextResponse.json({ error: "Search failed" }, { status: 500 });
     }
 }
