@@ -16,17 +16,23 @@ const OPT_OUT_KEY = "bethel_no_track";
 // son identifiant alors qu'il refuse d'être compté n'aurait aucun sens.
 const TRACKING_KEYS = ["bethel_vid", "bethel_vid_at", "bethel_geo_last_ok", "bethel_map_geo_asked"];
 
-// 13 mois, la durée maximale admise pour un identifiant de mesure d'audience.
-// Elle borne à la fois la conservation des documents et la vie de
-// l'identifiant : un identifiant permanent rendrait un visiteur traçable
-// pendant des années, ce que la durée sur les seules données n'empêche pas.
-export const RETENTION_DAYS = 396;
-const RETENTION_MS = RETENTION_DAYS * 24 * 60 * 60 * 1000;
+// Deux durées distinctes, et il ne faut pas les confondre.
+//
+// L'IDENTIFIANT ne peut pas dépasser 13 mois : c'est lui qui rendrait un
+// visiteur traçable dans le temps, et c'est là que porte la protection.
+export const ID_RETENTION_DAYS = 396;
+
+// Les DONNÉES qui en découlent peuvent aller jusqu'à 25 mois. Les garder plus
+// longtemps que l'identifiant n'affaiblit rien : passé 13 mois, plus aucun
+// visiteur n'est rattachable aux anciennes lignes, son identifiant a changé.
+export const DATA_RETENTION_DAYS = 760;
+
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 // Vrai si l'identifiant a dépassé sa durée de vie et doit être remplacé.
 export function isExpired(createdAtMs) {
     if (!createdAtMs) return true;
-    return Date.now() - createdAtMs > RETENTION_MS;
+    return Date.now() - createdAtMs > ID_RETENTION_DAYS * DAY_MS;
 }
 
 export function isOptedOut() {
@@ -56,6 +62,8 @@ export function optIn() {
 
 // Date au-delà de laquelle Firestore supprime automatiquement le document,
 // via la règle TTL configurée sur chaque collection de suivi.
-export function expiresAt() {
-    return new Date(Date.now() + RETENTION_MS);
+// Date de suppression d'un document. Comptée depuis la collecte, pas depuis
+// aujourd'hui : `from` permet de dater correctement un document ancien.
+export function expiresAt(from = Date.now()) {
+    return new Date(from + DATA_RETENTION_DAYS * DAY_MS);
 }
