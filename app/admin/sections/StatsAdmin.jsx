@@ -4,6 +4,7 @@ import "./StatsAdmin.css";
 import { useEffect, useMemo, useState } from "react";
 import { collection, collectionGroup, getDocs } from "firebase/firestore";
 import { db } from "../../lib/Firebase";
+import BackfillExpiry from "../components/BackfillExpiry";
 import AdminSearch from "../components/AdminSearch";
 import ConfirmModal from "../components/ConfirmModal";
 import { useCallback } from "react";
@@ -659,6 +660,7 @@ export default function StatsAdmin() {
 
     return (
         <div className="adminFullPage">
+            <BackfillExpiry />
             <div className="adminFullTop">
                 <h2 className="adminTitle">Statistics</h2>
 
