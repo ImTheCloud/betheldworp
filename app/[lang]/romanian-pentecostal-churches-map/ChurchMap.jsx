@@ -7,6 +7,7 @@ import { MarkerClusterer } from "@googlemaps/markerclusterer";
 import { useSearchParams } from "next/navigation";
 import { collection, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, increment } from "firebase/firestore";
 import { db } from "../../lib/Firebase";
+import { isValidEmail } from "../../lib/validation";
 import { trackWorldMapVisit } from "@/app/lib/Tracker";
 import Link from "next/link";
 import { useLang } from "../../components/LanguageProvider";
@@ -1097,14 +1098,6 @@ function ChurchMap() {
         return JSON.stringify(suggestionForm) !== JSON.stringify(initialFormValues);
     }, [suggestionForm, initialFormValues]);
 
-    const validateEmail = (email) => {
-        return String(email)
-            .toLowerCase()
-            .match(
-                /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-            );
-    };
-
     const handleDuplicateChurchRedirect = () => {
         const duplicateChurch = duplicateChurchModal.church;
         if (!duplicateChurch) return;
@@ -1139,7 +1132,7 @@ function ChurchMap() {
                 setFormError(t("errorNoChanges"));
                 return;
             }
-            if (suggestionForm.email && !validateEmail(suggestionForm.email)) {
+            if (suggestionForm.email && !isValidEmail(suggestionForm.email)) {
                 setFormError(t("errorInvalidEmail"));
                 return;
             }
@@ -1148,7 +1141,7 @@ function ChurchMap() {
             return;
         }
 
-        if (submitterForm.email && !validateEmail(submitterForm.email)) {
+        if (submitterForm.email && !isValidEmail(submitterForm.email)) {
             setFormError(t("errorInvalidEmail"));
             return;
         }

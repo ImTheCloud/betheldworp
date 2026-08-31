@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
+import { isValidEmail, normalizeEmail } from "../../../lib/validation";
 import { deleteContact } from "../../../lib/brevo";
 import { isAdminRequest } from "../../../lib/adminAuth";
-
-const isValidEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v || "").trim());
 
 // Appelée quand un abonné est supprimé depuis le panneau admin.
 export async function POST(request) {
@@ -17,7 +16,7 @@ export async function POST(request) {
         return NextResponse.json({ error: "invalid_body" }, { status: 400 });
     }
 
-    const email = String(payload?.email || "").trim().toLowerCase();
+    const email = normalizeEmail(payload?.email);
     if (!isValidEmail(email)) {
         return NextResponse.json({ error: "invalid_email" }, { status: 400 });
     }

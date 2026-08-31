@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
+import { isValidEmail, normalizeEmail } from "../../../lib/validation";
 import { resubscribeContact } from "../../../lib/brevo";
 import { isAdminRequest } from "../../../lib/adminAuth";
-
-const isValidEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v || "").trim());
 
 // Appelée quand un abonné est réactivé depuis le panneau admin : lève la
 // blocklist Brevo, sans quoi il resterait bloqué malgré son retour en base.
@@ -18,7 +17,7 @@ export async function POST(request) {
         return NextResponse.json({ error: "invalid_body" }, { status: 400 });
     }
 
-    const email = String(payload?.email || "").trim().toLowerCase();
+    const email = normalizeEmail(payload?.email);
     if (!isValidEmail(email)) {
         return NextResponse.json({ error: "invalid_email" }, { status: 400 });
     }

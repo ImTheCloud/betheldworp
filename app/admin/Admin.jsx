@@ -4,6 +4,7 @@ import "./Admin.css";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { doc, getDocFromServer } from "firebase/firestore";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { isValidEmail } from "../lib/validation";
 import { db } from "../lib/Firebase";
 
 import MonthlyVerseAdmin from "./sections/MonthlyVerseAdmin";
@@ -16,10 +17,6 @@ import ChurchSuggestionsAdmin from "./sections/ChurchSuggestionsAdmin";
 import AdminSidebar from "./AdminSidebar";
 import ConfirmModal from "./components/ConfirmModal";
 import { useCallback } from "react";
-
-function isValidEmail(value) {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
-}
 
 function mapAuthError(code) {
     switch (code) {

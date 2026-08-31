@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../../../lib/Firebase";
+import { normalizeEmail } from "../../../lib/validation";
 
 // Événements Brevo qui doivent couper les envois pour une adresse.
 const UNSUBSCRIBE_EVENTS = new Set(["unsubscribed", "unsubscribe", "spam", "list_removal"]);
@@ -32,7 +33,7 @@ export async function POST(request) {
         return NextResponse.json({ ok: true, ignored: event });
     }
 
-    const email = String(payload?.email || payload?.contact_email || "").trim().toLowerCase();
+    const email = normalizeEmail(payload?.email || payload?.contact_email);
     if (!email) {
         return NextResponse.json({ error: "missing_email" }, { status: 400 });
     }

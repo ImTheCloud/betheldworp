@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
+import { isValidEmail, normalizeEmail } from "../../../lib/validation";
 import { blocklistContact } from "../../../lib/brevo";
-
-const isValidEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v || "").trim());
 
 // Appelée après une désinscription depuis la page du site : répercute le
 // blocage dans Brevo, sinon la personne continuerait à recevoir les campagnes.
@@ -13,7 +12,7 @@ export async function POST(request) {
         return NextResponse.json({ error: "invalid_body" }, { status: 400 });
     }
 
-    const email = String(payload?.email || "").trim().toLowerCase();
+    const email = normalizeEmail(payload?.email);
     if (!isValidEmail(email)) {
         return NextResponse.json({ error: "invalid_email" }, { status: 400 });
     }

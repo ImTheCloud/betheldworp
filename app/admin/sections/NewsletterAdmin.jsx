@@ -9,12 +9,9 @@ import ConfirmModal from "../components/ConfirmModal";
 import AdminSearch from "../components/AdminSearch";
 import { toggleExpandWithConfirm } from "../utils/adminUI";
 import { adminAuthHeaders } from "../utils/churchHelpers";
+import { isValidEmail } from "../../lib/validation";
 
 const safeStr = (v) => String(v ?? "");
-
-function isValidEmail(value) {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
-}
 
 function IconPlus(props) {
     return (

@@ -7,6 +7,7 @@ import { makeT } from "../lib/i18n";
 import tr from "../translations/Footer.json";
 import { collection, serverTimestamp, setDoc, doc } from "firebase/firestore";
 import { db } from "../lib/Firebase";
+import { isValidEmail } from "../lib/validation";
 
 export default function Footer() {
     const { lang } = useLang();
@@ -18,14 +19,12 @@ export default function Footer() {
     const [error, setError] = useState("");
     const [successText, setSuccessText] = useState("");
 
-    const validateEmail = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
-
     const onSubscribe = async (e) => {
         e.preventDefault();
         setError("");
 
         const em = email.trim().toLowerCase();
-        if (!validateEmail(em)) {
+        if (!isValidEmail(em)) {
             setError(t("subscribe_error"));
             return;
         }

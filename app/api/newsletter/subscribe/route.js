@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
+import { isValidEmail, normalizeEmail } from "../../../lib/validation";
 import { addContactToList } from "../../../lib/brevo";
 import { notify } from "../../../lib/notify";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../../lib/Firebase";
-
-const isValidEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v || "").trim());
 
 // Appelée après l'inscription depuis le site : réplique le contact dans Brevo
 // pour que la liste d'envoi reste alignée sur Firestore.
@@ -16,7 +15,7 @@ export async function POST(request) {
         return NextResponse.json({ error: "invalid_body" }, { status: 400 });
     }
 
-    const email = String(payload?.email || "").trim().toLowerCase();
+    const email = normalizeEmail(payload?.email);
     if (!isValidEmail(email)) {
         return NextResponse.json({ error: "invalid_email" }, { status: 400 });
     }

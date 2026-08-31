@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import emailjs from "@emailjs/browser";
+import { isValidEmail } from "../lib/validation";
 import "./ContactWidget.css";
 import { useLang } from "./LanguageProvider";
 import { makeT } from "../lib/i18n";
@@ -14,7 +15,6 @@ const LIMITS = {
     message: 1500,
 };
 
-const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
 
 function lockBodyScroll() {
     if (typeof window === "undefined") return () => {};

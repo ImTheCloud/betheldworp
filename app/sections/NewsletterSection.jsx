@@ -7,6 +7,7 @@ import "./NewsletterSection.css";
 import { useLang } from "../components/LanguageProvider";
 import { getLocale, makeT } from "../lib/i18n";
 import tr from "../translations/NewsletterSection.json";
+import { isValidEmail } from "../lib/validation";
 
 export default function NewsletterSection() {
     const { lang } = useLang();
@@ -50,14 +51,12 @@ export default function NewsletterSection() {
         }
     };
 
-    const validateEmail = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
-
     const onSubscribe = async (e) => {
         e.preventDefault();
         setError("");
         
         const em = email.trim().toLowerCase();
-        if (!validateEmail(em)) {
+        if (!isValidEmail(em)) {
             setError(t("email_invalid"));
             return;
         }
