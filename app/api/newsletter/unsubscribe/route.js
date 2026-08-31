@@ -1,10 +1,18 @@
 import { NextResponse } from "next/server";
 import { isValidEmail, normalizeEmail } from "../../../lib/validation";
 import { blocklistContact } from "../../../lib/brevo";
+import { isAdminRequest } from "../../../lib/adminAuth";
 
 // Appelée après une désinscription depuis la page du site : répercute le
 // blocage dans Brevo, sinon la personne continuerait à recevoir les campagnes.
 export async function POST(request) {
+    // Plus aucun formulaire public n'appelle cette route : la page de
+    // désinscription du site ne contient plus qu'une explication, et le lien
+    // des newsletters est géré par Brevo. Seul l'admin l'utilise encore.
+    if (!(await isAdminRequest(request))) {
+        return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    }
+
     let payload;
     try {
         payload = await request.json();
