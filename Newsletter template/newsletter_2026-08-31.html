@@ -4,12 +4,101 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <meta name="supported-color-schemes" content="light" />
+    <!-- Empêche iOS/Outlook de transformer les dates et heures en liens bleus -->
+    <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no" />
     <title>Programul Săptămânii – Bethel Dworp (31 August – 6 Septembrie 2026)</title>
+    <style>
+        :root {
+            color-scheme: light;
+            supported-color-schemes: light;
+        }
+
+        /* Neutralise la détection automatique des dates/heures (iOS, Outlook mobile) */
+        a[x-apple-data-detectors] {
+            color: inherit !important;
+            text-decoration: none !important;
+            font-size: inherit !important;
+            font-family: inherit !important;
+            font-weight: inherit !important;
+            line-height: inherit !important;
+        }
+
+        /* Mobile : tailles réduites et en-tête empilé */
+        @media only screen and (max-width:600px) {
+            .px {
+                padding-left: 10px !important;
+                padding-right: 10px !important;
+            }
+
+            /* En-tete plus compact sur mobile */
+            .hdr-box {
+                padding: 12px !important;
+            }
+
+            .logo-img {
+                width: 42px !important;
+                height: auto !important;
+            }
+
+            .logo-cell {
+                width: 52px !important;
+            }
+
+            .stack {
+                display: block !important;
+                width: 100% !important;
+            }
+
+            /* Le bouton du site est masque sur mobile : l'adresse figure deja dans le pied de page */
+            .btn-cell {
+                display: none !important;
+            }
+
+            .hdr-name {
+                font-size: 16px !important;
+            }
+
+            .hdr-sub {
+                font-size: 13px !important;
+            }
+
+            .h2 {
+                font-size: 19px !important;
+            }
+
+            .t21 {
+                font-size: 17px !important;
+            }
+
+            .t20 {
+                font-size: 17px !important;
+            }
+
+            .t19 {
+                font-size: 16px !important;
+            }
+
+            .t18 {
+                font-size: 14px !important;
+            }
+
+            .t17 {
+                font-size: 15px !important;
+            }
+
+            .t16 {
+                font-size: 14px !important;
+            }
+        }
+    </style>
 </head>
 
-<body style="margin:0;padding:0;">
+<body style="margin:0;padding:0;background-color:#ffffff;">
 
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+        style="border-collapse:collapse;background-color:#ffffff;">
         <tr>
             <td align="center" style="padding:0;">
 
@@ -18,25 +107,34 @@
 
                     <!-- Header -->
                     <tr>
-                        <td style="padding:0 24px;">
-                            <div style="background:#0f172a;padding:16px;border-radius:12px 12px 0 0;margin-top:24px;">
-                                <table role="presentation" width="100%">
+                        <td class="px" style="padding:0 24px;">
+                            <div class="hdr-box" style="background:#0f172a;padding:16px;border-radius:12px 12px 0 0;margin-top:24px;">
+                                <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                                     <tr>
-                                        <td style="width:64px;">
-                                            <img src="https://www.betheldworp.be/icon.png" width="52"
-                                                style="display:block;border-radius:12px;background:#ffffff;padding:6px;" />
+                                        <td class="stack" style="vertical-align:middle;">
+                                            <table role="presentation" cellpadding="0" cellspacing="0" align="left">
+                                                <tr>
+                                                    <td class="logo-cell" style="width:64px;">
+                                                        <img class="logo-img" src="https://www.betheldworp.be/icon.png" width="52"
+                                                            alt="Bethel Dworp"
+                                                            style="display:block;border-radius:12px;background:#ffffff;padding:6px;" />
+                                                    </td>
+                                                    <td
+                                                        style="padding-left:10px;font-family:Arial,Helvetica,sans-serif;">
+                                                        <div class="hdr-name"
+                                                            style="color:#ffffff;font-size:18px;font-weight:800;">
+                                                            Bethel Dworp
+                                                        </div>
+                                                        <div class="hdr-sub" style="color:#cbd5e1;font-size:14px;">
+                                                            Programul Săptămânii
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </table>
                                         </td>
-                                        <td style="padding-left:10px;font-family:Arial;">
-                                            <div style="color:#ffffff;font-size:18px;font-weight:800;">
-                                                Bethel Dworp
-                                            </div>
-                                            <div style="color:#cbd5e1;font-size:14px;">
-                                                Programul Săptămânii
-                                            </div>
-                                        </td>
-                                        <td align="right">
-                                            <a href="https://www.betheldworp.be/"
-                                                style="display:inline-block;background:#ffffff;color:#0f172a;text-decoration:none;font-weight:800;font-size:15px;padding:12px 20px;border-radius:12px;font-family:Arial;">
+                                        <td class="btn-cell" align="right" style="vertical-align:middle;">
+                                            <a class="btn" href="https://www.betheldworp.be/"
+                                                style="display:inline-block;background:#ffffff;color:#0f172a;text-decoration:none;font-weight:800;font-size:15px;padding:12px 20px;border-radius:12px;font-family:Arial,Helvetica,sans-serif;white-space:nowrap;">
                                                 🌐 betheldworp.be
                                             </a>
                                         </td>
@@ -48,22 +146,24 @@
 
                     <!-- Hero Banner -->
                     <tr>
-                        <td style="padding:0 24px;">
+                        <td class="px" style="padding:0 24px;">
                             <img src="https://www.betheldworp.be/images/events/OctavianLuncan.png" width="592"
+                                alt="Fratele Octavian Luncan"
                                 style="display:block;width:100%;max-width:592px;height:auto;border-radius:0 0 12px 12px;" />
                         </td>
                     </tr>
 
                     <!-- Intro -->
                     <tr>
-                        <td style="padding:32px 24px 24px;font-family:Arial;">
-                            <div style="font-size:21px;line-height:1.6;color:#111827;">
+                        <td class="px" style="padding:32px 24px 24px;font-family:Arial,Helvetica,sans-serif;">
+                            <div class="t21" style="font-size:21px;line-height:1.6;color:#111827;">
                                 Pace, dragi frați și surori,<br /><br />
                                 Vara s-a încheiat, iar începând cu această săptămână <b>toate programele reîncep ca de
-                                obicei</b>. Ne bucurăm să ne revedem la fiecare dintre întâlnirile din timpul
+                                    obicei</b>. Ne bucurăm să ne revedem la fiecare dintre întâlnirile din timpul
                                 săptămânii.<br /><br />
-                                Săptămâna aceasta aduce două lucruri deosebite: un program nou, <b>ziua de post și mijlocire de
-                                marți</b>, și prezența <b>fratelui Octavian Luncan</b> alături de noi la sfârșitul
+                                Săptămâna aceasta aduce două lucruri deosebite: un program nou, <b>ziua de post și
+                                    mijlocire de
+                                    marți</b>, și prezența <b>fratelui Octavian Luncan</b> alături de noi la sfârșitul
                                 săptămânii.<br /><br />
                             </div>
                         </td>
@@ -71,8 +171,8 @@
 
                     <!-- Fratele Octavian Luncan -->
                     <tr>
-                        <td style="padding:0 24px 10px;font-family:Arial;">
-                            <div
+                        <td class="px" style="padding:0 24px 10px;font-family:Arial,Helvetica,sans-serif;">
+                            <div class="h2"
                                 style="font-size:23px;font-weight:900;color:#0f172a;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">
                                 Fratele Octavian Luncan, alături de noi
                             </div>
@@ -80,10 +180,11 @@
                     </tr>
 
                     <tr>
-                        <td style="padding:16px 24px 32px;font-family:Arial;">
-                            <div style="font-size:19px;line-height:1.6;color:#374151;">
+                        <td class="px" style="padding:16px 24px 32px;font-family:Arial,Helvetica,sans-serif;">
+                            <div class="t19" style="font-size:19px;line-height:1.6;color:#374151;">
                                 Fratele va sluji prin învățătura Cuvântului lui Dumnezeu la programul de <b>vineri
-                                seara</b> și la <b>ambele servicii divine de duminică</b>. Vă așteptăm cu bucurie să fim
+                                    seara</b> și la <b>ambele servicii divine de duminică</b>. Vă așteptăm cu bucurie să
+                                fim
                                 împreună într-un timp de părtășie și zidire sufletească, în care să învățăm mai mult din
                                 Cuvântul Domnului și să ne apropiem de El.
                             </div>
@@ -92,8 +193,8 @@
 
                     <!-- Prima zi de orchestră -->
                     <tr>
-                        <td style="padding:0 24px 10px;font-family:Arial;">
-                            <div
+                        <td class="px" style="padding:0 24px 10px;font-family:Arial,Helvetica,sans-serif;">
+                            <div class="h2"
                                 style="font-size:23px;font-weight:900;color:#0f172a;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">
                                 Prima noastră zi de orchestră
                             </div>
@@ -101,45 +202,47 @@
                     </tr>
 
                     <tr>
-                        <td style="padding:16px 24px 8px;font-family:Arial;">
+                        <td class="px" style="padding:16px 24px 8px;font-family:Arial,Helvetica,sans-serif;">
                             <img src="https://www.betheldworp.be/images/events/Orchestra.png" width="592"
-                                style="display:block;width:100%;max-width:592px;border-radius:12px;border:1px solid #e2e8f0;" />
+                                alt="Zi de orchestră"
+                                style="display:block;width:100%;max-width:592px;height:auto;border-radius:12px;border:1px solid #e2e8f0;" />
                         </td>
                     </tr>
 
                     <tr>
-                        <td style="padding:16px 24px 32px;font-family:Arial;">
-                            <div style="font-size:19px;line-height:1.6;color:#374151;">
+                        <td class="px" style="padding:16px 24px 32px;font-family:Arial,Helvetica,sans-serif;">
+                            <div class="t19" style="font-size:19px;line-height:1.6;color:#374151;">
                                 <b>Sâmbătă, începând cu ora 11:00</b>, fratele Octavian Luncan va fi prezent la biserică
                                 pentru a organiza prima noastră zi de orchestră. Toți membrii comunității care știu să
                                 cânte la un instrument sunt invitați cu drag să participe. <b>Nu există limită de
-                                vârstă</b>: de la cel mai mic până la cel mai mare, toată lumea este binevenită!
+                                    vârstă</b>: de la cel mai mic până la cel mai mare, toată lumea este binevenită!
                             </div>
                         </td>
                     </tr>
 
                     <!-- Nou în program: ziua de post -->
                     <tr>
-                        <td style="padding:0 24px 32px;font-family:Arial;">
+                        <td class="px" style="padding:0 24px 32px;font-family:Arial,Helvetica,sans-serif;">
                             <div
                                 style="background:#f8fafc;border-left:4px solid #16a34a;padding:16px;border-radius:0 8px 8px 0;">
-                                <div
+                                <div class="t16"
                                     style="font-size:14px;font-weight:900;color:#16a34a;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">
                                     Nou în program · Marți, 10:00 - 14:00
                                 </div>
-                                <div style="font-size:20px;font-weight:800;color:#0f172a;margin-bottom:12px;">
+                                <div class="t20" style="font-size:20px;font-weight:800;color:#0f172a;margin-bottom:12px;">
                                     Zi de post și mijlocire
                                 </div>
-                                <div style="font-size:17px;color:#4b5563;line-height:1.6;">
+                                <div class="t17" style="font-size:17px;color:#4b5563;line-height:1.6;">
                                     Marți, între orele 10:00 și 14:00, ne strângem la biserică pentru o zi de post.
                                     Nu este un serviciu divin și nici o seară de rugăciune obișnuită: nu avem predică,
                                     ci ne rugăm și cântăm împreună înaintea Domnului.<br /><br />
                                     Nu trebuie să fii prezent de la 10:00 până la 14:00: <b>fiecare participă cât
-                                    poate, chiar și pentru o oră</b>. Motivele concrete ale postului sunt spuse pe loc
+                                        poate, chiar și pentru o oră</b>. Motivele concrete ale postului sunt spuse pe
+                                    loc
                                     și sunt de obicei nevoile comunității și ale familiilor noastre.<br /><br />
                                     Oricine este binevenit, iar fiecare poate invita pe cine dorește.
                                 </div>
-                                <div
+                                <div class="t16"
                                     style="font-size:16px;font-style:italic;color:#374151;line-height:1.5;margin-top:16px;border-top:1px solid #e2e8f0;padding-top:16px;">
                                     „Când postiți... unge-ți capul și spală-ți fața, ca să te arăți că postești nu
                                     oamenilor, ci Tatălui tău, care este în ascuns.”
@@ -152,8 +255,8 @@
 
                     <!-- Program Header -->
                     <tr>
-                        <td style="padding:0 24px 10px;font-family:Arial;">
-                            <div
+                        <td class="px" style="padding:0 24px 10px;font-family:Arial,Helvetica,sans-serif;">
+                            <div class="h2"
                                 style="font-size:23px;font-weight:900;color:#0f172a;border-bottom:2px solid #e5e7eb;padding-bottom:8px;">
                                 Programul Săptămânii (31 August – 6 Septembrie 2026)
                             </div>
@@ -162,11 +265,11 @@
 
                     <!-- Program List -->
                     <tr>
-                        <td style="padding:0 24px 8px;font-family:Arial;">
+                        <td class="px" style="padding:0 24px 8px;font-family:Arial,Helvetica,sans-serif;">
 
                             <!-- Luni -->
                             <div style="padding:16px 0;border-bottom:1px solid #e5e7eb;">
-                                <div style="font-size:19px;color:#374151;line-height:1.6;">
+                                <div class="t19" style="font-size:19px;color:#374151;line-height:1.6;">
                                     <b style="color:#0f172a;">Luni, 31 August – 20:00 - 21:30</b><br />
                                     Seară de Tineret și Adolescenți
                                 </div>
@@ -174,15 +277,15 @@
 
                             <!-- Marți - ziua de post -->
                             <div style="padding:16px 0;border-bottom:1px solid #e5e7eb;">
-                                <div style="font-size:19px;color:#374151;line-height:1.6;">
+                                <div class="t19" style="font-size:19px;color:#374151;line-height:1.6;">
                                     <b style="color:#16a34a;">Marți, 1 Septembrie – 10:00 - 14:00</b><br />
-                                    Zi de post și mijlocire. Fiecare participă cât poate.
+                                    Zi de post și mijlocire.
                                 </div>
                             </div>
 
                             <!-- Marți - seara -->
                             <div style="padding:16px 0;border-bottom:1px solid #e5e7eb;">
-                                <div style="font-size:19px;color:#374151;line-height:1.6;">
+                                <div class="t19" style="font-size:19px;color:#374151;line-height:1.6;">
                                     <b style="color:#0f172a;">Marți, 1 Septembrie – 20:00 - 21:30</b><br />
                                     Seară de rugăciune
                                 </div>
@@ -190,7 +293,7 @@
 
                             <!-- Miercuri -->
                             <div style="padding:16px 0;border-bottom:1px solid #e5e7eb;">
-                                <div style="font-size:19px;color:#374151;line-height:1.6;">
+                                <div class="t19" style="font-size:19px;color:#374151;line-height:1.6;">
                                     <b style="color:#0f172a;">Miercuri, 2 Septembrie – 20:00 - 21:30</b><br />
                                     Repetiția corului mixt
                                 </div>
@@ -198,7 +301,7 @@
 
                             <!-- Joi -->
                             <div style="padding:16px 0;border-bottom:1px solid #e5e7eb;">
-                                <div style="font-size:19px;color:#374151;line-height:1.6;">
+                                <div class="t19" style="font-size:19px;color:#374151;line-height:1.6;">
                                     <b style="color:#0f172a;">Joi, 3 Septembrie – 20:00 - 21:30</b><br />
                                     Repetiția corului bărbătesc
                                 </div>
@@ -206,7 +309,7 @@
 
                             <!-- Vineri -->
                             <div style="padding:16px 0;border-bottom:1px solid #e5e7eb;">
-                                <div style="font-size:19px;color:#374151;line-height:1.6;">
+                                <div class="t19" style="font-size:19px;color:#374151;line-height:1.6;">
                                     <b style="color:#16a34a;">Vineri, 4 Septembrie – 20:00 - 21:30</b><br />
                                     Seară de învățătură și închinare împreună cu fratele Octavian Luncan.
                                 </div>
@@ -214,7 +317,7 @@
 
                             <!-- Sâmbătă -->
                             <div style="padding:16px 0;border-bottom:1px solid #e5e7eb;">
-                                <div style="font-size:19px;color:#374151;line-height:1.6;">
+                                <div class="t19" style="font-size:19px;color:#374151;line-height:1.6;">
                                     <b style="color:#16a34a;">Sâmbătă, 5 Septembrie – de la 11:00</b><br />
                                     Prima zi de orchestră, împreună cu fratele Octavian Luncan.
                                 </div>
@@ -222,7 +325,7 @@
 
                             <!-- Duminică -->
                             <div style="padding:16px 0;">
-                                <div style="font-size:19px;color:#374151;line-height:1.6;">
+                                <div class="t19" style="font-size:19px;color:#374151;line-height:1.6;">
                                     <b style="color:#16a34a;">Duminică, 6 Septembrie</b><br />
                                     <b>10:00 - 12:00</b> - Serviciu Divin de dimineață, cu fratele Octavian
                                     Luncan<br />
@@ -235,8 +338,9 @@
 
                     <!-- Footer -->
                     <tr>
-                        <td style="padding:16px 24px 24px;font-family:Arial;border-top:1px solid #e5e7eb;">
-                            <div style="font-size:21px;line-height:1.6;">
+                        <td class="px"
+                            style="padding:16px 24px 24px;font-family:Arial,Helvetica,sans-serif;border-top:1px solid #e5e7eb;">
+                            <div class="t21" style="font-size:21px;line-height:1.6;color:#111827;">
                                 Vă dorim o săptămână binecuvântată și vă așteptăm cu drag la programele
                                 noastre!<br /><br />
                                 <b>Echipa Bethel Dworp</b><br />
@@ -246,11 +350,11 @@
                                 </a>
                             </div>
 
-                            <div
+                            <div class="t18"
                                 style="margin-top:24px;font-size:18px;color:#6b7280;border-top:1px solid #f3f4f6;padding-top:15px;">
                                 Primiți acest email deoarece faceți parte din Newsletter-ul Bisericii Bethel
                                 Dworp.<br />
-                                <a href="https://www.betheldworp.be/ro/unsubscribe" style="color:#6b7280;">
+                                <a href="{{ unsubscribe }}" style="color:#6b7280;">
                                     Dezabonare
                                 </a>
                             </div>
@@ -258,7 +362,8 @@
                     </tr>
                 </table>
 
-                <div style="max-width:640px;color:#9ca3af;font-size:11px;margin-top:15px;margin-bottom:24px;">
+                <div class="px"
+                    style="max-width:640px;color:#9ca3af;font-size:11px;margin-top:15px;margin-bottom:24px;padding:0 24px;font-family:Arial,Helvetica,sans-serif;">
                     © 2026 Bethel Dworp
                 </div>
 

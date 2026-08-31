@@ -27,6 +27,14 @@ export default function UnsubscribePage() {
             if (snap.exists()) {
                 await setDoc(ref, { unsubscribed: true, updatedAt: new Date() }, { merge: true });
 
+                // Bloque aussi le contact dans Brevo, sinon il continuerait à
+                // recevoir les campagnes malgré la désinscription sur le site.
+                fetch("/api/newsletter/unsubscribe", {
+                    method: "POST",
+                    headers: { "content-type": "application/json" },
+                    body: JSON.stringify({ email: cleanEmail }),
+                }).catch((err) => console.error("Brevo sync error:", err));
+
                 // Send ntfy notification
                 try {
                     const topic = "bethel_churches_notifications_f93k2n8";

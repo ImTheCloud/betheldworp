@@ -23,6 +23,16 @@ function IconPlus(props) {
     );
 }
 
+function IconDownload(props) {
+    return (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
+            <path d="M12 3v12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M7 10l5 5 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M4 20h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+    );
+}
+
 function IconTrash(props) {
     return (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
@@ -412,6 +422,31 @@ export default function NewsletterAdmin({ onDirtyChange }) {
         });
     }, [items, draftsById]);
 
+    // Export active subscribers as a Brevo-ready CSV (unsubscribed contacts excluded).
+    const exportCsv = useCallback(() => {
+        const active = items.filter((it) => !it.unsubscribed);
+
+        if (!active.length) {
+            openInfoModal("Nothing to export", "There is no active subscriber to export.");
+            return;
+        }
+
+        const rows = [...active].sort((a, b) => (a.createdAtMs || 0) - (b.createdAtMs || 0));
+        const csv = ["EMAIL,SUBSCRIBED_AT"]
+            .concat(rows.map((it) => `${it.id},${it.createdAtMs ? new Date(it.createdAtMs).toISOString().slice(0, 10) : ""}`))
+            .join("\r\n");
+
+        // BOM keeps accented characters readable when the file is opened in Excel.
+        const url = URL.createObjectURL(new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" }));
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `newsletter-bethel-${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+    }, [items, openInfoModal]);
+
     const startNew = () => {
         setShowNew(true);
         setNewEmail("");
@@ -656,6 +691,13 @@ export default function NewsletterAdmin({ onDirtyChange }) {
                         <option value="date-asc">Oldest first</option>
                         <option value="az">Alphabetical</option>
                     </select>
+
+                    <button className="adminBtn" type="button" onClick={exportCsv} disabled={loading || !items.length} title="Export active subscribers as CSV">
+                        <span className="adminBtnIcon" aria-hidden="true">
+                            <IconDownload />
+                        </span>
+                        Export CSV
+                    </button>
 
                     <button className="adminBtn adminBtn--new" type="button" onClick={startNew} disabled={loading || showNew}>
                         <span className="adminBtnIcon" aria-hidden="true">
