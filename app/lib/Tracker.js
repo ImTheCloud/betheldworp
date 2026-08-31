@@ -142,24 +142,17 @@ export async function getGeoClientSideRobust(ms = 900) {
     let initialGeo = null;
     try { if (cached) initialGeo = JSON.parse(cached); } catch { }
 
-    const geo1 = await fetchGeo(
-        "https://ipapi.co/json/",
-        (d) => ({ country: d?.country_name || d?.country, city: d?.city }),
-        ms
-    );
-    if (geo1) {
-        safeStorageSet("bethel_geo_last_ok", JSON.stringify(geo1));
-        return geo1;
-    }
-
-    const geo2 = await fetchGeo(
-        "https://ipwho.is/",
+    // Résolution côté serveur : l'IP du visiteur ne part plus chez ipapi.co ni
+    // ipwho.is. Vercel fournit le pays et la ville dans les en-têtes de la
+    // requête, aucune donnée ne quitte l'infrastructure.
+    const geo = await fetchGeo(
+        "/api/geoip",
         (d) => ({ country: d?.country, city: d?.city }),
         ms
     );
-    if (geo2) {
-        safeStorageSet("bethel_geo_last_ok", JSON.stringify(geo2));
-        return geo2;
+    if (geo) {
+        safeStorageSet("bethel_geo_last_ok", JSON.stringify(geo));
+        return geo;
     }
 
     if (initialGeo) return initialGeo;
