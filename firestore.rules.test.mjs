@@ -86,6 +86,18 @@ await check("anon NE PEUT PAS deverser 21 champs dans data", false, () =>
 await check("anon propose avec 20 champs dans data (limite haute)", true, () =>
     addDoc(collection(anon, "church_suggestions"),
         suggestion({ data: Object.fromEntries(Array.from({ length: 20 }, (_, i) => [`k${i}`, "x"])) })));
+// La charge exacte que ChurchMap.jsx envoie : 13 champs du formulaire plus le
+// bloc submitter. Une regle qui passe les tests synthetiques mais refuse la
+// vraie forme casserait le formulaire sans que rien ne le signale.
+await check("anon propose avec la charge reelle du formulaire", true, () =>
+    addDoc(collection(anon, "church_suggestions"), suggestion({
+        data: {
+            name: "Biserica X", city: "Bruxelles", zipCode: "1000", street: "Rue", number: "1",
+            phone: "+32", email: "a@b.be", website: "", youtube: "", facebook: "", instagram: "",
+            country: "Belgium", locationTitle: "",
+            submitter: { firstName: "A", lastName: "B", phone: "+32", email: "a@b.be", notes: "" },
+        },
+    })));
 
 console.log("\n— Likes publics —");
 await check("anon +1 like", true, () => updateDoc(doc(anon, "churches", "c1"), { likes: 6 }));
