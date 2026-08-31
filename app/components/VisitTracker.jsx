@@ -4,7 +4,6 @@ import { useEffect } from "react";
 import * as Tracker from "../lib/Tracker";
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "../lib/Firebase";
-import { hasConsent, CONSENT_EVENT } from "../lib/consent";
 
 // ── Tracking ───────────────────────────────────────────────────────────────
 async function trackVisit(cancelled) {
@@ -88,22 +87,15 @@ export default function VisitTracker() {
         let isCancelled = false;
         const cancelled = () => isCancelled;
 
-        // Rien n'est enregistré tant que le visiteur n'a pas accepté. L'écoute
-        // de l'événement permet de démarrer dès le clic sur « Accepter », sans
-        // attendre un rechargement de page.
-        const run = async () => {
-            if (isCancelled || !hasConsent()) return;
+        (async () => {
+            if (isCancelled) return;
             try {
                 await trackVisit(cancelled);
             } catch { }
-        };
-
-        run();
-        window.addEventListener(CONSENT_EVENT, run);
+        })();
 
         return () => {
             isCancelled = true;
-            window.removeEventListener(CONSENT_EVENT, run);
         };
     }, []);
 

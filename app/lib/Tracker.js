@@ -1,6 +1,5 @@
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "./Firebase";
-import { hasConsent } from "./consent";
 
 const VID_KEY = "bethel_vid";
 
@@ -161,10 +160,6 @@ export async function getGeoClientSideRobust(ms = 900) {
 }
 
 export async function trackWorldMapVisit(geoStatus = "initial", coords = null) {
-    // Verrou placé ici plutôt qu'aux quatre appels de la carte : aucun appel,
-    // présent ou futur, ne peut contourner le consentement.
-    if (!hasConsent()) return;
-
     try {
         const visitorId = getOrCreateVisitorIdSafe();
         const day = getBrusselsDayKeySafe();
