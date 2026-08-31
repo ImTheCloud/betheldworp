@@ -33,27 +33,31 @@ export default function Gallery() {
     const { lang } = useLang();
     const t = useMemo(() => makeT(tr, lang), [lang]);
 
+    // Chaque photo porte une clé de traduction plutôt qu'un texte : les dix-neuf
+    // images partageaient auparavant le même alt « Bethel », ce qui donnait, pour
+    // un lecteur d'écran, dix-neuf fois le même mot. La clé est résolue au rendu,
+    // pour que la description suive la langue choisie.
     const IMAGES = useMemo(
         () => [
-            { src: "/images/landing_page/drone.jpg", alt: "Bethel" },
-            { src: "/images/landing_page/outside.jpg", alt: "Bethel" },
-            { src: "/images/landing_page/CorMixt.jpg", alt: "Bethel" },
-            { src: "/images/landing_page/WeddingCK.jpg", alt: "Bethel" },
-            { src: "/images/landing_page/WeddingCK2.jpg", alt: "Bethel" },
-            { src: "/images/landing_page/1.Botez_2024.jpg", alt: "Bethel" },
-            { src: "/images/landing_page/2.Botez_2024.jpg", alt: "Bethel" },
-            { src: "/images/landing_page/0.church.png", alt: "Bethel" },
-            { src: "/images/landing_page/inside.jpg", alt: "Bethel" },
-            { src: "/images/landing_page/inside2.jpg", alt: "Bethel" },
-            { src: "/images/landing_page/1.Huizingen.jpg", alt: "Bethel" },
-            { src: "/images/landing_page/2.Huizingen.jpg", alt: "Bethel" },
-            { src: "/images/landing_page/3.Huizingen.jpg", alt: "Bethel" },
-            { src: "/images/landing_page/4.Huizingen.jpg", alt: "Bethel" },
-            { src: "/images/landing_page/5.Huizingen.jpg", alt: "Bethel" },
-            { src: "/images/landing_page/6.Huizingen.jpg", alt: "Bethel" },
-            { src: "/images/landing_page/7.Huizingen.jpg", alt: "Bethel" },
-            { src: "/images/landing_page/8.Huizingen.jpg", alt: "Bethel" },
-            { src: "/images/landing_page/9.Huizingen.jpg", alt: "Bethel" }
+            { src: "/images/landing_page/drone.jpg", altKey: "alt_drone" },
+            { src: "/images/landing_page/outside.jpg", altKey: "alt_outside" },
+            { src: "/images/landing_page/CorMixt.jpg", altKey: "alt_cormixt" },
+            { src: "/images/landing_page/WeddingCK.jpg", altKey: "alt_choir" },
+            { src: "/images/landing_page/WeddingCK2.jpg", altKey: "alt_service" },
+            { src: "/images/landing_page/1.Botez_2024.jpg", altKey: "alt_baptism1" },
+            { src: "/images/landing_page/2.Botez_2024.jpg", altKey: "alt_baptism2" },
+            { src: "/images/landing_page/0.church.png", altKey: "alt_worship" },
+            { src: "/images/landing_page/inside.jpg", altKey: "alt_inside" },
+            { src: "/images/landing_page/inside2.jpg", altKey: "alt_inside2" },
+            { src: "/images/landing_page/1.Huizingen.jpg", altKey: "alt_camp1" },
+            { src: "/images/landing_page/2.Huizingen.jpg", altKey: "alt_camp2" },
+            { src: "/images/landing_page/3.Huizingen.jpg", altKey: "alt_camp3" },
+            { src: "/images/landing_page/4.Huizingen.jpg", altKey: "alt_camp4" },
+            { src: "/images/landing_page/5.Huizingen.jpg", altKey: "alt_camp5" },
+            { src: "/images/landing_page/6.Huizingen.jpg", altKey: "alt_camp6" },
+            { src: "/images/landing_page/7.Huizingen.jpg", altKey: "alt_camp7" },
+            { src: "/images/landing_page/8.Huizingen.jpg", altKey: "alt_camp8" },
+            { src: "/images/landing_page/9.Huizingen.jpg", altKey: "alt_camp9" }
         ],
         []
     );
@@ -126,7 +130,7 @@ export default function Gallery() {
                                 onClick={() => openImgModal(featuredImage)}
                                 aria-label={t("open_image")}
                             >
-                                <img className="gal-featuredThumb" src={featuredImage.src} alt={featuredImage.alt} loading="lazy" />
+                                <img className="gal-featuredThumb" src={featuredImage.src} alt={t(featuredImage.altKey)} loading="lazy" />
                             </button>
                         )}
 
@@ -141,7 +145,7 @@ export default function Gallery() {
                                         aria-label={t("open_image")}
                                     >
                                         <div className="gal-rowThumbWrap">
-                                            <img className="gal-rowThumb" src={img.src} alt={img.alt} loading="lazy" />
+                                            <img className="gal-rowThumb" src={img.src} alt={t(img.altKey)} loading="lazy" />
                                         </div>
                                     </button>
                                 ))}
@@ -212,7 +216,7 @@ export default function Gallery() {
                         <button className="gal-close" onClick={closeImgModal} aria-label={t("close")}>
                             ×
                         </button>
-                        <img className="gal-modalImg" src={activeImg.src} alt={activeImg.alt} />
+                        <img className="gal-modalImg" src={activeImg.src} alt={t(activeImg.altKey)} />
                     </div>
                 </div>
             )}
