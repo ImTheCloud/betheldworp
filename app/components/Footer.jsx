@@ -179,6 +179,10 @@ export default function Footer() {
                 <div className="footer-bottom">
                     <p className="footer-copy">
                         © {new Date().getFullYear()} Bethel Dworp. {t("rights")}
+                        {" · "}
+                        <a className="footer-privacy" href={`/${lang}/privacy`}>
+                            {t("privacy")}
+                        </a>
                     </p>
                     <a
                         className="footer-contact-item footer-contact-item--dev"

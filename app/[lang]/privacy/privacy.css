@@ -1,0 +1,106 @@
+.privacy {
+    min-height: 100vh;
+    background: #f4f6f8;
+    padding: 48px 16px 72px;
+    display: flex;
+    justify-content: center;
+}
+
+.privacy-card {
+    width: 100%;
+    max-width: 720px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 44px 40px;
+}
+
+.privacy-title {
+    margin: 0;
+    font-size: 30px;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.2;
+}
+
+.privacy-updated {
+    margin: 8px 0 0;
+    font-size: 14px;
+    color: #94a3b8;
+}
+
+.privacy-intro {
+    margin: 28px 0 0;
+    font-size: 17px;
+    line-height: 1.7;
+    color: #334155;
+    padding-bottom: 28px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.privacy-section {
+    margin-top: 32px;
+}
+
+.privacy-h2 {
+    margin: 0 0 10px;
+    font-size: 19px;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.3;
+}
+
+.privacy-body {
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.75;
+    color: #475569;
+}
+
+.privacy-body b {
+    color: #0f172a;
+}
+
+.privacy-mail {
+    display: inline-block;
+    margin-top: 8px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #16a34a;
+    text-decoration: none;
+}
+
+.privacy-mail:hover {
+    text-decoration: underline;
+}
+
+.privacy-back {
+    margin-top: 40px;
+    padding-top: 24px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.privacy-back a {
+    font-size: 15px;
+    color: #64748b;
+    text-decoration: none;
+}
+
+.privacy-back a:hover {
+    color: #0f172a;
+}
+
+@media (max-width: 560px) {
+    .privacy {
+        padding: 24px 12px 56px;
+    }
+
+    .privacy-card {
+        padding: 28px 22px;
+        border-radius: 14px;
+    }
+
+    .privacy-title {
+        font-size: 25px;
+    }
+}

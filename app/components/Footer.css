@@ -343,3 +343,14 @@
         padding-top: 16px;
     }
 }
+
+.footer-privacy {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    opacity: .85;
+}
+
+.footer-privacy:hover {
+    opacity: 1;
+}

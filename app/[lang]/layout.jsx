@@ -1,5 +1,6 @@
 import "./globals.css";
 import VisitTracker from "../components/VisitTracker";
+import ConsentBanner from "../components/ConsentBanner";
 import LanguageProvider from "../components/LanguageProvider";
 import { cookies, headers } from "next/headers";
 // 1. L'import est correct ici
@@ -64,6 +65,7 @@ export default async function RootLayout({ children, params }) {
             <body>
                 <LanguageProvider initialLang={lang}>
                     <VisitTracker />
+                    <ConsentBanner />
                     {children}
 
                     <Analytics />
