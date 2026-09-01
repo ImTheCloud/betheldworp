@@ -8,7 +8,7 @@ import PaginationControls from "../components/PaginationControls";
 import ConfirmModal from "../components/ConfirmModal";
 import AdminSearch from "../components/AdminSearch";
 import ChurchFormFields from "../components/ChurchFormFields";
-import { IconPlus, IconTrash, IconChevronDown, IconSave, IconEyeOff, IconEye } from "../components/ChurchIcons";
+import { IconPlus, IconTrash, IconChevronDown, IconSave, IconEyeOff, IconEye } from "../components/AdminIcons";
 import { safeStr, normalizeText, matchChurchSearch, hasDraftChanges, emptyChurch, isMeaningfullyDifferent, geocodeAddress, resolveChurchFromTitle } from "../utils/churchHelpers";
 import { toggleExpandWithConfirm } from "../utils/adminUI";
 

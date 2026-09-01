@@ -5,7 +5,7 @@ import { collection, doc, onSnapshot, updateDoc, setDoc, serverTimestamp, delete
 import { db } from "../../lib/Firebase";
 import ConfirmModal from "../components/ConfirmModal";
 import ChurchFormFields from "../components/ChurchFormFields";
-import { IconCheck, IconX, IconChevronDown, IconEyeOff, IconHistory, IconTrash } from "../components/ChurchIcons";
+import { IconCheck, IconX, IconChevronDown, IconEyeOff, IconHistory, IconTrash } from "../components/AdminIcons";
 import { geocodeAddress } from "../utils/churchHelpers";
 
 export default function ChurchSuggestionsAdmin({ onDirtyChange }) {
