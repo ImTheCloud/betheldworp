@@ -64,9 +64,23 @@ export default function EventsCalendar() {
         return Array.isArray(map) ? map : ["Lu", "Ma", "Mi", "Jo", "Vi", "Sâ", "Du"];
     }, [lang]);
 
-    const today = new Date();
-    const todayIso = `${today.getFullYear()}-${pad2(today.getMonth() + 1)}-${pad2(today.getDate())}`;
-    const startOfCurrentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    // Figés au montage, et non recalculés à chaque rendu.
+    //
+    // startOfCurrentMonth est un objet Date : recréé à chaque rendu, il changeait
+    // d'identité à chaque fois et faisait re-tourner l'effet de sélection du mois
+    // à chaque rendu de la page — l'effet ne faisait rien une fois le mois choisi,
+    // mais il tournait quand même.
+    //
+    // Conséquence assumée : une page laissée ouverte en passant minuit garde la
+    // date d'hier jusqu'au prochain rechargement. C'était déjà le cas en pratique,
+    // puisque le mois sélectionné n'est calculé qu'une fois.
+    const { todayIso, startOfCurrentMonth } = useMemo(() => {
+        const maintenant = new Date();
+        return {
+            todayIso: `${maintenant.getFullYear()}-${pad2(maintenant.getMonth() + 1)}-${pad2(maintenant.getDate())}`,
+            startOfCurrentMonth: new Date(maintenant.getFullYear(), maintenant.getMonth(), 1),
+        };
+    }, []);
 
     const [events, setEvents] = useState([]);
     const [eventsLoading, setEventsLoading] = useState(true);

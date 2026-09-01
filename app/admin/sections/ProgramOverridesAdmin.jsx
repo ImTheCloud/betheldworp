@@ -847,7 +847,8 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed, onD
         if (key === "__new__") {
             setNewDraft((d) => {
                 const set = toSet(d.affectedProgramIds);
-                set.has(p) ? set.delete(p) : set.add(p);
+                if (set.has(p)) set.delete(p);
+            else set.add(p);
                 // Also clean up replacements if unchecking
                 const repl = { ...safeObj(d.replacements) };
                 if (!set.has(p)) delete repl[p];
@@ -860,7 +861,8 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed, onD
         setDraftsById((prev) => {
             const cur = prev[key] || { weekKey: "", affectedProgramIds: [], replacements: {}, additions: {} };
             const set = toSet(cur.affectedProgramIds);
-            set.has(p) ? set.delete(p) : set.add(p);
+            if (set.has(p)) set.delete(p);
+            else set.add(p);
             const repl = { ...safeObj(cur.replacements) };
             if (!set.has(p)) delete repl[p];
             return { ...prev, [key]: { ...cur, affectedProgramIds: Array.from(set), replacements: repl } };
