@@ -39,6 +39,13 @@ async function brevoFetch(path, options = {}) {
     return { ok: res.ok, status: res.status, body };
 }
 
+// Lit la fiche du contact. Un 404 n'est pas une erreur : il signifie que Brevo
+// ne connaît pas encore cette adresse. Sert à distinguer un nouvel abonné d'un
+// abonné qui revient après s'être désinscrit depuis un e-mail.
+export function getContact(email) {
+    return brevoFetch(`/contacts/${encodeURIComponent(email)}`);
+}
+
 // Ajoute le contact à la liste, ou le met à jour s'il existe déjà.
 export function addContactToList(email) {
     return brevoFetch("/contacts", {

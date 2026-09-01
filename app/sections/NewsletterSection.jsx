@@ -69,6 +69,16 @@ export default function NewsletterSection() {
             const snapshot = await getDoc(docRef);
 
             if (snapshot.exists()) {
+                // L'adresse est connue, mais elle a pu être mise en blocklist chez
+                // Brevo par une désinscription faite depuis un e-mail. Redonner son
+                // adresse vaut demande de retour : la route lève le blocage, et ne
+                // fait rien si le contact est déjà joignable.
+                fetch("/api/newsletter/subscribe", {
+                    method: "POST",
+                    headers: { "content-type": "application/json" },
+                    body: JSON.stringify({ email: em, source: "website" }),
+                }).catch((e) => console.error("Brevo sync error:", e));
+
                 setSuccessText(t("subscribe_already"));
                 setSuccess(true);
                 setSending(false);
