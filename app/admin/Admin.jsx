@@ -6,6 +6,7 @@ import { doc, getDocFromServer } from "firebase/firestore";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { isValidEmail } from "../lib/validation";
 import { db } from "../lib/Firebase";
+import { IconEye, IconEyeOff } from "./components/AdminIcons";
 
 import MonthlyVerseAdmin from "./sections/MonthlyVerseAdmin";
 import ProgramOverridesAdmin from "./sections/ProgramOverridesAdmin";
@@ -47,6 +48,7 @@ export default function Admin() {
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [loggingIn, setLoggingIn] = useState(false);
     const [pendingOverride, setPendingOverride] = useState(null);
     const [activeTab, setActiveTab] = useState("stats");
@@ -392,15 +394,27 @@ export default function Admin() {
 
                             <label className="adminLabel">
                                 Password
-                                <input
-                                    className="adminInput"
-                                    type="password"
-                                    value={password}
-                                    onChange={(e) => {
-                                        setPassword(e.target.value);
-                                    }}
-                                    autoComplete="current-password"
-                                />
+                                <div className="adminPasswordField">
+                                    <input
+                                        className="adminInput"
+                                        type={showPassword ? "text" : "password"}
+                                        value={password}
+                                        onChange={(e) => {
+                                            setPassword(e.target.value);
+                                        }}
+                                        autoComplete="current-password"
+                                    />
+                                    <button
+                                        type="button"
+                                        className="adminPasswordToggle"
+                                        onClick={() => setShowPassword((v) => !v)}
+                                        aria-label={showPassword ? "Hide password" : "Show password"}
+                                        aria-pressed={showPassword}
+                                        title={showPassword ? "Hide password" : "Show password"}
+                                    >
+                                        {showPassword ? <IconEyeOff /> : <IconEye />}
+                                    </button>
+                                </div>
                             </label>
 
                             <button className="adminBtn" type="submit" disabled={loggingIn}>

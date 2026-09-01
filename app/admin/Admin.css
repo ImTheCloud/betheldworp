@@ -2729,3 +2729,45 @@ input:checked + .adminSlider:before {
     }
 }
 
+
+/* ── Champ mot de passe avec œil de révélation ─────────────────────────── */
+
+.adminPasswordField {
+    position: relative;
+    display: block;
+}
+
+/* Réserve la place du bouton pour que le texte saisi ne passe pas dessous. */
+.adminPasswordField .adminInput {
+    width: 100%;
+    padding-right: 44px;
+}
+
+.adminPasswordToggle {
+    position: absolute;
+    top: 50%;
+    right: 6px;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* 32px de côté : la cible reste confortable au doigt sans déborder du champ. */
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: rgba(10, 42, 67, 0.55);
+    cursor: pointer;
+    transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.adminPasswordToggle:hover {
+    color: rgba(10, 42, 67, 0.9);
+    background: rgba(10, 42, 67, 0.06);
+}
+
+.adminPasswordToggle:active {
+    background: rgba(10, 42, 67, 0.1);
+}
