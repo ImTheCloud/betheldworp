@@ -79,7 +79,6 @@ export const sanitizeSocialLink = (platform, url) => {
             const segments = path.split("/").filter(Boolean);
             const first = segments[0] || "";
             const second = segments[1] || "";
-            const third = segments[2] || "";
 
             if (first.startsWith("@")) {
                 if (/^@[A-Za-z0-9._-]{3,}$/.test(first)) return `https://youtube.com/${first}`;
@@ -268,7 +267,7 @@ export async function geocodeAddress(church) {
             lng: data.lng,
             place_id: data.place_id
         };
-    } catch (e) {
+    } catch {
         return null;
     }
 }

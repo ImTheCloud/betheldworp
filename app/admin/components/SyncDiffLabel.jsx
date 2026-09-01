@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { IconSync } from "./ChurchIcons";
 
 export const SyncDiffLabel = ({ field, syncedFields, onRestore, showPreview }) => {
     if (!syncedFields || !syncedFields[field]) return null;

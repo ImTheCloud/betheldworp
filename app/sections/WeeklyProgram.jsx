@@ -90,12 +90,6 @@ function FAQItem({ question, answer, index, isOpen, onToggle }) {
     );
 }
 
-function capFirst(s) {
-    const x = safeStr(s);
-    if (!x) return "";
-    return x.charAt(0).toUpperCase() + x.slice(1);
-}
-
 function addDaysUTC(date, days) {
     return new Date(date.getTime() + days * 24 * 60 * 60 * 1000);
 }
@@ -145,7 +139,7 @@ function getLocaleFromLang(lang) {
     return "en-GB";
 }
 
-function formatWeekRangeLong(startUTC, endUTC, lang, t) {
+function formatWeekRangeLong(startUTC, endUTC, lang) {
     const locale = getLocaleFromLang(lang);
     const dayMonthLong = new Intl.DateTimeFormat(locale, { day: "numeric", month: "long", timeZone: "Europe/Brussels" });
     const dayOnly = new Intl.DateTimeFormat(locale, { day: "numeric", timeZone: "Europe/Brussels" });
@@ -237,12 +231,6 @@ export default function Program() {
         setOpenIndex(openIndex === index ? null : index);
     };
 
-    const openContact = () => {
-        if (typeof window !== "undefined") {
-            window.dispatchEvent(new Event("bethel:open-contact"));
-        }
-    };
-
     const LOCAL_PROGRAM_ITEMS = useMemo(() => [
         { day: t("day_mon"), id: "mon", times: ["20:00-21:30"], title: t("act_mon") },
         { day: t("day_tue"), id: "tue_fast", times: ["10:00-14:00"], title: t("act_tue_fast") },
@@ -263,14 +251,13 @@ export default function Program() {
         const { start, end } = getBrusselsWeekRange(base);
         const { isoYear, week } = getISOWeekYearAndNumberUTC(start);
         const weekKey = `${String(isoYear).padStart(4, "0")}-W${String(week).padStart(2, "0")}`;
-        const rangeLong = formatWeekRangeLong(start, end, lang, t);
+        const rangeLong = formatWeekRangeLong(start, end, lang);
         const weekLabel = t("week_label").replace("{n}", week);
         return { start, weekKey, rangeLong, weekLabel };
     }, [lang, t, weekOffset]);
 
     const goPrev = () => setWeekOffset((o) => o - 1);
     const goNext = () => setWeekOffset((o) => o + 1);
-    const goToday = () => setWeekOffset(0);
 
     // Switching language pushes /ro/... -> /fr/..., which remounts this page and would
     // drop the week being browsed. Remember it for the tab, as the Monday it starts on,

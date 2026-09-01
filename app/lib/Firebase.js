@@ -24,7 +24,7 @@ if (typeof document !== "undefined") {
                 localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
             });
         }
-    } catch (e) {
+    } catch {
         db = getFirestore(app);
     }
 } else {

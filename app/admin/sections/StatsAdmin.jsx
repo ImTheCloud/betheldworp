@@ -8,10 +8,6 @@ import AdminSearch from "../components/AdminSearch";
 import ConfirmModal from "../components/ConfirmModal";
 import { useCallback } from "react";
 
-const BOT_ICON = "🤖";
-const HUMAN_ICON = "👤";
-
-const SITE_START_KEY = "2025-12-21";
 
 
 function IconMap(props) {
@@ -410,7 +406,6 @@ export default function StatsAdmin() {
     }, []);
 
     const todayKey = useMemo(() => brusselsDayKey(), []);
-    const siteStartLabel = useMemo(() => formatEnDateFromKey(SITE_START_KEY), []);
 
     const [allDailyVisits, setAllDailyVisits] = useState([]);
     const [allUniqueVisitors, setAllUniqueVisitors] = useState([]);

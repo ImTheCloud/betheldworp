@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import "./Gallery.css";
 import { useLang } from "../components/LanguageProvider";
 import { makeT } from "../lib/i18n";

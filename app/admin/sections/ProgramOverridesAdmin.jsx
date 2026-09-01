@@ -2,7 +2,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { collection, deleteDoc, doc, getDoc, onSnapshot, setDoc } from "firebase/firestore";
+import { collection, deleteDoc, doc, onSnapshot, setDoc } from "firebase/firestore";
 import { db } from "../../lib/Firebase";
 import { usePagination } from "../hooks/usePagination";
 import PaginationControls from "../components/PaginationControls";
@@ -142,13 +142,6 @@ function overrideEqual(a, b) {
     return !dirtyWeek && !dirtyAffect && !dirtyRepl && !dirtyAdd && !dirtyCustomTitles && !dirtyCustomTimes;
 }
 
-function makeAffectedSummary(arr, max = 60) {
-    const list = safeArr(arr).map((x) => safeStr(x).trim()).filter(Boolean);
-    if (!list.length) return "—";
-    const txt = list.map(labelForAffected).join(", ");
-    return txt.length <= max ? txt : txt.slice(0, max) + "…";
-}
-
 function shortId(id) {
     const s = safeStr(id).trim();
     if (!s) return "—";
@@ -212,14 +205,6 @@ function IconPlus(props) {
     return (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
             <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-    );
-}
-
-function IconCancel(props) {
-    return (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
-            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
     );
 }
@@ -440,7 +425,6 @@ function OverrideCard({ item, expanded, draft, saveState, eventsList, weekKeyFor
     const additions = safeObj(draft?.additions ?? item?.additions);
     const customTitles = safeObj(draft?.customTitles ?? item?.customTitles);
     const customTimes = safeObj(draft?.customTimes ?? item?.customTimes);
-    const additionsCount = Object.values(additions).filter(Boolean).length;
 
     return (
         <div className={`adminAnnCard${item?.upcoming ? " is-active" : ""}`}>

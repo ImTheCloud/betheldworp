@@ -1,13 +1,12 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import { collection, doc, onSnapshot, updateDoc, setDoc, serverTimestamp, deleteDoc, addDoc } from "firebase/firestore";
+import { collection, doc, onSnapshot, updateDoc, setDoc, serverTimestamp, deleteDoc } from "firebase/firestore";
 import { db } from "../../lib/Firebase";
 import ConfirmModal from "../components/ConfirmModal";
 import ChurchFormFields from "../components/ChurchFormFields";
 import { IconCheck, IconX, IconChevronDown, IconEyeOff, IconHistory, IconTrash } from "../components/ChurchIcons";
-import SearchableSelect from "../../components/SearchableSelect";
-import { normalizeText, COUNTRY_OPTIONS, geocodeAddress } from "../utils/churchHelpers";
+import { geocodeAddress } from "../utils/churchHelpers";
 
 export default function ChurchSuggestionsAdmin({ onDirtyChange }) {
     const [suggestions, setSuggestions] = useState([]);
@@ -19,7 +18,7 @@ export default function ChurchSuggestionsAdmin({ onDirtyChange }) {
     const [draftsById, setDraftsById] = useState({});
     const [modal, setModal] = useState({ isOpen: false, title: "", message: "", onConfirm: () => {} });
     const [showHistory, setShowHistory] = useState(false);
-    const [diffRecomputeTrigger, setDiffRecomputeTrigger] = useState(0);
+    const [, setDiffRecomputeTrigger] = useState(0);
 
     const FIELDS_TO_COMPARE = ["name", "locationTitle", "city", "country", "zipCode", "street", "number", "phone", "email", "website", "youtube", "instagram", "facebook", "lat", "lng"];
 

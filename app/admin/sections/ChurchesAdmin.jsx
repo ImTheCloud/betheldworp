@@ -1,30 +1,28 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, useMemo } from "react";
-import { collection, addDoc, setDoc, deleteDoc, doc, onSnapshot, serverTimestamp, updateDoc } from "firebase/firestore";
+import { collection, setDoc, deleteDoc, doc, onSnapshot, serverTimestamp, updateDoc } from "firebase/firestore";
 import { db } from "../../lib/Firebase";
 import { usePagination } from "../hooks/usePagination";
 import PaginationControls from "../components/PaginationControls";
 import ConfirmModal from "../components/ConfirmModal";
 import AdminSearch from "../components/AdminSearch";
 import ChurchFormFields from "../components/ChurchFormFields";
-import { IconPlus, IconTrash, IconChevronDown, IconSave, IconEyeOff, IconEye, IconSync, IconMap, IconSearch } from "../components/ChurchIcons";
-import { safeStr, normalizeText, matchChurchSearch, hasDraftChanges, emptyChurch, COUNTRY_OPTIONS, isMeaningfullyDifferent, geocodeAddress, resolveChurchFromTitle } from "../utils/churchHelpers";
+import { IconPlus, IconTrash, IconChevronDown, IconSave, IconEyeOff, IconEye } from "../components/ChurchIcons";
+import { safeStr, normalizeText, matchChurchSearch, hasDraftChanges, emptyChurch, isMeaningfullyDifferent, geocodeAddress, resolveChurchFromTitle } from "../utils/churchHelpers";
 import { toggleExpandWithConfirm } from "../utils/adminUI";
 
 const PAGE_SIZE = 10;
 
-function ChurchCard({ item, expanded, drafts, saveState, onToggle, onChange, onSave, onDelete, setSaveStateById }) {
+function ChurchCard({ item, expanded, drafts, saveState, onToggle, onChange, onSave, onDelete }) {
     const id = item.id;
     const isDraft = drafts.isDraft || false;
     const [syncedFields, setSyncedFields] = useState({});
-    const [syncSuccess, setSyncSuccess] = useState(false);
     const [placeSearchLoading, setPlaceSearchLoading] = useState(false);
 
     useEffect(() => {
         if (!expanded) {
             setSyncedFields({});
-            setSyncSuccess(false);
         }
     }, [expanded]);
 
@@ -34,7 +32,6 @@ function ChurchCard({ item, expanded, drafts, saveState, onToggle, onChange, onS
         }
     }, [saveState]);
 
-    const handleSync = null; // Sync function removed
 
     const handlePlaceSearch = async () => {
         const title = drafts.locationTitle;
@@ -176,7 +173,6 @@ function ChurchCard({ item, expanded, drafts, saveState, onToggle, onChange, onS
 
 function NewChurchCard({ drafts, setDraft, saveState, onCancel, onSave }) {
     const [syncedFields, setSyncedFields] = useState({});
-    const [syncSuccess, setSyncSuccess] = useState(false);
     const [placeSearchLoading, setPlaceSearchLoading] = useState(false);
 
     useEffect(() => {
@@ -198,7 +194,6 @@ function NewChurchCard({ drafts, setDraft, saveState, onCancel, onSave }) {
 
     const getHighlightClass = (field) => syncedFields[field] ? "is-synced-highlight" : "";
 
-    const handleSync = null; // Sync function removed
 
     const handlePlaceSearch = async () => {
         const title = drafts.locationTitle;
@@ -268,7 +263,6 @@ export default function ChurchesAdmin({ onDirtyChange }) {
     const mountedRef = useRef(true);
     const timeoutRef = useRef(null);
 
-    const [loading, setLoading] = useState(true);
     const [items, setItems] = useState([]);
     const [draftsById, setDraftsById] = useState({});
     const [saveStateById, setSaveStateById] = useState({});
@@ -282,7 +276,6 @@ export default function ChurchesAdmin({ onDirtyChange }) {
     const [newState, setNewState] = useState("idle");
     const [showDraftsOnly, setShowDraftsOnly] = useState(false);
     
-    const [showBulkSyncConfirm, setShowBulkSyncConfirm] = useState(false);
 
     const [modal, setModal] = useState({ isOpen: false, title: "", message: "", progress: null, onConfirm: null, actions: null });
 
@@ -321,7 +314,6 @@ export default function ChurchesAdmin({ onDirtyChange }) {
         return arr;
     }, [items, searchQuery, selectedCountry, selectedCity, showDraftsOnly]);
 
-    const draftCount = useMemo(() => items.filter(it => it.isDraft === true).length, [items]);
 
     const { page, setPage, totalPages, paginatedItems, nextPage, prevPage, totalItems } = usePagination(sortedItems, PAGE_SIZE);
 
@@ -369,7 +361,6 @@ export default function ChurchesAdmin({ onDirtyChange }) {
     }, []);
 
     useEffect(() => {
-        setLoading(true);
         const unsub = onSnapshot(collection(db, "churches"), (snap) => {
             if (!mountedRef.current) return;
             const list = snap.docs.map(d => {
@@ -379,15 +370,13 @@ export default function ChurchesAdmin({ onDirtyChange }) {
                     try {
                         const dObj = data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt);
                         createdAtMs = dObj.getTime();
-                    } catch (e) { }
+                    } catch { }
                 }
                 return { id: d.id, ...data, createdAtMs };
             });
             setItems(list);
-            setLoading(false);
         }, (error) => {
             console.error("ChurchesAdmin snapshot error:", error);
-            if (mountedRef.current) setLoading(false);
         });
         return () => unsub();
     }, []);
@@ -461,7 +450,7 @@ export default function ChurchesAdmin({ onDirtyChange }) {
                     setNewDrafts(finalData); // Update local state for immediate reflected UI
                     setNewState("saved");
                     setTimeout(() => { setShowNew(false); setNewState("idle"); }, 900);
-                } catch (e) { setNewState("error"); }
+                } catch { setNewState("error"); }
             }
         });
     };
@@ -539,7 +528,7 @@ export default function ChurchesAdmin({ onDirtyChange }) {
                             return next;
                         });
                     }, 800);
-                } catch (e) { setTransientState(id, "error"); }
+                } catch { setTransientState(id, "error"); }
             }
         });
     };
@@ -550,12 +539,11 @@ export default function ChurchesAdmin({ onDirtyChange }) {
             title: "Delete Church",
             message: "Are you sure?",
             onConfirm: async () => {
-                try { await deleteDoc(doc(db, "churches", id)); setModal({ isOpen: false }); } catch (e) { }
+                try { await deleteDoc(doc(db, "churches", id)); setModal({ isOpen: false }); } catch { }
             }
         });
     };
 
-    const handleBulkSync = null; // Bulk sync removed
 
     return (
         <div className="adminFullPage">

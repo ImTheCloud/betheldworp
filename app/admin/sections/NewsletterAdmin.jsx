@@ -356,7 +356,7 @@ export default function NewsletterAdmin({ onDirtyChange }) {
                                 const dObj = timestampField.toDate ? timestampField.toDate() : new Date(timestampField);
                                 createdAtText = dObj.toLocaleDateString("en-US", { year: 'numeric', month: 'long', day: 'numeric' });
                                 createdAtMs = dObj.getTime();
-                            } catch (e) {
+                            } catch {
                                 // Default to empty string on parse error
                             }
                         }

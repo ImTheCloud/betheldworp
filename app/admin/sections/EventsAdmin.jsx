@@ -503,7 +503,6 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
     const [newDraft, setNewDraft] = useState(newEventDraft);
     const [newState, setNewState] = useState("idle");
     const [newLang, setNewLang] = useState("ro");
-    const [migrating, setMigrating] = useState(false);
 
     const [modal, setModal] = useState({ isOpen: false, title: "", message: "", onConfirm: () => { } });
 

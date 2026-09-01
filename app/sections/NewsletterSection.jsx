@@ -5,14 +5,13 @@ import { collection, serverTimestamp, setDoc, doc } from "firebase/firestore";
 import { db } from "../lib/Firebase";
 import "./NewsletterSection.css";
 import { useLang } from "../components/LanguageProvider";
-import { getLocale, makeT } from "../lib/i18n";
+import { makeT } from "../lib/i18n";
 import tr from "../translations/NewsletterSection.json";
 import { isValidEmail } from "../lib/validation";
 
 export default function NewsletterSection() {
     const { lang } = useLang();
     const t = makeT(tr, lang);
-    const locale = getLocale(lang);
 
     const [email, setEmail] = useState("");
     const [sending, setSending] = useState(false);

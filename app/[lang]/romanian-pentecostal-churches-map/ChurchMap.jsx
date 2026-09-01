@@ -1,17 +1,14 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useCallback, useRef, Suspense } from "react";
-import { flushSync } from "react-dom";
 import { APIProvider, Map, AdvancedMarker, useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
 import { MarkerClusterer } from "@googlemaps/markerclusterer";
 import { useSearchParams } from "next/navigation";
-import { collection, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, increment } from "firebase/firestore";
+import { collection, onSnapshot, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../../lib/Firebase";
 import { isValidEmail } from "../../lib/validation";
 import { trackWorldMapVisit } from "@/app/lib/Tracker";
-import Link from "next/link";
 import { useLang } from "../../components/LanguageProvider";
-import LanguageSwitcher from "../../components/LanguageSwitcher";
 import { makeT } from "../../lib/i18n";
 import worldMapTranslations from "../../translations/WorldMap.json";
 import SearchableSelect from "../../components/SearchableSelect";
@@ -217,12 +214,6 @@ function animateMap(map, fromCenter, toCenter, fromZoom, toZoom, durationMs, abo
     });
 }
 
-function animateZoom(map, fromZoom, toZoom, durationMs, abortSignal) {
-    const center = map.getCenter();
-    const plain = toLatLng(center);
-    return animateMap(map, plain, plain, fromZoom, toZoom, durationMs, abortSignal);
-}
-
 /**
  * Smoothly fly the map to a target position with a Mapbox-style arc effect.
  *
@@ -302,26 +293,6 @@ function smoothFlyTo(map, target, targetZoom, options = {}) {
 }
 
 // ─── End Smooth Animation Utilities ────────────────────────────────────────
-
-function getBoundsCenter(churches) {
-    if (churches.length === 0) return { lat: 0, lng: 0 };
-    let minLat = churches[0].lat;
-    let maxLat = churches[0].lat;
-    let minLng = churches[0].lng;
-    let maxLng = churches[0].lng;
-
-    for (let c of churches) {
-        if (c.lat < minLat) minLat = c.lat;
-        if (c.lat > maxLat) maxLat = c.lat;
-        if (c.lng < minLng) minLng = c.lng;
-        if (c.lng > maxLng) maxLng = c.lng;
-    }
-
-    return {
-        lat: (minLat + maxLat) / 2,
-        lng: (minLng + maxLng) / 2,
-    };
-}
 
 function haversineDistance(lat1, lng1, lat2, lng2) {
     const R = 6371;
@@ -913,8 +884,7 @@ function ChurchMap() {
     const [recenterTrigger, setRecenterTrigger] = useState(0);
     const [isInitialLoad, setIsInitialLoad] = useState(true);
     const [activeCountryFilter, setActiveCountryFilter] = useState("");
-    const [hoveredMarker, setHoveredMarker] = useState(null);
-    const [copied, setCopied] = useState(false);
+    const [, setHoveredMarker] = useState(null);
     const [mobileShowMap, setMobileShowMap] = useState(false);
     const [filterOpen, setFilterOpen] = useState(false);
     const [filterRecenterTrigger, setFilterRecenterTrigger] = useState(0);
@@ -951,7 +921,7 @@ function ChurchMap() {
 
 
 
-    const { lang, setLang, supported } = useLang();
+    const { lang } = useLang();
     // Lock body scroll on mount to prevent mobile conflict
     useEffect(() => {
         const originalBodyOverflow = document.body.style.overflow;
@@ -968,12 +938,6 @@ function ChurchMap() {
 
     const t = makeT(worldMapTranslations, lang);
 
-    const langOptions = [
-        { value: "ro", short: "RO", flag: "https://flagcdn.com/w40/ro.png" },
-        { value: "fr", short: "FR", flag: "https://flagcdn.com/w40/fr.png" },
-        { value: "nl", short: "NL", flag: "https://flagcdn.com/w40/nl.png" },
-        { value: "en", short: "EN", flag: "https://flagcdn.com/w40/gb.png" }
-    ];
 
 
 
@@ -1548,13 +1512,7 @@ function ChurchMap() {
     }, [t]);
 
     // Combined Country Data (Counts, Sorting, Pagination)
-    const { 
-        ALL_COUNTRIES, 
-        countryCounts, 
-        sortedCountries, 
-        topCountries, 
-        otherCountries 
-    } = useMemo(() => {
+    const { ALL_COUNTRIES, countryCounts } = useMemo(() => {
         // 1. Get all unique countries
         const all = [...new Set(churches.map((c) => c.country))].sort((a, b) => {
             return getCountryLabel(a).localeCompare(getCountryLabel(b), lang);
@@ -1745,12 +1703,6 @@ function ChurchMap() {
             
         return `https://www.google.com/maps/search/?api=1&query=${query}`;
     };
-
-    const activeFilterIcon = activeCountryFilter ? (
-        <FlagImage country={activeCountryFilter} />
-    ) : (
-        <span style={{ fontSize: '1.1rem' }}>🌍</span>
-    );
 
     if (!API_KEY) {
         return (

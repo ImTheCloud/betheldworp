@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { collection, onSnapshot, serverTimestamp, setDoc, doc } from "firebase/firestore";
+import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../lib/Firebase";
 import "./EventsCalendar.css";
 import { useLang } from "../components/LanguageProvider";
@@ -394,9 +394,8 @@ export default function EventsCalendar() {
                     url: url,
                 });
                 return;
-            } catch (err) {
-                // If sharing was cancelled or failed, fallback to copy
-                console.log("Web Share cancelled/failed, falling back to copy.");
+            } catch {
+                // Partage annulé ou refusé : on retombe silencieusement sur la copie.
             }
         }
 
