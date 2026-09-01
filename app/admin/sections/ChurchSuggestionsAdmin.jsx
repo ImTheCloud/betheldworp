@@ -115,7 +115,6 @@ export default function ChurchSuggestionsAdmin({ onDirtyChange }) {
 
     // Compute diffs: compare suggestion data vs current DB church data
     // This runs whenever suggestions or churches change
-    // Diff computation logic removed as it was used for sync comparisons
 
     const toggleExpand = useCallback((id) => {
         setExpandedIds((prev) => {
@@ -178,7 +177,6 @@ export default function ChurchSuggestionsAdmin({ onDirtyChange }) {
         changeDraft(id, field, oldValue);
     };
 
-    // handleSync functionality removed for manual-only flow
 
     const handleApprove = async (suggestion, saveAsDraft = false) => {
         const draft = draftsById[suggestion.id];
@@ -280,7 +278,6 @@ export default function ChurchSuggestionsAdmin({ onDirtyChange }) {
         }
     };
 
-    // handleDiscovery functionality removed for manual-only flow
 
     if (loading) return <div className="adminSectionLoading">Loading...</div>;
 

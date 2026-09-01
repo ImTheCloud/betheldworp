@@ -203,7 +203,6 @@
     transform: translateY(-1px);
 }
 
-/* Old floating toggle removed */
 
 .churchMapLayout .churchMapSidebar.collapsed .churchMapBottomSheet {
     display: none;
@@ -1786,7 +1785,7 @@
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background: transparent; /* Removed gray background */
+    background: transparent;
     color: #0f172a;
     border: none;
     display: flex;
@@ -2759,7 +2758,7 @@
 .mobileChurchDetails {
     display: flex;
     flex-direction: column;
-    height: auto; /* Removed height: 100% to stop it from artificially stretching the list */
+    height: auto; /* et non 100%, qui étirait la liste inutilement */
     animation: slideUpDetails 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -2963,7 +2962,7 @@
     flex: 0 0 auto;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    margin-bottom: 0px; /* Removed excess margin to bring buttons closer */
+    margin-bottom: 0px;
     align-content: start;
     gap: 16px 20px; /* Slightly tighter gap to save vertical space */
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);

@@ -852,7 +852,6 @@
 
 .adminList--history .adminAnnCard {
     opacity: 0.75;
-    /* removed background color as requested */
 }
 
 .adminAnnCard.is-active {
@@ -1187,7 +1186,6 @@ input:checked + .adminSlider:before {
 }
 
 /* ── Mobile Responsive ── */
-/* Legacy responsive styles removed to support new slide-out sidebar */
 
 /* ── Full Width / Fixed Low-Level Layout (New Standard) ── */
 
@@ -1251,7 +1249,6 @@ input:checked + .adminSlider:before {
     flex-direction: column;
     gap: 12px;
     padding-bottom: 0;
-    /* Removed padding to reduce gap */
 }
 
 /* ── Sticky/Fixed Pagination Footer ── */
@@ -2074,7 +2071,6 @@ input:checked + .adminSlider:before {
     border-color: #86efac !important;
 }
 
-/* Removed redundant class */
 
 
 
