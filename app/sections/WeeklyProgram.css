@@ -841,3 +841,76 @@
         font-size: 11px;
     }
 }
+/* Carte d'un jour ordinaire : elle ouvre la réponse de la FAQ qui décrit ce
+   jour. Volontairement sans le coin doré de .program-card--clickable, qui
+   garde son sens précis, « ce jour est remplacé par un événement ». Au repos
+   l'aspect ne change pas : c'est le survol, absent sur téléphone, qui
+   distingue. */
+.program-card--info {
+    cursor: pointer;
+    transition: transform 0.15s ease;
+}
+
+.program-card--info:hover {
+    transform: translateY(-2px);
+}
+
+@media (hover: none) {
+    .program-card--info:hover {
+        transform: none;
+    }
+}
+
+.program-card--info:focus-visible {
+    outline: 2px solid #d99b19;
+    outline-offset: 3px;
+}
+
+/* Modale d'un jour : le cadre vient des classes ev-* de la modale
+   d'événement, seul le contenu est habillé ici. */
+.program-dayModalMeta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.program-dayModalChip {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 11px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #374151;
+    background: rgba(10, 42, 67, 0.06);
+}
+
+.program-dayModalChip--day {
+    color: #92600a;
+    background: rgba(217, 155, 25, 0.14);
+}
+
+.program-dayModalChip--cancelled {
+    color: #9f1239;
+    background: rgba(190, 18, 60, 0.1);
+}
+
+.program-dayModalActivity {
+    margin: 0 0 16px 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: #0a2a43;
+}
+
+/* Même typographie que la réponse de l'accordéon, sans son retrait de 76 px
+   qui réservait la place au numéro de la question. */
+.program-dayModalAnswer {
+    font-size: 14.5px;
+    line-height: 1.75;
+    color: #374151;
+}
+
+.program-dayModalAnswer .faq-block:last-child {
+    margin-bottom: 0;
+}

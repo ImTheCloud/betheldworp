@@ -1,7 +1,7 @@
 "use client";
 
 import "./WeeklyProgram.css";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { collection, doc, onSnapshot } from "firebase/firestore";
 import { db } from "../lib/Firebase";
 import { useLang } from "../components/LanguageProvider";
@@ -10,6 +10,20 @@ import tr from "../translations/WeeklyProgram.json";
 import { isSlotOnSummerBreak, isSummerBreakWeek } from "../lib/programSchedule";
 
 const WEEK_STORAGE_KEY = "bethel:program-week";
+
+// Quelle réponse de la FAQ décrit quel créneau du programme. Les deux services
+// du dimanche renvoient à la même réponse, qui traite la journée entière.
+const FAQ_INDEX_BY_DAY = {
+    mon: 0,
+    tue_fast: 1,
+    tue: 2,
+    wed: 3,
+    thu: 4,
+    fri: 5,
+    sat: 6,
+    sun_am: 7,
+    sun_pm: 7,
+};
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 const safeArr = (v) => (Array.isArray(v) ? v : []);
@@ -39,6 +53,36 @@ function renderInline(text) {
     );
 }
 
+// Corps d'une réponse : paragraphes, et listes introduites par « - ».
+// Extrait de FAQItem pour que la modale d'un jour affiche le même contenu, mis
+// en forme de la même façon. Deux rendus séparés auraient fini par diverger.
+function FAQAnswerBody({ answer }) {
+    return safeStr(answer).split("\n\n").map((block, i) => {
+        const trimmed = block.trim();
+        if (!trimmed) return null;
+
+        if (trimmed.includes("\n- ")) {
+            const [intro, ...rest] = trimmed.split("\n- ");
+            return (
+                <div key={i} className="faq-block">
+                    {intro && <p>{renderInline(intro)}</p>}
+                    <ul className="faq-list">
+                        {rest.map((item, j) => (
+                            <li key={j}><span>{renderInline(item.replace(/^- /, ""))}</span></li>
+                        ))}
+                    </ul>
+                </div>
+            );
+        }
+
+        return (
+            <p key={i} className="faq-block">
+                {renderInline(trimmed)}
+            </p>
+        );
+    });
+}
+
 function FAQItem({ question, answer, index, isOpen, onToggle }) {
     const num = String(index + 1).padStart(2, "0");
     return (
@@ -60,30 +104,7 @@ function FAQItem({ question, answer, index, isOpen, onToggle }) {
 
             <div className="faq-answer-wrap">
                 <div className="faq-answer">
-                    {answer.split("\n\n").map((block, i) => {
-                        const trimmed = block.trim();
-                        if (!trimmed) return null;
-
-                        if (trimmed.includes("\n- ")) {
-                            const [intro, ...rest] = trimmed.split("\n- ");
-                            return (
-                                <div key={i} className="faq-block">
-                                    {intro && <p>{renderInline(intro)}</p>}
-                                    <ul className="faq-list">
-                                        {rest.map((item, j) => (
-                                            <li key={j}><span>{renderInline(item.replace(/^- /, ""))}</span></li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            );
-                        }
-
-                        return (
-                            <p key={i} className="faq-block">
-                                {renderInline(trimmed)}
-                            </p>
-                        );
-                    })}
+                    <FAQAnswerBody answer={answer} />
                 </div>
             </div>
         </div>
@@ -234,6 +255,54 @@ export default function Program() {
         setOpenIndex(openIndex === index ? null : index);
     };
 
+    // Modale d'un jour du programme.
+    //
+    // Elle reprend l'habillage de la modale d'un événement (classes ev-*, définies
+    // dans EventsCalendar.css et chargées par la même page) : c'est la même
+    // fenêtre pour le visiteur, sans dupliquer une centaine de lignes de style
+    // qui auraient fini par diverger. Le contenu, lui, est la réponse de la FAQ
+    // qui décrit ce jour, celle de « Cum arată o săptămână la Bethel Dworp ? ».
+    const [dayModal, setDayModal] = useState(null);
+    const [dayModalClosing, setDayModalClosing] = useState(false);
+
+    const openDayModal = useCallback((donnees) => {
+        setDayModalClosing(false);
+        setDayModal(donnees);
+    }, []);
+
+    const closeDayModal = useCallback(() => {
+        setDayModalClosing(true);
+    }, []);
+
+    // La fenêtre n'est retirée qu'une fois l'animation de sortie terminée, soit
+    // les 460 ms de .ev-modal.is-closing. Le minuteur vit dans un effet plutôt
+    // que dans une ref : rouvrir une carte remet dayModalClosing à faux, et le
+    // nettoyage annule alors de lui-même le retrait en attente.
+    useEffect(() => {
+        if (!dayModalClosing) return;
+        const minuteur = setTimeout(() => {
+            setDayModal(null);
+            setDayModalClosing(false);
+        }, 460);
+        return () => clearTimeout(minuteur);
+    }, [dayModalClosing]);
+
+    // Le fond de page ne défile plus derrière la modale : sur téléphone, sans
+    // cela, le doigt fait glisser la page au lieu du contenu de la fenêtre.
+    useEffect(() => {
+        if (!dayModal) return;
+        const precedent = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        return () => { document.body.style.overflow = precedent; };
+    }, [dayModal]);
+
+    useEffect(() => {
+        if (!dayModal) return;
+        const surTouche = (e) => { if (e.key === "Escape") closeDayModal(); };
+        window.addEventListener("keydown", surTouche);
+        return () => window.removeEventListener("keydown", surTouche);
+    }, [dayModal, closeDayModal]);
+
     const LOCAL_PROGRAM_ITEMS = useMemo(() => [
         { day: t("day_mon"), id: "mon", times: ["20:00-21:30"], title: t("act_mon") },
         { day: t("day_tue"), id: "tue_fast", times: ["10:00-14:00"], title: t("act_tue_fast") },
@@ -362,6 +431,7 @@ export default function Program() {
     }, [hasLinkedEvents, lang]);
 
     return (
+        <>
         <section className="program-section">
             <div className="program-content">
                 <div className="program-header">
@@ -438,11 +508,38 @@ export default function Program() {
                         const additionEventId = safeStr(additions[id]).trim();
                         const additionEvent = additionEventId ? eventsMap.get(additionEventId) : null;
 
+                        // Une carte remplacée par un événement garde son geste : elle ouvre
+                        // l'événement. Les autres ouvrent la réponse de la FAQ qui décrit ce
+                        // jour, dans la même fenêtre.
+                        const faqEntry = faqQuestions[FAQ_INDEX_BY_DAY[id]] || null;
+                        const activerCarte = isReplaced
+                            ? () => window.dispatchEvent(new CustomEvent("open-event", { detail: { eventId: replacementEventId } }))
+                            : faqEntry
+                                ? () => openDayModal({
+                                    question: faqEntry.q.split(" · ").pop(),
+                                    answer: faqEntry.a,
+                                    day: item?.day,
+                                    title: displayTitle,
+                                    dateLong: full,
+                                    timeLabels,
+                                    isCancelled: isCancelled && !finalIsReplaced,
+                                })
+                                : null;
+
+                        const surToucheCarte = (e) => {
+                            if (e.key !== "Enter" && e.key !== " ") return;
+                            e.preventDefault();
+                            activerCarte();
+                        };
+
                         return (
                             <React.Fragment key={id}>
                                 <article
-                                    className={`program-card ${statusClass}${isReplaced ? " program-card--clickable" : ""}`}
-                                    onClick={isReplaced ? () => window.dispatchEvent(new CustomEvent("open-event", { detail: { eventId: replacementEventId } })) : undefined}
+                                    className={`program-card ${statusClass}${isReplaced ? " program-card--clickable" : activerCarte ? " program-card--info" : ""}`}
+                                    onClick={activerCarte || undefined}
+                                    role={activerCarte ? "button" : undefined}
+                                    tabIndex={activerCarte ? 0 : undefined}
+                                    onKeyDown={activerCarte ? surToucheCarte : undefined}
                                 >
                                     <div className="program-cardInnerFlat">
                                         <div className="program-cardTop">
@@ -511,5 +608,63 @@ export default function Program() {
 
             </div>
         </section>
+
+        {dayModal && (
+            <div
+                className={`ev-overlay ${dayModalClosing ? "is-closing" : ""}`}
+                onClick={closeDayModal}
+            >
+                <div
+                    className={`ev-modal program-dayModal ${dayModalClosing ? "is-closing" : ""}`}
+                    onClick={(e) => e.stopPropagation()}
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label={dayModal.question}
+                >
+                    <header className="ev-header">
+                        <div className="ev-headText">
+                            <h2 className="ev-title">{dayModal.question}</h2>
+                        </div>
+
+                        <button
+                            type="button"
+                            className="ev-close"
+                            onClick={closeDayModal}
+                            aria-label={t("close")}
+                        >
+                            ×
+                        </button>
+                    </header>
+
+                    <div className="ev-body">
+                        <div className="program-dayModalMeta">
+                            <span className="program-dayModalChip program-dayModalChip--day">
+                                {dayModal.day}
+                            </span>
+                            {dayModal.dateLong && (
+                                <span className="program-dayModalChip">{dayModal.dateLong}</span>
+                            )}
+                            {dayModal.timeLabels.map((label) => (
+                                <span key={label} className="program-dayModalChip">{label}</span>
+                            ))}
+                            {dayModal.isCancelled && (
+                                <span className="program-dayModalChip program-dayModalChip--cancelled">
+                                    {t("status_cancelled")}
+                                </span>
+                            )}
+                        </div>
+
+                        {dayModal.title && (
+                            <p className="program-dayModalActivity">{dayModal.title}</p>
+                        )}
+
+                        <div className="program-dayModalAnswer">
+                            <FAQAnswerBody answer={dayModal.answer} />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )}
+        </>
     );
 }
