@@ -37,7 +37,15 @@ export async function generateMetadata({ params }) {
         metadataBase: new URL(SITE_URL),
         title: SITE_TITLE,
         description: DESCRIPTIONS[l],
-        icons: { icon: "/icon.png" },
+        // apple est indispensable : sans balise apple-touch-icon, iOS ne prend
+        // pas le favicon pour l'écran d'accueil, il fabrique une pastille avec
+        // l'initiale du site — d'où le « B » à la place du logo. iOS exige aussi
+        // une image carrée, alors que icon.png fait 372x445.
+        icons: {
+            icon: "/icon.png",
+            apple: "/apple-icon.png",
+        },
+        manifest: "/manifest.webmanifest",
         alternates: {
             canonical: `${SITE_URL}/${l}`,
             languages: languageAlternates(),
