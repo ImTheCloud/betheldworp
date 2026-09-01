@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
-import emailjs from "@emailjs/browser";
 import { isValidEmail } from "../lib/validation";
 import "./ContactWidget.css";
 import { useLang } from "./LanguageProvider";
@@ -281,6 +280,12 @@ export default function ContactWidget() {
 
         try {
             setSending(true);
+
+            // Chargé ici et non en haut du fichier : la bibliothèque pèse 76 Ko
+            // et ne sert qu'à cet envoi. Importée normalement, elle partait sur
+            // chaque page, y compris pour les visiteurs qui n'ouvrent jamais le
+            // formulaire — c'est-à-dire presque tous.
+            const { default: emailjs } = await import("@emailjs/browser");
 
             await emailjs.send(
                 process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
