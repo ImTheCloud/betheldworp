@@ -134,18 +134,21 @@ service cloud.firestore {
     function repartitionValide(m, maxCles) {
       return m is map && m.keys().size() <= maxCles;
     }
+    // get(champ, défaut) et non d.champ : une visite du site n'écrit pas les
+    // compteurs de la carte, et inversement. Lire un champ absent ferait échouer
+    // toute l'évaluation, donc refuser la première visite de chaque journée.
     function compteursValides(d) {
-      return compteurValide(d.visits) && compteurValide(d.mapVisits)
-        && repartitionValide(d.countries, 300) && repartitionValide(d.cities, 600)
-        && repartitionValide(d.devices, 10) && repartitionValide(d.languages, 50)
-        && repartitionValide(d.mapCountries, 300) && repartitionValide(d.mapCities, 600)
-        && repartitionValide(d.mapDevices, 10) && repartitionValide(d.mapLanguages, 50)
-        && repartitionValide(d.mapGeo, 10);
+      return compteurValide(d.get('visits', 0)) && compteurValide(d.get('mapVisits', 0))
+        && repartitionValide(d.get('countries', {}), 300) && repartitionValide(d.get('cities', {}), 600)
+        && repartitionValide(d.get('devices', {}), 10) && repartitionValide(d.get('languages', {}), 50)
+        && repartitionValide(d.get('mapCountries', {}), 300) && repartitionValide(d.get('mapCities', {}), 600)
+        && repartitionValide(d.get('mapDevices', {}), 10) && repartitionValide(d.get('mapLanguages', {}), 50)
+        && repartitionValide(d.get('mapGeo', {}), 10);
     }
 
     // Une visite ne fait grandir chaque répartition que d'une clé au plus.
-    function croissanceRaisonnable(avant, apres) {
-      return apres.keys().size() <= avant.keys().size() + 1;
+    function croissanceRaisonnable(avant, apres, cle) {
+      return apres.get(cle, {}).keys().size() <= avant.get(cle, {}).keys().size() + 1;
     }
 
     match /stats_daily/{jour} {
@@ -157,27 +160,27 @@ service cloud.firestore {
                     && jour.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
                     && compteursValides(request.resource.data)
                     // Une création ne peut compter qu'une seule visite.
-                    && request.resource.data.visits <= 1
-                    && request.resource.data.mapVisits <= 1;
+                    && request.resource.data.get('visits', 0) <= 1
+                    && request.resource.data.get('mapVisits', 0) <= 1;
 
       allow update: if request.resource.data.keys().hasOnly(['day', 'visits', 'countries', 'cities', 'devices', 'languages',
                           'mapVisits', 'mapCountries', 'mapCities', 'mapDevices', 'mapLanguages', 'mapGeo'])
                     && request.resource.data.day == resource.data.day
                     && compteursValides(request.resource.data)
                     // Un compteur ne redescend jamais, et n'avance que d'un cran.
-                    && request.resource.data.visits >= resource.data.visits
-                    && request.resource.data.visits <= resource.data.visits + 1
-                    && request.resource.data.mapVisits >= resource.data.mapVisits
-                    && request.resource.data.mapVisits <= resource.data.mapVisits + 1
-                    && croissanceRaisonnable(resource.data.countries, request.resource.data.countries)
-                    && croissanceRaisonnable(resource.data.cities, request.resource.data.cities)
-                    && croissanceRaisonnable(resource.data.devices, request.resource.data.devices)
-                    && croissanceRaisonnable(resource.data.languages, request.resource.data.languages)
-                    && croissanceRaisonnable(resource.data.mapCountries, request.resource.data.mapCountries)
-                    && croissanceRaisonnable(resource.data.mapCities, request.resource.data.mapCities)
-                    && croissanceRaisonnable(resource.data.mapDevices, request.resource.data.mapDevices)
-                    && croissanceRaisonnable(resource.data.mapLanguages, request.resource.data.mapLanguages)
-                    && croissanceRaisonnable(resource.data.mapGeo, request.resource.data.mapGeo);
+                    && request.resource.data.get('visits', 0) >= resource.data.get('visits', 0)
+                    && request.resource.data.get('visits', 0) <= resource.data.get('visits', 0) + 1
+                    && request.resource.data.get('mapVisits', 0) >= resource.data.get('mapVisits', 0)
+                    && request.resource.data.get('mapVisits', 0) <= resource.data.get('mapVisits', 0) + 1
+                    && croissanceRaisonnable(resource.data, request.resource.data, 'countries')
+                    && croissanceRaisonnable(resource.data, request.resource.data, 'cities')
+                    && croissanceRaisonnable(resource.data, request.resource.data, 'devices')
+                    && croissanceRaisonnable(resource.data, request.resource.data, 'languages')
+                    && croissanceRaisonnable(resource.data, request.resource.data, 'mapCountries')
+                    && croissanceRaisonnable(resource.data, request.resource.data, 'mapCities')
+                    && croissanceRaisonnable(resource.data, request.resource.data, 'mapDevices')
+                    && croissanceRaisonnable(resource.data, request.resource.data, 'mapLanguages')
+                    && croissanceRaisonnable(resource.data, request.resource.data, 'mapGeo');
 
       // Aucune règle de suppression : ces données sont anonymes, rien
       // n'oblige à les effacer, et personne ne doit pouvoir les perdre.
