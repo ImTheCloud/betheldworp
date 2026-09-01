@@ -68,7 +68,7 @@ export default function EventsCalendar() {
     //
     // startOfCurrentMonth est un objet Date : recréé à chaque rendu, il changeait
     // d'identité à chaque fois et faisait re-tourner l'effet de sélection du mois
-    // à chaque rendu de la page — l'effet ne faisait rien une fois le mois choisi,
+    // à chaque rendu de la page, l'effet ne faisait rien une fois le mois choisi,
     // mais il tournait quand même.
     //
     // Conséquence assumée : une page laissée ouverte en passant minuit garde la

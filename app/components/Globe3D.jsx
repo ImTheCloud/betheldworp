@@ -140,7 +140,7 @@ export default function Globe3D({ className }) {
     );
 }
 
-/* Tiny helper — fires onReady once mounted inside Suspense */
+/* Tiny helper, fires onReady once mounted inside Suspense */
 function ReadyNotifier({ onReady }) {
     React.useEffect(() => {
         // Small delay to ensure Three.js has uploaded textures to GPU

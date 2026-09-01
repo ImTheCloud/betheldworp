@@ -16,8 +16,8 @@ export function usePagination(items = [], pageSize = 10) {
     // qui appelait setPage après coup.
     //
     // L'ancienne version redessinait deux fois chaque liste de l'admin dès que le
-    // nombre d'éléments changeait : un premier rendu sur une page hors bornes —
-    // donc vide — puis un second une fois la page corrigée. Supprimer un élément
+    // nombre d'éléments changeait : un premier rendu sur une page hors bornes,
+    // donc vide, puis un second une fois la page corrigée. Supprimer un élément
     // sur la dernière page faisait ainsi clignoter la liste.
     const page = Math.min(Math.max(0, pageDemandee), totalPages - 1);
 

@@ -1,4 +1,4 @@
-// Notifications push via ntfy — SERVEUR UNIQUEMENT.
+// Notifications push via ntfy, SERVEUR UNIQUEMENT.
 //
 // Le nom du canal est une adresse secrète : quiconque le connaît peut lire
 // toutes les notifications. Ne jamais importer ce fichier depuis un composant

@@ -12,14 +12,14 @@ import { db } from "../lib/Firebase";
 
 /* Le globe tire three.js, @react-three/fiber et @react-three/drei : environ
    876 Ko de JavaScript, plus la texture de la Terre. « dynamic » évite le rendu
-   serveur mais télécharge dès que le composant s'affiche — c'est-à-dire au
+   serveur mais télécharge dès que le composant s'affiche, c'est-à-dire au
    chargement de la page, alors que cette section est tout en bas.
    Le montage est donc retardé jusqu'à l'approche de la section (voir plus bas) :
    un visiteur qui ne descend pas jusqu'ici ne télécharge rien. */
 const Globe3D = dynamic(() => import("../components/Globe3D"), { ssr: false });
 
 /* ─────────────────────────────────────────
-   CountUp — animated number on scroll
+   CountUp, animated number on scroll
 ───────────────────────────────────────── */
 const CountUp = ({ end, duration = 2 }) => {
     const [count, setCount] = useState(0);
@@ -75,7 +75,7 @@ export default function WorldMapSection() {
 
     // 400 px de marge : le globe commence à se charger juste avant d'entrer
     // dans l'écran, pour qu'il soit prêt au moment où on le voit. Une fois
-    // déclenché, l'observateur se débranche — il n'y a rien à recharger.
+    // déclenché, l'observateur se débranche, il n'y a rien à recharger.
     useEffect(() => {
         const cible = globeRef.current;
         if (!cible) return;

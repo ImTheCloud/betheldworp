@@ -105,7 +105,7 @@ export async function getGeoSafe(delaiMs = 900) {
 }
 
 // Visite de la carte des églises : deux compteurs de plus dans le document du
-// jour. geoStatus dit combien de visiteurs ont autorisé la géolocalisation —
+// jour. geoStatus dit combien de visiteurs ont autorisé la géolocalisation :
 // c'est un nombre, jamais une position.
 export async function trackWorldMapVisit(geoStatus = "initial") {
     // Verrou placé ici plutôt qu'aux appels de la carte : aucun appel, présent

@@ -140,7 +140,7 @@ export default function AdminSidebar({ activeTab, onTabChange, onLogout }) {
             if (stopped) return;
             detach();
             if (err?.code === "permission-denied") {
-                console.warn(`AdminSidebar: no read access to "${label}" — badge count hidden.`);
+                console.warn(`AdminSidebar: no read access to "${label}", badge count hidden.`);
                 probeSession();
             } else {
                 console.error(`AdminSidebar ${label} snapshot error:`, err);

@@ -145,7 +145,7 @@ function overrideEqual(a, b) {
 
 function shortId(id) {
     const s = safeStr(id).trim();
-    if (!s) return "—";
+    if (!s) return "";
     return s.split("•")[0].trim().split(" ")[0].trim();
 }
 
@@ -614,7 +614,7 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed, onD
                     return {
                         id: d.id,
                         dateISO,
-                        label: `${title}${dateRaw ? " (" + dateRaw + ")" : ""}${time ? " — " + time : ""}`,
+                        label: `${title}${dateRaw ? " (" + dateRaw + ")" : ""}${time ? " · " + time : ""}`,
                     };
                 });
                 list.sort((a, b) => a.label.localeCompare(b.label));

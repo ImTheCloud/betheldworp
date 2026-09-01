@@ -1,5 +1,5 @@
 /* ─────────────────────────────────────────
-   BASE SECTION — white background, matches site
+   BASE SECTION, white background, matches site
 ───────────────────────────────────────── */
 .worldmap-section {
     position: relative;
@@ -20,7 +20,7 @@
 }
 
 /* ─────────────────────────────────────────
-   HEADER — centred, same as other sections
+   HEADER, centred, same as other sections
 ───────────────────────────────────────── */
 .worldmap-header {
     text-align: center;
@@ -60,7 +60,7 @@
 }
 
 /* ─────────────────────────────────────────
-   BODY — left content panel
+   BODY, left content panel
 ───────────────────────────────────────── */
 .worldmap-body {
     display: flex;
@@ -99,7 +99,7 @@
 }
 
 /* ─────────────────────────────────────────
-   STATS ROW — white cards
+   STATS ROW, white cards
 ───────────────────────────────────────── */
 .worldmap-stats-row {
     display: grid;
@@ -143,7 +143,7 @@
 }
 
 /* ─────────────────────────────────────────
-   CTA BUTTON — dark gradient
+   CTA BUTTON, dark gradient
 ───────────────────────────────────────── */
 .worldmap-cta {
     display: inline-flex;
@@ -184,7 +184,7 @@
 }
 
 /* ─────────────────────────────────────────
-   3D GLOBE — free-floating circle
+   3D GLOBE, free-floating circle
 ───────────────────────────────────────── */
 .worldmap-globe-wrap {
     width: 320px;
@@ -212,7 +212,7 @@
 }
 
 /* ─────────────────────────────────────────
-   VERSE — Dark blue background
+   VERSE, Dark blue background
 ───────────────────────────────────────── */
 .worldmap-verse {
     position: relative;

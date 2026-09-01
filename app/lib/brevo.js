@@ -1,4 +1,4 @@
-// Client Brevo — SERVEUR UNIQUEMENT.
+// Client Brevo, SERVEUR UNIQUEMENT.
 // Ne jamais importer ce fichier depuis un composant "use client" : la clé API
 // se retrouverait dans le bundle envoyé au navigateur.
 

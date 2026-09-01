@@ -3,7 +3,7 @@
 // Le site n'enregistre que des compteurs journaliers : un document par jour,
 // contenant des nombres. Aucune ligne par visite, aucun identifiant de
 // visiteur, aucune coordonnée. Il est donc impossible de savoir qui est venu,
-// ni de relier deux visites entre elles — même pour nous.
+// ni de relier deux visites entre elles, même pour nous.
 //
 // C'est ce qui rend ces données anonymes plutôt que personnelles, et c'est le
 // même principe que Vercel Analytics : pas de consentement à demander, pas de

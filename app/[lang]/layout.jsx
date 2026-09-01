@@ -10,10 +10,10 @@ const LANGS = ["ro", "fr", "nl", "en"];
 // La description était en roumain pour les quatre langues : c'est elle que Google
 // affiche sous le lien, un visiteur francophone lisait donc du roumain.
 const DESCRIPTIONS = {
-    ro: "Biserica Penticostală Betel din Dworp (Beersel, Belgia) – programul serviciilor, evenimente și harta bisericilor penticostale române din lume.",
-    fr: "Église pentecôtiste Bethel à Dworp (Beersel, Belgique) – horaires des cultes, événements et carte des églises pentecôtistes roumaines dans le monde.",
-    nl: "Pinksterkerk Bethel in Dworp (Beersel, België) – dienstentijden, activiteiten en de wereldkaart van Roemeense pinksterkerken.",
-    en: "Bethel Pentecostal Church in Dworp (Beersel, Belgium) – service times, events and a world map of Romanian Pentecostal churches.",
+    ro: "Biserica Penticostală Betel din Dworp (Beersel, Belgia). Programul serviciilor, evenimente și harta bisericilor penticostale române din lume.",
+    fr: "Église pentecôtiste Bethel à Dworp (Beersel, Belgique). Horaires des cultes, événements et carte des églises pentecôtistes roumaines dans le monde.",
+    nl: "Pinksterkerk Bethel in Dworp (Beersel, België). Dienstentijden, activiteiten en de wereldkaart van Roemeense pinksterkerken.",
+    en: "Bethel Pentecostal Church in Dworp (Beersel, Belgium). Service times, events and a world map of Romanian Pentecostal churches.",
 };
 
 // Pré-génère les quatre langues au build plutôt qu'à chaque visite.
@@ -39,7 +39,7 @@ export async function generateMetadata({ params }) {
         description: DESCRIPTIONS[l],
         // apple est indispensable : sans balise apple-touch-icon, iOS ne prend
         // pas le favicon pour l'écran d'accueil, il fabrique une pastille avec
-        // l'initiale du site — d'où le « B » à la place du logo. iOS exige aussi
+        // l'initiale du site, d'où le « B » à la place du logo. iOS exige aussi
         // une image carrée, alors que icon.png fait 372x445.
         icons: {
             icon: "/icon.png",
@@ -91,10 +91,10 @@ export default async function RootLayout({ children, params }) {
             <head>
                 {/* Pas de <title> écrit à la main : Next en pose déjà un depuis
                     `metadata`, et celui-ci, placé plus haut dans le <head>,
-                    l'emportait — écrasant les titres traduits de chaque page. */}
+                    l'emportait, écrasant les titres traduits de chaque page. */}
                 {/* Aucune police externe : le site s'affiche en system-ui, la police
                     native de l'appareil. La feuille Google Fonts chargée ici pendant
-                    des mois ne servait à rien — aucun CSS ne demandait Inter — et
+                    des mois ne servait à rien, aucun CSS ne demandait Inter, et
                     envoyait l'adresse IP de chaque visiteur à Google à chaque page. */}
             </head>
             <body>

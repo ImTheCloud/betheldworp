@@ -2218,7 +2218,7 @@
         padding: 3px 10px;
     }
 
-    /* Bottom Sheet Overrides – Mobile */
+    /* Bottom Sheet Overrides, Mobile */
     .churchMapBottomSheet {
         position: relative;
         pointer-events: none;
@@ -3273,7 +3273,7 @@
     width: auto;
 }
 
-/* Cancel button — grey with dark border */
+/* Cancel button, grey with dark border */
 .suggestionCancelBtn {
     height: 36px;
     padding: 0 16px;
@@ -3294,7 +3294,7 @@
     border-color: #334155;
 }
 
-/* Next / Send button — blue, compact */
+/* Next / Send button, blue, compact */
 .suggestionSubmitBtn {
     height: 36px;
     padding: 0 18px;
@@ -3334,7 +3334,7 @@
     width: auto;
 }
 
-/* Back button — same style as Cancel */
+/* Back button, same style as Cancel */
 .suggestionSkipBtn {
     height: 36px;
     padding: 0 16px;

@@ -284,7 +284,7 @@ export default function ContactWidget() {
             // Chargé ici et non en haut du fichier : la bibliothèque pèse 76 Ko
             // et ne sert qu'à cet envoi. Importée normalement, elle partait sur
             // chaque page, y compris pour les visiteurs qui n'ouvrent jamais le
-            // formulaire — c'est-à-dire presque tous.
+            // formulaire, c'est-à-dire presque tous.
             const { default: emailjs } = await import("@emailjs/browser");
 
             await emailjs.send(

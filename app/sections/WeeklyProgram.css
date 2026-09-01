@@ -711,7 +711,9 @@
 }
 
 .faq-list li::before {
-    content: "–";
+    /* Puce ronde plutôt qu'un tiret : aucun tiret ne doit apparaître dans les
+       textes du site, y compris ceux engendrés par le CSS. */
+    content: "•";
     color: #0a2a43;
     opacity: 0.4;
     flex-shrink: 0;
@@ -761,7 +763,7 @@
     }
 }
 
-/* ── Closing CTA — About verse design ── */
+/* ── Closing CTA, About verse design ── */
 .faq-closing {
     margin-top: 40px;
     position: relative;

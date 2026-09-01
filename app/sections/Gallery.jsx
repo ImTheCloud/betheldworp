@@ -135,7 +135,7 @@ export default function Gallery() {
                                     Cette photo s'affiche sur toute la largeur : le
                                     navigateur demanderait une version de 828 à 1080 px,
                                     or le fichier n'en fait que 1080. Il n'y a rien à
-                                    réduire, il ne resterait que la recompression — mesuré
+                                    réduire, il ne resterait que la recompression, mesuré
                                     à 165 Ko contre 151 aujourd'hui, donc plus lourd ET
                                     moins net. Les vignettes de la rangée, elles, gagnent
                                     90 % parce qu'elles s'affichent à 320 px. */}

@@ -176,7 +176,7 @@ export default function Admin() {
         };
     }, [auth]);
 
-    // Admin check — one authoritative read from the server.
+    // Admin check, one authoritative read from the server.
     //
     // The previous version watched admins/{uid} with onSnapshot. Firestore answers a
     // listener from its local cache first, so a dead session produced an endless

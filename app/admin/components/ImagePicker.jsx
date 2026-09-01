@@ -3,7 +3,7 @@
 import React, { useMemo, useState, useEffect } from "react";
 
 /**
- * ImagePicker — Dynamic Responsive Gallery.
+ * ImagePicker, Dynamic Responsive Gallery.
  * Fetches available images from /api/list-event-images.
  * Clicking a selected image deselects it.
  */

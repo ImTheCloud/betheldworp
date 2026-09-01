@@ -8,7 +8,7 @@ import { brusselsDayKey, deviceTypeSafe, getBrowserLanguageSafe, getGeoSafe, saf
 import { sanitizeKey, makeCityKey, normalizeLang, normalizeDevice } from "../lib/statsKeys";
 
 // Incrémente les compteurs du jour. Rien d'autre n'est écrit : pas
-// d'identifiant, pas d'heure, pas de coordonnées — seulement des nombres.
+// d'identifiant, pas d'heure, pas de coordonnées, seulement des nombres.
 //
 // Les noms de pays et de villes viennent de notre propre serveur, jamais du
 // navigateur : ils sont donc déjà bornés et normalisés.

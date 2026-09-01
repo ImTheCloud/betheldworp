@@ -50,10 +50,10 @@ function FAQItem({ question, answer, index, isOpen, onToggle }) {
             >
                 <div className="faq-q-number">{num}</div>
                 <div className="faq-q-text">
-                    {question.includes(" – ") && question.split(" – ")[0] && (
-                        <div className="faq-q-header">{question.split(" – ")[0]}</div>
+                    {question.includes(" · ") && question.split(" · ")[0] && (
+                        <div className="faq-q-header">{question.split(" · ")[0]}</div>
                     )}
-                    <div className="faq-q-main">{question.split(" – ")[1] || question}</div>
+                    <div className="faq-q-main">{question.split(" · ")[1] || question}</div>
                 </div>
                 <ChevronIcon open={isOpen} />
             </button>
@@ -146,13 +146,16 @@ function formatWeekRangeLong(startUTC, endUTC, lang) {
     const monthNum = new Intl.DateTimeFormat("en-GB", { month: "2-digit", timeZone: "Europe/Brussels" });
     const yearLong = new Intl.DateTimeFormat(locale, { year: "numeric", timeZone: "Europe/Brussels" });
 
-    // Same month on both ends: name it once ("7 — 13 septembrie 2026")
+    // Same month on both ends: name it once ("7, 13 septembrie 2026")
     const sameMonth = monthNum.format(startUTC) === monthNum.format(endUTC);
     const startPart = safeStr((sameMonth ? dayOnly : dayMonthLong).format(startUTC));
     const endPart = safeStr(dayMonthLong.format(endUTC));
     const yearPart = safeStr(yearLong.format(endUTC));
 
-    return `${startPart} — ${endPart} ${yearPart}`;
+    // « du 7 au 13 septembre » se lit mieux qu'un tiret, et respecte la
+    // consigne de n'employer aucun tiret dans les textes du site.
+    const liaison = { ro: "până la", fr: "au", nl: "tot", en: "to" }[safeStr(lang).slice(0, 2).toLowerCase()] || "au";
+    return `${startPart} ${liaison} ${endPart} ${yearPart}`;
 }
 
 function formatTimeToken(token) {
@@ -217,14 +220,14 @@ export default function Program() {
     const [openIndex, setOpenIndex] = useState(null);
 
     const faqQuestions = [
-        { key: "q1", q: `${t("faq_q1_day")} – ${t("faq_q1_title")}`, a: t("faq_q1_body") },
-        { key: "q2", q: `${t("faq_q2_day")} – ${t("faq_q2_title")}`, a: t("faq_q2_body") },
-        { key: "q3", q: `${t("faq_q3_day")} – ${t("faq_q3_title")}`, a: t("faq_q3_body") },
-        { key: "q4", q: `${t("faq_q4_day")} – ${t("faq_q4_title")}`, a: t("faq_q4_body") },
-        { key: "q5", q: `${t("faq_q5_day")} – ${t("faq_q5_title")}`, a: t("faq_q5_body") },
-        { key: "q6", q: `${t("faq_q6_day")} – ${t("faq_q6_title")}`, a: t("faq_q6_body") },
-        { key: "q7", q: `${t("faq_q7_day")} – ${t("faq_q7_title")}`, a: t("faq_q7_body") },
-        { key: "q8", q: `${t("faq_q8_day")} – ${t("faq_q8_title")}`, a: t("faq_q8_body") },
+        { key: "q1", q: `${t("faq_q1_day")} · ${t("faq_q1_title")}`, a: t("faq_q1_body") },
+        { key: "q2", q: `${t("faq_q2_day")} · ${t("faq_q2_title")}`, a: t("faq_q2_body") },
+        { key: "q3", q: `${t("faq_q3_day")} · ${t("faq_q3_title")}`, a: t("faq_q3_body") },
+        { key: "q4", q: `${t("faq_q4_day")} · ${t("faq_q4_title")}`, a: t("faq_q4_body") },
+        { key: "q5", q: `${t("faq_q5_day")} · ${t("faq_q5_title")}`, a: t("faq_q5_body") },
+        { key: "q6", q: `${t("faq_q6_day")} · ${t("faq_q6_title")}`, a: t("faq_q6_body") },
+        { key: "q7", q: `${t("faq_q7_day")} · ${t("faq_q7_title")}`, a: t("faq_q7_body") },
+        { key: "q8", q: `${t("faq_q8_day")} · ${t("faq_q8_title")}`, a: t("faq_q8_body") },
     ];
 
     const handleToggle = (index) => {

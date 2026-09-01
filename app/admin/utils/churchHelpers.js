@@ -3,7 +3,7 @@ import { getAuth } from "firebase/auth";
 export const safeStr = (v) => String(v ?? "");
 
 // Les routes API réservées à l'admin exigent le jeton Firebase de la session.
-// Sans lui, le serveur répond 401 — c'est ce qui empêche un visiteur d'utiliser
+// Sans lui, le serveur répond 401, c'est ce qui empêche un visiteur d'utiliser
 // notre quota Google Places.
 export async function adminAuthHeaders() {
     const user = getAuth().currentUser;

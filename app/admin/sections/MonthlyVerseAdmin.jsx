@@ -115,7 +115,7 @@ function makeSummary(referenceMap, textMap, max = 60) {
     const ref = pickFallback(referenceMap);
     const t = pickFallback(textMap);
     if (ref) return ref;
-    if (!t) return "—";
+    if (!t) return "";
     return t.length <= max ? t : t.slice(0, max) + "…";
 }
 

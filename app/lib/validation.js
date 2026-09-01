@@ -1,4 +1,4 @@
-// Validation et normalisation d'adresses email — partagées par le site public,
+// Validation et normalisation d'adresses email, partagées par le site public,
 // le panneau admin et les routes API.
 //
 // L'expression est volontairement permissive. Les expressions strictes rejettent

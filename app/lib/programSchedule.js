@@ -27,7 +27,7 @@ function getBrusselsYMD(dateObj) {
 
 /**
  * The month a whole week belongs to, decided by its Thursday (the ISO rule).
- * So 31 Aug – 6 Sep counts as September, and 29 Jun – 5 Jul as July.
+ * So 31 Aug, 6 Sep counts as September, and 29 Jun, 5 Jul as July.
  */
 export function getISOWeekMonth(dateObj) {
     const { yy, mm, dd } = getBrusselsYMD(dateObj);

@@ -23,7 +23,7 @@ const MAP_SELECTED_CHURCH_STORAGE_KEY = "bethel_worldmap_selected_church";
 // personne qui l'envoie. Ces coordonnées ne servent qu'à vérifier l'église
 // proposée : passé un an, elles n'ont plus d'objet.
 //
-// ATTENTION — cette date ne supprime rien aujourd'hui. Firestore n'efface un
+// ATTENTION, cette date ne supprime rien aujourd'hui. Firestore n'efface un
 // document daté que si une règle TTL a été créée sur la collection, depuis la
 // console Firebase, et elle ne l'a PAS été pour church_suggestions (choix
 // assumé du 31/08/2026). Les propositions se suppriment donc à la main, avec
@@ -31,7 +31,7 @@ const MAP_SELECTED_CHURCH_STORAGE_KEY = "bethel_worldmap_selected_church";
 //
 // Le champ est écrit quand même : le jour où la règle TTL sera activée, tout
 // ce qui aura été enregistré depuis s'effacera sans autre intervention. Si
-// cette durée change, la politique de confidentialité doit suivre — elle
+// cette durée change, la politique de confidentialité doit suivre, elle
 // n'annonce actuellement aucun délai pour les propositions.
 const SUGGESTION_RETENTION_DAYS = 365;
 
@@ -142,7 +142,7 @@ const COUNTRY_VIEWS = {
 
 // ─── Smooth Animation Utilities ────────────────────────────────────────────
 
-// Global AbortController for map animations — shared across all navigation sources
+// Global AbortController for map animations, shared across all navigation sources
 let _mapAnimationAbort = null;
 
 function cancelMapAnimation() {
@@ -196,14 +196,14 @@ function animateMap(map, fromCenter, toCenter, fromZoom, toZoom, durationMs, abo
             const elapsed = now - startTime;
             const progress = Math.min(elapsed / duration, 1);
 
-            // Ease-in-out Sine — smooth velocity curve (peak 1.57× avg)
+            // Ease-in-out Sine, smooth velocity curve (peak 1.57× avg)
             const eased = -(Math.cos(Math.PI * progress) - 1) / 2;
 
             const lat = start.lat + (end.lat - start.lat) * eased;
             const lng = start.lng + (end.lng - start.lng) * eased;
             const zoom = fromZoom + (toZoom - fromZoom) * eased;
 
-            // Atomic update — prevents GM internal batching issues
+            // Atomic update, prevents GM internal batching issues
             map.moveCamera({ center: { lat, lng }, zoom });
 
             if (progress < 1) {
@@ -223,9 +223,9 @@ function animateMap(map, fromCenter, toCenter, fromZoom, toZoom, durationMs, abo
  * Strategy based on distance:
  *   - Short (< 50 km) or noZoomOut: direct pan+zoom in one phase.
  *   - Long (≥ 50 km): 3-phase arc animation:
- *       Phase 1 — Zoom out to an overview level (20% of total duration)
- *       Phase 2 — Pan across the map at overview zoom (50% of total duration)
- *       Phase 3 — Zoom in to target (30% of total duration)
+ *       Phase 1, Zoom out to an overview level (20% of total duration)
+ *       Phase 2, Pan across the map at overview zoom (50% of total duration)
+ *       Phase 3, Zoom in to target (30% of total duration)
  */
 function smoothFlyTo(map, target, targetZoom, options = {}) {
     const { abortSignal, instant } = options;
@@ -267,7 +267,7 @@ function smoothFlyTo(map, target, targetZoom, options = {}) {
             // ── Long distance: 3-phase arc animation ──
             // Calculate overview zoom: go low enough to see both endpoints
             // The further the distance, the lower we zoom out
-            const zoomDelta = Math.min(Math.ceil(distance / 200), 5); // 1–5 levels out
+            const zoomDelta = Math.min(Math.ceil(distance / 200), 5); // 1 à 5 levels out
             const midZoom = Math.max(Math.min(currentZoom, targetZoom) - zoomDelta, 3);
 
             // Phase durations
@@ -1305,7 +1305,7 @@ function ChurchMap() {
             setRecenterTrigger(prev => prev + 1);
         } else {
             manualRecenterPendingRef.current = true;
-            // Re-request position if not available — this forces a browser prompt
+            // Re-request position if not available, this forces a browser prompt
             // if it was previously dismissed or not yet decided.
             fetchUserLocation(true);
         }
