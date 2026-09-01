@@ -9,9 +9,10 @@ export default function AdminLayout({ children }) {
     return (
         <html lang="en">
             <head>
-                <link rel="preconnect" href="https://fonts.googleapis.com" />
-                <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-                <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet" />
+                {/* Aucune police externe : le site s'affiche en system-ui, la police
+                    native de l'appareil. La feuille Google Fonts chargée ici pendant
+                    des mois ne servait à rien — aucun CSS ne demandait Inter — et
+                    envoyait l'adresse IP de chaque visiteur à Google à chaque page. */}
             </head>
             <body>
                 {children}

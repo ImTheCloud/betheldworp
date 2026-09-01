@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 export default function Error({ reset }) {
     return (
         <div
@@ -80,7 +82,7 @@ export default function Error({ reset }) {
                     >
                         Recharger
                     </button>
-                    <a
+                    <Link
                         href="/"
                         style={{
                             cursor: "pointer",
@@ -98,8 +100,8 @@ export default function Error({ reset }) {
                             minWidth: "120px",
                         }}
                     >
-                        Retour à l'accueil
-                    </a>
+                        Retour à l&apos;accueil
+                    </Link>
                 </div>
 
                 <div style={{ marginTop: 12, fontSize: 12, color: "#64748b", lineHeight: 1.5 }}>

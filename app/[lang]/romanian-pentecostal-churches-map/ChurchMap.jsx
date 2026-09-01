@@ -122,6 +122,7 @@ const FlagImage = React.memo(({ country, className = "" }) => {
         />
     );
 });
+FlagImage.displayName = "FlagImage";
 
 const COUNTRY_VIEWS = {
     Belgium: { center: { lat: 50.5039, lng: 4.4699 }, zoom: 8 },
@@ -748,6 +749,7 @@ const ChurchListItem = React.memo(({ church, isSelected, selectChurch, isMobile,
         </div>
     </button>
 ));
+ChurchListItem.displayName = "ChurchListItem";
 
 const ChurchList = React.memo(({ 
     groupedChurches, 
@@ -814,6 +816,7 @@ const ChurchList = React.memo(({
         </>
     );
 });
+ChurchList.displayName = "ChurchList";
 
 function ChurchMap() {
     const searchParams = useSearchParams();

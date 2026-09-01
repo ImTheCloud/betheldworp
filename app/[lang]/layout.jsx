@@ -84,9 +84,10 @@ export default async function RootLayout({ children, params }) {
                 {/* Pas de <title> écrit à la main : Next en pose déjà un depuis
                     `metadata`, et celui-ci, placé plus haut dans le <head>,
                     l'emportait — écrasant les titres traduits de chaque page. */}
-                <link rel="preconnect" href="https://fonts.googleapis.com" />
-                <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-                <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet" />
+                {/* Aucune police externe : le site s'affiche en system-ui, la police
+                    native de l'appareil. La feuille Google Fonts chargée ici pendant
+                    des mois ne servait à rien — aucun CSS ne demandait Inter — et
+                    envoyait l'adresse IP de chaque visiteur à Google à chaque page. */}
             </head>
             <body>
                 <LanguageProvider initialLang={lang}>
