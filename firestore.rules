@@ -115,11 +115,43 @@ service cloud.firestore {
 
     // --- TRACKING ET STATS (CRÉATION PUBLIQUE) ---
 
+    // Ces collections sont écrites par le navigateur des visiteurs : le compteur
+    // ne fonctionne pas autrement. Elles acceptaient donc n'importe quoi, de
+    // n'importe qui — des visites inventées pour fausser les chiffres, ou des
+    // documents géants écrits en boucle pour gonfler la facture Firestore.
+    //
+    // Les fonctions ci-dessous décrivent exactement ce que le site écrit. Toute
+    // évolution du compteur doit passer par elles, sinon l'écriture est refusée
+    // en silence et le comptage s'arrête sans prévenir personne.
+
+    function estTexteBorne(v, max) {
+      return v is string && v.size() <= max;
+    }
+
+    // Champs communs aux trois collections de suivi.
+    function suiviCommunValide(d, visitorId) {
+      return estTexteBorne(d.visitorId, 64)
+        && d.visitorId == visitorId          // pas d'écriture sous l'identifiant d'un autre
+        && estTexteBorne(d.deviceType, 16)
+        && d.deviceType in ['mobile', 'desktop', 'unknown']
+        && estTexteBorne(d.language, 16)
+        && estTexteBorne(d.country, 60)
+        && estTexteBorne(d.city, 60)
+        && d.expiresAt is timestamp;         // sans lui, la règle TTL n'efface rien
+    }
+
     // Les chemins { path=** } sont nécessaires : les requêtes collectionGroup de la
     // page Statistiques ne sont autorisées que par une règle écrite sous cette forme.
     match /{path=**}/visitors/{visitorId} {
-      allow create: if true;
       allow read: if isAdmin();
+
+      allow create: if request.resource.data.keys().hasOnly(
+                         ['visitorId', 'day', 'timeHM', 'deviceType', 'language', 'country', 'city', 'expiresAt'])
+                    && request.resource.data.keys().hasAll(
+                         ['visitorId', 'day', 'timeHM', 'deviceType', 'language', 'country', 'city', 'expiresAt'])
+                    && suiviCommunValide(request.resource.data, visitorId)
+                    && estTexteBorne(request.resource.data.day, 12)
+                    && estTexteBorne(request.resource.data.timeHM, 5);
 
       // Maintenance : l'admin peut poser la date d'expiration sur les documents
       // écrits avant l'introduction de la conservation limitée. Volontairement
@@ -127,19 +159,44 @@ service cloud.firestore {
       allow update: if isAdmin() && changedKeys().hasOnly(['expiresAt']);
     }
 
+    // Écrit avec merge : request.resource.data porte le document fusionné, donc
+    // la liste de clés doit couvrir les deux formes, avec et sans coordonnées.
     match /{path=**}/map_visitors/{visitorId} {
-      allow create, update: if true;
       allow read: if isAdmin();
-    }
 
-    match /bot_visits/{visitorId} {
-      allow create: if true;
-      allow read: if isAdmin();
+      allow create, update: if request.resource.data.keys().hasOnly(
+                                 ['visitorId', 'day', 'timeHM', 'deviceType', 'language', 'country', 'city',
+                                  'geoStatus', 'timestamp', 'expiresAt', 'preciseLat', 'preciseLng'])
+                            && request.resource.data.keys().hasAll(
+                                 ['visitorId', 'day', 'timeHM', 'deviceType', 'language', 'country', 'city',
+                                  'geoStatus', 'timestamp', 'expiresAt'])
+                            && suiviCommunValide(request.resource.data, visitorId)
+                            && estTexteBorne(request.resource.data.day, 12)
+                            && estTexteBorne(request.resource.data.timeHM, 5)
+                            && request.resource.data.geoStatus in ['initial', 'granted', 'denied']
+                            && request.resource.data.timestamp is int
+                            // Coordonnées facultatives : présentes seulement si le
+                            // visiteur a autorisé la géolocalisation précise.
+                            && (!('preciseLat' in request.resource.data.keys())
+                                || (request.resource.data.preciseLat is number
+                                    && request.resource.data.preciseLat >= -90
+                                    && request.resource.data.preciseLat <= 90))
+                            && (!('preciseLng' in request.resource.data.keys())
+                                || (request.resource.data.preciseLng is number
+                                    && request.resource.data.preciseLng >= -180
+                                    && request.resource.data.preciseLng <= 180));
     }
 
     match /visits_global/{visitorId} {
-      allow create: if true;
       allow read: if isAdmin();
+
+      allow create: if request.resource.data.keys().hasOnly(
+                         ['visitorId', 'firstDay', 'firstTimeHM', 'deviceType', 'language', 'country', 'city', 'expiresAt'])
+                    && request.resource.data.keys().hasAll(
+                         ['visitorId', 'firstDay', 'firstTimeHM', 'deviceType', 'language', 'country', 'city', 'expiresAt'])
+                    && suiviCommunValide(request.resource.data, visitorId)
+                    && estTexteBorne(request.resource.data.firstDay, 12)
+                    && estTexteBorne(request.resource.data.firstTimeHM, 5);
 
       // Même restriction que pour /visitors : uniquement la date d'expiration.
       allow update: if isAdmin() && changedKeys().hasOnly(['expiresAt']);

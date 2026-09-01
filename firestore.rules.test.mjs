@@ -105,11 +105,53 @@ await check("anon NE PEUT PAS mettre likes a 999999", false, () => updateDoc(doc
 await check("anon NE PEUT PAS renommer une eglise", false, () => updateDoc(doc(anon, "churches", "c1"), { name: "pirate" }));
 
 console.log("\n— Tracking —");
-await check("anon cree un visiteur du jour", true, () =>
-    setDoc(doc(anon, "visits", "day_2026-09-01", "visitors", "v1"), { visitorId: "v1", day: "2026-09-01" }));
-await check("anon cree un visiteur global", true, () => setDoc(doc(anon, "visits_global", "v1"), { visitorId: "v1" }));
-await check("anon cree un visiteur carte", true, () =>
-    setDoc(doc(anon, "world_map_visits", "day_2026-09-01", "map_visitors", "v1"), { visitorId: "v1" }, { merge: true }));
+// Charges reprises telles quelles de VisitTracker.jsx et Tracker.js, avec les
+// formes relevees sur les documents reels en production. Une regle qui passe des
+// tests synthetiques mais refuse la vraie forme arreterait le comptage sans que
+// rien ne le signale.
+const expire = new Date(Date.now() + 760 * 24 * 60 * 60 * 1000);
+const visiteur = (id, extra = {}) => ({
+    visitorId: id, day: "01-09-2026", timeHM: "14:32", deviceType: "mobile",
+    language: "ro", country: "Belgium", city: "Brussels", expiresAt: expire, ...extra,
+});
+const visiteurGlobal = (id, extra = {}) => ({
+    visitorId: id, firstDay: "01-09-2026", firstTimeHM: "14:32", deviceType: "mobile",
+    language: "ro", country: "Belgium", city: "Brussels", expiresAt: expire, ...extra,
+});
+const visiteurCarte = (id, extra = {}) => ({
+    ...visiteur(id), geoStatus: "initial", timestamp: Date.now(), ...extra,
+});
+const jour = (id) => doc(anon, "visits", "day_01-09-2026", "visitors", id);
+const carte = (id) => doc(anon, "world_map_visits", "day_01-09-2026", "map_visitors", id);
+
+await check("anon cree un visiteur du jour (charge reelle)", true, () => setDoc(jour("v1"), visiteur("v1")));
+await check("anon cree un visiteur global (charge reelle)", true, () => setDoc(doc(anon, "visits_global", "g1"), visiteurGlobal("g1")));
+await check("anon cree un visiteur carte (charge reelle)", true, () => setDoc(carte("m1"), visiteurCarte("m1"), { merge: true }));
+await check("anon cree un visiteur carte avec coordonnees precises", true, () =>
+    setDoc(carte("m2"), visiteurCarte("m2", { preciseLat: 50.77, preciseLng: 4.30 }), { merge: true }));
+await check("anon met a jour son visiteur carte (merge, comme le site)", true, () =>
+    setDoc(carte("m1"), visiteurCarte("m1", { geoStatus: "granted" }), { merge: true }));
+
+await check("anon NE PEUT PAS ajouter un champ inconnu", false, () =>
+    setDoc(jour("v2"), visiteur("v2", { note: "charge utile" })));
+await check("anon NE PEUT PAS ecrire sous l'identifiant d'un autre", false, () =>
+    setDoc(jour("v3"), visiteur("quelquun-dautre")));
+await check("anon NE PEUT PAS omettre la date d'expiration", false, () => {
+    const d = visiteur("v4"); delete d.expiresAt; return setDoc(jour("v4"), d);
+});
+await check("anon NE PEUT PAS inventer un type d'appareil", false, () =>
+    setDoc(jour("v5"), visiteur("v5", { deviceType: "frigo" })));
+await check("anon NE PEUT PAS deverser un texte enorme dans city", false, () =>
+    setDoc(jour("v6"), visiteur("v6", { city: "x".repeat(5000) })));
+await check("anon NE PEUT PAS mettre un identifiant de 500 caracteres", false, () => {
+    const id = "z".repeat(500); return setDoc(jour(id), visiteur(id));
+});
+await check("anon NE PEUT PAS inventer un geoStatus", false, () =>
+    setDoc(carte("m3"), visiteurCarte("m3", { geoStatus: "pirate" }), { merge: true }));
+await check("anon NE PEUT PAS poser une latitude hors bornes", false, () =>
+    setDoc(carte("m4"), visiteurCarte("m4", { preciseLat: 9999, preciseLng: 4.30 }), { merge: true }));
+await check("anon NE PEUT PAS ecrire dans bot_visits (collection retiree)", false, () =>
+    setDoc(doc(anon, "bot_visits", "b1"), { visitorId: "b1" }));
 await check("anon NE PEUT PAS lire les stats", false, () => getDocs(collectionGroup(anon, "visitors")));
 
 console.log("\n— Admin —");
