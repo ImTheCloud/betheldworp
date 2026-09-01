@@ -1,3 +1,6 @@
+// Convention Next 16 : ce fichier s'appelait middleware.js et exportait
+// « middleware ». Le nom du fichier ET celui de la fonction comptent tous les
+// deux — Next refuse de construire si l'un des deux ne suit pas.
 import { NextResponse } from 'next/server';
 
 const locales = ['ro', 'fr', 'en', 'nl'];
@@ -18,7 +21,7 @@ function getLocale(request) {
   return defaultLocale;
 }
 
-export function middleware(request) {
+export function proxy(request) {
   const { pathname } = request.nextUrl;
 
   // Skip static assets and special routes explicitly via matcher, 
