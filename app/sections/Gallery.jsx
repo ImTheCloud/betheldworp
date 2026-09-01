@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Image from "next/image";
 import "./Gallery.css";
 import { useLang } from "../components/LanguageProvider";
 import { makeT } from "../lib/i18n";
@@ -40,25 +39,25 @@ export default function Gallery() {
     // pour que la description suive la langue choisie.
     const IMAGES = useMemo(
         () => [
-            { src: "/images/landing_page/drone.jpg", altKey: "alt_drone", w: 1080, h: 607 },
-            { src: "/images/landing_page/outside.jpg", altKey: "alt_outside", w: 811, h: 570 },
-            { src: "/images/landing_page/CorMixt.jpg", altKey: "alt_cormixt", w: 2000, h: 1333 },
-            { src: "/images/landing_page/WeddingCK.jpg", altKey: "alt_choir", w: 2000, h: 1333 },
-            { src: "/images/landing_page/WeddingCK2.jpg", altKey: "alt_service", w: 2000, h: 1333 },
-            { src: "/images/landing_page/1.Botez_2024.jpg", altKey: "alt_baptism1", w: 1080, h: 720 },
-            { src: "/images/landing_page/2.Botez_2024.jpg", altKey: "alt_baptism2", w: 1080, h: 720 },
-            { src: "/images/landing_page/0.church.png", altKey: "alt_worship", w: 1206, h: 653 },
-            { src: "/images/landing_page/inside.jpg", altKey: "alt_inside", w: 1536, h: 2048 },
-            { src: "/images/landing_page/inside2.jpg", altKey: "alt_inside2", w: 1536, h: 2048 },
-            { src: "/images/landing_page/1.Huizingen.jpg", altKey: "alt_camp1", w: 2000, h: 1333 },
-            { src: "/images/landing_page/2.Huizingen.jpg", altKey: "alt_camp2", w: 2000, h: 1334 },
-            { src: "/images/landing_page/3.Huizingen.jpg", altKey: "alt_camp3", w: 2000, h: 1333 },
-            { src: "/images/landing_page/4.Huizingen.jpg", altKey: "alt_camp4", w: 2000, h: 1333 },
-            { src: "/images/landing_page/5.Huizingen.jpg", altKey: "alt_camp5", w: 2000, h: 1333 },
-            { src: "/images/landing_page/6.Huizingen.jpg", altKey: "alt_camp6", w: 2000, h: 1333 },
-            { src: "/images/landing_page/7.Huizingen.jpg", altKey: "alt_camp7", w: 2000, h: 1333 },
-            { src: "/images/landing_page/8.Huizingen.jpg", altKey: "alt_camp8", w: 2000, h: 1333 },
-            { src: "/images/landing_page/9.Huizingen.jpg", altKey: "alt_camp9", w: 2000, h: 1333 }
+            { src: "/images/landing_page/drone.jpg", altKey: "alt_drone" },
+            { src: "/images/landing_page/outside.jpg", altKey: "alt_outside" },
+            { src: "/images/landing_page/CorMixt.jpg", altKey: "alt_cormixt" },
+            { src: "/images/landing_page/WeddingCK.jpg", altKey: "alt_choir" },
+            { src: "/images/landing_page/WeddingCK2.jpg", altKey: "alt_service" },
+            { src: "/images/landing_page/1.Botez_2024.jpg", altKey: "alt_baptism1" },
+            { src: "/images/landing_page/2.Botez_2024.jpg", altKey: "alt_baptism2" },
+            { src: "/images/landing_page/0.church.png", altKey: "alt_worship" },
+            { src: "/images/landing_page/inside.jpg", altKey: "alt_inside" },
+            { src: "/images/landing_page/inside2.jpg", altKey: "alt_inside2" },
+            { src: "/images/landing_page/1.Huizingen.jpg", altKey: "alt_camp1" },
+            { src: "/images/landing_page/2.Huizingen.jpg", altKey: "alt_camp2" },
+            { src: "/images/landing_page/3.Huizingen.jpg", altKey: "alt_camp3" },
+            { src: "/images/landing_page/4.Huizingen.jpg", altKey: "alt_camp4" },
+            { src: "/images/landing_page/5.Huizingen.jpg", altKey: "alt_camp5" },
+            { src: "/images/landing_page/6.Huizingen.jpg", altKey: "alt_camp6" },
+            { src: "/images/landing_page/7.Huizingen.jpg", altKey: "alt_camp7" },
+            { src: "/images/landing_page/8.Huizingen.jpg", altKey: "alt_camp8" },
+            { src: "/images/landing_page/9.Huizingen.jpg", altKey: "alt_camp9" }
         ],
         []
     );
@@ -86,8 +85,6 @@ export default function Gallery() {
                 id,
                 url,
                 thumb: id ? `/images/videos/${id}.jpg` : null,
-                thumbW: 480,
-                thumbH: 360,
             };
         }).filter((v) => Boolean(v.id));
     }, [YOUTUBE_URLS]);
@@ -133,7 +130,7 @@ export default function Gallery() {
                                 onClick={() => openImgModal(featuredImage)}
                                 aria-label={t("open_image")}
                             >
-                                <Image className="gal-featuredThumb" src={featuredImage.src} alt={t(featuredImage.altKey)} width={featuredImage.w} height={featuredImage.h} sizes="(max-width: 900px) 100vw, 860px" />
+                                <img className="gal-featuredThumb" src={featuredImage.src} alt={t(featuredImage.altKey)} loading="lazy" />
                             </button>
                         )}
 
@@ -148,7 +145,7 @@ export default function Gallery() {
                                         aria-label={t("open_image")}
                                     >
                                         <div className="gal-rowThumbWrap">
-                                            <Image className="gal-rowThumb" src={img.src} alt={t(img.altKey)} width={img.w} height={img.h} sizes="(max-width: 900px) 60vw, 320px" />
+                                            <img className="gal-rowThumb" src={img.src} alt={t(img.altKey)} loading="lazy" />
                                         </div>
                                     </button>
                                 ))}
@@ -168,7 +165,7 @@ export default function Gallery() {
                                 onClick={() => openVidModal(featured)}
                                 aria-label={t("open_video")}
                             >
-                                <Image className="gal-featuredThumb" src={featured.thumb} alt={t("featured_video")} width={featured.thumbW} height={featured.thumbH} sizes="(max-width: 900px) 100vw, 860px" />
+                                <img className="gal-featuredThumb" src={featured.thumb} alt={t("featured_video")} loading="lazy" />
                                 <div className="gal-featuredOverlay" aria-hidden="true">
                                     <div className="gal-featuredPlay">▶</div>
                                 </div>
@@ -186,7 +183,7 @@ export default function Gallery() {
                                         aria-label={t("open_video")}
                                     >
                                         <div className="gal-rowThumbWrap">
-                                            <Image className="gal-rowThumb" src={v.thumb} alt={t("video_thumbnail")} width={v.thumbW} height={v.thumbH} sizes="(max-width: 900px) 60vw, 320px" />
+                                            <img className="gal-rowThumb" src={v.thumb} alt={t("video_thumbnail")} loading="lazy" />
                                             <div className="gal-rowPlay" aria-hidden="true">
                                                 ▶
                                             </div>
@@ -219,7 +216,7 @@ export default function Gallery() {
                         <button className="gal-close" onClick={closeImgModal} aria-label={t("close")}>
                             ×
                         </button>
-                        <Image className="gal-modalImg" src={activeImg.src} alt={t(activeImg.altKey)} width={activeImg.w} height={activeImg.h} sizes="100vw" />
+                        <img className="gal-modalImg" src={activeImg.src} alt={t(activeImg.altKey)} />
                     </div>
                 </div>
             )}
