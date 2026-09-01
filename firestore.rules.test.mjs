@@ -122,6 +122,7 @@ const visiteurCarte = (id, extra = {}) => ({
     ...visiteur(id), geoStatus: "initial", timestamp: Date.now(), ...extra,
 });
 const jour = (id) => doc(anon, "visits", "day_01-09-2026", "visitors", id);
+const jourAdmin = (id) => doc(admin, "visits", "day_01-09-2026", "visitors", id);
 const carte = (id) => doc(anon, "world_map_visits", "day_01-09-2026", "map_visitors", id);
 
 await check("anon cree un visiteur du jour (charge reelle)", true, () => setDoc(jour("v1"), visiteur("v1")));
@@ -153,6 +154,20 @@ await check("anon NE PEUT PAS poser une latitude hors bornes", false, () =>
 await check("anon NE PEUT PAS ecrire dans bot_visits (collection retiree)", false, () =>
     setDoc(doc(anon, "bot_visits", "b1"), { visitorId: "b1" }));
 await check("anon NE PEUT PAS lire les stats", false, () => getDocs(collectionGroup(anon, "visitors")));
+
+// Purge RGPD manuelle : l'admin doit pouvoir supprimer, personne d'autre.
+await check("admin supprime un visiteur du jour", true, () => deleteDoc(jourAdmin("v1")));
+await check("admin supprime un visiteur global", true, () => deleteDoc(doc(admin, "visits_global", "g1")));
+await check("admin supprime un visiteur carte", true, () =>
+    deleteDoc(doc(admin, "world_map_visits", "day_01-09-2026", "map_visitors", "m1")));
+await check("anon NE PEUT PAS supprimer un visiteur du jour", false, () =>
+    deleteDoc(doc(anon, "visits", "day_01-09-2026", "visitors", "m2")));
+await check("anon NE PEUT PAS supprimer un visiteur global", false, () =>
+    deleteDoc(doc(anon, "visits_global", "g1")));
+await check("anon NE PEUT PAS supprimer un visiteur carte", false, () =>
+    deleteDoc(doc(anon, "world_map_visits", "day_01-09-2026", "map_visitors", "m2")));
+await check("non-admin connecte NE PEUT PAS supprimer un visiteur", false, () =>
+    deleteDoc(doc(other, "visits", "day_01-09-2026", "visitors", "m2")));
 
 console.log("\n— Admin —");
 await check("admin lit la liste newsletter", true, () => getDocs(collection(admin, "newsletter")));

@@ -406,3 +406,89 @@
         height: 30px !important;
     }
 }
+/* ── Conservation RGPD ─────────────────────────────────────────────────────
+   Bloc de fin de page : il ne doit pas attirer l'œil pendant la consultation
+   des statistiques, mais rester trouvable quand on le cherche. */
+
+.statsPurge {
+    margin-top: 40px;
+    padding: 20px;
+    border: 1px solid rgba(10, 42, 67, 0.12);
+    border-radius: 12px;
+    background: #fbfcfd;
+}
+
+.statsPurgeHead {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 14px;
+}
+
+.statsPurgeTitle {
+    font-weight: 800;
+    font-size: 0.95rem;
+    color: #0a2a43;
+}
+
+.statsPurgeSub {
+    font-size: 0.82rem;
+    line-height: 1.5;
+    color: rgba(10, 42, 67, 0.65);
+}
+
+.statsPurgeOk {
+    font-size: 0.85rem;
+    line-height: 1.55;
+    color: rgba(10, 42, 67, 0.75);
+}
+
+/* Ambre et non rouge : il y a quelque chose à faire, ce n'est pas une panne. */
+.statsPurgeAlert {
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: #fef3c7;
+    color: #92400e;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    margin-bottom: 14px;
+}
+
+.statsPurgeLabel {
+    display: block;
+    margin-bottom: 12px;
+    max-width: 320px;
+}
+
+.statsPurgeLabel code {
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: rgba(10, 42, 67, 0.08);
+    font-size: 0.85em;
+}
+
+.statsPurgeBtn {
+    width: auto;
+}
+
+.statsPurgeWarn {
+    margin-top: 10px;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    color: rgba(10, 42, 67, 0.55);
+}
+
+@media (max-width: 600px) {
+    .statsPurge {
+        margin-top: 28px;
+        padding: 16px;
+    }
+
+    /* Cible tactile pleine largeur : une action irréversible ne doit pas
+       demander de viser. */
+    .statsPurgeBtn,
+    .statsPurgeLabel {
+        width: 100%;
+        max-width: none;
+    }
+}

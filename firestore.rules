@@ -157,6 +157,11 @@ service cloud.firestore {
       // écrits avant l'introduction de la conservation limitée. Volontairement
       // restreint à ce seul champ — aucune donnée de visite n'est modifiable.
       allow update: if isAdmin() && changedKeys().hasOnly(['expiresAt']);
+      // Purge RGPD depuis l'admin. Il n'existait aucune règle de suppression :
+      // seule la règle TTL de Firestore effaçait, et c'est un mécanisme interne
+      // qui ne passe pas par ces règles. L'effacement étant devenu manuel, il
+      // faut cette porte — réservée à l'admin, et irréversible par nature.
+      allow delete: if isAdmin();
     }
 
     // Écrit avec merge : request.resource.data porte le document fusionné, donc
@@ -185,6 +190,8 @@ service cloud.firestore {
                                 || (request.resource.data.preciseLng is number
                                     && request.resource.data.preciseLng >= -180
                                     && request.resource.data.preciseLng <= 180));
+      // Purge RGPD depuis l'admin, comme pour /visitors.
+      allow delete: if isAdmin();
     }
 
     match /visits_global/{visitorId} {
@@ -200,6 +207,11 @@ service cloud.firestore {
 
       // Même restriction que pour /visitors : uniquement la date d'expiration.
       allow update: if isAdmin() && changedKeys().hasOnly(['expiresAt']);
+      // Purge RGPD depuis l'admin. Il n'existait aucune règle de suppression :
+      // seule la règle TTL de Firestore effaçait, et c'est un mécanisme interne
+      // qui ne passe pas par ces règles. L'effacement étant devenu manuel, il
+      // faut cette porte — réservée à l'admin, et irréversible par nature.
+      allow delete: if isAdmin();
     }
   }
 }

@@ -2,7 +2,8 @@
 
 import "./StatsAdmin.css";
 import { useEffect, useMemo, useState } from "react";
-import { collection, collectionGroup, getDocs } from "firebase/firestore";
+import { collection, collectionGroup, getDocs, deleteDoc, doc } from "firebase/firestore";
+import { IconTrash } from "../components/AdminIcons";
 import { db } from "../../lib/Firebase";
 import AdminSearch from "../components/AdminSearch";
 import ConfirmModal from "../components/ConfirmModal";
@@ -407,9 +408,75 @@ export default function StatsAdmin() {
 
     const todayKey = useMemo(() => brusselsDayKey(), []);
 
+    const MOT_DE_CONFIRMATION = "Sunt sigur";
+
+    // Supprime les documents dont la date d'expiration est dépassée, par paquets.
+    //
+    // Firestore ne sait pas supprimer une collection entière depuis un navigateur :
+    // il faut effacer document par document. On procède par lots de 20 en parallèle
+    // pour ne pas ouvrir des milliers de requêtes d'un coup, et on affiche
+    // l'avancement — sur plusieurs milliers de documents, l'opération prend du temps
+    // et une page qui semble figée pousse à la recharger en plein milieu.
+    const purger = async () => {
+        if (motSaisi.trim() !== MOT_DE_CONFIRMATION) return;
+        setPurgeEnCours(true);
+        setPurgeFaite(0);
+
+        const restants = [];
+        const TAILLE_LOT = 20;
+        try {
+            for (let i = 0; i < perimes.length; i += TAILLE_LOT) {
+                const lot = perimes.slice(i, i + TAILLE_LOT);
+                const resultats = await Promise.allSettled(
+                    lot.map((chemin) => deleteDoc(doc(db, chemin)))
+                );
+                resultats.forEach((r, j) => {
+                    if (r.status === "rejected") restants.push(lot[j]);
+                });
+                setPurgeFaite(Math.min(i + TAILLE_LOT, perimes.length));
+            }
+
+            setPerimes(restants);
+            setMotSaisi("");
+            const supprimes = perimes.length - restants.length;
+            openInfoModal(
+                restants.length ? "Purge incomplète" : "Purge terminée",
+                restants.length
+                    ? `${supprimes} document(s) supprimé(s), ${restants.length} en échec. Réessaie : seuls les documents restants seront retentés.`
+                    : `${supprimes} document(s) de plus de 25 mois supprimés définitivement.`
+            );
+        } catch (e) {
+            console.error("Purge échouée :", e);
+            openInfoModal("Purge échouée", "La suppression s'est interrompue. Les documents déjà supprimés le restent ; relance pour reprendre.");
+        } finally {
+            setPurgeEnCours(false);
+        }
+    };
+
+    const formatDateLongue = (ms) => {
+        if (!Number.isFinite(ms)) return "—";
+        try {
+            return new Date(ms).toLocaleDateString("fr-BE", { day: "numeric", month: "long", year: "numeric" });
+        } catch {
+            return new Date(ms).toISOString().slice(0, 10);
+        }
+    };
+
     const [allDailyVisits, setAllDailyVisits] = useState([]);
     const [allUniqueVisitors, setAllUniqueVisitors] = useState([]);
     const [allWorldMapVisits, setAllWorldMapVisits] = useState([]);
+
+    // Documents dont la date d'expiration est dépassée, c'est-à-dire collectés il
+    // y a plus de 25 mois. Relevés au passage du chargement déjà effectué : aucune
+    // lecture Firestore supplémentaire.
+    const [perimes, setPerimes] = useState([]);
+
+    // Date à laquelle le plus ancien document encore valide franchira les 25 mois.
+    // C'est elle qui indique quand il faudra revenir cliquer.
+    const [prochaineEcheance, setProchaineEcheance] = useState(null);
+    const [motSaisi, setMotSaisi] = useState("");
+    const [purgeEnCours, setPurgeEnCours] = useState(false);
+    const [purgeFaite, setPurgeFaite] = useState(0);
 
     useEffect(() => {
         let alive = true;
@@ -470,7 +537,27 @@ export default function StatsAdmin() {
                     });
                 });
 
+                // Un document est périmé quand son expiresAt est dépassé — exactement
+                // le critère qu'appliquait la règle TTL avant qu'on ne la retire.
+                const maintenant = Date.now();
+                const expires = [];
+                let prochaine = null;
+                const relever = (snap) => {
+                    snap.forEach((docSnap) => {
+                        const brut = docSnap.data()?.expiresAt;
+                        const quand = brut?.toDate ? brut.toDate().getTime() : Date.parse(brut);
+                        if (!Number.isFinite(quand)) return;
+                        if (quand <= maintenant) expires.push(docSnap.ref.path);
+                        else if (prochaine === null || quand < prochaine) prochaine = quand;
+                    });
+                };
+                relever(dailySnap);
+                relever(globalSnap);
+                relever(worldMapSnap);
+
                 if (!alive) return;
+                setPerimes(expires);
+                setProchaineEcheance(prochaine);
                 setAllDailyVisits(daily);
                 setAllUniqueVisitors(unique);
                 setAllWorldMapVisits(worldMap);
@@ -786,6 +873,64 @@ export default function StatsAdmin() {
                             </div>
                         </div>
                     )}
+                    {/* ── Conservation RGPD ──────────────────────────────────
+                        Placé en bas de page, hors du flux de consultation.
+                        L'effacement automatique a été retiré : c'est ici, et
+                        seulement ici, que les données de plus de 25 mois
+                        disparaissent. */}
+                    <div className="statsPurge">
+                        <div className="statsPurgeHead">
+                            <span className="statsPurgeTitle">Conservation des données</span>
+                            <span className="statsPurgeSub">
+                                Les statistiques de visite ne doivent pas dépasser 25 mois.
+                                Rien ne s&apos;efface tout seul : la suppression se fait ici.
+                            </span>
+                        </div>
+
+                        {perimes.length > 0 ? (
+                            <>
+                                <div className="statsPurgeAlert">
+                                    <b>{perimes.length}</b> document{perimes.length > 1 ? "s ont" : " a"} dépassé 25 mois
+                                    {" "}et {perimes.length > 1 ? "doivent" : "doit"} être supprimé{perimes.length > 1 ? "s" : ""}.
+                                </div>
+                                <label className="adminLabel statsPurgeLabel">
+                                    Pour confirmer, tape <code>{MOT_DE_CONFIRMATION}</code>
+                                    <input
+                                        className="adminInput"
+                                        value={motSaisi}
+                                        onChange={(e) => setMotSaisi(e.target.value)}
+                                        placeholder={MOT_DE_CONFIRMATION}
+                                        disabled={purgeEnCours}
+                                        autoComplete="off"
+                                        spellCheck="false"
+                                    />
+                                </label>
+                                <button
+                                    type="button"
+                                    className="adminDeleteBtn statsPurgeBtn"
+                                    onClick={purger}
+                                    disabled={purgeEnCours || motSaisi.trim() !== MOT_DE_CONFIRMATION}
+                                >
+                                    <IconTrash />
+                                    {purgeEnCours
+                                        ? `Suppression… ${purgeFaite}/${perimes.length}`
+                                        : `Supprimer les ${perimes.length} document(s) de plus de 25 mois`}
+                                </button>
+                                <div className="statsPurgeWarn">
+                                    Irréversible. Seuls les documents de plus de 25 mois sont touchés,
+                                    les statistiques récentes restent intactes.
+                                </div>
+                            </>
+                        ) : (
+                            <div className="statsPurgeOk">
+                                Rien à supprimer aujourd&apos;hui.
+                                {prochaineEcheance
+                                    ? <> Le plus ancien document atteindra 25 mois le <b>{formatDateLongue(prochaineEcheance)}</b> — reviens vérifier après cette date.</>
+                                    : null}
+                            </div>
+                        )}
+                    </div>
+
                     <ConfirmModal
                         isOpen={modal.isOpen}
                         title={modal.title}
