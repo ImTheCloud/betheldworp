@@ -129,10 +129,6 @@ function formatWeekRange(weekKey) {
     return `${d1} ${m1} - ${d2} ${m2} ${y2}`;
 }
 
-function labelForAffected(id) {
-    return AFFECT_OPTIONS.find((x) => x.id === id)?.label || id;
-}
-
 function overrideEqual(a, b) {
     const dirtyWeek = safeStr(a.weekKey).trim().toUpperCase() !== safeStr(b.weekKey).trim().toUpperCase();
     const dirtyAffect = !sameArrayAsSet(a.affectedProgramIds, toSet(b.affectedProgramIds));

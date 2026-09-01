@@ -51,19 +51,6 @@ function formatEnDateFromKey(key) {
     return `${String(dd).padStart(2, "0")}/${String(mm).padStart(2, "0")}/${yy}`;
 }
 
-function sanitizeKey(v) {
-    return (
-        s(v)
-            .trim()
-            .toLowerCase()
-            .replace(/\./g, "_")
-            .replace(/\//g, "_")
-            .replace(/\s+/g, "_")
-            .replace(/__+/g, "_")
-            .slice(0, 80) || "unknown"
-    );
-}
-
 function unsanitizeKey(str) {
     return s(str)
         .split("_")
@@ -84,14 +71,6 @@ function toPercent(count, total) {
     if (!t) return "0%";
     const p = (c / t) * 100;
     return `${Math.round(p * 10) / 10}%`;
-}
-
-function normalizeDayKey(raw) {
-    const x = s(raw).trim();
-    if (/^\d{4}-\d{2}-\d{2}$/.test(x)) return x;
-    const m = x.match(/^(\d{2})-(\d{2})-(\d{4})$/);
-    if (m) return `${m[3]}-${m[2]}-${m[1]}`;
-    return "0000-00-00";
 }
 
 function brusselsDayKey(date = new Date()) {
