@@ -113,6 +113,76 @@ service cloud.firestore {
                     && request.resource.data.data.keys().size() <= 20;
     }
 
+    // --- STATISTIQUES AGRÉGÉES ---
+
+    // Un document par jour, contenant uniquement des compteurs. Aucune ligne
+    // individuelle, aucun identifiant de visiteur, aucune coordonnée : il est
+    // impossible de savoir qui est venu, ni de relier deux visites entre elles.
+    // C'est ce qui rend ces données anonymes, donc conservables sans limite de
+    // durée et sans consentement — le même principe que Vercel Analytics.
+    //
+    // Ce qu'on ne peut PAS vérifier ici : les règles ne savent pas parcourir les
+    // valeurs d'une map, donc rien n'empêche d'écrire { Belgium: 99999 }. Le
+    // risque est de fausser un compteur, pas de lire ou d'extraire quoi que ce
+    // soit — et il existait déjà avant, puisque n'importe qui pouvait créer des
+    // visites fictives. Ce qui est vérifié : la forme, les types, et le fait que
+    // les compteurs ne peuvent que croître.
+
+    // Les compteurs du site et ceux de la carte sont séparés : la page
+    // Statistiques propose les deux vues, et les mélanger les rendrait faux.
+    function compteurValide(n) { return n is int && n >= 0; }
+    function repartitionValide(m, maxCles) {
+      return m is map && m.keys().size() <= maxCles;
+    }
+    function compteursValides(d) {
+      return compteurValide(d.visits) && compteurValide(d.mapVisits)
+        && repartitionValide(d.countries, 300) && repartitionValide(d.cities, 600)
+        && repartitionValide(d.devices, 10) && repartitionValide(d.languages, 50)
+        && repartitionValide(d.mapCountries, 300) && repartitionValide(d.mapCities, 600)
+        && repartitionValide(d.mapDevices, 10) && repartitionValide(d.mapLanguages, 50)
+        && repartitionValide(d.mapGeo, 10);
+    }
+
+    // Une visite ne fait grandir chaque répartition que d'une clé au plus.
+    function croissanceRaisonnable(avant, apres) {
+      return apres.keys().size() <= avant.keys().size() + 1;
+    }
+
+    match /stats_daily/{jour} {
+      allow read: if isAdmin();
+
+      allow create: if request.resource.data.keys().hasOnly(['day', 'visits', 'countries', 'cities', 'devices', 'languages',
+                          'mapVisits', 'mapCountries', 'mapCities', 'mapDevices', 'mapLanguages', 'mapGeo'])
+                    && request.resource.data.day == jour
+                    && jour.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+                    && compteursValides(request.resource.data)
+                    // Une création ne peut compter qu'une seule visite.
+                    && request.resource.data.visits <= 1
+                    && request.resource.data.mapVisits <= 1;
+
+      allow update: if request.resource.data.keys().hasOnly(['day', 'visits', 'countries', 'cities', 'devices', 'languages',
+                          'mapVisits', 'mapCountries', 'mapCities', 'mapDevices', 'mapLanguages', 'mapGeo'])
+                    && request.resource.data.day == resource.data.day
+                    && compteursValides(request.resource.data)
+                    // Un compteur ne redescend jamais, et n'avance que d'un cran.
+                    && request.resource.data.visits >= resource.data.visits
+                    && request.resource.data.visits <= resource.data.visits + 1
+                    && request.resource.data.mapVisits >= resource.data.mapVisits
+                    && request.resource.data.mapVisits <= resource.data.mapVisits + 1
+                    && croissanceRaisonnable(resource.data.countries, request.resource.data.countries)
+                    && croissanceRaisonnable(resource.data.cities, request.resource.data.cities)
+                    && croissanceRaisonnable(resource.data.devices, request.resource.data.devices)
+                    && croissanceRaisonnable(resource.data.languages, request.resource.data.languages)
+                    && croissanceRaisonnable(resource.data.mapCountries, request.resource.data.mapCountries)
+                    && croissanceRaisonnable(resource.data.mapCities, request.resource.data.mapCities)
+                    && croissanceRaisonnable(resource.data.mapDevices, request.resource.data.mapDevices)
+                    && croissanceRaisonnable(resource.data.mapLanguages, request.resource.data.mapLanguages)
+                    && croissanceRaisonnable(resource.data.mapGeo, request.resource.data.mapGeo);
+
+      // Aucune règle de suppression : ces données sont anonymes, rien
+      // n'oblige à les effacer, et personne ne doit pouvoir les perdre.
+    }
+
     // --- TRACKING ET STATS (CRÉATION PUBLIQUE) ---
 
     // Ces collections sont écrites par le navigateur des visiteurs : le compteur

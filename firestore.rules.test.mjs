@@ -1,5 +1,5 @@
 import { initializeTestEnvironment, assertSucceeds, assertFails } from "@firebase/rules-unit-testing";
-import { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, collectionGroup, query, where, addDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, collectionGroup, query, where, addDoc, serverTimestamp, increment } from "firebase/firestore";
 import fs from "fs";
 
 const env = await initializeTestEnvironment({
@@ -168,6 +168,52 @@ await check("anon NE PEUT PAS supprimer un visiteur carte", false, () =>
     deleteDoc(doc(anon, "world_map_visits", "day_01-09-2026", "map_visitors", "m2")));
 await check("non-admin connecte NE PEUT PAS supprimer un visiteur", false, () =>
     deleteDoc(doc(other, "visits", "day_01-09-2026", "visitors", "m2")));
+
+console.log("\n— Statistiques agregees —");
+// Reproduit exactement ce que VisitTracker.jsx et Tracker.js envoient, y compris
+// la fusion et les increment(). Une regle qui passe des tests synthetiques mais
+// refuse cette forme arreterait le comptage sans que rien ne le signale.
+const JOUR = "2026-09-01";
+const compteurVisite = (pays = "Belgium", ville = "Brussels") => ({
+    day: JOUR,
+    visits: increment(1),
+    countries: { [pays]: increment(1) },
+    cities: { [ville]: increment(1) },
+    devices: { mobile: increment(1) },
+    languages: { ro: increment(1) },
+    mapVisits: increment(0),
+    mapGeo: {},
+});
+const jourRef = (ctx) => doc(ctx, "stats_daily", JOUR);
+
+await check("anon cree le compteur du jour", true, () =>
+    setDoc(jourRef(anon), compteurVisite(), { merge: true }));
+await check("anon incremente le compteur existant", true, () =>
+    setDoc(jourRef(anon), compteurVisite(), { merge: true }));
+await check("anon ajoute un pays et une ville jamais vus", true, () =>
+    setDoc(jourRef(anon), compteurVisite("France", "Lille"), { merge: true }));
+await check("anon compte une visite de la carte", true, () =>
+    setDoc(jourRef(anon), {
+        day: JOUR, visits: increment(0),
+        countries: { Belgium: increment(0) }, cities: { Brussels: increment(0) },
+        devices: { mobile: increment(0) }, languages: { ro: increment(0) },
+        mapVisits: increment(1), mapGeo: { granted: increment(1) },
+    }, { merge: true }));
+
+await check("anon NE PEUT PAS lire les statistiques", false, () => getDoc(jourRef(anon)));
+await check("admin lit les statistiques", true, () => getDoc(jourRef(admin)));
+await check("anon NE PEUT PAS avancer le compteur de plus d'un", false, () =>
+    setDoc(jourRef(anon), { ...compteurVisite(), visits: increment(500) }, { merge: true }));
+await check("anon NE PEUT PAS faire reculer le compteur", false, () =>
+    setDoc(jourRef(anon), { ...compteurVisite(), visits: increment(-1) }, { merge: true }));
+await check("anon NE PEUT PAS ajouter un champ inconnu", false, () =>
+    setDoc(jourRef(anon), { ...compteurVisite(), charge: "x" }, { merge: true }));
+await check("anon NE PEUT PAS ecrire un jour au mauvais format", false, () =>
+    setDoc(doc(anon, "stats_daily", "01-09-2026"), { ...compteurVisite(), day: "01-09-2026" }, { merge: true }));
+await check("anon NE PEUT PAS mentir sur le jour", false, () =>
+    setDoc(doc(anon, "stats_daily", "2026-08-01"), compteurVisite(), { merge: true }));
+await check("anon NE PEUT PAS supprimer une journee", false, () => deleteDoc(jourRef(anon)));
+await check("admin NON PLUS ne peut supprimer une journee", false, () => deleteDoc(jourRef(admin)));
 
 console.log("\n— Admin —");
 await check("admin lit la liste newsletter", true, () => getDocs(collection(admin, "newsletter")));

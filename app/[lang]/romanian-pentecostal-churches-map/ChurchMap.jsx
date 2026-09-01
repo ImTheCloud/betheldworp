@@ -1238,7 +1238,8 @@ function ChurchMap() {
                 const lat = position.coords.latitude;
                 const lng = position.coords.longitude;
                 setUserLocation({ lat, lng });
-                trackWorldMapVisit("granted", { lat, lng });
+                // Seul le fait d'avoir autorisé est compté, jamais la position.
+                trackWorldMapVisit("granted");
                 if (isManual || manualRecenterPendingRef.current) {
                     setIsInitialLoad(false);
                     setRecenterTrigger(prev => prev + 1);

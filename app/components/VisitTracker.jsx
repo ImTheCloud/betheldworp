@@ -1,105 +1,63 @@
 "use client";
 
 import { useEffect } from "react";
-import * as Tracker from "../lib/Tracker";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, increment } from "firebase/firestore";
 import { db } from "../lib/Firebase";
-import { isOptedOut, expiresAt } from "../lib/tracking";
+import { isOptedOut } from "../lib/tracking";
+import { brusselsDayKey, deviceTypeSafe, getBrowserLanguageSafe, getGeoSafe, safeStorageGet, safeStorageSet } from "../lib/Tracker";
+import { sanitizeKey, makeCityKey, normalizeLang, normalizeDevice } from "../lib/statsKeys";
 
-// ── Tracking ───────────────────────────────────────────────────────────────
-async function trackVisit(cancelled) {
-    const day = Tracker.getBrusselsDayKeySafe();
-    const timeHM = Tracker.getBrusselsTimeHMSafe();
-    const visitorId = Tracker.getOrCreateVisitorIdSafe();
-    const language = Tracker.getBrowserLanguageSafe();
-    const dt = Tracker.deviceTypeSafe();
+// Incrémente les compteurs du jour. Rien d'autre n'est écrit : pas
+// d'identifiant, pas d'heure, pas de coordonnées — seulement des nombres.
+//
+// Les noms de pays et de villes viennent de notre propre serveur, jamais du
+// navigateur : ils sont donc déjà bornés et normalisés.
+async function compterVisite() {
+    const jour = brusselsDayKey();
 
-    const globalDoneKey = `bethel_global_done_${visitorId}`;
+    // Un seul comptage par navigateur et par jour. Ce drapeau n'identifie
+    // personne : il dit « déjà compté », pas « qui ».
+    const dejaCompte = `bethel_visit_${jour}`;
+    if (safeStorageGet(dejaCompte) === "1") return;
 
-    if (!cancelled() && Tracker.safeStorageGet(globalDoneKey) !== "1") {
-        const geo = await Tracker.getGeoClientSideRobust(900);
+    const geo = await getGeoSafe();
 
-        const globalRef = doc(db, "visits_global", visitorId);
-        const globalPayload = {
-            visitorId,
-            firstDay: day,
-            firstTimeHM: timeHM,
-            deviceType: dt,
-            language,
-            country: geo.country,
-            city: geo.city,
-            expiresAt: expiresAt(),
-        };
+    // setDoc en fusion plutôt que updateDoc : le premier visiteur de la journée
+    // crée le document, les suivants l'incrémentent, sans cas particulier.
+    await setDoc(
+        doc(db, "stats_daily", jour),
+        {
+            day: jour,
+            visits: increment(1),
+            countries: { [sanitizeKey(geo.country)]: increment(1) },
+            cities: { [makeCityKey(geo.country, geo.city)]: increment(1) },
+            devices: { [normalizeDevice(deviceTypeSafe())]: increment(1) },
+            languages: { [normalizeLang(getBrowserLanguageSafe())]: increment(1) },
+        },
+        { merge: true }
+    );
 
-        try {
-            await setDoc(globalRef, globalPayload);
-            Tracker.safeStorageSet(globalDoneKey, "1");
-        } catch { }
-    }
-
-    const doneKey = `bethel_visit_done_${day}`;
-    if (!cancelled() && Tracker.safeStorageGet(doneKey) === "1") return;
-
-    const payloadKey = `bethel_visit_payload_${day}`;
-    const savedKeyVal = Tracker.safeStorageGet(payloadKey);
-    let saved = null;
-    try { if (savedKeyVal) saved = JSON.parse(savedKeyVal); } catch { }
-
-    let payload = null;
-
-    if (saved && saved.visitorId === visitorId && saved.day === day) {
-        payload = {
-            visitorId,
-            day,
-            timeHM: saved.timeHM || timeHM,
-            deviceType: saved.deviceType || dt,
-            language: saved.language || language,
-            country: saved.country || "Unknown",
-            city: saved.city || "Unknown",
-        };
-    } else {
-        const geo = await Tracker.getGeoClientSideRobust(900);
-
-        payload = {
-            visitorId,
-            day,
-            timeHM,
-            deviceType: dt,
-            language,
-            country: geo.country,
-            city: geo.city,
-        };
-
-        Tracker.safeStorageSet(payloadKey, JSON.stringify(payload));
-    }
-
-    if (cancelled()) return;
-
-    const visitorRef = doc(db, "visits", `day_${day}`, "visitors", visitorId);
-
-    try {
-        await setDoc(visitorRef, { ...payload, expiresAt: expiresAt() });
-        Tracker.safeStorageSet(doneKey, "1");
-    } catch { }
+    safeStorageSet(dejaCompte, "1");
 }
 
-// ── Component ─────────────────────────────────────────────────────────────────
 export default function VisitTracker() {
     useEffect(() => {
-        let isCancelled = false;
-        const cancelled = () => isCancelled;
+        let annule = false;
 
         (async () => {
             // Le visiteur peut refuser la mesure depuis la page de
             // confidentialité : son choix est vérifié à chaque visite.
-            if (isCancelled || isOptedOut()) return;
+            if (annule || isOptedOut()) return;
             try {
-                await trackVisit(cancelled);
-            } catch { }
+                await compterVisite();
+            } catch (e) {
+                // Un compteur qui échoue ne doit jamais gêner la lecture du site.
+                console.error("Comptage de visite impossible :", e);
+            }
         })();
 
         return () => {
-            isCancelled = true;
+            annule = true;
         };
     }, []);
 

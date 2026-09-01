@@ -2,8 +2,7 @@
 
 import "./StatsAdmin.css";
 import { useEffect, useMemo, useState } from "react";
-import { collection, collectionGroup, getDocs, deleteDoc, doc } from "firebase/firestore";
-import { IconTrash } from "../components/AdminIcons";
+import { collection, getDocs } from "firebase/firestore";
 import { db } from "../../lib/Firebase";
 import AdminSearch from "../components/AdminSearch";
 import ConfirmModal from "../components/ConfirmModal";
@@ -11,33 +10,8 @@ import { useCallback } from "react";
 
 
 
-function IconMap(props) {
-    return (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-            <circle cx="12" cy="10" r="3" />
-        </svg>
-    );
-}
-
 function s(v) {
     return String(v ?? "");
-}
-
-function clamp(v, max = 80) {
-    const x = s(v).trim();
-    return x ? x.slice(0, max) : "Unknown";
-}
-
-function normalizeLang(v) {
-    const base = s(v).toLowerCase().split("-")[0] || "unknown";
-    return (base || "unknown").slice(0, 16);
-}
-
-function normalizeDevice(v) {
-    const x = s(v).toLowerCase();
-    if (x === "mobile" || x === "desktop") return x;
-    return "unknown";
 }
 
 function languageDisplayName(code) {
@@ -97,10 +71,6 @@ function unsanitizeKey(str) {
         .join(" ");
 }
 
-function makeCityKey(country, city) {
-    return `${sanitizeKey(country)}__${sanitizeKey(city)}`;
-}
-
 function cityLabelWithCountry(k) {
     const parts = s(k).split("__");
     const countryPart = parts[0] || "unknown";
@@ -153,17 +123,6 @@ function buildLastNDaysKeys(n, endKey) {
         out.push(brusselsDayKey(dt));
     }
     return out;
-}
-
-function getDayFromSnap(snap, data) {
-    const day = normalizeDayKey(data?.day);
-    if (day !== "0000-00-00") return day;
-
-    const path = snap?.ref?.path || "";
-    const m = path.match(/(?:visits|world_map_visits)\/day_(\d{4}-\d{2}-\d{2}|\d{2}-\d{2}-\d{4})\/(?:visitors|map_visitors)\//);
-    if (m?.[1]) return normalizeDayKey(m[1]);
-
-    return "0000-00-00";
 }
 
 function polarToCartesian(cx, cy, r, angleDeg) {
@@ -386,7 +345,6 @@ export default function StatsAdmin() {
 
     const [rangeMode, setRangeMode] = useState("7");
     const [page, setPage] = useState("lp");
-    const [visitorType, setVisitorType] = useState("human");
     const [mode, setMode] = useState("cities");
     const [search, setSearch] = useState("");
 
@@ -408,177 +366,48 @@ export default function StatsAdmin() {
 
     const todayKey = useMemo(() => brusselsDayKey(), []);
 
-    const MOT_DE_CONFIRMATION = "Sunt sigur";
-
-    // Supprime les documents dont la date d'expiration est dépassée, par paquets.
-    //
-    // Firestore ne sait pas supprimer une collection entière depuis un navigateur :
-    // il faut effacer document par document. On procède par lots de 20 en parallèle
-    // pour ne pas ouvrir des milliers de requêtes d'un coup, et on affiche
-    // l'avancement — sur plusieurs milliers de documents, l'opération prend du temps
-    // et une page qui semble figée pousse à la recharger en plein milieu.
-    const purger = async () => {
-        if (motSaisi.trim() !== MOT_DE_CONFIRMATION) return;
-        setPurgeEnCours(true);
-        setPurgeFaite(0);
-
-        const restants = [];
-        const TAILLE_LOT = 20;
-        try {
-            for (let i = 0; i < perimes.length; i += TAILLE_LOT) {
-                const lot = perimes.slice(i, i + TAILLE_LOT);
-                const resultats = await Promise.allSettled(
-                    lot.map((chemin) => deleteDoc(doc(db, chemin)))
-                );
-                resultats.forEach((r, j) => {
-                    if (r.status === "rejected") restants.push(lot[j]);
-                });
-                setPurgeFaite(Math.min(i + TAILLE_LOT, perimes.length));
-            }
-
-            setPerimes(restants);
-            setMotSaisi("");
-            const supprimes = perimes.length - restants.length;
-            openInfoModal(
-                restants.length ? "Purge incomplète" : "Purge terminée",
-                restants.length
-                    ? `${supprimes} document(s) supprimé(s), ${restants.length} en échec. Réessaie : seuls les documents restants seront retentés.`
-                    : `${supprimes} document(s) de plus de 25 mois supprimés définitivement.`
-            );
-        } catch (e) {
-            console.error("Purge échouée :", e);
-            openInfoModal("Purge échouée", "La suppression s'est interrompue. Les documents déjà supprimés le restent ; relance pour reprendre.");
-        } finally {
-            setPurgeEnCours(false);
-        }
-    };
-
-    const formatDateLongue = (ms) => {
-        if (!Number.isFinite(ms)) return "—";
-        try {
-            return new Date(ms).toLocaleDateString("fr-BE", { day: "numeric", month: "long", year: "numeric" });
-        } catch {
-            return new Date(ms).toISOString().slice(0, 10);
-        }
-    };
-
-    const [allDailyVisits, setAllDailyVisits] = useState([]);
-    const [allUniqueVisitors, setAllUniqueVisitors] = useState([]);
-    const [allWorldMapVisits, setAllWorldMapVisits] = useState([]);
-
-    // Documents dont la date d'expiration est dépassée, c'est-à-dire collectés il
-    // y a plus de 25 mois. Relevés au passage du chargement déjà effectué : aucune
-    // lecture Firestore supplémentaire.
-    const [perimes, setPerimes] = useState([]);
-
-    // Date à laquelle le plus ancien document encore valide franchira les 25 mois.
-    // C'est elle qui indique quand il faudra revenir cliquer.
-    const [prochaineEcheance, setProchaineEcheance] = useState(null);
-    const [motSaisi, setMotSaisi] = useState("");
-    const [purgeEnCours, setPurgeEnCours] = useState(false);
-    const [purgeFaite, setPurgeFaite] = useState(0);
+    // Un document par jour, contenant uniquement des compteurs. Aucune ligne
+    // individuelle : il n'y a plus rien à parcourir visiteur par visiteur.
+    const [jours, setJours] = useState([]);
 
     useEffect(() => {
-        let alive = true;
+        let vivant = true;
 
         (async () => {
             try {
                 setLoading(true);
-
-                const [dailySnap, globalSnap, worldMapSnap] = await Promise.all([
-                    getDocs(collectionGroup(db, "visitors")),
-                    getDocs(collection(db, "visits_global")),
-                    getDocs(collectionGroup(db, "map_visitors")),
-                ]);
-
-                const daily = [];
-                dailySnap.forEach((docSnap) => {
-                    const d = docSnap.data() || {};
-                    const day = getDayFromSnap(docSnap, d);
-                    daily.push({
-                        day,
-                        country: clamp(d.country, 60),
-                        city: clamp(d.city, 60),
-                        language: normalizeLang(d.language),
-                        deviceType: normalizeDevice(d.deviceType),
-                        timestamp: d.timestamp || 0,
+                const snap = await getDocs(collection(db, "stats_daily"));
+                const lus = [];
+                snap.forEach((d) => {
+                    const v = d.data() || {};
+                    lus.push({
+                        day: v.day || d.id,
+                        visits: Number(v.visits) || 0,
+                        countries: v.countries || {},
+                        cities: v.cities || {},
+                        devices: v.devices || {},
+                        languages: v.languages || {},
+                        mapVisits: Number(v.mapVisits) || 0,
+                        mapCountries: v.mapCountries || {},
+                        mapCities: v.mapCities || {},
+                        mapDevices: v.mapDevices || {},
+                        mapLanguages: v.mapLanguages || {},
+                        mapGeo: v.mapGeo || {},
                     });
                 });
-
-                const unique = [];
-                globalSnap.forEach((docSnap) => {
-                    const d = docSnap.data() || {};
-                    unique.push({
-                        day: normalizeDayKey(d.firstDay),
-                        country: clamp(d.country, 60),
-                        city: clamp(d.city, 60),
-                        language: normalizeLang(d.language),
-                        deviceType: normalizeDevice(d.deviceType),
-                        timestamp: d.timestamp || 0,
-                    });
-                });
-
-                const worldMap = [];
-                worldMapSnap.forEach((docSnap) => {
-                    const d = docSnap.data() || {};
-                    const day = getDayFromSnap(docSnap, d);
-                    worldMap.push({
-                        day,
-                        country: clamp(d.country, 60),
-                        city: clamp(d.city, 60),
-                        language: normalizeLang(d.language),
-                        deviceType: normalizeDevice(d.deviceType),
-                        geoStatus: d.geoStatus || "unknown",
-                        preciseLat: d.preciseLat,
-                        preciseLng: d.preciseLng,
-                        timeHM: d.timeHM || "??:??",
-                        visitorId: d.visitorId || docSnap.id,
-                        timestamp: d.timestamp || 0
-                    });
-                });
-
-                // Un document est signalé 30 jours AVANT d'atteindre 25 mois, pas après.
-                //
-                // Sans ce préavis, un document atteindrait la limite puis attendrait le
-                // prochain passage dans l'admin : la durée réelle dépasserait les 25 mois
-                // annoncés dans la politique de confidentialité. Le rappel mensuel et ce
-                // préavis se recouvrent, donc la limite est tenue même si l'on ne clique
-                // qu'une fois par mois. Supprimer un peu en avance ne pose aucun problème.
-                const PREAVIS_MS = 30 * 24 * 60 * 60 * 1000;
-                const maintenant = Date.now() + PREAVIS_MS;
-                const expires = [];
-                let prochaine = null;
-                const relever = (snap) => {
-                    snap.forEach((docSnap) => {
-                        const brut = docSnap.data()?.expiresAt;
-                        const quand = brut?.toDate ? brut.toDate().getTime() : Date.parse(brut);
-                        if (!Number.isFinite(quand)) return;
-                        if (quand <= maintenant) expires.push(docSnap.ref.path);
-                        else if (prochaine === null || quand < prochaine) prochaine = quand;
-                    });
-                };
-                relever(dailySnap);
-                relever(globalSnap);
-                relever(worldMapSnap);
-
-                if (!alive) return;
-                setPerimes(expires);
-                setProchaineEcheance(prochaine);
-                setAllDailyVisits(daily);
-                setAllUniqueVisitors(unique);
-                setAllWorldMapVisits(worldMap);
+                lus.sort((a, b) => a.day.localeCompare(b.day));
+                if (!vivant) return;
+                setJours(lus);
                 setLoading(false);
             } catch (e) {
-                if (!alive) return;
+                if (!vivant) return;
                 console.error(e);
                 setLoading(false);
-                openInfoModal("Loading Error", "Could not load visits.");
+                openInfoModal("Loading Error", "Could not load statistics.");
             }
         })();
 
-        return () => {
-            alive = false;
-        };
+        return () => { vivant = false; };
     }, []);
 
     const rangeKeys = useMemo(() => {
@@ -589,75 +418,46 @@ export default function StatsAdmin() {
         return new Set(buildLastNDaysKeys(n, todayKey));
     }, [rangeMode, todayKey]);
 
-    const raw = useMemo(() => {
-        if (page === "world_map") {
-            if (visitorType === "human") return allWorldMapVisits;
-            if (visitorType === "unique") {
-                // Deduplicate by visitorId to find unique people on the map
-                const uniqueMap = new Map();
-                // We sort by day to make sure the "first" visit is the one we keep
-                const sorted = [...allWorldMapVisits].sort((a, b) => a.day.localeCompare(b.day));
-                sorted.forEach(v => {
-                    if (v.visitorId && !uniqueMap.has(v.visitorId)) {
-                        uniqueMap.set(v.visitorId, v);
-                    }
-                });
-                return Array.from(uniqueMap.values());
-            }
-            return [];
-        } else {
-            // LP
-            if (visitorType === "human") return allDailyVisits;
-            if (visitorType === "unique") return allUniqueVisitors;
-            return [];
-        }
-    }, [page, visitorType, allWorldMapVisits, allDailyVisits, allUniqueVisitors]);
+    const scoped = useMemo(
+        () => (rangeKeys ? jours.filter((j) => rangeKeys.has(j.day)) : jours),
+        [jours, rangeKeys]
+    );
 
-    const scoped = useMemo(() => {
-        if (!rangeKeys) return raw;
-        return raw.filter((r) => rangeKeys.has(r.day) || r.day === "0000-00-00");
-    }, [raw, rangeKeys]);
-
-    const total = scoped.length;
-
+    // Additionne les compteurs des jours retenus. Les clés sont déjà sous leur
+    // forme canonique dans la base : rien à normaliser ici, sinon les totaux
+    // migrés et les nouveaux ne se cumuleraient pas.
     const agg = useMemo(() => {
-        const byCountry = {};
-        const byCity = {};
-        const byLang = {};
-        const byDevice = {};
-        const byGeo = {};
-        const byDay = {};
+        const carte = page === "world_map";
+        const cumul = (cible, source) => {
+            Object.entries(source || {}).forEach(([k, v]) => {
+                cible[k] = (cible[k] || 0) + (Number(v) || 0);
+            });
+        };
 
-        if (rangeKeys) {
-            rangeKeys.forEach(k => { byDay[k] = 0; });
-        }
+        const byCountry = {}, byCity = {}, byLang = {}, byDevice = {}, byGeo = {}, byDay = {};
+        if (rangeKeys) rangeKeys.forEach((k) => { byDay[k] = 0; });
 
-        scoped.forEach((r) => {
-            const c = sanitizeKey(r.country);
-            const ci = makeCityKey(r.country, r.city);
-            const lg = normalizeLang(r.language);
-            const dv = normalizeDevice(r.deviceType);
-            const g = sanitizeKey(r.geoStatus);
-
-            byCountry[c] = (byCountry[c] || 0) + 1;
-            byCity[ci] = (byCity[ci] || 0) + 1;
-            byLang[lg] = (byLang[lg] || 0) + 1;
-            byDevice[dv] = (byDevice[dv] || 0) + 1;
-            byGeo[g] = (byGeo[g] || 0) + 1;
-
-            if (r.day && r.day !== "0000-00-00") {
-                byDay[r.day] = (byDay[r.day] || 0) + 1;
-            }
+        scoped.forEach((j) => {
+            byDay[j.day] = (byDay[j.day] || 0) + (carte ? j.mapVisits : j.visits);
+            cumul(byCountry, carte ? j.mapCountries : j.countries);
+            cumul(byCity, carte ? j.mapCities : j.cities);
+            cumul(byLang, carte ? j.mapLanguages : j.languages);
+            cumul(byDevice, carte ? j.mapDevices : j.devices);
+            if (carte) cumul(byGeo, j.mapGeo);
         });
 
-        const timeline = Object.keys(byDay).map(k => ({
-            day: k,
-            count: byDay[k]
-        }));
-        timeline.sort((a, b) => a.day.localeCompare(b.day));
+        const timeline = Object.keys(byDay)
+            .map((k) => ({ day: k, count: byDay[k] }))
+            .sort((a, b) => a.day.localeCompare(b.day));
 
         return { byCountry, byCity, byLang, byDevice, byGeo, timeline };
-    }, [scoped, rangeKeys]);
+    }, [scoped, rangeKeys, page]);
+
+    const total = useMemo(
+        () => scoped.reduce((s, j) => s + (page === "world_map" ? j.mapVisits : j.visits), 0),
+        [scoped, page]
+    );
+
 
     const rowsForMode = useMemo(() => {
         const sortRows = (rows) => {
@@ -715,24 +515,20 @@ export default function StatsAdmin() {
     }, [agg, mode]);
 
     const donutTitle = useMemo(() => {
-        const prefix = visitorType === "unique" 
-                ? "Real Traffic" 
-                : page === "world_map" 
-                    ? "World Map Visits" 
-                    : "Daily Traffic";
+        const prefix = page === "world_map" ? "World Map Visits" : "Daily Traffic";
         if (mode === "countries") return `${prefix} • Distribution by Country`;
         if (mode === "cities") return `${prefix} • Distribution by City`;
         if (mode === "languages") return `${prefix} • Distribution by Language`;
         if (mode === "geo_status") return `${prefix} • Geolocation Status`;
         return `${prefix} • Distribution by Device`;
-    }, [mode, page, visitorType]);
+    }, [mode, page]);
 
     const modeTabs = [
         { id: "cities", label: "Cities" },
         { id: "countries", label: "Countries" },
         { id: "languages", label: "Languages" },
         { id: "devices", label: "Devices" },
-        ...(page === "world_map" && (visitorType === "human" || visitorType === "unique") ? [{ id: "geo_status", label: "Geo Status" }] : []),
+        ...(page === "world_map" ? [{ id: "geo_status", label: "Geo Status" }] : []),
     ];
 
     const nameLabel = useMemo(() => {
@@ -743,7 +539,7 @@ export default function StatsAdmin() {
         return "Device";
     }, [mode]);
 
-    const centerLabel = visitorType === "unique" ? "total" : page === "world_map" ? "map" : "visits";
+    const centerLabel = page === "world_map" ? "map" : "visits";
 
     return (
         <div className="adminFullPage">
@@ -782,19 +578,6 @@ export default function StatsAdmin() {
 
                     <select
                         className="adminSelect"
-                        value={visitorType}
-                        onChange={(e) => {
-                            setVisitorType(e.target.value);
-                            setSearch("");
-                        }}
-                        aria-label="Select visitor type"
-                    >
-                        <option value="human">Daily Traffic</option>
-                        <option value="unique">Real Traffic</option>
-                    </select>
-
-                    <select
-                        className="adminSelect"
                         value={rangeMode}
                         onChange={(e) => setRangeMode(e.target.value)}
                         aria-label="Select range"
@@ -819,7 +602,7 @@ export default function StatsAdmin() {
             ) : (
                 <div className="adminFullContent">
                     <BarChart
-                        title={`${visitorType === "unique" ? "Real Traffic" : "Daily Traffic"} • Timeline`}
+                        title={`${page === "world_map" ? "World Map Visits" : "Daily Traffic"} • Timeline`}
                         rows={agg.timeline}
                     />
 
@@ -831,111 +614,6 @@ export default function StatsAdmin() {
                         centerLabel={centerLabel}
                         nameLabel={nameLabel}
                     />
-
-                    {page === "world_map" && (visitorType === "human" || visitorType === "unique") && agg.byGeo["granted"] > 0 && (
-                        <div className="statsCard" style={{ marginTop: "24px" }}>
-                            <div className="statsCardTop">
-                                <div className="statsCardTitle">
-                                    Recent Precise Positions
-                                    <span className="statsGPSCounter">{scoped.length}</span>
-                                </div>
-                            </div>
-                            <div className="statsLegendScroll">
-                                <div className="statsLegendHead statsGPSHead">
-                                    <div className="statsLegendHeadCell">Date / Time</div>
-                                    <div className="statsLegendHeadCell">Location</div>
-                                    <div className="statsLegendHeadCell statsRight">Maps</div>
-                                </div>
-                                {scoped
-                                    .sort((a, b) => (Number(b.timestamp) || 0) - (Number(a.timestamp) || 0))
-                                    .map((v, i) => (
-                                        <div key={i} className="statsLegendRow statsGPSRow">
-                                            <div className="statsGPSInfo">
-                                                <div className="statsGPSDateCol">
-                                                    <span className="statsGPSDate">{formatEnDateFromKey(v.day)}</span>
-                                                    <span className="statsGPSTime">{v.timeHM}</span>
-                                                </div>
-                                                <div className="statsGPSLocation">
-                                                    {v.city}, {v.country}
-                                                </div>
-                                            </div>
-                                            <div className="statsLegendCount statsRight statsGPSMaps">
-                                                {v.preciseLat && v.preciseLng ? (
-                                                    <a
-                                                        href={`https://www.google.com/maps?q=${v.preciseLat},${v.preciseLng}`}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="adminBtn adminBtnPrimary statsGPSBtn"
-                                                        title="View on Google Maps"
-                                                    >
-                                                        <IconMap className="statsGPSBtnIcon" />
-                                                    </a>
-                                                ) : (
-                                                    <span className="statsGPSNoCoord">No GPS</span>
-                                                )}
-                                            </div>
-                                        </div>
-                                    ))}
-                            </div>
-                        </div>
-                    )}
-                    {/* ── Conservation RGPD ──────────────────────────────────
-                        Placé en bas de page, hors du flux de consultation.
-                        L'effacement automatique a été retiré : c'est ici, et
-                        seulement ici, que les données de plus de 25 mois
-                        disparaissent. */}
-                    <div className="statsPurge">
-                        <div className="statsPurgeHead">
-                            <span className="statsPurgeTitle">Conservation des données</span>
-                            <span className="statsPurgeSub">
-                                Les statistiques de visite ne doivent pas dépasser 25 mois.
-                                Rien ne s&apos;efface tout seul : la suppression se fait ici.
-                            </span>
-                        </div>
-
-                        {perimes.length > 0 ? (
-                            <>
-                                <div className="statsPurgeAlert">
-                                    <b>{perimes.length}</b> document{perimes.length > 1 ? "s atteignent" : " atteint"} la limite des 25 mois
-                                    {" "}et {perimes.length > 1 ? "doivent" : "doit"} être supprimé{perimes.length > 1 ? "s" : ""} maintenant.
-                                </div>
-                                <label className="adminLabel statsPurgeLabel">
-                                    Pour confirmer, tape <code>{MOT_DE_CONFIRMATION}</code>
-                                    <input
-                                        className="adminInput"
-                                        value={motSaisi}
-                                        onChange={(e) => setMotSaisi(e.target.value)}
-                                        placeholder={MOT_DE_CONFIRMATION}
-                                        disabled={purgeEnCours}
-                                        autoComplete="off"
-                                        spellCheck="false"
-                                    />
-                                </label>
-                                <button
-                                    type="button"
-                                    className="adminDeleteBtn statsPurgeBtn"
-                                    onClick={purger}
-                                    disabled={purgeEnCours || motSaisi.trim() !== MOT_DE_CONFIRMATION}
-                                >
-                                    <IconTrash />
-                                    {purgeEnCours
-                                        ? `Suppression… ${purgeFaite}/${perimes.length}`
-                                        : `Supprimer ces ${perimes.length} document(s)`}
-                                </button>
-                                <div className="statsPurgeWarn">
-                                    Irréversible. Seuls les documents arrivés au bout des 25 mois
-                                    sont touchés, les statistiques récentes restent intactes.
-                                </div>
-                            </>
-                        ) : (
-                            <div className="statsPurgeOk">
-                                Rien à supprimer aujourd&apos;hui.
-                                {prochaineEcheance
-                                    ? <> Le plus ancien document atteindra 25 mois le <b>{formatDateLongue(prochaineEcheance)}</b>. Un rappel arrivera avant.</>
-                                    : null}
-                            </div>
-                        )}
-                    </div>
 
                     <ConfirmModal
                         isOpen={modal.isOpen}

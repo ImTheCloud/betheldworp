@@ -1,81 +1,56 @@
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, increment } from "firebase/firestore";
 import { db } from "./Firebase";
-import { isOptedOut, expiresAt, isExpired } from "./tracking";
+import { isOptedOut } from "./tracking";
+import { sanitizeKey, makeCityKey, normalizeLang, normalizeDevice } from "./statsKeys";
 
-const VID_KEY = "bethel_vid";
-const VID_AT_KEY = "bethel_vid_at";
+// Outils du compteur de visites.
+//
+// Il n'y a plus d'identifiant de visiteur : le site ne compte que des totaux
+// journaliers. Ce fichier ne fabrique donc plus rien qui permette de
+// reconnaître quelqu'un d'une visite à l'autre.
 
 export function pad2(n) {
     return String(n).padStart(2, "0");
 }
 
-export function getBrusselsPartsSafe() {
+// Le jour au format AAAA-MM-JJ, à l'heure de Bruxelles. Ce format se trie tout
+// seul, ce que l'ancien JJ-MM-AAAA ne permettait pas.
+export function brusselsDayKey() {
     try {
-        const fmt = new Intl.DateTimeFormat("en-CA", {
+        const parts = new Intl.DateTimeFormat("en-CA", {
             timeZone: "Europe/Brussels",
             year: "numeric",
             month: "2-digit",
             day: "2-digit",
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: false,
-        });
-
-        const parts = fmt.formatToParts(new Date());
-        const get = (t, fallback) => parts.find((p) => p.type === t)?.value ?? fallback;
-
-        return {
-            y: get("year", "0000"),
-            m: get("month", "00"),
-            d: get("day", "00"),
-            hh: get("hour", "00"),
-            mm: get("minute", "00"),
-        };
+        }).formatToParts(new Date());
+        const get = (t) => parts.find((p) => p.type === t)?.value;
+        return `${get("year")}-${get("month")}-${get("day")}`;
     } catch {
         const d = new Date();
-        return {
-            y: String(d.getFullYear()),
-            m: pad2(d.getMonth() + 1),
-            d: pad2(d.getDate()),
-            hh: pad2(d.getHours()),
-            mm: pad2(d.getMinutes()),
-        };
+        return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
     }
-}
-
-export function getBrusselsDayKeySafe() {
-    const { d, m, y } = getBrusselsPartsSafe();
-    return `${d}-${m}-${y}`;
-}
-
-export function getBrusselsTimeHMSafe() {
-    const { hh, mm } = getBrusselsPartsSafe();
-    return `${hh}:${mm}`;
 }
 
 export function deviceTypeSafe() {
     try {
-        const w = window.innerWidth || 0;
-        return w <= 768 ? "mobile" : "desktop";
+        return (window.innerWidth || 0) <= 768 ? "mobile" : "desktop";
     } catch {
         return "unknown";
     }
 }
 
 export function normalizeTrackerLang(code) {
-    const raw = String(code || "").trim();
-    const lower = (raw || "ro").toLowerCase();
-    const base = lower.split("-")[0] || "ro";
+    const base = String(code || "ro").trim().toLowerCase().split("-")[0];
     return base.slice(0, 16) || "ro";
 }
 
 export function getBrowserLanguageSafe() {
     try {
-        const first =
+        const premier =
             (Array.isArray(navigator.languages) && navigator.languages[0]) ||
             navigator.language ||
             "ro";
-        return normalizeTrackerLang(first);
+        return normalizeTrackerLang(premier);
     } catch {
         return "ro";
     }
@@ -95,136 +70,75 @@ export function safeStorageSet(key, value) {
     } catch { }
 }
 
-let memoryVisitorId = null;
+// Pays et ville, résolus sur notre serveur à partir des en-têtes que Vercel
+// ajoute depuis son réseau de périphérie. L'adresse IP ne quitte pas
+// l'infrastructure et n'est stockée nulle part.
+//
+// Le résultat est mémorisé pour la session : la géolocalisation d'un visiteur
+// ne change pas entre deux pages, autant ne pas redemander.
+export async function getGeoSafe(delaiMs = 900) {
+    const cache = safeStorageGet("bethel_geo_last_ok");
+    let dernier = null;
+    try { if (cache) dernier = JSON.parse(cache); } catch { }
 
-// Les marqueurs « déjà compté » sont indexés par identifiant. Quand celui-ci
-// change, les anciens ne servent plus à rien et empêcheraient le nouveau
-// visiteur d'être enregistré dans visits_global.
-function clearVisitMarkers() {
-    try {
-        Object.keys(localStorage)
-            .filter((k) => k.startsWith("bethel_global_done_") || k.startsWith("bethel_visit_"))
-            .forEach((k) => localStorage.removeItem(k));
-    } catch { }
-}
-
-export function getOrCreateVisitorIdSafe() {
-    const existing = safeStorageGet(VID_KEY);
-    const createdAt = Number(safeStorageGet(VID_AT_KEY)) || 0;
-
-    // Un identifiant sans date vient d'avant l'introduction de la rotation :
-    // on le date à maintenant plutôt que de le jeter, pour ne pas remettre à
-    // zéro d'un coup tous les visiteurs déjà connus.
-    if (existing && !createdAt) {
-        safeStorageSet(VID_AT_KEY, String(Date.now()));
-        return existing;
-    }
-
-    if (existing && !isExpired(createdAt)) return existing;
-
-    // Au-delà de 13 mois, l'identifiant est remplacé et les marqueurs effacés :
-    // le visiteur repart anonyme, comme s'il arrivait pour la première fois.
-    if (existing) {
-        clearVisitMarkers();
-        memoryVisitorId = null;
-    }
-
-    if (memoryVisitorId) return memoryVisitorId;
-
-    let id = null;
-
-    try {
-        if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
-            id = crypto.randomUUID();
-        }
-    } catch { }
-
-    if (!id) id = `${Date.now()}_${Math.random().toString(16).slice(2)}`;
-
-    memoryVisitorId = id;
-    safeStorageSet(VID_KEY, id);
-    safeStorageSet(VID_AT_KEY, String(Date.now()));
-    return id;
-}
-
-export async function fetchGeo(url, mapFn, ms) {
-    const timeout = new Promise((resolve) => setTimeout(() => resolve(null), ms));
-    const req = (async () => {
+    const attente = new Promise((r) => setTimeout(() => r(null), delaiMs));
+    const requete = (async () => {
         try {
-            const res = await fetch(url, { cache: "no-store" });
+            const res = await fetch("/api/geoip", { cache: "no-store" });
             if (!res.ok) return null;
-            const data = await res.json();
-            const out = mapFn(data);
-            if (!out) return null;
-
-            const country = String(out.country || "").slice(0, 60);
-            const city = String(out.city || "").slice(0, 60);
-            return { country: country || "Unknown", city: city || "Unknown" };
+            const d = await res.json();
+            return {
+                country: String(d?.country || "").slice(0, 60) || "Unknown",
+                city: String(d?.city || "").slice(0, 60) || "Unknown",
+            };
         } catch {
             return null;
         }
     })();
 
-    return await Promise.race([req, timeout]);
-}
-
-export async function getGeoClientSideRobust(ms = 900) {
-    const cached = safeStorageGet("bethel_geo_last_ok");
-    let initialGeo = null;
-    try { if (cached) initialGeo = JSON.parse(cached); } catch { }
-
-    // Résolution côté serveur : l'IP du visiteur ne part plus chez ipapi.co ni
-    // ipwho.is. Vercel fournit le pays et la ville dans les en-têtes de la
-    // requête, aucune donnée ne quitte l'infrastructure.
-    const geo = await fetchGeo(
-        "/api/geoip",
-        (d) => ({ country: d?.country, city: d?.city }),
-        ms
-    );
+    const geo = await Promise.race([requete, attente]);
     if (geo) {
         safeStorageSet("bethel_geo_last_ok", JSON.stringify(geo));
         return geo;
     }
-
-    if (initialGeo) return initialGeo;
-    return { country: "Unknown", city: "Unknown" };
+    return dernier || { country: "Unknown", city: "Unknown" };
 }
 
-export async function trackWorldMapVisit(geoStatus = "initial", coords = null) {
-    // Verrou placé ici plutôt qu'aux quatre appels de la carte : aucun appel,
-    // présent ou futur, ne peut contourner l'opposition du visiteur.
+// Visite de la carte des églises : deux compteurs de plus dans le document du
+// jour. geoStatus dit combien de visiteurs ont autorisé la géolocalisation —
+// c'est un nombre, jamais une position.
+export async function trackWorldMapVisit(geoStatus = "initial") {
+    // Verrou placé ici plutôt qu'aux appels de la carte : aucun appel, présent
+    // ou futur, ne peut contourner l'opposition du visiteur.
     if (isOptedOut()) return;
 
     try {
-        const visitorId = getOrCreateVisitorIdSafe();
-        const day = getBrusselsDayKeySafe();
-        
-        // Use a unique subcollection name for map visits
-        const visitRef = doc(db, "world_map_visits", `day_${day}`, "map_visitors", visitorId);
-        
-        const geo = await getGeoClientSideRobust(900);
-        
-        const payload = {
-            visitorId,
-            day,
-            timeHM: getBrusselsTimeHMSafe(),
-            deviceType: deviceTypeSafe(),
-            language: getBrowserLanguageSafe(),
-            country: geo.country,
-            city: geo.city,
-            geoStatus, // "initial", "granted", "denied"
-            timestamp: Date.now(),
-            expiresAt: expiresAt()
-        };
+        const jour = brusselsDayKey();
+        const dejaCompte = `bethel_map_visit_${jour}`;
+        const dejaVu = safeStorageGet(dejaCompte);
 
-        if (coords?.lat && coords?.lng) {
-            payload.preciseLat = coords.lat;
-            payload.preciseLng = coords.lng;
-        }
-        
-        await setDoc(visitRef, payload, { merge: true });
-        
+        // Un visiteur est compté une fois par jour sur la carte. Mais s'il
+        // autorise la géolocalisation après coup, ce changement mérite d'être
+        // compté : on met alors à jour le statut sans recompter la visite.
+        if (dejaVu === geoStatus) return;
+
+        const geo = await getGeoSafe();
+        await setDoc(
+            doc(db, "stats_daily", jour),
+            {
+                day: jour,
+                mapVisits: increment(dejaVu ? 0 : 1),
+                mapCountries: { [sanitizeKey(geo.country)]: increment(dejaVu ? 0 : 1) },
+                mapCities: { [makeCityKey(geo.country, geo.city)]: increment(dejaVu ? 0 : 1) },
+                mapDevices: { [normalizeDevice(deviceTypeSafe())]: increment(dejaVu ? 0 : 1) },
+                mapLanguages: { [normalizeLang(getBrowserLanguageSafe())]: increment(dejaVu ? 0 : 1) },
+                mapGeo: { [sanitizeKey(geoStatus)]: increment(1) },
+            },
+            { merge: true }
+        );
+
+        safeStorageSet(dejaCompte, geoStatus);
     } catch (e) {
-        console.error("Error tracking map visit", e);
+        console.error("Comptage de la carte impossible :", e);
     }
 }

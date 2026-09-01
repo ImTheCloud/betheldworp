@@ -1,39 +1,23 @@
-// Mesure d'audience : droit d'opposition et durée de conservation.
+// Mesure d'audience : ce qu'on compte, et ce qu'on ne garde surtout pas.
 //
-// Le suivi démarre sans demander de consentement, ce qui n'est permis que si la
-// mesure reste strictement limitée à notre propre audience : aucune
-// transmission à un tiers, aucun suivi sur d'autres sites, aucun croisement
-// avec d'autres traitements, information du visiteur, possibilité de refuser,
-// et conservation bornée.
+// Le site n'enregistre que des compteurs journaliers : un document par jour,
+// contenant des nombres. Aucune ligne par visite, aucun identifiant de
+// visiteur, aucune coordonnée. Il est donc impossible de savoir qui est venu,
+// ni de relier deux visites entre elles — même pour nous.
 //
-// Ce fichier porte les deux dernières conditions ; les autres sont assurées par
-// la conception du suivi lui-même (identifiant local au domaine, géolocalisation
-// résolue sur notre serveur, données stockées dans notre seule base).
+// C'est ce qui rend ces données anonymes plutôt que personnelles, et c'est le
+// même principe que Vercel Analytics : pas de consentement à demander, pas de
+// durée de conservation à tenir, rien à supprimer un jour.
+//
+// Le seul repère laissé dans le navigateur est un drapeau « déjà compté
+// aujourd'hui ». Ce n'est pas un identifiant : il ne distingue pas les
+// visiteurs entre eux, il empêche seulement de compter deux fois la même
+// personne dans la journée.
 
 const OPT_OUT_KEY = "bethel_no_track";
 
-// Clés déposées par le suivi, effacées lorsque le visiteur s'oppose : garder
-// son identifiant alors qu'il refuse d'être compté n'aurait aucun sens.
-const TRACKING_KEYS = ["bethel_vid", "bethel_vid_at", "bethel_geo_last_ok", "bethel_map_geo_asked"];
-
-// Deux durées distinctes, et il ne faut pas les confondre.
-//
-// L'IDENTIFIANT ne peut pas dépasser 13 mois : c'est lui qui rendrait un
-// visiteur traçable dans le temps, et c'est là que porte la protection.
-export const ID_RETENTION_DAYS = 396;
-
-// Les DONNÉES qui en découlent peuvent aller jusqu'à 25 mois. Les garder plus
-// longtemps que l'identifiant n'affaiblit rien : passé 13 mois, plus aucun
-// visiteur n'est rattachable aux anciennes lignes, son identifiant a changé.
-export const DATA_RETENTION_DAYS = 760;
-
-const DAY_MS = 24 * 60 * 60 * 1000;
-
-// Vrai si l'identifiant a dépassé sa durée de vie et doit être remplacé.
-export function isExpired(createdAtMs) {
-    if (!createdAtMs) return true;
-    return Date.now() - createdAtMs > ID_RETENTION_DAYS * DAY_MS;
-}
+// Clés posées par le compteur, effacées lorsque le visiteur s'oppose.
+const TRACKING_KEYS = ["bethel_geo_last_ok", "bethel_map_geo_asked"];
 
 export function isOptedOut() {
     if (typeof window === "undefined") return false;
@@ -49,7 +33,7 @@ export function optOut() {
         window.localStorage.setItem(OPT_OUT_KEY, "1");
         TRACKING_KEYS.forEach((k) => window.localStorage.removeItem(k));
         Object.keys(window.localStorage)
-            .filter((k) => k.startsWith("bethel_visit_"))
+            .filter((k) => k.startsWith("bethel_visit_") || k.startsWith("bethel_map_visit_"))
             .forEach((k) => window.localStorage.removeItem(k));
     } catch { }
 }
@@ -58,16 +42,4 @@ export function optIn() {
     try {
         window.localStorage.removeItem(OPT_OUT_KEY);
     } catch { }
-}
-
-// Date au-delà de laquelle le document ne doit plus être conservé.
-//
-// Firestore ne l'exploite plus : les règles TTL ont été retirées, la suppression
-// se fait à la main depuis l'onglet Statistiques de l'admin. Ce champ reste le
-// critère que ce bouton applique, et la seule trace de l'échéance de chaque
-// document — le supprimer rendrait le ménage impossible.
-// Date de suppression d'un document. Comptée depuis la collecte, pas depuis
-// aujourd'hui : `from` permet de dater correctement un document ancien.
-export function expiresAt(from = Date.now()) {
-    return new Date(from + DATA_RETENTION_DAYS * DAY_MS);
 }
