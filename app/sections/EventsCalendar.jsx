@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, useCallback, useRef } from "react";
+import Image from "next/image";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../lib/Firebase";
@@ -643,14 +644,21 @@ function CalendarCellImage({ events, t }) {
 
     return (
         <div className="ec-eventImgContainer">
+            {/* Ces images sont affichées dans une case de 118 px, carrée sur
+                téléphone, pour des fichiers qui pèsent parfois plus de 3 Mo.
+                C'est le cas le plus favorable pour next/image : mesuré, 15,4 Mo
+                deviennent 0,65 Mo sur les dix images les plus lourdes.
+                « fill » convient ici parce que le conteneur est déjà en position
+                absolue avec inset 0 : la mise en page ne bouge pas. */}
             {events.map((ev, i) => (
-                <img
+                <Image
                     key={ev.id}
                     className={`ec-eventBg ${i === index ? "active" : ""}`}
                     src={ev.image}
                     alt={t("event")}
-                    loading="lazy"
-                    decoding="async"
+                    fill
+                    quality={90}
+                    sizes="(max-width: 600px) 33vw, 160px"
                 />
             ))}
         </div>

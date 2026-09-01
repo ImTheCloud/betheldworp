@@ -11,22 +11,33 @@ useLoader.preload(THREE.TextureLoader, "/textures/earth-blue.jpg");
 /* ─────────────────────────────────────────
    Earth Sphere
 ───────────────────────────────────────── */
-function EarthSphere() {
+function EarthSphere({ onPremierRendu }) {
     const meshRef = useRef();
     const texture = useLoader(THREE.TextureLoader, "/textures/earth-blue.jpg");
 
-    /* Netteté de la texture. Réglé dans un effet et non dans un useMemo :
-       useMemo est fait pour calculer une valeur, pas pour modifier un objet.
-       La texture vient du cache partagé de useLoader, la retoucher pendant le
-       rendu revient à modifier un objet que d'autres composants peuvent lire. */
-    useEffect(() => {
+    /* useLayoutEffect et non useEffect : le réglage doit être posé AVANT que la
+       première image ne soit peinte. Avec useEffect, la première image partait
+       avec une texture non configurée, ce qui allongeait le moment où le globe
+       n'affiche pas encore la Terre. */
+    useLayoutEffect(() => {
         texture.colorSpace = THREE.SRGBColorSpace;
         texture.anisotropy = 16;
         texture.needsUpdate = true;
     }, [texture]);
 
-    /* Slow auto-rotation */
+    const annonce = useRef(false);
+
     useFrame((_, delta) => {
+        /* La toute première image dessinée est le seul moment où l'on sait que
+           la Terre est réellement à l'écran, texture envoyée au processeur
+           graphique comprise. C'est de là qu'on autorise l'apparition, et non
+           d'un délai fixe qui devinait. */
+        if (!annonce.current) {
+            annonce.current = true;
+            onPremierRendu();
+        }
+
+        /* Rotation lente */
         if (meshRef.current) {
             meshRef.current.rotation.y += delta * 0.08;
         }
@@ -120,8 +131,7 @@ export default function Globe3D({ className }) {
                 <pointLight position={[0, 0, 5]} intensity={1.0} color="#ffffff" />
 
                 <React.Suspense fallback={null}>
-                    <ReadyNotifier onReady={() => setReady(true)} />
-                    <EarthSphere />
+                    <EarthSphere onPremierRendu={() => setReady(true)} />
                     <Atmosphere />
                 </React.Suspense>
 
@@ -138,14 +148,4 @@ export default function Globe3D({ className }) {
             </Canvas>
         </div>
     );
-}
-
-/* Tiny helper, fires onReady once mounted inside Suspense */
-function ReadyNotifier({ onReady }) {
-    React.useEffect(() => {
-        // Small delay to ensure Three.js has uploaded textures to GPU
-        const timer = setTimeout(onReady, 100);
-        return () => clearTimeout(timer);
-    }, [onReady]);
-    return null;
 }

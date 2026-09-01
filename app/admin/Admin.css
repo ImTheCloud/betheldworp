@@ -2767,3 +2767,19 @@ input:checked + .adminSlider:before {
 .adminPasswordToggle:active {
     background: rgba(10, 42, 67, 0.1);
 }
+
+/* ── Conseil de format dans le sélecteur d'images ─────────────────────────── */
+
+.adminImageHint {
+    margin: 4px 0 2px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: rgba(19, 75, 123, 0.06);
+    color: rgba(10, 42, 67, 0.78);
+    font-size: 0.78rem;
+    line-height: 1.5;
+}
+
+.adminImageHint b {
+    color: #134b7b;
+}

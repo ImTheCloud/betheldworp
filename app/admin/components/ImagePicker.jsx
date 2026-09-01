@@ -65,6 +65,18 @@ export default function ImagePicker({ value, onChange }) {
     }
 
     return (
+        <>
+        {/* Les mêmes images servent à deux endroits très différents : une case
+            de calendrier, carrée sur téléphone, et la grande image d'un
+            événement ouvert, large de 980 px au plus. Les deux recadrent en
+            « cover », d'où le conseil de garder le sujet au centre et un peu
+            vers le haut. */}
+        <div className="adminImageHint">
+            <b>Format conseillé : 1600 × 900 px, horizontal (16:9).</b>
+            {" "}Sur téléphone, la case du calendrier est carrée et rogne les côtés :
+            garde le sujet au centre, légèrement vers le haut. Le poids du fichier
+            n&apos;a pas d&apos;importance, le site le réduit tout seul.
+        </div>
         <div 
             className="adminImageRibbon"
             style={{ 
@@ -156,5 +168,6 @@ export default function ImagePicker({ value, onChange }) {
                 </div>
             )}
         </div>
+    </>
     );
 }
