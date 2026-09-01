@@ -60,8 +60,12 @@ export function optIn() {
     } catch { }
 }
 
-// Date au-delà de laquelle Firestore supprime automatiquement le document,
-// via la règle TTL configurée sur chaque collection de suivi.
+// Date au-delà de laquelle le document ne doit plus être conservé.
+//
+// Firestore ne l'exploite plus : les règles TTL ont été retirées, la suppression
+// se fait à la main depuis l'onglet Statistiques de l'admin. Ce champ reste le
+// critère que ce bouton applique, et la seule trace de l'échéance de chaque
+// document — le supprimer rendrait le ménage impossible.
 // Date de suppression d'un document. Comptée depuis la collecte, pas depuis
 // aujourd'hui : `from` permet de dater correctement un document ancien.
 export function expiresAt(from = Date.now()) {

@@ -1,15 +1,21 @@
 import { NextResponse } from "next/server";
 import { notify } from "../../../lib/notify";
-import { DATA_RETENTION_DAYS } from "../../../lib/tracking";
 
-// Rappel annuel, déclenché par une tâche planifiée Vercel début décembre.
+// Rappel mensuel, déclenché par une tâche planifiée Vercel.
 //
-// Les statistiques de visite s'effacent toutes seules au bout de 25 mois. Ce
-// rappel prévient avant que les plus anciennes ne partent, pour laisser le
-// temps de les consulter ou de les noter si elles ont un intérêt.
+// Plus rien ne s'efface tout seul : les règles TTL de Firestore ont été
+// retirées, la suppression se fait à la main depuis l'onglet Statistiques.
+// Ce rappel existe pour que personne n'oublie d'y passer — sans lui, des
+// données dépasseraient les 25 mois annoncés dans la politique de
+// confidentialité.
+//
+// Mensuel et non annuel : le panneau signale les documents 30 jours avant leur
+// échéance, donc un passage par mois suffit à tenir la durée promise.
 //
 // Aucune lecture de Firestore ici : les règles réservent ces collections à un
-// admin connecté, et une tâche planifiée n'a pas de session.
+// admin connecté, et une tâche planifiée n'a pas de session. Le rappel ne peut
+// donc pas dire s'il y a réellement quelque chose à supprimer — c'est le
+// panneau de l'admin qui le sait.
 
 export const dynamic = "force-dynamic";
 
@@ -24,19 +30,15 @@ export async function GET(request) {
         return NextResponse.json({ error: "unauthorized" }, { status: 401 });
     }
 
-    // Les données qui vont disparaître sont celles collectées il y a 25 mois.
-    const limite = new Date(Date.now() - DATA_RETENTION_DAYS * 24 * 60 * 60 * 1000);
-    const mois = limite.toLocaleDateString("fr-BE", { month: "long", year: "numeric" });
-
     const notified = await notify({
-        title: "Statistiques : bientôt supprimées",
+        title: "Statistiques : à vérifier",
         message:
-            `Les visites de ${mois} et avant vont s'effacer dans les prochaines semaines `
-            + `(conservation limitée à 25 mois). Passe par l'admin si tu veux les regarder `
-            + `une dernière fois : betheldworp.be/admin`,
+            "Passe dans l'onglet Statistiques de l'admin et descends en bas de page. "
+            + "S'il y a des données arrivées au bout des 25 mois, un bouton te le dira. "
+            + "Sinon il n'y a rien à faire : betheldworp.be/admin",
         priority: "default",
         tags: "hourglass,bar_chart",
     });
 
-    return NextResponse.json({ ok: true, notified, oldestKept: limite.toISOString().slice(0, 10) });
+    return NextResponse.json({ ok: true, notified });
 }

@@ -537,9 +537,15 @@ export default function StatsAdmin() {
                     });
                 });
 
-                // Un document est périmé quand son expiresAt est dépassé — exactement
-                // le critère qu'appliquait la règle TTL avant qu'on ne la retire.
-                const maintenant = Date.now();
+                // Un document est signalé 30 jours AVANT d'atteindre 25 mois, pas après.
+                //
+                // Sans ce préavis, un document atteindrait la limite puis attendrait le
+                // prochain passage dans l'admin : la durée réelle dépasserait les 25 mois
+                // annoncés dans la politique de confidentialité. Le rappel mensuel et ce
+                // préavis se recouvrent, donc la limite est tenue même si l'on ne clique
+                // qu'une fois par mois. Supprimer un peu en avance ne pose aucun problème.
+                const PREAVIS_MS = 30 * 24 * 60 * 60 * 1000;
+                const maintenant = Date.now() + PREAVIS_MS;
                 const expires = [];
                 let prochaine = null;
                 const relever = (snap) => {
@@ -890,8 +896,8 @@ export default function StatsAdmin() {
                         {perimes.length > 0 ? (
                             <>
                                 <div className="statsPurgeAlert">
-                                    <b>{perimes.length}</b> document{perimes.length > 1 ? "s ont" : " a"} dépassé 25 mois
-                                    {" "}et {perimes.length > 1 ? "doivent" : "doit"} être supprimé{perimes.length > 1 ? "s" : ""}.
+                                    <b>{perimes.length}</b> document{perimes.length > 1 ? "s atteignent" : " atteint"} la limite des 25 mois
+                                    {" "}et {perimes.length > 1 ? "doivent" : "doit"} être supprimé{perimes.length > 1 ? "s" : ""} maintenant.
                                 </div>
                                 <label className="adminLabel statsPurgeLabel">
                                     Pour confirmer, tape <code>{MOT_DE_CONFIRMATION}</code>
@@ -914,18 +920,18 @@ export default function StatsAdmin() {
                                     <IconTrash />
                                     {purgeEnCours
                                         ? `Suppression… ${purgeFaite}/${perimes.length}`
-                                        : `Supprimer les ${perimes.length} document(s) de plus de 25 mois`}
+                                        : `Supprimer ces ${perimes.length} document(s)`}
                                 </button>
                                 <div className="statsPurgeWarn">
-                                    Irréversible. Seuls les documents de plus de 25 mois sont touchés,
-                                    les statistiques récentes restent intactes.
+                                    Irréversible. Seuls les documents arrivés au bout des 25 mois
+                                    sont touchés, les statistiques récentes restent intactes.
                                 </div>
                             </>
                         ) : (
                             <div className="statsPurgeOk">
                                 Rien à supprimer aujourd&apos;hui.
                                 {prochaineEcheance
-                                    ? <> Le plus ancien document atteindra 25 mois le <b>{formatDateLongue(prochaineEcheance)}</b> — reviens vérifier après cette date.</>
+                                    ? <> Le plus ancien document atteindra 25 mois le <b>{formatDateLongue(prochaineEcheance)}</b>. Un rappel arrivera avant.</>
                                     : null}
                             </div>
                         )}

@@ -2,7 +2,7 @@
   "crons": [
     {
       "path": "/api/cron/retention-notice",
-      "schedule": "0 9 1 12 *"
+      "schedule": "0 9 1 * *"
     }
   ]
 }
