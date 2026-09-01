@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import "./Gallery.css";
 import { useLang } from "../components/LanguageProvider";
 import { makeT } from "../lib/i18n";
@@ -39,25 +40,25 @@ export default function Gallery() {
     // pour que la description suive la langue choisie.
     const IMAGES = useMemo(
         () => [
-            { src: "/images/landing_page/drone.jpg", altKey: "alt_drone" },
-            { src: "/images/landing_page/outside.jpg", altKey: "alt_outside" },
-            { src: "/images/landing_page/CorMixt.jpg", altKey: "alt_cormixt" },
-            { src: "/images/landing_page/WeddingCK.jpg", altKey: "alt_choir" },
-            { src: "/images/landing_page/WeddingCK2.jpg", altKey: "alt_service" },
-            { src: "/images/landing_page/1.Botez_2024.jpg", altKey: "alt_baptism1" },
-            { src: "/images/landing_page/2.Botez_2024.jpg", altKey: "alt_baptism2" },
-            { src: "/images/landing_page/0.church.png", altKey: "alt_worship" },
-            { src: "/images/landing_page/inside.jpg", altKey: "alt_inside" },
-            { src: "/images/landing_page/inside2.jpg", altKey: "alt_inside2" },
-            { src: "/images/landing_page/1.Huizingen.jpg", altKey: "alt_camp1" },
-            { src: "/images/landing_page/2.Huizingen.jpg", altKey: "alt_camp2" },
-            { src: "/images/landing_page/3.Huizingen.jpg", altKey: "alt_camp3" },
-            { src: "/images/landing_page/4.Huizingen.jpg", altKey: "alt_camp4" },
-            { src: "/images/landing_page/5.Huizingen.jpg", altKey: "alt_camp5" },
-            { src: "/images/landing_page/6.Huizingen.jpg", altKey: "alt_camp6" },
-            { src: "/images/landing_page/7.Huizingen.jpg", altKey: "alt_camp7" },
-            { src: "/images/landing_page/8.Huizingen.jpg", altKey: "alt_camp8" },
-            { src: "/images/landing_page/9.Huizingen.jpg", altKey: "alt_camp9" }
+            { src: "/images/landing_page/drone.jpg", altKey: "alt_drone", w: 1080, h: 607 },
+            { src: "/images/landing_page/outside.jpg", altKey: "alt_outside", w: 811, h: 570 },
+            { src: "/images/landing_page/CorMixt.jpg", altKey: "alt_cormixt", w: 2000, h: 1333 },
+            { src: "/images/landing_page/WeddingCK.jpg", altKey: "alt_choir", w: 2000, h: 1333 },
+            { src: "/images/landing_page/WeddingCK2.jpg", altKey: "alt_service", w: 2000, h: 1333 },
+            { src: "/images/landing_page/1.Botez_2024.jpg", altKey: "alt_baptism1", w: 1080, h: 720 },
+            { src: "/images/landing_page/2.Botez_2024.jpg", altKey: "alt_baptism2", w: 1080, h: 720 },
+            { src: "/images/landing_page/0.church.png", altKey: "alt_worship", w: 1206, h: 653 },
+            { src: "/images/landing_page/inside.jpg", altKey: "alt_inside", w: 1536, h: 2048 },
+            { src: "/images/landing_page/inside2.jpg", altKey: "alt_inside2", w: 1536, h: 2048 },
+            { src: "/images/landing_page/1.Huizingen.jpg", altKey: "alt_camp1", w: 2000, h: 1333 },
+            { src: "/images/landing_page/2.Huizingen.jpg", altKey: "alt_camp2", w: 2000, h: 1334 },
+            { src: "/images/landing_page/3.Huizingen.jpg", altKey: "alt_camp3", w: 2000, h: 1333 },
+            { src: "/images/landing_page/4.Huizingen.jpg", altKey: "alt_camp4", w: 2000, h: 1333 },
+            { src: "/images/landing_page/5.Huizingen.jpg", altKey: "alt_camp5", w: 2000, h: 1333 },
+            { src: "/images/landing_page/6.Huizingen.jpg", altKey: "alt_camp6", w: 2000, h: 1333 },
+            { src: "/images/landing_page/7.Huizingen.jpg", altKey: "alt_camp7", w: 2000, h: 1333 },
+            { src: "/images/landing_page/8.Huizingen.jpg", altKey: "alt_camp8", w: 2000, h: 1333 },
+            { src: "/images/landing_page/9.Huizingen.jpg", altKey: "alt_camp9", w: 2000, h: 1333 }
         ],
         []
     );
@@ -130,6 +131,14 @@ export default function Gallery() {
                                 onClick={() => openImgModal(featuredImage)}
                                 aria-label={t("open_image")}
                             >
+                                {/* Volontairement une <img> ordinaire, et non next/image.
+                                    Cette photo s'affiche sur toute la largeur : le
+                                    navigateur demanderait une version de 828 à 1080 px,
+                                    or le fichier n'en fait que 1080. Il n'y a rien à
+                                    réduire, il ne resterait que la recompression — mesuré
+                                    à 165 Ko contre 151 aujourd'hui, donc plus lourd ET
+                                    moins net. Les vignettes de la rangée, elles, gagnent
+                                    90 % parce qu'elles s'affichent à 320 px. */}
                                 <img className="gal-featuredThumb" src={featuredImage.src} alt={t(featuredImage.altKey)} loading="lazy" />
                             </button>
                         )}
@@ -145,7 +154,20 @@ export default function Gallery() {
                                         aria-label={t("open_image")}
                                     >
                                         <div className="gal-rowThumbWrap">
-                                            <img className="gal-rowThumb" src={img.src} alt={t(img.altKey)} loading="lazy" />
+                                            {/* Vignettes affichées à 320 px au plus (240 sur
+                                                téléphone) pour des fichiers de 2000 px : c'est là
+                                                que la réduction paye, environ 90 % de moins.
+                                                quality 90 et non 75, les fichiers étant déjà
+                                                compressés à 80. */}
+                                            <Image
+                                                className="gal-rowThumb"
+                                                src={img.src}
+                                                alt={t(img.altKey)}
+                                                width={img.w}
+                                                height={img.h}
+                                                quality={90}
+                                                sizes="(max-width: 600px) 240px, (max-width: 900px) 280px, 320px"
+                                            />
                                         </div>
                                     </button>
                                 ))}
