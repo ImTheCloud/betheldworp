@@ -10,7 +10,12 @@ import tr from "../translations/WorldMapSection.json";
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../lib/Firebase";
 
-/* ── Lazy-load Three.js globe (no SSR) ── */
+/* Le globe tire three.js, @react-three/fiber et @react-three/drei : environ
+   876 Ko de JavaScript, plus la texture de la Terre. « dynamic » évite le rendu
+   serveur mais télécharge dès que le composant s'affiche — c'est-à-dire au
+   chargement de la page, alors que cette section est tout en bas.
+   Le montage est donc retardé jusqu'à l'approche de la section (voir plus bas) :
+   un visiteur qui ne descend pas jusqu'ici ne télécharge rien. */
 const Globe3D = dynamic(() => import("../components/Globe3D"), { ssr: false });
 
 /* ─────────────────────────────────────────
@@ -56,6 +61,8 @@ export default function WorldMapSection() {
     const t = useMemo(() => makeT(tr, lang), [lang]);
 
     const [stats, setStats] = useState({ churches: 0, countries: 0 });
+    const [globeProche, setGlobeProche] = useState(false);
+    const globeRef = useRef(null);
     const [isLoaded, setIsLoaded] = useState(false);
     const [isMobile, setIsMobile] = useState(null);
 
@@ -64,6 +71,25 @@ export default function WorldMapSection() {
         checkMobile();
         window.addEventListener("resize", checkMobile);
         return () => window.removeEventListener("resize", checkMobile);
+    }, []);
+
+    // 400 px de marge : le globe commence à se charger juste avant d'entrer
+    // dans l'écran, pour qu'il soit prêt au moment où on le voit. Une fois
+    // déclenché, l'observateur se débranche — il n'y a rien à recharger.
+    useEffect(() => {
+        const cible = globeRef.current;
+        if (!cible) return;
+        const observateur = new IntersectionObserver(
+            ([entree]) => {
+                if (entree.isIntersecting) {
+                    setGlobeProche(true);
+                    observateur.disconnect();
+                }
+            },
+            { rootMargin: "400px" }
+        );
+        observateur.observe(cible);
+        return () => observateur.disconnect();
     }, []);
 
     useEffect(() => {
@@ -133,8 +159,10 @@ export default function WorldMapSection() {
                         </div>
 
                         {/* Right: free-floating globe */}
-                        <div className="worldmap-globe-wrap">
-                            <Globe3D className="worldmap-globe-3d" />
+                        {/* Le conteneur garde ses dimensions fixes, donc la page
+                            ne saute pas quand le globe apparaît. */}
+                        <div className="worldmap-globe-wrap" ref={globeRef}>
+                            {globeProche ? <Globe3D className="worldmap-globe-3d" /> : null}
                         </div>
 
                     </div>
