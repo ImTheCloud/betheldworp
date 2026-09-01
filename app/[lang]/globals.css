@@ -22,8 +22,26 @@ body {
 }
 
 button {
-  outline: none;
   -webkit-tap-highlight-color: transparent;
+}
+
+/* Le focus au clavier doit rester visible.
+   Cette règle portait « outline: none » sans rien mettre à la place : plus
+   aucun bouton du site n'indiquait où l'on se trouvait en naviguant au
+   clavier, et seuls trois fichiers CSS sur vingt le rétablissaient
+   localement. On enlève le contour pour le clic à la souris uniquement
+   (:focus:not(:focus-visible)), et on en pose un franc pour le clavier.
+   Le double contour — sombre puis clair — garde le repère lisible aussi
+   bien sur les fonds clairs que sur les fonds sombres du site. */
+:focus-visible {
+  outline: 3px solid #1f66ff;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.85);
+  border-radius: 3px;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
 }
 
 button:active {
@@ -51,5 +69,23 @@ html {
 @media (max-height: 768px) and (min-width: 1025px) {
   :root {
     --main-header-height: 70px;
+  }
+}
+
+/* Mouvement réduit : le site compte 155 transitions et 55 animations, et deux
+   feuilles de style sur vingt seulement en tenaient compte. Ce bloc couvre
+   tout le site d'un coup, pour les visiteurs qui ont demandé à leur système
+   de limiter les animations — un réglage souvent posé pour cause de vertiges
+   ou de migraines, pas par préférence esthétique.
+   Les durées ne sont pas mises à zéro mais à 1 ms : une transition réellement
+   nulle empêche certains scripts de recevoir l'événement de fin. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
   }
 }
