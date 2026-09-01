@@ -20,6 +20,11 @@ export default function Header() {
 
     const activeIdRef = useRef("acasa");
 
+    // Vrai pendant un défilement déclenché par un clic dans le menu : l'observateur
+    // de section doit se taire tant qu'il dure, sinon il repositionnerait la
+    // rubrique active au passage sur chaque section traversée.
+    const isManualScroll = useRef(false);
+
     const NAV_ITEMS = useMemo(
         () => [
             { id: "acasa", labelKey: "nav_home", type: "section" },
@@ -38,6 +43,41 @@ export default function Header() {
     useEffect(() => {
         activeIdRef.current = activeId;
     }, [activeId]);
+
+    const scrollToSection = (id, updateHash = true, behavior = "smooth") => {
+        setMenuOpen(false);
+        setActiveId(id);
+
+        if (updateHash) {
+            isManualScroll.current = true;
+            if (id === "acasa") {
+                window.history.replaceState(null, null, window.location.pathname);
+            } else {
+                window.history.replaceState(null, null, `#${id}`);
+            }
+            // Allow observer to resume after scroll finishes
+            // A bit more generous for long smooth scrolls
+            const duration = behavior === "smooth" ? 1200 : 100;
+            setTimeout(() => {
+                isManualScroll.current = false;
+            }, duration);
+        }
+
+        if (id === "acasa") {
+            window.scrollTo({ top: 0, behavior });
+            return;
+        }
+
+        const element = document.getElementById(id);
+        if (!element) return;
+
+        const header = document.querySelector(".header");
+        const topBar = document.querySelector(".nextProgramBar");
+        const headerHeight = (header?.offsetHeight ?? 82) + (topBar?.offsetHeight ?? 0);
+
+        const y = element.getBoundingClientRect().top + window.scrollY - headerHeight - 12;
+        window.scrollTo({ top: y, behavior });
+    };
 
     useEffect(() => {
         const onScroll = () => {
@@ -60,8 +100,6 @@ export default function Header() {
     }, []);
 
     // Scroll Spy & URL Hash Sync
-    const isManualScroll = useRef(false);
-
     useEffect(() => {
         const observerOptions = {
             root: null,
@@ -133,40 +171,6 @@ export default function Header() {
         };
     }, [menuOpen]);
 
-    const scrollToSection = (id, updateHash = true, behavior = "smooth") => {
-        setMenuOpen(false);
-        setActiveId(id);
-
-        if (updateHash) {
-            isManualScroll.current = true;
-            if (id === "acasa") {
-                window.history.replaceState(null, null, window.location.pathname);
-            } else {
-                window.history.replaceState(null, null, `#${id}`);
-            }
-            // Allow observer to resume after scroll finishes
-            // A bit more generous for long smooth scrolls
-            const duration = behavior === "smooth" ? 1200 : 100;
-            setTimeout(() => {
-                isManualScroll.current = false;
-            }, duration);
-        }
-
-        if (id === "acasa") {
-            window.scrollTo({ top: 0, behavior });
-            return;
-        }
-
-        const element = document.getElementById(id);
-        if (!element) return;
-
-        const header = document.querySelector(".header");
-        const topBar = document.querySelector(".nextProgramBar");
-        const headerHeight = (header?.offsetHeight ?? 82) + (topBar?.offsetHeight ?? 0);
-
-        const y = element.getBoundingClientRect().top + window.scrollY - headerHeight - 12;
-        window.scrollTo({ top: y, behavior });
-    };
 
     const openContact = () => {
         setMenuOpen(false);
