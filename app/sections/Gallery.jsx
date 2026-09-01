@@ -84,7 +84,7 @@ export default function Gallery() {
             return {
                 id,
                 url,
-                thumb: id ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : null,
+                thumb: id ? `/images/videos/${id}.jpg` : null,
             };
         }).filter((v) => Boolean(v.id));
     }, [YOUTUBE_URLS]);
@@ -230,7 +230,7 @@ export default function Gallery() {
                         <div className="gal-videoFrameWrap">
                             <iframe
                                 className="gal-videoFrame"
-                                src={`https://www.youtube.com/embed/${activeVid.id}?autoplay=1&rel=0`}
+                                src={`https://www.youtube-nocookie.com/embed/${activeVid.id}?autoplay=1&rel=0`}
                                 title={t("youtube_player")}
                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                                 allowFullScreen

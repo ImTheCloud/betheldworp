@@ -108,7 +108,9 @@ const FlagImage = React.memo(({ country, className = "" }) => {
     );
     return (
         <img 
-            src={`https://flagcdn.com/w40/${code}.png`} 
+            src={`/images/flags/${code}.png`}
+            // Un pays ajouté sans drapeau local ne doit pas laisser d'image cassée.
+            onError={(e) => { e.currentTarget.style.display = "none"; }}
             alt={country} 
             className={`flag-img ${className}`}
             style={{ 

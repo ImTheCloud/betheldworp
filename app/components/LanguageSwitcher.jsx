@@ -15,10 +15,10 @@ export default function LanguageSwitcher({ className = "" }) {
 
     const options = useMemo(
         () => [
-            { value: "ro", label: t("lang_ro"), short: "RO", flagImg: "https://flagcdn.com/w40/ro.png" },
-            { value: "fr", label: t("lang_fr"), short: "FR", flagImg: "https://flagcdn.com/w40/fr.png" },
-            { value: "nl", label: t("lang_nl"), short: "NL", flagImg: "https://flagcdn.com/w40/nl.png" },
-            { value: "en", label: t("lang_en"), short: "EN", flagImg: "https://flagcdn.com/w40/gb.png" }
+            { value: "ro", label: t("lang_ro"), short: "RO", flagImg: "/images/flags/ro.png" },
+            { value: "fr", label: t("lang_fr"), short: "FR", flagImg: "/images/flags/fr.png" },
+            { value: "nl", label: t("lang_nl"), short: "NL", flagImg: "/images/flags/nl.png" },
+            { value: "en", label: t("lang_en"), short: "EN", flagImg: "/images/flags/gb.png" }
         ],
         [t]
     );
