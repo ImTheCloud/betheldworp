@@ -5,8 +5,13 @@ export const metadata = {
     robots: { index: false, follow: false },
     // Mêmes icônes que le site public : sans apple, iOS remplace le logo par
     // une pastille avec l'initiale quand on ajoute /admin à l'écran d'accueil.
-    // Volontairement sans manifest : celui du site pointe start_url sur "/",
-    // le raccourci ouvrirait la page d'accueil au lieu de l'admin.
+    //
+    // Pas de manifest ici, et c'est délibéré : son start_url vaut "/", donc iOS
+    // proposait d'enregistrer la page d'accueil au lieu de l'admin. Le manifeste
+    // est désormais un fichier statique de public/, déclaré uniquement par la
+    // mise en page publique. Il était auparavant engendré par app/manifest.js,
+    // une convention de fichier que Next injecte dans TOUTES les pages : le
+    // laisser hors du metadata de ce fichier ne suffisait pas à s'en défaire.
     icons: {
         icon: "/icon.png",
         apple: "/apple-icon.png",
