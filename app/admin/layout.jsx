@@ -3,6 +3,14 @@ import "../[lang]/globals.css";
 export const metadata = {
     title: "Bethel Admin",
     robots: { index: false, follow: false },
+    // Mêmes icônes que le site public : sans apple, iOS remplace le logo par
+    // une pastille avec l'initiale quand on ajoute /admin à l'écran d'accueil.
+    // Volontairement sans manifest : celui du site pointe start_url sur "/",
+    // le raccourci ouvrirait la page d'accueil au lieu de l'admin.
+    icons: {
+        icon: "/icon.png",
+        apple: "/apple-icon.png",
+    },
 };
 
 export default function AdminLayout({ children }) {
