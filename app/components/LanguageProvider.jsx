@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 
 const LangContext = createContext(null);
@@ -26,7 +26,7 @@ export default function LanguageProvider({ children, initialLang = "ro" }) {
     const pathname = usePathname();
     const [lang, setLangState] = useState(() => normalizeLang(initialLang) || "ro");
 
-    const setLang = (next) => {
+    const setLang = useCallback((next) => {
         const normalized = normalizeLang(next) || "ro";
         if (normalized === lang) return;
 
@@ -50,7 +50,7 @@ export default function LanguageProvider({ children, initialLang = "ro" }) {
             // Fallback for non-localized paths if any
             router.push(`/${normalized}${pathname}${suffix}`, { scroll: false });
         }
-    };
+    }, [lang, pathname, router]);
 
     useEffect(() => {
         const normalized = normalizeLang(initialLang) || "ro";
@@ -63,7 +63,7 @@ export default function LanguageProvider({ children, initialLang = "ro" }) {
         if (typeof document !== "undefined") document.documentElement.lang = lang;
     }, [lang]);
 
-    const value = useMemo(() => ({ lang, setLang, supported: SUPPORTED }), [lang]);
+    const value = useMemo(() => ({ lang, setLang, supported: SUPPORTED }), [lang, setLang]);
 
     return <LangContext.Provider value={value}>{children}</LangContext.Provider>;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useMemo, useState } from "react";
+import React, { useRef, useMemo, useState, useEffect } from "react";
 import { Canvas, useFrame, useLoader } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
@@ -15,10 +15,14 @@ function EarthSphere() {
     const meshRef = useRef();
     const texture = useLoader(THREE.TextureLoader, "/textures/earth-blue.jpg");
 
-    /* Make texture look crisp */
-    useMemo(() => {
+    /* Netteté de la texture. Réglé dans un effet et non dans un useMemo :
+       useMemo est fait pour calculer une valeur, pas pour modifier un objet.
+       La texture vient du cache partagé de useLoader, la retoucher pendant le
+       rendu revient à modifier un objet que d'autres composants peuvent lire. */
+    useEffect(() => {
         texture.colorSpace = THREE.SRGBColorSpace;
         texture.anisotropy = 16;
+        texture.needsUpdate = true;
     }, [texture]);
 
     /* Slow auto-rotation */
