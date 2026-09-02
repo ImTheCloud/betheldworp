@@ -178,30 +178,6 @@ export default function Footer() {
                             )}
                         </div>
 
-                        {compteurs && compteurs.total > 0 && (
-                            <div className="footer-stats">
-                                <span className="footer-label">{t("visits_label")}:</span>
-                                <div className="footer-stats-row">
-                                    {[
-                                        [t("visits_total"), compteurs.total],
-                                        [t("visits_year"), compteurs.annee],
-                                        [t("visits_month"), compteurs.mois],
-                                        [t("visits_week"), compteurs.semaine],
-                                        [t("visits_yesterday"), compteurs.hier],
-                                        [t("visits_today"), compteurs.aujourdhui],
-                                    ].map(([libelle, valeur]) => (
-                                        <div className="footer-stat" key={libelle}>
-                                            <span className="footer-stat-value">
-                                                {valeur.toLocaleString(lang)}
-                                            </span>
-                                            <span className="footer-stat-label">{libelle}</span>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                <p className="footer-stats-since">{t("visits_since")}</p>
-                            </div>
-                        )}
                     </div>
 
                     <div className="footer-contacts" aria-label={t("contact_aria")}>
@@ -258,16 +234,38 @@ export default function Footer() {
                     </div>
                 </div>
 
+                {compteurs && compteurs.total > 0 && (
+                    <div className="footer-stats">
+                        <span className="footer-label">{t("visits_label")}:</span>
+                        <div className="footer-stats-row">
+                            {[
+                                [t("visits_total"), compteurs.total],
+                                [t("visits_year"), compteurs.annee],
+                                [t("visits_month"), compteurs.mois],
+                                [t("visits_week"), compteurs.semaine],
+                                [t("visits_yesterday"), compteurs.hier],
+                                [t("visits_today"), compteurs.aujourdhui],
+                            ].map(([libelle, valeur]) => (
+                                <div className="footer-stat" key={libelle}>
+                                    <span className="footer-stat-value">
+                                        {valeur.toLocaleString(lang)}
+                                    </span>
+                                    <span className="footer-stat-label">{libelle}</span>
+                                </div>
+                            ))}
+                        </div>
+
+                        <p className="footer-stats-since">{t("visits_since")}</p>
+                    </div>
+                )}
+
                 <div className="footer-bottom">
-                    <p className="footer-copy">
-                        © {new Date().getFullYear()} Bethel Dworp. {t("rights")}{" "}
-                        <span className="footer-copy-privacy">
-                            ·{" "}
-                            <a className="footer-privacy" href={`/${lang}/privacy`}>
-                                {t("privacy")}
-                            </a>
-                        </span>
-                    </p>
+                    <div className="footer-copy">
+                        <span>© {new Date().getFullYear()} Bethel Dworp. {t("rights")}</span>
+                        <a className="footer-privacy" href={`/${lang}/privacy`}>
+                            {t("privacy")}
+                        </a>
+                    </div>
                     <a
                         className="footer-contact-item footer-contact-item--dev"
                         href={`mailto:${devEmail}?subject=${encodeURIComponent(mailSubject)}`}

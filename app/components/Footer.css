@@ -231,7 +231,14 @@
     gap: 16px;
 }
 
+/* Deux elements espaces plutot qu'un point median.
+   Le separateur se retrouvait suspendu en fin de ligne au moindre repli, et
+   faisait un troisieme point sur une ligne qui en comptait deja deux. */
 .footer-copy {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 2px 14px;
     margin: 0;
     font-size: 12px;
     color: rgba(255, 255, 255, 0.5);
@@ -293,12 +300,6 @@
         order: 3;
     }
 
-    /* .footer-info passe en display: contents juste au-dessus, ce qui expose
-       ses enfants a l'ordonnancement. Sans cette ligne les compteurs, restes
-       a l'ordre 0 par defaut, remontaient avant le logo. */
-    .footer-stats {
-        order: 4;
-    }
 
     .footer-bottom {
         flex-direction: column;
@@ -365,20 +366,25 @@
 /* Compteurs de visites, sous la boîte d'inscription à la newsletter.
    Quatre paliers sur une rangée qui se replie d'elle-même sur les écrans
    étroits : les cellules gardent leur largeur naturelle, aucune ne se coupe. */
+/* Bandeau pleine largeur, sous les deux colonnes.
+   Loge dans la colonne de gauche, il y ajoutait deux rangees et laissait la
+   colonne de droite vide sur la meme hauteur. */
 .footer-stats {
-    margin-top: 20px;
+    margin: 0 0 28px 0;
+    padding-top: 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .footer-stats-row {
-    /* Trois colonnes fixes, donc exactement deux rangees pleines pour six
-       compteurs. Une grille auto-fit laissait une cellule seule sur une
-       troisieme rangee des que la largeur changeait. */
+    /* Six colonnes sur une seule rangee, toute la largeur du pied de page.
+       Le nombre de colonnes est fixe et non deduit de la place disponible :
+       une grille auto-fit laissait des cellules seules sur une rangee de
+       plus des que la largeur changeait. */
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(6, 1fr);
     justify-items: start;
     gap: 14px 18px;
-    margin-top: 10px;
-    max-width: 420px;
+    margin-top: 12px;
 }
 
 .footer-stat {
@@ -418,8 +424,12 @@
     color: rgba(255, 255, 255, 0.38);
 }
 
-/* Le separateur reste colle au lien : replie sur une seconde ligne, il
-   laissait sinon un point suspendu en fin de premiere ligne. */
-.footer-copy-privacy {
-    white-space: nowrap;
+
+
+/* Six colonnes ne tiennent que sur un ecran large : en dessous, deux rangees
+   de trois, ce qui reste deux rangees pleines. */
+@media (max-width: 900px) {
+    .footer-stats-row {
+        grid-template-columns: repeat(3, 1fr);
+    }
 }
