@@ -45,6 +45,9 @@ export default function Admin() {
     const [isAdmin, setIsAdmin] = useState(false);
     const [adminLoading, setAdminLoading] = useState(true);
     const [adminError, setAdminError] = useState("");
+    // Incrémenté par le bouton « Retry » : relance la vérification admin sans
+    // toucher à la session, donc sans redemander le mot de passe.
+    const [adminCheckAttempt, setAdminCheckAttempt] = useState(0);
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -201,52 +204,75 @@ export default function Admin() {
         setAdminError("");
         setAdminLoading(true);
 
-        const isSessionError = (code) =>
-            code === "permission-denied" ||
-            code === "unauthenticated" ||
-            String(code || "").startsWith("auth/");
+        const isTokenError = (code) => String(code || "").startsWith("auth/");
+        const isDeniedError = (code) => code === "permission-denied" || code === "unauthenticated";
 
         const readAdminDoc = async (forceRefreshToken) => {
             await user.getIdToken(forceRefreshToken);
-            return getDocFromServer(doc(db, "admins", user.uid));
+            return Promise.race([
+                getDocFromServer(doc(db, "admins", user.uid)),
+                new Promise((_, reject) =>
+                    setTimeout(() => reject(Object.assign(new Error("timeout"), { code: "timeout" })), 15000)
+                ),
+            ]);
         };
 
+        const pause = (ms) => new Promise((r) => setTimeout(r, ms));
+
         (async () => {
-            try {
-                let snap;
+            // Trois essais espacés, et non un seul.
+            //
+            // Un refus de Firestore ne prouve pas que la session est morte. Le
+            // canal de Firestore transporte le jeton, et il s'ouvre avant la
+            // connexion, donc sans jeton. Quand sa fermeture est empêchée, ce
+            // que la console signale par ERR_BLOCKED_BY_CLIENT sur
+            // .../Listen/channel lorsqu'un bloqueur de contenu refuse
+            // firestore.googleapis.com, la lecture suivante peut partir sur un
+            // canal que le serveur tient encore pour anonyme. Elle revient
+            // alors en permission-denied alors que le compte est le bon.
+            //
+            // Les essais suivants forcent un jeton neuf et laissent le temps
+            // qu'un canal authentifié s'établisse.
+            let dernierEchec = null;
+
+            for (let essai = 0; essai < 3; essai++) {
                 try {
-                    snap = await Promise.race([
-                        readAdminDoc(false),
-                        new Promise((_, reject) =>
-                            setTimeout(() => reject(Object.assign(new Error("timeout"), { code: "timeout" })), 15000)
-                        ),
-                    ]);
+                    const snap = await readAdminDoc(essai > 0);
+                    if (cancelled || !mountedRef.current) return;
+                    setIsAdmin(snap.exists());
+                    setAdminError(snap.exists() ? "" : "This account is not registered as an administrator.");
+                    setAdminLoading(false);
+                    return;
                 } catch (err) {
-                    if (!isSessionError(err?.code)) throw err;
-                    // One retry with a freshly minted token, in case it had simply expired.
-                    snap = await readAdminDoc(true);
+                    dernierEchec = err;
+                    // Un jeton irrécupérable ne s'arrangera pas en insistant.
+                    if (isTokenError(err?.code)) break;
+                    if (essai < 2) await pause(500 * (essai + 1));
                 }
+            }
 
-                if (cancelled || !mountedRef.current) return;
-                setIsAdmin(snap.exists());
-                setAdminError(snap.exists() ? "" : "This account is not registered as an administrator.");
-                setAdminLoading(false);
-            } catch (err) {
-                if (cancelled || !mountedRef.current) return;
-                console.error("Admin check failed:", err);
-                setIsAdmin(false);
-                setAdminLoading(false);
+            if (cancelled || !mountedRef.current) return;
+            console.error("Admin check failed:", dernierEchec);
+            setIsAdmin(false);
+            setAdminLoading(false);
 
-                if (isSessionError(err?.code)) {
-                    // The token cannot be renewed: end the session instead of looping,
-                    // so the login form comes back on its own.
-                    setAdminError("Your session expired. Please sign in again.");
-                    signOut(auth).catch(() => { });
-                } else if (err?.code === "timeout") {
-                    setAdminError("The admin check timed out. Check your connection and try again.");
-                } else {
-                    setAdminError(`Admin check failed: ${err?.code || "unknown error"}.`);
-                }
+            const code = dernierEchec?.code;
+            if (isTokenError(code)) {
+                // Ici la session est réellement perdue : la fermer ramène le
+                // formulaire de connexion de lui-même.
+                setAdminError("Your session expired. Please sign in again.");
+                signOut(auth).catch(() => { });
+            } else if (isDeniedError(code)) {
+                // La session Firebase, elle, est intacte. La fermer obligeait à
+                // retaper le mot de passe pour une panne qui n'a rien à voir
+                // avec lui : c'est ce qui donnait l'impression d'une
+                // déconnexion quotidienne. On garde la session et on propose
+                // de relancer la vérification.
+                setAdminError("Firestore refused the permission check. A content blocker holding back firestore.googleapis.com is the usual cause. Retry, or open the admin in a private window.");
+            } else if (code === "timeout") {
+                setAdminError("The admin check timed out. Check your connection and try again.");
+            } else {
+                setAdminError(`Admin check failed: ${code || "unknown error"}.`);
             }
         })();
 
@@ -256,7 +282,7 @@ export default function Admin() {
         // Keyed on the uid on purpose: the user object identity changes on every token
         // refresh, which would re-run this check needlessly.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [user?.uid, auth]);
+    }, [user?.uid, auth, adminCheckAttempt]);
 
     const login = async (e) => {
         e?.preventDefault?.();
@@ -442,9 +468,18 @@ export default function Admin() {
                                 Signed in as {user.email} · UID {user.uid}
                             </div>
                         )}
-                        <button className="adminBtn" onClick={logout} style={{ marginTop: 20 }}>
-                            Logout
-                        </button>
+                        <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginTop: 20 }}>
+                            <button
+                                className="adminBtn"
+                                onClick={() => setAdminCheckAttempt((n) => n + 1)}
+                                disabled={adminLoading}
+                            >
+                                {adminLoading ? "Checking..." : "Retry"}
+                            </button>
+                            <button className="adminBtn" onClick={logout}>
+                                Logout
+                            </button>
+                        </div>
                     </div>
                 </div>
             ) : (
