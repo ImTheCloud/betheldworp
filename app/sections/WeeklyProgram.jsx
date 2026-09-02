@@ -644,7 +644,7 @@ export default function Program() {
                             {dayModal.dateLong && (
                                 <span className="program-dayModalChip">{dayModal.dateLong}</span>
                             )}
-                            {dayModal.timeLabels.map((label) => (
+                            {(dayModal.timeLabels || []).map((label) => (
                                 <span key={label} className="program-dayModalChip">{label}</span>
                             ))}
                             {dayModal.isCancelled && (

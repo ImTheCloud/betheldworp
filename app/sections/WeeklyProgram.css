@@ -914,3 +914,13 @@
 .program-dayModalAnswer .faq-block:last-child {
     margin-bottom: 0;
 }
+
+/* Sur grand écran, la modale d'un événement fait 980 px parce qu'elle place
+   une image et une carte côte à côte. Celle d'un jour ne contient que du
+   texte : à cette largeur, les lignes deviennent trop longues à lire. Le
+   mobile n'est pas concerné, la fenêtre y occupe toute la largeur. */
+@media (min-width: 701px) {
+    .ev-modal.program-dayModal {
+        width: min(640px, 92vw);
+    }
+}
