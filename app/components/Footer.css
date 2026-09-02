@@ -89,9 +89,20 @@
     transition: all 0.2s ease;
 }
 
+/* Le contour du groupe remplace le halo blanc de :focus-visible, qui etait
+   dessine pour les boutons. Un champ de texte correspond toujours a
+   :focus-visible quand il a le focus, meme au doigt, donc ce halo s affichait
+   a chaque appui. Le bord marque ci-dessous garde un repere visible sans le
+   cadre blanc. */
 .footer-nl-input-group:focus-within {
     background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.55);
+}
+
+.footer-nl-input:focus,
+.footer-nl-input:focus-visible {
+    outline: none;
+    box-shadow: none;
 }
 
 .footer-nl-input {
