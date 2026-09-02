@@ -363,10 +363,16 @@
 }
 
 .footer-stats-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px 22px;
+    /* Une grille plutot qu'un flex : les cinq cellules s'alignent en colonnes
+       au lieu de se replier de facon irreguliere. Chacune reclame 92 px et la
+       grille en met autant qu'il en tient, trois sur telephone, cinq des que
+       la colonne est assez large. */
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+    justify-items: start;
+    gap: 12px 18px;
     margin-top: 10px;
+    max-width: 520px;
 }
 
 .footer-stat {
