@@ -3,14 +3,12 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef, Suspense } from "react";
 import { APIProvider, Map, AdvancedMarker } from "@vis.gl/react-google-maps";
 import { useSearchParams } from "next/navigation";
-import { collection, onSnapshot, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../../lib/Firebase";
-import { isValidEmail } from "../../lib/validation";
 import { trackWorldMapVisit } from "@/app/lib/Tracker";
 import { useLang } from "../../components/LanguageProvider";
 import { makeT } from "../../lib/i18n";
 import worldMapTranslations from "../../translations/WorldMap.json";
-import SearchableSelect from "../../components/SearchableSelect";
 // L ordre de ces trois imports est celui du fichier d origine : la cascade en
 // depend, les corrections de la fin ne gagnent que parce qu elles arrivent
 // apres.
@@ -22,19 +20,18 @@ import ChurchInfoLinks from "./ChurchInfoLinks";
 import Markers from "./Markers";
 import { ChurchList } from "./ChurchList";
 import { FilterController, MapController } from "./mapControllers";
+import { useSuggestionForm } from "./useSuggestionForm";
+import { SuggestionModal, DuplicateChurchModal } from "./SuggestionModal";
 import {
     BELGIUM_CENTER,
-    COUNTRY_CODES,
     MAP_ID,
     MAP_SELECTED_CHURCH_STORAGE_KEY,
-    SUGGESTION_RETENTION_DAYS,
 } from "./mapData";
 import {
     formatCasing,
     formatDistance,
     haversineDistance,
     matchChurchSearch,
-    normalizeText,
 } from "./mapHelpers";
 
 const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
@@ -44,56 +41,6 @@ function ChurchMap() {
     
     const [isMobile, setIsMobile] = useState(null);
 
-    // ─── Suggestion Form Persistence (CONSOLIDATED AT TOP) ─────────────────
-    const SUGGESTION_DRAFT_KEY = "bethel_suggestion_draft";
-    const getInitialSuggestionState = () => {
-        if (typeof window === 'undefined') return null;
-        try {
-            const saved = localStorage.getItem(SUGGESTION_DRAFT_KEY);
-            return saved ? JSON.parse(saved) : null;
-        } catch (e) {
-            console.error("Failed to parse suggestion draft:", e);
-            return null;
-        }
-    };
-    const initialDraft = getInitialSuggestionState();
-
-    const [showSuggestionModal, setShowSuggestionModal] = useState(!!initialDraft?.showSuggestionModal);
-    const [duplicateChurchModal, setDuplicateChurchModal] = useState({ isOpen: false, church: null });
-    const [suggestionType, setSuggestionType] = useState(initialDraft?.suggestionType || "new");
-    const [suggestionForm, setSuggestionForm] = useState(initialDraft?.suggestionForm || {
-        name: "",
-        city: "",
-        zipCode: "",
-        street: "",
-        number: "",
-        phone: "",
-        email: "",
-        website: "",
-        youtube: "",
-        facebook: "",
-        instagram: "",
-        country: "Belgium",
-        locationTitle: ""
-    });
-    const [suggestionStep, setSuggestionStep] = useState(initialDraft?.suggestionStep || 1);
-    const [submitterForm, setSubmitterForm] = useState(initialDraft?.submitterForm || {
-        firstName: "",
-        lastName: "",
-        phone: "",
-        email: "",
-        notes: ""
-    });
-    const [pendingEditChurchId, setPendingEditChurchId] = useState(initialDraft?.selectedChurchId || null);
-    const [suggestionSuccess, setSuggestionSuccess] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [formError, setFormError] = useState("");
-    const [initialFormValues, setInitialFormValues] = useState(null);
-
-    const isRestored = useRef(false);
-    useEffect(() => {
-        isRestored.current = true;
-    }, []);
     const [bottomSheetMode, setBottomSheetMode] = useState("collapsed"); // "hidden" | "collapsed" | "expanded"
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [showOtherCountries, setShowOtherCountries] = useState(false);
@@ -126,6 +73,33 @@ function ChurchMap() {
     const mobileStickyHeaderRef = useRef(null);
     const footerRef = useRef(null);
     const manualRecenterPendingRef = useRef(false);
+
+
+    // selectChurch et la proposition d'eglise sont places ici, avant le
+    // premier effet : l'effet de reprise du brouillon doit s'executer avant
+    // celui qui selectionne une eglise depuis l'URL, sinon c'est le brouillon
+    // qui l'emporte au lieu du lien.
+    const selectChurch = useCallback((church) => {
+        setSelectedChurch(church);
+        setIsInitialLoad(false);
+        setBottomSheetMode("collapsed"); // Set to collapsed (medium) mode instead of expanded
+        sessionStorage.setItem(MAP_SELECTED_CHURCH_STORAGE_KEY, church.id);
+        const url = new URL(window.location.href);
+        url.searchParams.set("church", church.id);
+        window.history.replaceState({}, "", url.toString());
+    }, []);
+
+    // Toute la proposition d'eglise vit dans useSuggestionForm : les etats du
+    // formulaire, le brouillon en localStorage, la detection de doublon et
+    // l'envoi vers Firestore.
+    const suggestion = useSuggestionForm({
+        churches,
+        selectedChurch,
+        setSelectedChurch,
+        selectChurch,
+        activeCountryFilter,
+    });
+    const { openSuggestionModal } = suggestion;
 
     // Auto-close bottom sheet on mobile when a country is selected (or when re-clicking "All")
     useEffect(() => {
@@ -187,224 +161,6 @@ function ChurchMap() {
             document.removeEventListener("touchstart", handleClickOutside);
         };
     }, []);
-
-
-    // ─── Recovery & Auto-Save Effects ─────────────────────────────────────────
-    // RECOVERY: If we loaded a draft that was an "edit", re-select the church once churches are loaded
-    useEffect(() => {
-        if (pendingEditChurchId && churches?.length > 0 && !selectedChurch) {
-            const church = churches.find(c => c.id === pendingEditChurchId);
-            if (church) {
-                setSelectedChurch(church);
-                setPendingEditChurchId(null);
-            }
-        }
-    }, [churches, pendingEditChurchId, selectedChurch]);
-
-    // AUTO-SAVE: Persistent draft across language changes
-    useEffect(() => {
-        if (!isRestored.current) return;
-
-        const draft = {
-            suggestionForm,
-            submitterForm,
-            suggestionStep,
-            suggestionType,
-            showSuggestionModal,
-            selectedChurchId: suggestionType === "edit" ? selectedChurch?.id : null
-        };
-        localStorage.setItem(SUGGESTION_DRAFT_KEY, JSON.stringify(draft));
-    }, [suggestionForm, submitterForm, suggestionStep, suggestionType, showSuggestionModal, selectedChurch]);
-
-    const clearSuggestionDraft = () => {
-        localStorage.removeItem(SUGGESTION_DRAFT_KEY);
-        setPendingEditChurchId(null);
-    };
-
-    const SUGGESTION_COUNTRIES = Object.keys(COUNTRY_CODES).sort();
-
-    const findDuplicateChurch = useCallback((name, city) => {
-        const normalizedName = normalizeText(String(name || "").trim());
-        const normalizedCity = normalizeText(String(city || "").trim());
-        if (!normalizedName || !normalizedCity) return null;
-
-        return churches.find((church) => (
-            normalizeText(String(church.name || "").trim()) === normalizedName &&
-            normalizeText(String(church.city || "").trim()) === normalizedCity
-        )) || null;
-    }, [churches]);
-
-    const openSuggestionModal = (type = "new", church = null) => {
-        setSuggestionType(type);
-        let data;
-        if (type === "edit" && church) {
-            data = {
-                name: church.name || "",
-                city: church.city || "",
-                zipCode: church.zipCode || "",
-                street: church.street || "",
-                number: church.number || "",
-                phone: church.phone || "",
-                email: church.email || "",
-                website: church.website || "",
-                youtube: church.youtube || "",
-                facebook: church.facebook || "",
-                instagram: church.instagram || "",
-                country: church.country || "Romania",
-                locationTitle: church.locationTitle || ""
-            };
-        } else {
-            data = {
-                name: "",
-                city: "",
-                zipCode: "",
-                street: "",
-                number: "",
-                phone: "",
-                email: "",
-                website: "",
-                youtube: "",
-                facebook: "",
-                instagram: "",
-                country: activeCountryFilter || "Romania",
-                locationTitle: ""
-            };
-        }
-        setSuggestionForm(data);
-        setInitialFormValues(data);
-        setSuggestionStep(1);
-        // Try to load submitter info from localStorage
-        let savedSubmitter = { firstName: "", lastName: "", phone: "", email: "", notes: "" };
-        try {
-            const saved = localStorage.getItem("bethel_submitter");
-            if (saved) {
-                const parsed = JSON.parse(saved);
-                savedSubmitter = { 
-                    firstName: parsed.firstName || "", 
-                    lastName: parsed.lastName || "", 
-                    phone: parsed.phone || "", 
-                    email: parsed.email || "", 
-                    notes: "" 
-                };
-            }
-        } catch (e) {
-            console.error("Failed to load saved submitter info:", e);
-        }
-        
-        setSubmitterForm(savedSubmitter);
-        setShowSuggestionModal(true);
-        setSuggestionSuccess(false);
-        setFormError("");
-    };
-
-    const hasChanges = useMemo(() => {
-        if (!initialFormValues) return false;
-        return JSON.stringify(suggestionForm) !== JSON.stringify(initialFormValues);
-    }, [suggestionForm, initialFormValues]);
-
-    const handleDuplicateChurchRedirect = () => {
-        const duplicateChurch = duplicateChurchModal.church;
-        if (!duplicateChurch) return;
-
-        setDuplicateChurchModal({ isOpen: false, church: null });
-        setShowSuggestionModal(false);
-        setFormError("");
-        setSuggestionStep(1);
-        selectChurch(duplicateChurch);
-        setTimeout(() => {
-            openSuggestionModal("edit", duplicateChurch);
-        }, 0);
-    };
-
-    const handleSuggestionSubmit = async (e) => {
-        if (e) e.preventDefault();
-
-        if (suggestionStep === 1) {
-            if (!suggestionForm.name || !suggestionForm.city) {
-                setFormError(t("errorNameCityRequired"));
-                return;
-            }
-            if (suggestionType === "new") {
-                const duplicateChurch = findDuplicateChurch(suggestionForm.name, suggestionForm.city);
-                if (duplicateChurch) {
-                    setFormError("");
-                    setDuplicateChurchModal({ isOpen: true, church: duplicateChurch });
-                    return;
-                }
-            }
-            if (suggestionType === "edit" && !hasChanges) {
-                setFormError(t("errorNoChanges"));
-                return;
-            }
-            if (suggestionForm.email && !isValidEmail(suggestionForm.email)) {
-                setFormError(t("errorInvalidEmail"));
-                return;
-            }
-            setFormError("");
-            setSuggestionStep(2);
-            return;
-        }
-
-        if (submitterForm.email && !isValidEmail(submitterForm.email)) {
-            setFormError(t("errorInvalidEmail"));
-            return;
-        }
-
-        setIsSubmitting(true);
-        try {
-            await addDoc(collection(db, "church_suggestions"), {
-                type: suggestionType,
-                originalChurchId: suggestionType === "edit" ? selectedChurch?.id : null,
-                status: "pending",
-                data: {
-                    ...suggestionForm,
-                    submitter: submitterForm
-                },
-                createdAt: serverTimestamp(),
-                expiresAt: new Date(Date.now() + SUGGESTION_RETENTION_DAYS * 24 * 60 * 60 * 1000)
-            });
-            
-            // Save submitter info to localStorage for next time (excluding notes)
-            try {
-                localStorage.setItem("bethel_submitter", JSON.stringify({
-                    firstName: submitterForm.firstName,
-                    lastName: submitterForm.lastName,
-                    phone: submitterForm.phone,
-                    email: submitterForm.email
-                }));
-            } catch (e) {
-                console.error("Failed to save submitter info:", e);
-            }
-
-            // Notification côté serveur : le nom du canal ntfy ne doit pas
-            // se retrouver dans le code envoyé au navigateur.
-            fetch("/api/notify/suggestion", {
-                method: "POST",
-                headers: { "content-type": "application/json" },
-                body: JSON.stringify({
-                    type: suggestionType,
-                    name: suggestionForm.name,
-                    city: suggestionForm.city,
-                    country: getCountryLabel(suggestionForm.country),
-                }),
-            }).catch((e) => console.error("Notification error:", e));
-
-            setSuggestionSuccess(true);
-            clearSuggestionDraft();
-            setTimeout(() => {
-                setShowSuggestionModal(false);
-                setSuggestionSuccess(false);
-                setSuggestionStep(1);
-            }, 3000);
-        } catch (err) {
-            console.error(err);
-            setFormError(t("errorSending"));
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-
 
     // Load churches from Firestore
     useEffect(() => {
@@ -530,18 +286,6 @@ function ChurchMap() {
         }
     };
 
-
-
-
-    const selectChurch = useCallback((church) => {
-        setSelectedChurch(church);
-        setIsInitialLoad(false);
-        setBottomSheetMode("collapsed"); // Set to collapsed (medium) mode instead of expanded
-        sessionStorage.setItem(MAP_SELECTED_CHURCH_STORAGE_KEY, church.id);
-        const url = new URL(window.location.href);
-        url.searchParams.set("church", church.id);
-        window.history.replaceState({}, "", url.toString());
-    }, []);
 
     const deselectChurch = useCallback(() => {
         if (isMobile && selectedChurch) {
@@ -1507,304 +1251,15 @@ function ChurchMap() {
                 </APIProvider>
             </div>
 
-            {/* Suggestion Modal */}
-            {showSuggestionModal && (
-                <div className="suggestionModalOverlay">
-                    <div className="suggestionModal">
-                        <div className="suggestionModalHeader">
-                            <h3>{suggestionType === "new" ? t("suggestionTitleNew") : t("suggestionTitleEdit")}</h3>
-                        </div>
+            <SuggestionModal
+                {...suggestion.modalProps}
+                getCountryLabel={getCountryLabel}
+            />
 
-                        {suggestionSuccess ? (
-                            <div className="suggestionSuccess">
-                                <div className="successIcon">✓</div>
-                                <p>{t("suggestionSuccess")}</p>
-                            </div>
-                        ) : (
-                            <form className="suggestionForm" onSubmit={handleSuggestionSubmit}>
-                                {formError && <div className="suggestionError">{formError}</div>}
-
-                                <div className="suggestionFormBody">
-                                    {/* Visual Stepper */}
-                                    <div className="suggestionStepper">
-                                        <div className={`stepItem ${suggestionStep >= 1 ? 'active' : ''} ${suggestionStep > 1 ? 'completed' : ''}`}>
-                                            <div className="stepCircle">{suggestionStep > 1 ? '✓' : '1'}</div>
-                                            <span>{t("churchInfo")}</span>
-                                        </div>
-                                        <div className="stepLine"></div>
-                                        <div className={`stepItem ${suggestionStep >= 2 ? 'active' : ''}`}>
-                                            <div className="stepCircle">2</div>
-                                            <span>{t("yourInfo")}</span>
-                                        </div>
-                                    </div>
-
-                                    {suggestionStep === 1 ? (
-                                        <div className="suggestionStep1">
-                                            <div className="suggestionFormRow">
-                                                <div className="suggestionFormGroup">
-                                                    <label>{t("name")} *</label>
-                                                    <input
-                                                        type="text"
-                                                        required
-                                                        placeholder={t("churchNamePlaceholder")}
-                                                        value={suggestionForm.name}
-                                                        onChange={(e) => setSuggestionForm({ ...suggestionForm, name: e.target.value })}
-                                                    />
-                                                </div>
-                                                <div className="suggestionFormGroup">
-                                                    <label>{t("city")} *</label>
-                                                    <input
-                                                        type="text"
-                                                        required
-                                                        value={suggestionForm.city}
-                                                        onChange={(e) => setSuggestionForm({ ...suggestionForm, city: e.target.value })}
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div className="suggestionFormRow">
-                                                <div className="suggestionFormGroup">
-                                                    <label>{t("country")}</label>
-                                                    <SearchableSelect
-                                                        value={suggestionForm.country}
-                                                        onChange={(val) => setSuggestionForm({ ...suggestionForm, country: val })}
-                                                        options={SUGGESTION_COUNTRIES.map(c => ({ value: c, label: getCountryLabel(c) }))}
-                                                        placeholder=""
-                                                        inputClassName="suggestionInput" 
-                                                    />
-                                                </div>
-                                                <div className="suggestionFormGroup">
-                                                    <label>{t("postalCode")}</label>
-                                                    <input
-                                                        type="text"
-                                                        value={suggestionForm.zipCode}
-                                                        onChange={(e) => setSuggestionForm({ ...suggestionForm, zipCode: e.target.value })}
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div className="suggestionFormRow">
-                                                <div className="suggestionFormGroup" style={{ flex: 3 }}>
-                                                    <label>{t("street")}</label>
-                                                    <input
-                                                        type="text"
-                                                        value={suggestionForm.street}
-                                                        onChange={(e) => setSuggestionForm({ ...suggestionForm, street: e.target.value })}
-                                                    />
-                                                </div>
-                                                <div className="suggestionFormGroup" style={{ flex: 1 }}>
-                                                    <label>{t("number")}</label>
-                                                    <input
-                                                        type="text"
-                                                        value={suggestionForm.number}
-                                                        onChange={(e) => setSuggestionForm({ ...suggestionForm, number: e.target.value })}
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div className="suggestionFormRow">
-                                                <div className="suggestionFormGroup">
-                                                    <label>{t("phone")}</label>
-                                                    <input
-                                                        type="tel"
-                                                        value={suggestionForm.phone}
-                                                        onChange={(e) => setSuggestionForm({ ...suggestionForm, phone: e.target.value.replace(/[^\d+\s\-\(\)]/g, "") })}
-                                                    />
-                                                </div>
-                                                <div className="suggestionFormGroup">
-                                                    <label>{t("email")}</label>
-                                                    <input
-                                                        type="email"
-                                                        value={suggestionForm.email}
-                                                        onChange={(e) => setSuggestionForm({ ...suggestionForm, email: e.target.value })}
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div className="suggestionFormRow">
-                                                <div className="suggestionFormGroup">
-                                                    <label>{t("website")}</label>
-                                                    <input
-                                                        type="text"
-                                                        placeholder="https://..."
-                                                        value={suggestionForm.website}
-                                                        onChange={(e) => setSuggestionForm({ ...suggestionForm, website: e.target.value })}
-                                                    />
-                                                </div>
-                                                <div className="suggestionFormGroup">
-                                                    <label>{t("youtube")}</label>
-                                                    <input
-                                                        type="text"
-                                                        placeholder="https://youtube.com/..."
-                                                        value={suggestionForm.youtube}
-                                                        onChange={(e) => setSuggestionForm({ ...suggestionForm, youtube: e.target.value })}
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div className="suggestionFormRow">
-                                                <div className="suggestionFormGroup">
-                                                    <label>{t("instagram")}</label>
-                                                    <input
-                                                        type="text"
-                                                        placeholder="instagram.com/..."
-                                                        value={suggestionForm.instagram}
-                                                        onChange={(e) => setSuggestionForm({ ...suggestionForm, instagram: e.target.value })}
-                                                    />
-                                                </div>
-                                                <div className="suggestionFormGroup">
-                                                    <label>{t("facebook")}</label>
-                                                    <input
-                                                        type="text"
-                                                        placeholder="facebook.com/..."
-                                                        value={suggestionForm.facebook}
-                                                        onChange={(e) => setSuggestionForm({ ...suggestionForm, facebook: e.target.value })}
-                                                    />
-                                                </div>
-                                            </div>
-
-                                        </div>
-                                    ) : (
-                                        <div className="suggestionStep2">
-                                            <div className="step2Header">
-                                                <h4>{t("submitterTitle")}</h4>
-                                            </div>
-
-                                            <div className="suggestionFormRow">
-                                                <div className="suggestionFormGroup">
-                                                    <label>{t("lastName")}</label>
-                                                    <input
-                                                        type="text"
-                                                        value={submitterForm.lastName}
-                                                        onChange={(e) => setSubmitterForm({ ...submitterForm, lastName: e.target.value })}
-                                                    />
-                                                </div>
-                                                <div className="suggestionFormGroup">
-                                                    <label>{t("firstName")}</label>
-                                                    <input
-                                                        type="text"
-                                                        value={submitterForm.firstName}
-                                                        onChange={(e) => setSubmitterForm({ ...submitterForm, firstName: e.target.value })}
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div className="suggestionFormRow">
-                                                <div className="suggestionFormGroup">
-                                                    <label>{t("phone")}</label>
-                                                    <input
-                                                        type="tel"
-                                                        value={submitterForm.phone}
-                                                        onChange={(e) => setSubmitterForm({ ...submitterForm, phone: e.target.value.replace(/[^\d+\s\-\(\)]/g, "") })}
-                                                    />
-                                                </div>
-                                                <div className="suggestionFormGroup">
-                                                    <label>{t("email")}</label>
-                                                    <input
-                                                        type="email"
-                                                        value={submitterForm.email}
-                                                        onChange={(e) => setSubmitterForm({ ...submitterForm, email: e.target.value })}
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div className="suggestionFormRow">
-                                                <div className="suggestionFormGroup" style={{ flex: 1 }}>
-                                                    <label>{t("notes")}</label>
-                                                    <textarea
-                                                        value={submitterForm.notes}
-                                                        placeholder={t("notesPlaceholder")}
-                                                        onChange={(e) => setSubmitterForm({ ...submitterForm, notes: e.target.value })}
-                                                        rows={3}
-                                                        className="compactTextarea"
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div className="suggestionFormActions">
-                                    {suggestionStep === 1 ? (
-                                        <div className="suggestionStep1Actions">
-                                            <button
-                                                type="button"
-                                                className="suggestionCancelBtn"
-                                                onClick={() => {
-                                                    clearSuggestionDraft();
-                                                    setShowSuggestionModal(false);
-                                                }}
-                                            >
-                                                {t("cancel")}
-                                            </button>
-                                            <button
-                                                type="submit"
-                                                className="suggestionSubmitBtn"
-                                                disabled={isSubmitting || (suggestionType === "edit" && !hasChanges)}
-                                            >
-                                                {isSubmitting ? "..." : t("nextStep")}
-                                            </button>
-                                        </div>
-                                    ) : (
-                                        <div className="step2Actions">
-                                            <button
-                                                type="button"
-                                                className="suggestionSkipBtn"
-                                                onClick={() => setSuggestionStep(1)}
-                                            >
-                                                {t("back")}
-                                            </button>
-                                            <button
-                                                type="submit"
-                                                className="suggestionSubmitBtn"
-                                                disabled={isSubmitting}
-                                            >
-                                                {isSubmitting ? "..." : t("skipAndSend")}
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            </form>
-                        )}
-                    </div>
-                </div>
-            )}
-
-            {duplicateChurchModal.isOpen && duplicateChurchModal.church && (
-                <div className="suggestionModalOverlay">
-                    <div className="suggestionInfoModal" role="dialog" aria-modal="true">
-                        <div className="suggestionModalHeader">
-                            <h3>{t("duplicateChurchTitle")}</h3>
-                        </div>
-                        <div className="suggestionInfoModalBody">
-                            <p>{t("duplicateChurchMessage")}</p>
-                            <div className="suggestionDuplicateTarget">
-                                <strong>{duplicateChurchModal.church.name}</strong>
-                                <span>
-                                    {duplicateChurchModal.church.city}
-                                    {duplicateChurchModal.church.country ? `, ${getCountryLabel(duplicateChurchModal.church.country)}` : ""}
-                                </span>
-                            </div>
-                        </div>
-                        <div className="suggestionInfoModalActions">
-                            <button
-                                type="button"
-                                className="suggestionCancelBtn"
-                                onClick={() => setDuplicateChurchModal({ isOpen: false, church: null })}
-                            >
-                                {t("cancel")}
-                            </button>
-                            <button
-                                type="button"
-                                className="suggestionSubmitBtn"
-                                onClick={handleDuplicateChurchRedirect}
-                            >
-                                {t("duplicateChurchAction")}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <DuplicateChurchModal
+                {...suggestion.duplicateProps}
+                getCountryLabel={getCountryLabel}
+            />
         </div>
     );
 }
