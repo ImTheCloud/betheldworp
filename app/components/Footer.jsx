@@ -10,6 +10,15 @@ import { brusselsDayKey, brusselsWeekKey } from "../lib/Tracker";
 import { db } from "../lib/Firebase";
 import { isValidEmail } from "../lib/validation";
 
+// Le jour precedent, au format AAAA-MM-JJ. Calcule sur la date civile plutot
+// qu'en retirant 24 heures : aux changements d'heure, une soustraction en
+// millisecondes sauterait un jour ou le repeterait.
+function veilleDe(jour) {
+    const [annee, mois, quantieme] = String(jour).split("-").map(Number);
+    const d = new Date(Date.UTC(annee, mois - 1, quantieme - 1));
+    return d.toISOString().slice(0, 10);
+}
+
 export default function Footer() {
     const { lang } = useLang();
     const t = useMemo(() => makeT(tr, lang), [lang]);
@@ -32,15 +41,22 @@ export default function Footer() {
         (async () => {
             try {
                 const jour = brusselsDayKey();
-                const ids = ["total", jour.slice(0, 4), jour.slice(0, 7), brusselsWeekKey(jour), jour];
+                const ids = [
+                    "total",
+                    jour.slice(0, 4),
+                    jour.slice(0, 7),
+                    brusselsWeekKey(jour),
+                    veilleDe(jour),
+                    jour,
+                ];
                 const lus = await Promise.all(
                     ids.map((id) => getDoc(doc(db, "stats_public", id)))
                 );
                 if (!vivant) return;
-                const [total, annee, mois, semaine, aujourdhui] = lus.map(
+                const [total, annee, mois, semaine, hier, aujourdhui] = lus.map(
                     (d) => Number(d.data()?.visits) || 0
                 );
-                setCompteurs({ total, annee, mois, semaine, aujourdhui });
+                setCompteurs({ total, annee, mois, semaine, hier, aujourdhui });
             } catch {
                 // Un compteur indisponible laisse simplement le pied de page
                 // tel qu'il était : rien ne s'affiche, rien ne casse.
@@ -171,6 +187,7 @@ export default function Footer() {
                                         [t("visits_year"), compteurs.annee],
                                         [t("visits_month"), compteurs.mois],
                                         [t("visits_week"), compteurs.semaine],
+                                        [t("visits_yesterday"), compteurs.hier],
                                         [t("visits_today"), compteurs.aujourdhui],
                                     ].map(([libelle, valeur]) => (
                                         <div className="footer-stat" key={libelle}>
@@ -181,6 +198,8 @@ export default function Footer() {
                                         </div>
                                     ))}
                                 </div>
+
+                                <p className="footer-stats-since">{t("visits_since")}</p>
                             </div>
                         )}
                     </div>
@@ -241,11 +260,13 @@ export default function Footer() {
 
                 <div className="footer-bottom">
                     <p className="footer-copy">
-                        © {new Date().getFullYear()} Bethel Dworp. {t("rights")}
-                        {" · "}
-                        <a className="footer-privacy" href={`/${lang}/privacy`}>
-                            {t("privacy")}
-                        </a>
+                        © {new Date().getFullYear()} Bethel Dworp. {t("rights")}{" "}
+                        <span className="footer-copy-privacy">
+                            ·{" "}
+                            <a className="footer-privacy" href={`/${lang}/privacy`}>
+                                {t("privacy")}
+                            </a>
+                        </span>
                     </p>
                     <a
                         className="footer-contact-item footer-contact-item--dev"

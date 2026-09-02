@@ -293,6 +293,13 @@
         order: 3;
     }
 
+    /* .footer-info passe en display: contents juste au-dessus, ce qui expose
+       ses enfants a l'ordonnancement. Sans cette ligne les compteurs, restes
+       a l'ordre 0 par defaut, remontaient avant le logo. */
+    .footer-stats {
+        order: 4;
+    }
+
     .footer-bottom {
         flex-direction: column;
         gap: 12px;
@@ -363,16 +370,15 @@
 }
 
 .footer-stats-row {
-    /* Une grille plutot qu'un flex : les cinq cellules s'alignent en colonnes
-       au lieu de se replier de facon irreguliere. Chacune reclame 92 px et la
-       grille en met autant qu'il en tient, trois sur telephone, cinq des que
-       la colonne est assez large. */
+    /* Trois colonnes fixes, donc exactement deux rangees pleines pour six
+       compteurs. Une grille auto-fit laissait une cellule seule sur une
+       troisieme rangee des que la largeur changeait. */
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     justify-items: start;
-    gap: 12px 18px;
+    gap: 14px 18px;
     margin-top: 10px;
-    max-width: 520px;
+    max-width: 420px;
 }
 
 .footer-stat {
@@ -395,7 +401,25 @@
     margin-top: 3px;
     font-size: 10px;
     font-weight: 700;
+    line-height: 1.3;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: rgba(255, 255, 255, 0.42);
+    /* Deux lignes reservees d'office : les libelles longs en roumain se
+       replient, et sans cette hauteur les deux rangees ne s'alignaient plus. */
+    min-height: 26px;
+}
+
+/* Depuis quand ces chiffres comptent, et sur quelle version du site. */
+.footer-stats-since {
+    margin: 10px 0 0 0;
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.38);
+}
+
+/* Le separateur reste colle au lien : replie sur une seconde ligne, il
+   laissait sinon un point suspendu en fin de premiere ligne. */
+.footer-copy-privacy {
+    white-space: nowrap;
 }

@@ -451,6 +451,10 @@ export default function StatsAdmin() {
     // series sont incrementees par la meme visite.
     const paliers = useMemo(() => {
         const semaineCourante = brusselsWeekKey(todayKey);
+        // La veille sur la date civile, jamais par soustraction de 24 heures :
+        // aux changements d'heure, celle-ci sauterait un jour ou le repeterait.
+        const [an, mo, qu] = todayKey.split("-").map(Number);
+        const hierKey = new Date(Date.UTC(an, mo - 1, qu - 1)).toISOString().slice(0, 10);
         const compte = (j) => (page === "world_map" ? j.mapVisits : j.visits);
         const somme = (garde) =>
             jours.reduce((total, j) => (garde(j.day) ? total + compte(j) : total), 0);
@@ -460,6 +464,7 @@ export default function StatsAdmin() {
             annee: somme((d) => d.slice(0, 4) === todayKey.slice(0, 4)),
             mois: somme((d) => d.slice(0, 7) === todayKey.slice(0, 7)),
             semaine: somme((d) => brusselsWeekKey(d) === semaineCourante),
+            hier: somme((d) => d === hierKey),
             aujourdhui: somme((d) => d === todayKey),
         };
     }, [jours, todayKey, page]);
@@ -615,6 +620,7 @@ export default function StatsAdmin() {
                             ["This year", paliers.annee, todayKey.slice(0, 4)],
                             ["This month", paliers.mois, todayKey.slice(0, 7)],
                             ["This week", paliers.semaine, brusselsWeekKey(todayKey)],
+                            ["Yesterday", paliers.hier, ""],
                             ["Today", paliers.aujourdhui, formatEnDateFromKey(todayKey)],
                         ].map(([libelle, valeur, precision]) => (
                             <div className="statsKpi" key={libelle}>
