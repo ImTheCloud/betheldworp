@@ -187,6 +187,35 @@ await check("admin requete collectionGroup map_visitors", true, () => getDocs(co
 await check("admin lit visits_global", true, () => getDocs(collection(admin, "visits_global")));
 await check("admin lit son propre doc admins", true, () => getDoc(doc(admin, "admins", "boss")));
 
+
+// --- COMPTEURS PUBLICS DU PIED DE PAGE ---
+//
+// Ces deux documents sont les seuls compteurs lisibles par tous : le pied de
+// page les affiche. On verifie donc surtout ce qu'ils NE laissent pas faire,
+// puisqu'une ecriture y est ouverte a n'importe qui.
+const totalRef = (ctx) => doc(ctx, "stats_public", "total");
+
+await check("anon cree le compteur public", true, () =>
+    setDoc(totalRef(anon), { visits: increment(1) }, { merge: true }));
+await check("anon incremente le compteur public", true, () =>
+    setDoc(totalRef(anon), { visits: increment(1) }, { merge: true }));
+await check("anon lit le compteur public", true, () => getDoc(totalRef(anon)));
+await check("anon lit le compteur public du jour", true, () =>
+    getDoc(doc(anon, "stats_public", JOUR)));
+
+await check("anon NE PEUT PAS avancer le compteur public de plus d'un", false, () =>
+    setDoc(totalRef(anon), { visits: increment(2000) }, { merge: true }));
+await check("anon NE PEUT PAS faire reculer le compteur public", false, () =>
+    setDoc(totalRef(anon), { visits: increment(-1) }, { merge: true }));
+await check("anon NE PEUT PAS ajouter un champ au compteur public", false, () =>
+    setDoc(totalRef(anon), { visits: increment(1), pays: "BE" }, { merge: true }));
+await check("anon NE PEUT PAS supprimer le compteur public", false, () =>
+    deleteDoc(totalRef(anon)));
+await check("admin NON PLUS ne peut supprimer le compteur public", false, () =>
+    deleteDoc(totalRef(admin)));
+await check("anon NE PEUT PAS creer le compteur public a une valeur arbitraire", false, () =>
+    setDoc(doc(anon, "stats_public", "triche"), { visits: 5000 }));
+
 console.log("\n— Escalade de privileges —");
 await check("admin NE PEUT PAS se nommer un co-admin", false, () => setDoc(doc(admin, "admins", "complice"), { role: "admin" }));
 await check("admin NE PEUT PAS se retirer / retirer un autre admin", false, () => deleteDoc(doc(admin, "admins", "boss")));

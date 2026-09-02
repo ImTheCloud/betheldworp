@@ -37,7 +37,22 @@ async function compterVisite() {
         { merge: true }
     );
 
+    // Le drapeau est posé dès que le compteur du jour est passé : si les
+    // compteurs publics échouaient ensuite, la visite ne serait pas comptée
+    // deux fois à la page suivante.
     safeStorageSet(dejaCompte, "1");
+
+    // Compteurs publics affichés dans le pied de page. Ils vivent à part de
+    // stats_daily parce qu'ils sont lisibles par tous : ils ne portent qu'un
+    // nombre, jamais une répartition par pays ou par ville.
+    try {
+        await Promise.all([
+            setDoc(doc(db, "stats_public", "total"), { visits: increment(1) }, { merge: true }),
+            setDoc(doc(db, "stats_public", jour), { visits: increment(1) }, { merge: true }),
+        ]);
+    } catch (e) {
+        console.error("Compteurs publics indisponibles :", e);
+    }
 }
 
 export default function VisitTracker() {

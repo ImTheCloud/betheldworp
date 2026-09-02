@@ -354,3 +354,22 @@
 .footer-privacy:hover {
     opacity: 1;
 }
+
+/* Compteurs de visites, au-dessus de la rangée du bas.
+   Volontairement discrets : la même taille et la même teinte que la mention
+   de copyright, les seuls nombres étant un peu plus lisibles. */
+.footer-stats {
+    margin: 0 0 14px 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.4);
+    text-align: center;
+}
+
+.footer-stats strong {
+    color: rgba(255, 255, 255, 0.72);
+    font-weight: 700;
+    /* Les chiffres gardent la même largeur : le total ne tressaute pas d'une
+       page à l'autre. */
+    font-variant-numeric: tabular-nums;
+}

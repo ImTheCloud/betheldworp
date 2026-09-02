@@ -1,11 +1,12 @@
 "use client";
 
 import "./Footer.css";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLang } from "./LanguageProvider";
 import { makeT } from "../lib/i18n";
 import tr from "../translations/Footer.json";
-import { collection, serverTimestamp, setDoc, doc } from "firebase/firestore";
+import { collection, serverTimestamp, setDoc, doc, getDoc } from "firebase/firestore";
+import { brusselsDayKey } from "../lib/Tracker";
 import { db } from "../lib/Firebase";
 import { isValidEmail } from "../lib/validation";
 
@@ -18,6 +19,35 @@ export default function Footer() {
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState("");
     const [successText, setSuccessText] = useState("");
+
+    // Compteurs publics du pied de page : deux documents ne contenant qu'un
+    // nombre. Lus une seule fois, sans écouteur temps réel : un total de
+    // visites n'a aucun besoin de se mettre à jour sous les yeux du visiteur,
+    // et un écouteur de plus sur chaque page coûterait plus qu'il ne sert.
+    const [compteurs, setCompteurs] = useState(null);
+
+    useEffect(() => {
+        let vivant = true;
+
+        (async () => {
+            try {
+                const [total, ajd] = await Promise.all([
+                    getDoc(doc(db, "stats_public", "total")),
+                    getDoc(doc(db, "stats_public", brusselsDayKey())),
+                ]);
+                if (!vivant) return;
+                setCompteurs({
+                    total: Number(total.data()?.visits) || 0,
+                    ajd: Number(ajd.data()?.visits) || 0,
+                });
+            } catch {
+                // Un compteur indisponible laisse simplement le pied de page
+                // tel qu'il était : rien ne s'affiche, rien ne casse.
+            }
+        })();
+
+        return () => { vivant = false; };
+    }, []);
 
     const onSubscribe = async (e) => {
         e.preventDefault();
@@ -185,6 +215,14 @@ export default function Footer() {
                         </a>
                     </div>
                 </div>
+
+                {compteurs && compteurs.total > 0 && (
+                    <p className="footer-stats">
+                        <strong>{compteurs.total.toLocaleString(lang)}</strong> {t("visits_total")}
+                        {" · "}
+                        <strong>{compteurs.ajd.toLocaleString(lang)}</strong> {t("visits_today")}
+                    </p>
+                )}
 
                 <div className="footer-bottom">
                     <p className="footer-copy">

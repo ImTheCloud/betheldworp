@@ -186,6 +186,28 @@ service cloud.firestore {
       // n'oblige à les effacer, et personne ne doit pouvoir les perdre.
     }
 
+      // --- COMPTEURS PUBLICS (PIED DE PAGE) ---
+
+      // Deux documents, « total » et le jour courant, contenant chacun un seul
+      // nombre. Ils sont lisibles par tous parce que le pied de page les
+      // affiche, et c'est aussi la raison pour laquelle ils ne portent aucune
+      // répartition par pays, ville, langue ou appareil, contrairement à
+      // stats_daily qui reste réservé à l'admin. Un nombre de visites ne dit
+      // rien sur personne.
+      match /stats_public/{id} {
+        allow read: if true;
+
+        allow create: if request.resource.data.keys().hasOnly(['visits'])
+                      && request.resource.data.visits == 1;
+
+        // Un compteur ne redescend pas, et n'avance que d'un cran à la fois.
+        allow update: if request.resource.data.keys().hasOnly(['visits'])
+                      && request.resource.data.visits == resource.data.visits + 1;
+
+        // Aucune suppression : ces totaux sont affichés sur le site, personne
+        // ne doit pouvoir les remettre à zéro.
+      }
+
     // Les collections visitors, map_visitors, visits_global et bot_visits ont été
     // retirées : le site ne conserve plus de ligne par visite, seulement les
     // compteurs de stats_daily. Aucune règle ne les mentionne, donc plus aucune

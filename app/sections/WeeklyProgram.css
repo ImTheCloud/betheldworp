@@ -924,3 +924,33 @@
         width: min(640px, 92vw);
     }
 }
+
+/* Repère « cliquable » des jours ordinaires.
+   Même forme que le coin des jours remplacés par un événement, pour que le
+   geste se lise pareil, mais dans le bleu du site et non en doré : les deux
+   marques restent ainsi distinctes, le doré continuant de signifier « ce jour
+   est remplacé par un événement ». */
+.program-card--info::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(225deg, rgba(10, 42, 67, 0.16) 50%, transparent 50%);
+    border-radius: 0 17px 0 0;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.program-card--info::after {
+    content: "↗";
+    position: absolute;
+    top: 2px;
+    right: 4px;
+    font-size: 8px;
+    font-weight: 900;
+    color: rgba(10, 42, 67, 0.6);
+    pointer-events: none;
+    z-index: 3;
+}
