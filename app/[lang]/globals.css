@@ -44,6 +44,32 @@ html {
   font-size: 16px;
 }
 
+/* Champs de saisie : empêche le zoom automatique d'iOS.
+
+   Safari sur iPhone agrandit la page dès qu'on touche un champ dont la police
+   fait moins de 16 px, et ne revient jamais en arrière tout seul. Le
+   contournement répandu est de bloquer le zoom dans le viewport ; c'est un
+   mauvais échange, il interdit d'agrandir le texte à deux doigts et met le
+   site en échec sur le critère WCAG 1.4.4. La correction est ici.
+
+   Uniquement sur les écrans tactiles, pour ne rien changer au dessin sur
+   ordinateur. `!important` parce que ces champs sont habillés un peu partout
+   par des règles à classe, qui l'emporteraient sinon sur un sélecteur
+   d'élément : .footer-nl-input à 14 px, .nl-input à 15 px, .adminInput à
+   14 px, .suggestionFormGroup input à 0.9rem, et ainsi de suite.
+
+   Les cases à cocher et boutons radio sont écartés : ils ne reçoivent pas de
+   texte, donc ne déclenchent pas le zoom, et une taille de police les
+   agrandirait pour rien. */
+@media (pointer: coarse) {
+
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]),
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
 @media (max-width: 1024px) {
   :root {
     --next-program-bar-height: 36px;
