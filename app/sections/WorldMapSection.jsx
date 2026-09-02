@@ -73,9 +73,33 @@ export default function WorldMapSection() {
         return () => window.removeEventListener("resize", checkMobile);
     }, []);
 
-    // 400 px de marge : le globe commence à se charger juste avant d'entrer
-    // dans l'écran, pour qu'il soit prêt au moment où on le voit. Une fois
-    // déclenché, l'observateur se débranche, il n'y a rien à recharger.
+    // Le globe part dès que le navigateur n'a plus rien d'urgent à faire.
+    //
+    // Il pèse 876 Ko de JavaScript et une texture de 2 Mo : le charger avec la
+    // page retarderait le premier affichage, et c'est pour cela qu'il était
+    // différé. Mais attendre l'arrivée dans la section arrivait trop tard :
+    // trois secondes plus bas, le visiteur trouvait un cercle vide et voyait la
+    // Terre surgir après coup.
+    //
+    // requestIdleCallback laisse le premier affichage tranquille, puis prend
+    // l'avance pendant que le visiteur lit le haut de la page. Le délai de
+    // trois secondes est une limite, pas une attente : sur un appareil qui n'a
+    // plus rien à faire, le chargement commence bien avant.
+    useEffect(() => {
+        if (globeProche) return;
+        const lancer = () => setGlobeProche(true);
+        if (typeof window.requestIdleCallback === "function") {
+            const id = window.requestIdleCallback(lancer, { timeout: 3000 });
+            return () => window.cancelIdleCallback(id);
+        }
+        // Safari n'a pas requestIdleCallback : un délai fixe fait l'affaire.
+        const minuteur = setTimeout(lancer, 1500);
+        return () => clearTimeout(minuteur);
+    }, [globeProche]);
+
+    // L'observateur reste en second recours, pour le visiteur qui descend plus
+    // vite que le chargement ne démarre. 400 px de marge : le globe part juste
+    // avant d'entrer dans l'écran.
     useEffect(() => {
         const cible = globeRef.current;
         if (!cible) return;

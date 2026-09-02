@@ -13,80 +13,25 @@ import { makeT } from "../../lib/i18n";
 import worldMapTranslations from "../../translations/WorldMap.json";
 import SearchableSelect from "../../components/SearchableSelect";
 import "./WorldMap.css";
+import {
+    BELGIUM_CENTER,
+    COUNTRY_CODES,
+    COUNTRY_VIEWS,
+    MAP_ID,
+    MAP_SELECTED_CHURCH_STORAGE_KEY,
+    SUGGESTION_RETENTION_DAYS,
+} from "./mapData";
+import {
+    ensureExternalLink,
+    formatCasing,
+    formatDistance,
+    haversineDistance,
+    matchChurchSearch,
+    normalizeText,
+} from "./mapHelpers";
+import { cancelMapAnimation, newMapAnimationSignal, smoothFlyTo } from "./mapAnimation";
 
 const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-const MAP_ID = "5b50d76db2afedb8ba67cff4";
-const BELGIUM_CENTER = { lat: 50.77198, lng: 4.30396 }; // Coordinates roughly near Brussels/Halle
-const MAP_SELECTED_CHURCH_STORAGE_KEY = "bethel_worldmap_selected_church";
-
-// Une proposition contient le prénom, le nom, le téléphone et l'e-mail de la
-// personne qui l'envoie. Ces coordonnées ne servent qu'à vérifier l'église
-// proposée : passé un an, elles n'ont plus d'objet.
-//
-// ATTENTION, cette date ne supprime rien aujourd'hui. Firestore n'efface un
-// document daté que si une règle TTL a été créée sur la collection, depuis la
-// console Firebase, et elle ne l'a PAS été pour church_suggestions (choix
-// assumé du 31/08/2026). Les propositions se suppriment donc à la main, avec
-// le bouton Delete de l'onglet Suggestions.
-//
-// Le champ est écrit quand même : le jour où la règle TTL sera activée, tout
-// ce qui aura été enregistré depuis s'effacera sans autre intervention. Si
-// cette durée change, la politique de confidentialité doit suivre, elle
-// n'annonce actuellement aucun délai pour les propositions.
-const SUGGESTION_RETENTION_DAYS = 365;
-
-const COUNTRY_CODES = {
-    Afghanistan: "af", Albania: "al", Algeria: "dz", Andorra: "ad", Angola: "ao", "Antigua and Barbuda": "ag", Argentina: "ar", Armenia: "am", Australia: "au", Austria: "at", Azerbaijan: "az",
-    Bahamas: "bs", Bahrain: "bh", Bangladesh: "bd", Barbados: "bb", Belarus: "by", Belgium: "be", Belize: "bz", Benin: "bj", Bhutan: "bt", Bolivia: "bo", "Bosnia and Herzegovina": "ba", Botswana: "bw", Brazil: "br", Brunei: "bn", Bulgaria: "bg", "Burkina Faso": "bf", Burundi: "bi",
-    "Cabo Verde": "cv", Cambodia: "kh", Cameroon: "cm", Canada: "ca", "Central African Republic": "cf", Chad: "td", Chile: "cl", China: "cn", Colombia: "co", Comoros: "km", "Congo (Congo-Brazzaville)": "cg", "Costa Rica": "cr", Croatia: "hr", Cuba: "cu", Cyprus: "cy", "Czech Republic": "cz",
-    "Democratic Republic of the Congo": "cd", Denmark: "dk", Djibouti: "dj", Dominica: "dm", "Dominican Republic": "do", Ecuador: "ec", Egypt: "eg", "El Salvador": "sv", "Equatorial Guinea": "gq", Eritrea: "er", Estonia: "ee", Eswatini: "sz", Ethiopia: "et",
-    Fiji: "fj", Finland: "fi", France: "fr", Gabon: "ga", Gambia: "gm", Georgia: "ge", Germany: "de", Ghana: "gh", Greece: "gr", Grenada: "gd", Guatemala: "gt", Guinea: "gn", "Guinea-Bissau": "gw", Guyana: "gy",
-    Haiti: "ht", "Holy See": "va", Honduras: "hn", Hungary: "hu", Iceland: "is", India: "in", Indonesia: "id", Iran: "ir", Iraq: "iq", Ireland: "ie", Israel: "il", Italy: "it", "Ivory Coast": "ci",
-    Jamaica: "jm", Japan: "jp", Jordan: "jo", Kazakhstan: "kz", Kenya: "ke", Kiribati: "ki", Kuwait: "kw", Kyrgyzstan: "kg", Laos: "la", Latvia: "lv", Lebanon: "lb", Lesotho: "ls", Liberia: "lr", Libya: "ly", Liechtenstein: "li", Lithuania: "lt", Luxembourg: "lu",
-    Madagascar: "mg", Malawi: "mw", Malaysia: "my", Maldives: "mv", Mali: "ml", Malta: "mt", "Marshall Islands": "mh", Mauritania: "mr", Mauritius: "mu", Mexico: "mx", Micronesia: "fm", Moldova: "md", Monaco: "mc", Mongolia: "mn", Montenegro: "me", Morocco: "ma", Mozambique: "mz", Myanmar: "mm",
-    Namibia: "na", Nauru: "nr", Nepal: "np", Netherlands: "nl", "New Zealand": "nz", Nicaragua: "ni", Niger: "ne", Nigeria: "ng", "North Korea": "kp", "North Macedonia": "mk", Norway: "no",
-    Oman: "om", Pakistan: "pk", Palau: "pw", "Palestine State": "ps", Panama: "pa", "Papua New Guinea": "pg", Paraguay: "py", Peru: "pe", Philippines: "ph", Poland: "pl", Portugal: "pt",
-    Qatar: "qa", Romania: "ro", Russia: "ru", Rwanda: "rw", "Saint Kitts and Nevis": "kn", "Saint Lucia": "lc", "Saint Vincent and the Grenadines": "vc", Samoa: "ws", "San Marino": "sm", "Sao Tome and Principe": "st", "Saudi Arabia": "sa", Senegal: "sn", Serbia: "rs", Seychelles: "sc", "Sierra Leone": "sl", Singapore: "sg", Slovakia: "sk", Slovenia: "si", "Solomon Islands": "sb", Somalia: "so", "South Africa": "za", "South Korea": "kr", "South Sudan": "ss", Spain: "es", "Sri Lanka": "lk", Sudan: "sd", Suriname: "sr", Sweden: "se", Switzerland: "ch", Syria: "sy",
-    Taiwan: "tw", Tajikistan: "tj", Tanzania: "tz", Thailand: "th", "Timor-Leste": "tl", Togo: "tg", Tonga: "to", "Trinidad and Tobago": "tt", Tunisia: "tn", Turkey: "tr", Turkmenistan: "tm", Tuvalu: "tv",
-    Uganda: "ug", Ukraine: "ua", "United Arab Emirates": "ae", "United Kingdom": "gb", "United States": "us", Uruguay: "uy", Uzbekistan: "uz", Vanuatu: "vu", Venezuela: "ve", Vietnam: "vn", Yemen: "ye", Zambia: "zm", Zimbabwe: "zw",
-    USA: "us" // Legacy support
-};
-
-/**
- * Ensures a link is treated as an external URL by prepending https:// if no protocol is present.
- */
-const ensureExternalLink = (url) => {
-    if (!url) return "";
-    const trimmed = String(url).trim();
-    if (!trimmed) return "";
-    if (/^(https?:\/\/|mailto:|tel:)/i.test(trimmed)) {
-        return trimmed;
-    }
-    return `https://${trimmed}`;
-};
-
-/**
- * Normalizes text for search by removing accents and converting to lowercase.
- */
-const normalizeText = (text) => {
-    return (text || "")
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .toLowerCase();
-};
-
-const matchChurchSearch = (c, q) => {
-    if (!q) return true;
-    const normalizedQuery = normalizeText(q);
-    const fields = [c.name, c.city];
-    return fields.some(val => normalizeText(val).includes(normalizedQuery));
-};
-const formatCasing = (s) => {
-    if (!s) return "";
-    const str = String(s).trim();
-    if (!str) return "";
-    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-};
 
 const FlagImage = React.memo(({ country, className = "" }) => {
     const code = COUNTRY_CODES[country];
@@ -125,197 +70,6 @@ const FlagImage = React.memo(({ country, className = "" }) => {
     );
 });
 FlagImage.displayName = "FlagImage";
-
-const COUNTRY_VIEWS = {
-    Belgium: { center: { lat: 50.5039, lng: 4.4699 }, zoom: 8 },
-    Romania: { center: { lat: 45.9432, lng: 24.9668 }, zoom: 7 },
-    France: { center: { lat: 46.2276, lng: 2.2137 }, zoom: 6 },
-    Germany: { center: { lat: 51.1657, lng: 10.4515 }, zoom: 6 },
-    Netherlands: { center: { lat: 52.1326, lng: 5.2913 }, zoom: 7 },
-    Italy: { center: { lat: 41.8719, lng: 12.5674 }, zoom: 6 },
-    Spain: { center: { lat: 40.4637, lng: -3.7492 }, zoom: 6 },
-    "United Kingdom": { center: { lat: 55.3781, lng: -3.4360 }, zoom: 6 },
-    USA: { center: { lat: 37.0902, lng: -95.7129 }, zoom: 4 },
-    Austria: { center: { lat: 47.5162, lng: 14.5501 }, zoom: 7 },
-    Switzerland: { center: { lat: 46.8182, lng: 8.2275 }, zoom: 8 },
-};
-
-// ─── Smooth Animation Utilities ────────────────────────────────────────────
-
-// Global AbortController for map animations, shared across all navigation sources
-let _mapAnimationAbort = null;
-
-function cancelMapAnimation() {
-    if (_mapAnimationAbort) {
-        _mapAnimationAbort.abort();
-        _mapAnimationAbort = null;
-    }
-}
-
-function newMapAnimationSignal() {
-    cancelMapAnimation();
-    _mapAnimationAbort = new AbortController();
-    return _mapAnimationAbort.signal;
-}
-
-/**
- * Normalize any center value to a plain {lat, lng} object.
- * Handles google.maps.LatLng (methods), plain objects, or mixed.
- */
-function toLatLng(center) {
-    return {
-        lat: (typeof center.lat === 'function') ? center.lat() : center.lat,
-        lng: (typeof center.lng === 'function') ? center.lng() : center.lng,
-    };
-}
-
-/**
- * Smoothly animate the map center and zoom level using requestAnimationFrame.
- * Uses map.moveCamera() for atomic center+zoom updates per frame, preventing
- * Google Maps from batching or overriding separate setCenter/setZoom calls.
- */
-function animateMap(map, fromCenter, toCenter, fromZoom, toZoom, durationMs, abortSignal) {
-    return new Promise((resolve) => {
-        if (abortSignal?.aborted) { resolve(); return; }
-
-        const start = toLatLng(fromCenter);
-        const end = toLatLng(toCenter);
-
-        if (isNaN(start.lat) || isNaN(end.lat) || isNaN(start.lng) || isNaN(end.lng)) {
-            map.moveCamera({ center: end, zoom: toZoom });
-            resolve();
-            return;
-        }
-
-        // Ensure minimum duration so animation is always perceptible
-        const duration = Math.max(durationMs, 300);
-        const startTime = performance.now();
-
-        function step(now) {
-            if (abortSignal?.aborted) { resolve(); return; }
-            const elapsed = now - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-
-            // Ease-in-out Sine, smooth velocity curve (peak 1.57× avg)
-            const eased = -(Math.cos(Math.PI * progress) - 1) / 2;
-
-            const lat = start.lat + (end.lat - start.lat) * eased;
-            const lng = start.lng + (end.lng - start.lng) * eased;
-            const zoom = fromZoom + (toZoom - fromZoom) * eased;
-
-            // Atomic update, prevents GM internal batching issues
-            map.moveCamera({ center: { lat, lng }, zoom });
-
-            if (progress < 1) {
-                requestAnimationFrame(step);
-            } else {
-                map.moveCamera({ center: end, zoom: toZoom });
-                resolve();
-            }
-        }
-        requestAnimationFrame(step);
-    });
-}
-
-/**
- * Smoothly fly the map to a target position with a Mapbox-style arc effect.
- *
- * Strategy based on distance:
- *   - Short (< 50 km) or noZoomOut: direct pan+zoom in one phase.
- *   - Long (≥ 50 km): 3-phase arc animation:
- *       Phase 1, Zoom out to an overview level (20% of total duration)
- *       Phase 2, Pan across the map at overview zoom (50% of total duration)
- *       Phase 3, Zoom in to target (30% of total duration)
- */
-function smoothFlyTo(map, target, targetZoom, options = {}) {
-    const { abortSignal, instant } = options;
-
-    // Instant jump (e.g. initial page load)
-    if (instant) {
-        map.moveCamera({ center: target, zoom: targetZoom });
-        return Promise.resolve();
-    }
-
-    return new Promise((resolve) => {
-        if (abortSignal?.aborted) { resolve(); return; }
-
-        const currentCenter = map.getCenter();
-        if (!currentCenter) {
-            map.moveCamera({ center: target, zoom: targetZoom });
-            resolve();
-            return;
-        }
-
-        const currentZoom = map.getZoom() || 4;
-        const targetLat = (typeof target.lat === 'function') ? target.lat() : target.lat;
-        const targetLng = (typeof target.lng === 'function') ? target.lng() : target.lng;
-        const targetCoords = { lat: targetLat, lng: targetLng };
-
-        const distance = haversineDistance(
-            currentCenter.lat(), currentCenter.lng(),
-            targetLat, targetLng
-        );
-
-        // Dynamic total duration: 800ms base + 1.5ms/km, clamped [800, 3500]
-        const totalDuration = Math.max(800, Math.min(800 + distance * 1.5, 3500));
-
-        if (options.noZoomOut || distance < 50) {
-            // ── Short distance or explicit no-zoom-out: direct fly ──
-            animateMap(map, currentCenter, targetCoords, currentZoom, targetZoom, totalDuration, abortSignal)
-                .then(resolve);
-        } else {
-            // ── Long distance: 3-phase arc animation ──
-            // Calculate overview zoom: go low enough to see both endpoints
-            // The further the distance, the lower we zoom out
-            const zoomDelta = Math.min(Math.ceil(distance / 200), 5); // 1 à 5 levels out
-            const midZoom = Math.max(Math.min(currentZoom, targetZoom) - zoomDelta, 3);
-
-            // Phase durations
-            const phase1 = totalDuration * 0.20; // zoom out
-            const phase2 = totalDuration * 0.50; // pan
-            const phase3 = totalDuration * 0.30; // zoom in
-
-            const startCoords = toLatLng(currentCenter);
-
-            // Phase 1: Zoom out (stay at current center)
-            animateMap(map, startCoords, startCoords, currentZoom, midZoom, phase1, abortSignal)
-                .then(() => {
-                    if (abortSignal?.aborted) { resolve(); return; }
-                    // Phase 2: Pan to target at overview zoom
-                    const midCenter = toLatLng(map.getCenter());
-                    return animateMap(map, midCenter, targetCoords, midZoom, midZoom, phase2, abortSignal);
-                })
-                .then(() => {
-                    if (abortSignal?.aborted) { resolve(); return; }
-                    // Phase 3: Zoom in to final level
-                    return animateMap(map, targetCoords, targetCoords, midZoom, targetZoom, phase3, abortSignal);
-                })
-                .then(resolve);
-        }
-    });
-}
-
-// ─── End Smooth Animation Utilities ────────────────────────────────────────
-
-function haversineDistance(lat1, lng1, lat2, lng2) {
-    const R = 6371;
-    const dLat = ((lat2 - lat1) * Math.PI) / 180;
-    const dLng = ((lng2 - lng1) * Math.PI) / 180;
-    const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos((lat1 * Math.PI) / 180) *
-        Math.cos((lat2 * Math.PI) / 180) *
-        Math.sin(dLng / 2) *
-        Math.sin(dLng / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-}
-
-function formatDistance(km) {
-    if (km < 1) return `${Math.round(km * 1000)} m`;
-    if (km < 10) return `${km.toFixed(1)} km`;
-    return `${Math.round(km)} km`;
-}
 
 const ChurchInfoLinks = ({ church, t }) => {
     if (!church) return null;
