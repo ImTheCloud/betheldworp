@@ -25,10 +25,19 @@ button {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Indicateur de focus, sans halo blanc.
+
+   Il portait aussi un box-shadow blanc de 5 px, pense pour garantir le
+   contraste sur n importe quel fond. Il se voyait surtout sur les champs de
+   texte : d apres la specification, un champ correspond toujours a
+   :focus-visible quand il a le focus, meme au doigt, donc ce cadre blanc
+   apparaissait a chaque appui sur un telephone.
+
+   Le trait bleu reste : c est lui l indicateur de focus, et le supprimer
+   laisserait la navigation au clavier sans repere. */
 :focus-visible {
   outline: 3px solid #1f66ff;
   outline-offset: 2px;
-  box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.85);
   border-radius: 3px;
 }
 
