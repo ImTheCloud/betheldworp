@@ -268,7 +268,9 @@ export default function Admin() {
                 // avec lui : c'est ce qui donnait l'impression d'une
                 // déconnexion quotidienne. On garde la session et on propose
                 // de relancer la vérification.
-                setAdminError("Firestore refused the permission check. A content blocker holding back firestore.googleapis.com is the usual cause. Retry, or open the admin in a private window.");
+                setAdminError(
+                    "Firestore refused the permission check while your session is still valid. Close any other tab with the site open, then retry."
+                );
             } else if (code === "timeout") {
                 setAdminError("The admin check timed out. Check your connection and try again.");
             } else {
