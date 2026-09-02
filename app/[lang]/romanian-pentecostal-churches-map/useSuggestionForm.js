@@ -148,6 +148,15 @@ export function useSuggestionForm({ churches, selectedChurch, setSelectedChurch,
         localStorage.setItem(SUGGESTION_DRAFT_KEY, JSON.stringify(draft));
     }, [suggestionForm, submitterForm, suggestionStep, suggestionType, showSuggestionModal, selectedChurch]);
 
+    // Même libellé de pays que la carte. Le hook a déjà sa traduction, donc
+    // inutile de faire descendre getCountryLabel depuis ChurchMap.
+    const libellePays = (country) => {
+        if (!country) return "";
+        const cle = `country_${country}`;
+        const traduit = t(cle);
+        return traduit === cle ? country : traduit;
+    };
+
     const clearSuggestionDraft = useCallback(() => {
         localStorage.removeItem(SUGGESTION_DRAFT_KEY);
         setPendingEditChurchId(null);
@@ -269,6 +278,19 @@ export function useSuggestionForm({ churches, selectedChurch, setSelectedChurch,
             } catch (e) {
                 console.error("Failed to save submitter info:", e);
             }
+
+            // Notification côté serveur : le nom du canal ntfy ne doit pas
+            // se retrouver dans le code envoyé au navigateur.
+            fetch("/api/notify/suggestion", {
+                method: "POST",
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify({
+                    type: suggestionType,
+                    name: suggestionForm.name,
+                    city: suggestionForm.city,
+                    country: libellePays(suggestionForm.country),
+                }),
+            }).catch((e) => console.error("Notification error:", e));
 
             setSuggestionSuccess(true);
             clearSuggestionDraft();
