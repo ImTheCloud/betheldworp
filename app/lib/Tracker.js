@@ -46,6 +46,33 @@ export function brusselsWeekKey(jour = brusselsDayKey()) {
     return `${anneeISO}-W${String(numero).padStart(2, "0")}`;
 }
 
+// Les neuf paliers affiches par le site et par l'admin, deduits du jour
+// courant. Tout est calcule sur la date civile, jamais par soustraction de 24
+// heures ou de sept jours en millisecondes : les changements d'heure
+// fausseraient le resultat deux fois par an.
+//
+// Chaque valeur est l'identifiant d'un document de stats_public, sauf pour
+// l'admin qui recalcule les memes periodes depuis stats_daily.
+export function paliersDuJour(jour = brusselsDayKey()) {
+    const [an, mois, quantieme] = String(jour).split("-").map(Number);
+    const iso = (d) => d.toISOString().slice(0, 10);
+    const veille = iso(new Date(Date.UTC(an, mois - 1, quantieme - 1)));
+    const septJoursAvant = iso(new Date(Date.UTC(an, mois - 1, quantieme - 7)));
+    const debutMoisPasse = iso(new Date(Date.UTC(an, mois - 2, 1)));
+
+    return {
+        total: "total",
+        anPasse: String(an - 1),
+        anCourant: String(an),
+        moisPasse: debutMoisPasse.slice(0, 7),
+        moisCourant: jour.slice(0, 7),
+        semainePassee: brusselsWeekKey(septJoursAvant),
+        semaineCourante: brusselsWeekKey(jour),
+        hier: veille,
+        aujourdhui: jour,
+    };
+}
+
 export function deviceTypeSafe() {
     try {
         return (window.innerWidth || 0) <= 768 ? "mobile" : "desktop";

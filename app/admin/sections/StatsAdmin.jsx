@@ -4,7 +4,7 @@ import "./StatsAdmin.css";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../../lib/Firebase";
-import { brusselsWeekKey } from "../../lib/Tracker";
+import { brusselsWeekKey, paliersDuJour } from "../../lib/Tracker";
 import AdminSearch from "../components/AdminSearch";
 import ConfirmModal from "../components/ConfirmModal";
 
@@ -42,6 +42,13 @@ function languageDisplayName(code) {
     };
 
     return map[c] || c.toUpperCase();
+}
+
+function nomDeMois(cle) {
+    const [an, mois] = s(cle).split("-").map(Number);
+    if (!an || !mois) return "";
+    return new Intl.DateTimeFormat("en-GB", { month: "long", timeZone: "UTC" })
+        .format(new Date(Date.UTC(an, mois - 1, 1)));
 }
 
 function formatEnDateFromKey(key) {
@@ -450,22 +457,22 @@ export default function StatsAdmin() {
     // cinq acces supplementaires, et donne le meme resultat puisque les deux
     // series sont incrementees par la meme visite.
     const paliers = useMemo(() => {
-        const semaineCourante = brusselsWeekKey(todayKey);
-        // La veille sur la date civile, jamais par soustraction de 24 heures :
-        // aux changements d'heure, celle-ci sauterait un jour ou le repeterait.
-        const [an, mo, qu] = todayKey.split("-").map(Number);
-        const hierKey = new Date(Date.UTC(an, mo - 1, qu - 1)).toISOString().slice(0, 10);
+        const P = paliersDuJour(todayKey);
         const compte = (j) => (page === "world_map" ? j.mapVisits : j.visits);
         const somme = (garde) =>
             jours.reduce((total, j) => (garde(j.day) ? total + compte(j) : total), 0);
 
         return {
+            cles: P,
             total: somme(() => true),
-            annee: somme((d) => d.slice(0, 4) === todayKey.slice(0, 4)),
-            mois: somme((d) => d.slice(0, 7) === todayKey.slice(0, 7)),
-            semaine: somme((d) => brusselsWeekKey(d) === semaineCourante),
-            hier: somme((d) => d === hierKey),
-            aujourdhui: somme((d) => d === todayKey),
+            anPasse: somme((d) => d.startsWith(P.anPasse)),
+            anCourant: somme((d) => d.startsWith(P.anCourant)),
+            moisPasse: somme((d) => d.startsWith(P.moisPasse)),
+            moisCourant: somme((d) => d.startsWith(P.moisCourant)),
+            semainePassee: somme((d) => brusselsWeekKey(d) === P.semainePassee),
+            semaineCourante: somme((d) => brusselsWeekKey(d) === P.semaineCourante),
+            hier: somme((d) => d === P.hier),
+            aujourdhui: somme((d) => d === P.aujourdhui),
         };
     }, [jours, todayKey, page]);
 
@@ -616,11 +623,14 @@ export default function StatsAdmin() {
                 <div className="adminFullContent">
                     <div className="statsKpis">
                         {[
-                            ["Since launch", paliers.total, jourDOuverture ? `since ${formatEnDateFromKey(jourDOuverture)}` : ""],
-                            ["This year", paliers.annee, todayKey.slice(0, 4)],
-                            ["This month", paliers.mois, todayKey.slice(0, 7)],
-                            ["This week", paliers.semaine, brusselsWeekKey(todayKey)],
-                            ["Yesterday", paliers.hier, ""],
+                            ["Total", paliers.total, jourDOuverture ? `since ${formatEnDateFromKey(jourDOuverture)}` : ""],
+                            [paliers.cles.anPasse, paliers.anPasse, "last year"],
+                            [paliers.cles.anCourant, paliers.anCourant, "this year"],
+                            [nomDeMois(paliers.cles.moisPasse), paliers.moisPasse, "last month"],
+                            [nomDeMois(paliers.cles.moisCourant), paliers.moisCourant, "this month"],
+                            ["Last week", paliers.semainePassee, paliers.cles.semainePassee],
+                            ["This week", paliers.semaineCourante, paliers.cles.semaineCourante],
+                            ["Yesterday", paliers.hier, formatEnDateFromKey(paliers.cles.hier)],
                             ["Today", paliers.aujourdhui, formatEnDateFromKey(todayKey)],
                         ].map(([libelle, valeur, precision]) => (
                             <div className="statsKpi" key={libelle}>

@@ -6,17 +6,23 @@ import { useLang } from "./LanguageProvider";
 import { makeT } from "../lib/i18n";
 import tr from "../translations/Footer.json";
 import { collection, serverTimestamp, setDoc, doc, getDoc } from "firebase/firestore";
-import { brusselsDayKey, brusselsWeekKey } from "../lib/Tracker";
+import { brusselsDayKey, paliersDuJour } from "../lib/Tracker";
 import { db } from "../lib/Firebase";
 import { isValidEmail } from "../lib/validation";
 
-// Le jour precedent, au format AAAA-MM-JJ. Calcule sur la date civile plutot
-// qu'en retirant 24 heures : aux changements d'heure, une soustraction en
-// millisecondes sauterait un jour ou le repeterait.
-function veilleDe(jour) {
-    const [annee, mois, quantieme] = String(jour).split("-").map(Number);
-    const d = new Date(Date.UTC(annee, mois - 1, quantieme - 1));
-    return d.toISOString().slice(0, 10);
+function nomAnnee(cle) {
+    return String(cle || "");
+}
+
+function nomMois(cle, lang) {
+    const [an, mois] = String(cle || "").split("-").map(Number);
+    if (!an || !mois) return "";
+    try {
+        return new Intl.DateTimeFormat(lang, { month: "long", timeZone: "UTC" })
+            .format(new Date(Date.UTC(an, mois - 1, 1)));
+    } catch {
+        return cle;
+    }
 }
 
 export default function Footer() {
@@ -40,23 +46,18 @@ export default function Footer() {
 
         (async () => {
             try {
-                const jour = brusselsDayKey();
-                const ids = [
-                    "total",
-                    jour.slice(0, 4),
-                    jour.slice(0, 7),
-                    brusselsWeekKey(jour),
-                    veilleDe(jour),
-                    jour,
-                ];
+                const paliers = paliersDuJour(brusselsDayKey());
+                const ordre = Object.keys(paliers);
                 const lus = await Promise.all(
-                    ids.map((id) => getDoc(doc(db, "stats_public", id)))
+                    ordre.map((cle) => getDoc(doc(db, "stats_public", paliers[cle])))
                 );
                 if (!vivant) return;
-                const [total, annee, mois, semaine, hier, aujourdhui] = lus.map(
-                    (d) => Number(d.data()?.visits) || 0
-                );
-                setCompteurs({ total, annee, mois, semaine, hier, aujourdhui });
+                setCompteurs({
+                    ...Object.fromEntries(
+                        ordre.map((cle, i) => [cle, Number(lus[i].data()?.visits) || 0])
+                    ),
+                    cles: paliers,
+                });
             } catch {
                 // Un compteur indisponible laisse simplement le pied de page
                 // tel qu'il était : rien ne s'affiche, rien ne casse.
@@ -240,9 +241,12 @@ export default function Footer() {
                         <div className="footer-stats-row">
                             {[
                                 [t("visits_total"), compteurs.total],
-                                [t("visits_year"), compteurs.annee],
-                                [t("visits_month"), compteurs.mois],
-                                [t("visits_week"), compteurs.semaine],
+                                [nomAnnee(compteurs.cles.anPasse), compteurs.anPasse],
+                                [nomAnnee(compteurs.cles.anCourant), compteurs.anCourant],
+                                [nomMois(compteurs.cles.moisPasse, lang), compteurs.moisPasse],
+                                [nomMois(compteurs.cles.moisCourant, lang), compteurs.moisCourant],
+                                [t("visits_last_week"), compteurs.semainePassee],
+                                [t("visits_week"), compteurs.semaineCourante],
                                 [t("visits_yesterday"), compteurs.hier],
                                 [t("visits_today"), compteurs.aujourdhui],
                             ].map(([libelle, valeur]) => (
