@@ -11,7 +11,9 @@
     "subscribe_already": "Ești deja abonat(ă) ✓",
     "subscribe_error": "A apărut o eroare. Încearcă din nou.",
     "share_link": "Copiază link",
-    "link_copied": "Link copiat!"
+    "link_copied": "Link copiat!",
+    "subscribe_pending_short": "Verifică e-mailul ✓",
+    "subscribe_pending_long": "Ți-am trimis un link de confirmare. Deschide-l ca să finalizezi abonarea."
   },
   "fr": {
     "newsletter": "Newsletter",
@@ -25,7 +27,9 @@
     "subscribe_already": "Vous êtes déjà abonné(e) ✓",
     "subscribe_error": "Une erreur est survenue. Réessayez.",
     "share_link": "Partager le lien",
-    "link_copied": "Lien copié !"
+    "link_copied": "Lien copié !",
+    "subscribe_pending_short": "Vérifiez vos e-mails ✓",
+    "subscribe_pending_long": "Nous vous avons envoyé un lien de confirmation. Ouvrez-le pour finaliser votre inscription."
   },
   "nl": {
     "newsletter": "Nieuwsbrief",
@@ -39,7 +43,9 @@
     "subscribe_already": "Je bent al geabonneerd ✓",
     "subscribe_error": "Er is een fout opgetreden. Probeer opnieuw.",
     "share_link": "Link kopiëren",
-    "link_copied": "Link gekopieerd!"
+    "link_copied": "Link gekopieerd!",
+    "subscribe_pending_short": "Controleer je e-mail ✓",
+    "subscribe_pending_long": "We hebben je een bevestigingslink gestuurd. Open die om je inschrijving af te ronden."
   },
   "en": {
     "newsletter": "Newsletter",
@@ -53,6 +59,8 @@
     "subscribe_already": "You are already subscribed ✓",
     "subscribe_error": "Something went wrong. Try again.",
     "share_link": "Share link",
-    "link_copied": "Link copied!"
+    "link_copied": "Link copied!",
+    "subscribe_pending_short": "Check your email ✓",
+    "subscribe_pending_long": "We sent you a confirmation link. Open it to complete your subscription."
   }
 }
