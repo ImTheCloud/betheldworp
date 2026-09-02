@@ -4,6 +4,7 @@ import "./StatsAdmin.css";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../../lib/Firebase";
+import { brusselsWeekKey } from "../../lib/Tracker";
 import AdminSearch from "../components/AdminSearch";
 import ConfirmModal from "../components/ConfirmModal";
 
@@ -439,19 +440,30 @@ export default function StatsAdmin() {
     // Deux repères qui ignorent volontairement le sélecteur de période : le
     // cumul depuis l'ouverture de la v2 du site, et le compteur du jour. Ils
     // gardent le même sens quand la vue est filtrée sur sept jours.
-    const totalDepuisOuverture = useMemo(
-        () => jours.reduce((s, j) => s + (page === "world_map" ? j.mapVisits : j.visits), 0),
-        [jours, page]
-    );
+    // Cinq paliers, recalcules a partir des jours deja charges : depuis
+    // l'ouverture, l'annee, le mois, la semaine et aujourd'hui. Ils ignorent
+    // volontairement le selecteur de periode, sinon ils changeraient de sens
+    // des que la vue est filtree sur sept jours.
+    //
+    // Le pied de page du site affiche les memes chiffres, mais les lit dans
+    // stats_public. Ici, tout est deja en memoire : recalculer coute moins que
+    // cinq acces supplementaires, et donne le meme resultat puisque les deux
+    // series sont incrementees par la meme visite.
+    const paliers = useMemo(() => {
+        const semaineCourante = brusselsWeekKey(todayKey);
+        const compte = (j) => (page === "world_map" ? j.mapVisits : j.visits);
+        const somme = (garde) =>
+            jours.reduce((total, j) => (garde(j.day) ? total + compte(j) : total), 0);
 
-    const totalAujourdhui = useMemo(() => {
-        const j = jours.find((x) => x.day === todayKey);
-        if (!j) return 0;
-        return page === "world_map" ? j.mapVisits : j.visits;
+        return {
+            total: somme(() => true),
+            annee: somme((d) => d.slice(0, 4) === todayKey.slice(0, 4)),
+            mois: somme((d) => d.slice(0, 7) === todayKey.slice(0, 7)),
+            semaine: somme((d) => brusselsWeekKey(d) === semaineCourante),
+            aujourdhui: somme((d) => d === todayKey),
+        };
     }, [jours, todayKey, page]);
 
-    // Lu dans les données plutôt que codé en dur : si un jour plus ancien
-    // apparaît, la mention suit au lieu de mentir.
     const jourDOuverture = jours.length ? jours[0].day : "";
 
 
@@ -598,22 +610,21 @@ export default function StatsAdmin() {
             ) : (
                 <div className="adminFullContent">
                     <div className="statsKpis">
-                        <div className="statsKpi">
-                            <div className="statsKpiValue">{totalDepuisOuverture.toLocaleString("fr-BE")}</div>
-                            <div className="statsKpiLabel">
-                                {page === "world_map" ? "Map visits since launch" : "Visits since launch"}
+                        {[
+                            ["Since launch", paliers.total, jourDOuverture ? `since ${formatEnDateFromKey(jourDOuverture)}` : ""],
+                            ["This year", paliers.annee, todayKey.slice(0, 4)],
+                            ["This month", paliers.mois, todayKey.slice(0, 7)],
+                            ["This week", paliers.semaine, brusselsWeekKey(todayKey)],
+                            ["Today", paliers.aujourdhui, formatEnDateFromKey(todayKey)],
+                        ].map(([libelle, valeur, precision]) => (
+                            <div className="statsKpi" key={libelle}>
+                                <div className="statsKpiValue">{valeur.toLocaleString("fr-BE")}</div>
+                                <div className="statsKpiLabel">
+                                    {page === "world_map" ? `Map · ${libelle}` : libelle}
+                                </div>
+                                {precision ? <div className="statsKpiHint">{precision}</div> : null}
                             </div>
-                            {jourDOuverture ? (
-                                <div className="statsKpiHint">since {formatEnDateFromKey(jourDOuverture)}</div>
-                            ) : null}
-                        </div>
-                        <div className="statsKpi">
-                            <div className="statsKpiValue">{totalAujourdhui.toLocaleString("fr-BE")}</div>
-                            <div className="statsKpiLabel">
-                                {page === "world_map" ? "Map visits today" : "Visits today"}
-                            </div>
-                            <div className="statsKpiHint">{formatEnDateFromKey(todayKey)}</div>
-                        </div>
+                        ))}
                     </div>
 
                     <BarChart

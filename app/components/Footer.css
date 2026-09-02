@@ -355,21 +355,41 @@
     opacity: 1;
 }
 
-/* Compteurs de visites, au-dessus de la rangée du bas.
-   Volontairement discrets : la même taille et la même teinte que la mention
-   de copyright, les seuls nombres étant un peu plus lisibles. */
+/* Compteurs de visites, sous la boîte d'inscription à la newsletter.
+   Quatre paliers sur une rangée qui se replie d'elle-même sur les écrans
+   étroits : les cellules gardent leur largeur naturelle, aucune ne se coupe. */
 .footer-stats {
-    margin: 0 0 14px 0;
-    font-size: 12px;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.4);
-    text-align: center;
+    margin-top: 20px;
 }
 
-.footer-stats strong {
-    color: rgba(255, 255, 255, 0.72);
+.footer-stats-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 22px;
+    margin-top: 10px;
+}
+
+.footer-stat {
+    min-width: 0;
+}
+
+.footer-stat-value {
+    display: block;
+    font-size: 16px;
     font-weight: 700;
-    /* Les chiffres gardent la même largeur : le total ne tressaute pas d'une
-       page à l'autre. */
+    line-height: 1.15;
+    color: rgba(255, 255, 255, 0.92);
+    /* Les chiffres gardent la même largeur : les colonnes ne se décalent pas
+       quand un compteur passe de 9 à 10. */
     font-variant-numeric: tabular-nums;
+}
+
+.footer-stat-label {
+    display: block;
+    margin-top: 3px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(255, 255, 255, 0.42);
 }

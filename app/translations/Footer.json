@@ -18,8 +18,12 @@
         "subscribe_error": "Eroare. Mai încearcă.",
         "address": "Adresă",
         "privacy": "Confidențialitate",
-        "visits_total": "de vizite din decembrie 2025",
-        "visits_today": "azi"
+        "visits_total": "de la început",
+        "visits_today": "azi",
+        "visits_label": "Vizite",
+        "visits_year": "anul acesta",
+        "visits_month": "luna aceasta",
+        "visits_week": "săptămâna aceasta"
     },
     "fr": {
         "logo_alt": "Bethel",
@@ -40,8 +44,12 @@
         "subscribe_error": "Erreur. Réessayez.",
         "address": "Adresse",
         "privacy": "Confidentialité",
-        "visits_total": "visites depuis décembre 2025",
-        "visits_today": "aujourd'hui"
+        "visits_total": "depuis le début",
+        "visits_today": "aujourd'hui",
+        "visits_label": "Visites",
+        "visits_year": "cette année",
+        "visits_month": "ce mois",
+        "visits_week": "cette semaine"
     },
     "nl": {
         "logo_alt": "Bethel",
@@ -62,8 +70,12 @@
         "subscribe_error": "Fout. Probeer opnieuw.",
         "address": "Adres",
         "privacy": "Privacy",
-        "visits_total": "bezoeken sinds december 2025",
-        "visits_today": "vandaag"
+        "visits_total": "sinds het begin",
+        "visits_today": "vandaag",
+        "visits_label": "Bezoeken",
+        "visits_year": "dit jaar",
+        "visits_month": "deze maand",
+        "visits_week": "deze week"
     },
     "en": {
         "logo_alt": "Bethel",
@@ -84,7 +96,11 @@
         "subscribe_error": "Error. Try again.",
         "address": "Address",
         "privacy": "Privacy",
-        "visits_total": "visits since December 2025",
-        "visits_today": "today"
+        "visits_total": "since the start",
+        "visits_today": "today",
+        "visits_label": "Visits",
+        "visits_year": "this year",
+        "visits_month": "this month",
+        "visits_week": "this week"
     }
 }

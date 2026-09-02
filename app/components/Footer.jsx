@@ -6,7 +6,7 @@ import { useLang } from "./LanguageProvider";
 import { makeT } from "../lib/i18n";
 import tr from "../translations/Footer.json";
 import { collection, serverTimestamp, setDoc, doc, getDoc } from "firebase/firestore";
-import { brusselsDayKey } from "../lib/Tracker";
+import { brusselsDayKey, brusselsWeekKey } from "../lib/Tracker";
 import { db } from "../lib/Firebase";
 import { isValidEmail } from "../lib/validation";
 
@@ -31,15 +31,16 @@ export default function Footer() {
 
         (async () => {
             try {
-                const [total, ajd] = await Promise.all([
-                    getDoc(doc(db, "stats_public", "total")),
-                    getDoc(doc(db, "stats_public", brusselsDayKey())),
-                ]);
+                const jour = brusselsDayKey();
+                const ids = ["total", jour.slice(0, 4), jour.slice(0, 7), brusselsWeekKey(jour), jour];
+                const lus = await Promise.all(
+                    ids.map((id) => getDoc(doc(db, "stats_public", id)))
+                );
                 if (!vivant) return;
-                setCompteurs({
-                    total: Number(total.data()?.visits) || 0,
-                    ajd: Number(ajd.data()?.visits) || 0,
-                });
+                const [total, annee, mois, semaine, aujourdhui] = lus.map(
+                    (d) => Number(d.data()?.visits) || 0
+                );
+                setCompteurs({ total, annee, mois, semaine, aujourdhui });
             } catch {
                 // Un compteur indisponible laisse simplement le pied de page
                 // tel qu'il était : rien ne s'affiche, rien ne casse.
@@ -160,6 +161,28 @@ export default function Footer() {
                                 </form>
                             )}
                         </div>
+
+                        {compteurs && compteurs.total > 0 && (
+                            <div className="footer-stats">
+                                <span className="footer-label">{t("visits_label")}:</span>
+                                <div className="footer-stats-row">
+                                    {[
+                                        [t("visits_total"), compteurs.total],
+                                        [t("visits_year"), compteurs.annee],
+                                        [t("visits_month"), compteurs.mois],
+                                        [t("visits_week"), compteurs.semaine],
+                                        [t("visits_today"), compteurs.aujourdhui],
+                                    ].map(([libelle, valeur]) => (
+                                        <div className="footer-stat" key={libelle}>
+                                            <span className="footer-stat-value">
+                                                {valeur.toLocaleString(lang)}
+                                            </span>
+                                            <span className="footer-stat-label">{libelle}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="footer-contacts" aria-label={t("contact_aria")}>
@@ -215,14 +238,6 @@ export default function Footer() {
                         </a>
                     </div>
                 </div>
-
-                {compteurs && compteurs.total > 0 && (
-                    <p className="footer-stats">
-                        <strong>{compteurs.total.toLocaleString(lang)}</strong> {t("visits_total")}
-                        {" · "}
-                        <strong>{compteurs.ajd.toLocaleString(lang)}</strong> {t("visits_today")}
-                    </p>
-                )}
 
                 <div className="footer-bottom">
                     <p className="footer-copy">

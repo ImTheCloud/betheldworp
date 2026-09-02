@@ -31,6 +31,21 @@ export function brusselsDayKey() {
     }
 }
 
+// La semaine ISO au format AAAA-Wnn, deduite du jour deja calcule a l'heure de
+// Bruxelles. Meme decoupage que le programme hebdomadaire : la semaine commence
+// le lundi, et c'est le jeudi qui decide de l'annee, ce qui evite qu'une semaine
+// a cheval sur deux annees soit comptee deux fois.
+export function brusselsWeekKey(jour = brusselsDayKey()) {
+    const [annee, mois, quantieme] = String(jour).split("-").map(Number);
+    const date = new Date(Date.UTC(annee, mois - 1, quantieme));
+    const jourSemaine = date.getUTCDay() || 7;
+    date.setUTCDate(date.getUTCDate() + 4 - jourSemaine);
+    const anneeISO = date.getUTCFullYear();
+    const debut = new Date(Date.UTC(anneeISO, 0, 1));
+    const numero = Math.ceil(((date - debut) / 86400000 + 1) / 7);
+    return `${anneeISO}-W${String(numero).padStart(2, "0")}`;
+}
+
 export function deviceTypeSafe() {
     try {
         return (window.innerWidth || 0) <= 768 ? "mobile" : "desktop";

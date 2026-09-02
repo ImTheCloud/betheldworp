@@ -498,7 +498,10 @@
    empiler gaspillerait la hauteur là où elle est la plus rare. */
 .statsKpis {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    /* Deux colonnes sur telephone, jusqu'a cinq sur grand ecran, sans palier
+       code en dur : chaque cellule reclame 120 px et la grille en met autant
+       qu'il en tient. */
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
     gap: 12px;
     margin-bottom: 20px;
 }
@@ -537,6 +540,6 @@
 
 @media (min-width: 700px) {
     .statsKpiValue {
-        font-size: 34px;
+        font-size: 28px;
     }
 }
