@@ -233,21 +233,23 @@ export default function Footer() {
                         <span className="footer-label">{t("visits_label")}:</span>
                         <div className="footer-stats-row">
                             {[
-                                [t("visits_total"), compteurs.total],
+                                // La date de depart ne qualifie que le total : les
+                                // trois autres compteurs portent leur periode dans
+                                // leur propre libelle.
+                                [t("visits_total"), compteurs.total, t("visits_since")],
                                 [t("visits_year"), compteurs.anCourant],
                                 [t("visits_month"), compteurs.moisCourant],
                                 [t("visits_today"), compteurs.aujourdhui],
-                            ].map(([libelle, valeur]) => (
+                            ].map(([libelle, valeur, depuis]) => (
                                 <div className="footer-stat" key={libelle}>
                                     <span className="footer-stat-value">
                                         {valeur.toLocaleString(lang)}
                                     </span>
                                     <span className="footer-stat-label">{libelle}</span>
+                                    {depuis && <span className="footer-stat-since">{depuis}</span>}
                                 </div>
                             ))}
                         </div>
-
-                        <p className="footer-stats-since">{t("visits_since")}</p>
                     </div>
                 )}
 

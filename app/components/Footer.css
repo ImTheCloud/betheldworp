@@ -420,11 +420,20 @@
     color: rgba(255, 255, 255, 0.42);
 }
 
-.footer-stats-since {
-    margin: 10px 0 0 0;
-    font-size: 11px;
+/* Rattachee au compteur « total », sous son libelle, parce qu elle ne qualifie
+   que lui : les trois autres compteurs disent deja leur periode. Posee sous la
+   rangee, elle semblait porter sur les quatre.
+
+   Plus discrete que le libelle au-dessus, et sans majuscules, pour rester une
+   precision et ne pas se lire comme un cinquieme compteur. Elle allonge un peu
+   la premiere cellule, les autres restent alignees en haut. */
+.footer-stat-since {
+    display: block;
+    margin-top: 3px;
+    font-size: 10px;
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.38);
+    line-height: 1.3;
+    color: rgba(255, 255, 255, 0.3);
 }
 
 /* Six colonnes ne tiennent que sur un ecran large : en dessous,
