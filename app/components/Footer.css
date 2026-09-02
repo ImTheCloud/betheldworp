@@ -385,10 +385,11 @@ il y ajoutait deux rangees et laissait la
        une grille auto-fit laissait des cellules seules sur une rangee de
        plus des que la largeur changeait. */
     display: grid;
-    grid-template-columns: repeat(9, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     justify-items: start;
-    gap: 14px 16px;
+    gap: 14px 18px;
     margin-top: 12px;
+    max-width: 420px;
 }
 
 .footer-stat {
@@ -415,29 +416,8 @@ il y ajoutait deux rangees et laissait la
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: rgba(255, 255, 255, 0.42);
-    /* Deux lignes reservees d'office : les libelles longs en roumain se
-       replient, et sans cette hauteur les rangees ne s'alignaient plus. */
-    min-height: 26px;
 }
 
-/* Quelle periode exactement : « 2025 »,
-« august »,
-« 2 sept. ». Le libelle
-   au-dessus dit de quoi il s'agit,
-cette ligne dit laquelle. Elle reste vide
-   pour le total et les semaines,
-un numero de semaine ISO n'apprenant rien a
-   personne,
-mais garde sa hauteur pour que les rangees restent alignees. */
-.footer-stat-hint {
-    display: block;
-    margin-top: 1px;
-    min-height: 13px;
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    color: rgba(255, 255, 255, 0.28);
-}
 
 /* Depuis quand ces chiffres comptent,
 et sur quelle version du site. */
@@ -452,14 +432,3 @@ et sur quelle version du site. */
 deux rangees
    de trois,
 ce qui reste deux rangees pleines. */
-/* Neuf colonnes ne tiennent que sur un ecran large. En dessous,
-trois
-   colonnes,
-soit trois rangees pleines : jamais de cellule seule en bout de
-   grille,
-quelle que soit la largeur. */
-@media (max-width: 1100px) {
-    .footer-stats-row {
-        grid-template-columns: repeat(3, 1fr);
-    }
-}

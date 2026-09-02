@@ -10,29 +10,7 @@ import { brusselsDayKey, paliersDuJour } from "../lib/Tracker";
 import { db } from "../lib/Firebase";
 import { isValidEmail } from "../lib/validation";
 
-// Jour au format court, « 1 sept. », pour distinguer hier d'aujourd'hui sans
-// alourdir la cellule.
-function jourCourt(cle, lang) {
-    const [an, mois, quantieme] = String(cle || "").split("-").map(Number);
-    if (!an || !mois || !quantieme) return "";
-    try {
-        return new Intl.DateTimeFormat(lang, { day: "numeric", month: "short", timeZone: "UTC" })
-            .format(new Date(Date.UTC(an, mois - 1, quantieme)));
-    } catch {
-        return "";
-    }
-}
 
-function nomMois(cle, lang) {
-    const [an, mois] = String(cle || "").split("-").map(Number);
-    if (!an || !mois) return "";
-    try {
-        return new Intl.DateTimeFormat(lang, { month: "long", timeZone: "UTC" })
-            .format(new Date(Date.UTC(an, mois - 1, 1)));
-    } catch {
-        return cle;
-    }
-}
 
 export default function Footer() {
     const { lang } = useLang();
@@ -56,17 +34,16 @@ export default function Footer() {
         (async () => {
             try {
                 const paliers = paliersDuJour(brusselsDayKey());
-                const ordre = Object.keys(paliers);
+                const montres = ["total", "moisCourant", "aujourdhui"];
                 const lus = await Promise.all(
-                    ordre.map((cle) => getDoc(doc(db, "stats_public", paliers[cle])))
+                    montres.map((cle) => getDoc(doc(db, "stats_public", paliers[cle])))
                 );
                 if (!vivant) return;
-                setCompteurs({
-                    ...Object.fromEntries(
-                        ordre.map((cle, i) => [cle, Number(lus[i].data()?.visits) || 0])
-                    ),
-                    cles: paliers,
-                });
+                setCompteurs(
+                    Object.fromEntries(
+                        montres.map((cle, i) => [cle, Number(lus[i].data()?.visits) || 0])
+                    )
+                );
             } catch {
                 // Un compteur indisponible laisse simplement le pied de page
                 // tel qu'il était : rien ne s'affiche, rien ne casse.
@@ -249,22 +226,15 @@ export default function Footer() {
                         <span className="footer-label">{t("visits_label")}:</span>
                         <div className="footer-stats-row">
                             {[
-                                [t("visits_total"), compteurs.total, ""],
-                                [t("visits_last_year"), compteurs.anPasse, compteurs.cles.anPasse],
-                                [t("visits_year"), compteurs.anCourant, compteurs.cles.anCourant],
-                                [t("visits_last_month"), compteurs.moisPasse, nomMois(compteurs.cles.moisPasse, lang)],
-                                [t("visits_month"), compteurs.moisCourant, nomMois(compteurs.cles.moisCourant, lang)],
-                                [t("visits_last_week"), compteurs.semainePassee, ""],
-                                [t("visits_week"), compteurs.semaineCourante, ""],
-                                [t("visits_yesterday"), compteurs.hier, jourCourt(compteurs.cles.hier, lang)],
-                                [t("visits_today"), compteurs.aujourdhui, jourCourt(compteurs.cles.aujourdhui, lang)],
-                            ].map(([libelle, valeur, precision]) => (
+                                [t("visits_total"), compteurs.total],
+                                [t("visits_month"), compteurs.moisCourant],
+                                [t("visits_today"), compteurs.aujourdhui],
+                            ].map(([libelle, valeur]) => (
                                 <div className="footer-stat" key={libelle}>
                                     <span className="footer-stat-value">
                                         {valeur.toLocaleString(lang)}
                                     </span>
                                     <span className="footer-stat-label">{libelle}</span>
-                                    <span className="footer-stat-hint">{precision}</span>
                                 </div>
                             ))}
                         </div>

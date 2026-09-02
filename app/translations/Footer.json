@@ -19,13 +19,7 @@
         "visits_total": "total",
         "visits_today": "azi",
         "visits_label": "Vizite",
-        "visits_week": "săptămâna aceasta",
-        "visits_yesterday": "ieri",
         "visits_since": "Site v2, din 21 decembrie 2025",
-        "visits_last_week": "săptămâna trecută",
-        "visits_last_year": "anul trecut",
-        "visits_year": "anul acesta",
-        "visits_last_month": "luna trecută",
         "visits_month": "luna aceasta"
     },
     "fr": {
@@ -48,13 +42,7 @@
         "visits_total": "total",
         "visits_today": "aujourd'hui",
         "visits_label": "Visites",
-        "visits_week": "cette semaine",
-        "visits_yesterday": "hier",
         "visits_since": "Site v2, depuis le 21 décembre 2025",
-        "visits_last_week": "semaine passée",
-        "visits_last_year": "année passée",
-        "visits_year": "année en cours",
-        "visits_last_month": "mois passé",
         "visits_month": "mois en cours"
     },
     "nl": {
@@ -77,13 +65,7 @@
         "visits_total": "totaal",
         "visits_today": "vandaag",
         "visits_label": "Bezoeken",
-        "visits_week": "deze week",
-        "visits_yesterday": "gisteren",
         "visits_since": "Site v2, sinds 21 december 2025",
-        "visits_last_week": "vorige week",
-        "visits_last_year": "vorig jaar",
-        "visits_year": "dit jaar",
-        "visits_last_month": "vorige maand",
         "visits_month": "deze maand"
     },
     "en": {
@@ -106,13 +88,7 @@
         "visits_total": "total",
         "visits_today": "today",
         "visits_label": "Visits",
-        "visits_week": "this week",
-        "visits_yesterday": "yesterday",
         "visits_since": "Site v2, since 21 December 2025",
-        "visits_last_week": "last week",
-        "visits_last_year": "last year",
-        "visits_year": "this year",
-        "visits_last_month": "last month",
         "visits_month": "this month"
     }
 }
