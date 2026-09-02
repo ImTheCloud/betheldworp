@@ -378,11 +378,14 @@
        une grille auto-fit laissait des cellules seules sur une rangee de
        plus des que la largeur changeait. */
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    /* La premiere colonne prend la largeur de son contenu : elle porte « TOTAL »
+       suivi de la date de depart, plus large qu un quart de la rangee. Les
+       trois autres se partagent le reste a egalite. */
+    grid-template-columns: auto repeat(3, 1fr);
     justify-items: start;
     gap: 14px 18px;
     margin-top: 12px;
-    max-width: 520px;
+    max-width: 580px;
 }
 
 /* Quatre colonnes demandent une largeur que le telephone n'a pas : deux
@@ -420,19 +423,18 @@
     color: rgba(255, 255, 255, 0.42);
 }
 
-/* Rattachee au compteur « total », sous son libelle, parce qu elle ne qualifie
-   que lui : les trois autres compteurs disent deja leur periode. Posee sous la
-   rangee, elle semblait porter sur les quatre.
+/* Sur la meme ligne que « total », dont elle est la suite : « TOTAL din
+   decembrie 2025 » se lit d un trait, alors qu une ligne en dessous ajoutait
+   une hauteur pour rien et laissait croire a un cinquieme compteur.
 
-   Plus discrete que le libelle au-dessus, et sans majuscules, pour rester une
-   precision et ne pas se lire comme un cinquieme compteur. Elle allonge un peu
-   la premiere cellule, les autres restent alignees en haut. */
+   Elle ne qualifie que le total, les trois autres compteurs disent deja leur
+   periode dans leur libelle. Ni majuscules ni interlettrage, hérités sinon du
+   libelle qui l entoure, pour qu elle reste une precision. */
 .footer-stat-since {
-    display: block;
-    margin-top: 3px;
-    font-size: 10px;
+    margin-left: 6px;
     font-weight: 600;
-    line-height: 1.3;
+    text-transform: none;
+    letter-spacing: normal;
     color: rgba(255, 255, 255, 0.3);
 }
 

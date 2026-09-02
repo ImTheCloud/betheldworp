@@ -245,8 +245,10 @@ export default function Footer() {
                                     <span className="footer-stat-value">
                                         {valeur.toLocaleString(lang)}
                                     </span>
-                                    <span className="footer-stat-label">{libelle}</span>
-                                    {depuis && <span className="footer-stat-since">{depuis}</span>}
+                                    <span className="footer-stat-label">
+                                        {libelle}
+                                        {depuis && <span className="footer-stat-since">{depuis}</span>}
+                                    </span>
                                 </div>
                             ))}
                         </div>
