@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useMemo, useState, useLayoutEffect } from "react";
-import { Canvas, useFrame, useLoader } from "@react-three/fiber";
+import { Canvas, useFrame, useLoader, useThree } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 
@@ -13,6 +13,7 @@ useLoader.preload(THREE.TextureLoader, "/textures/earth-blue.jpg");
 ───────────────────────────────────────── */
 function EarthSphere({ onPremierRendu }) {
     const meshRef = useRef();
+    const gl = useThree((etat) => etat.gl);
     const texture = useLoader(THREE.TextureLoader, "/textures/earth-blue.jpg");
 
     /* useLayoutEffect et non useEffect : le réglage doit être posé AVANT que la
@@ -23,18 +24,22 @@ function EarthSphere({ onPremierRendu }) {
         texture.colorSpace = THREE.SRGBColorSpace;
         texture.anisotropy = 16;
         texture.needsUpdate = true;
-    }, [texture]);
 
-    const annonce = useRef(false);
+        /* Envoi immediat de la texture au processeur graphique. Sans cela
+           three.js ne la televerse qu'au premier rendu du materiau, si bien que
+           la toute premiere image sortait avec une sphere sans texture. */
+        gl.initTexture(texture);
+    }, [texture, gl]);
+
+    const imagesRendues = useRef(0);
 
     useFrame((_, delta) => {
-        /* La toute première image dessinée est le seul moment où l'on sait que
-           la Terre est réellement à l'écran, texture envoyée au processeur
-           graphique comprise. C'est de là qu'on autorise l'apparition, et non
-           d'un délai fixe qui devinait. */
-        if (!annonce.current) {
-            annonce.current = true;
-            onPremierRendu();
+        /* On revele a la deuxieme image, pas a la premiere : la texture est
+           deja televersee par initTexture, et cette image de marge garantit
+           qu'aucune sphere sans texture ne passe a l'ecran. */
+        if (imagesRendues.current < 2) {
+            imagesRendues.current += 1;
+            if (imagesRendues.current === 2) onPremierRendu();
         }
 
         /* Rotation lente */

@@ -193,7 +193,14 @@
     border-radius: 50%;
     overflow: hidden;
     position: relative;
-    background: radial-gradient(circle at 30% 30%, #164678 0%, #0a2a43 70%);
+    /* Aucun fond.
+       Ce cercle portait un degrade bleu, cense faire patienter pendant le
+       chargement. Il ne faisait pas patienter : il dessinait une boule bleue
+       pleine pendant la seconde que met le globe a se charger et a apparaitre,
+       et c'est elle qu'on voyait, pas le globe. La Terre remplit de toute
+       facon le cercle une fois affichee, donc ce fond n'a jamais servi a
+       autre chose. La place reste reservee par la taille du cercle, la page
+       ne saute donc pas davantage qu'avant. */
 }
 
 .worldmap-globe-wrap::after {
