@@ -102,9 +102,6 @@
     align-items: stretch;
 }
 
-/* Odd number of cards: the lone last one keeps a normal card width and is
-   centred on its row,
-instead of stretching or leaving a hole on one side. */
 .program-grid > .program-card:last-child:nth-child(3n + 1) {
     grid-column: 2 / 3;
 }
@@ -284,7 +281,6 @@ instead of stretching or leaving a hole on one side. */
     transform: translateY(-2px);
 }
 
-/* ── Summer Notice ── */
 .program-summerNotice {
     display: flex;
     align-items: stretch;
@@ -384,10 +380,6 @@ instead of stretching or leaving a hole on one side. */
         --program-gap: 10px;
     }
 
-    /* Hauteur commune calee sur un titre de 2 lignes : toutes les cartes du
-       programme habituel font exactement la meme taille. Seul un titre
-       d'evenement plus long depasse,
-ce qui est voulu. */
     .program-card {
         min-height: 132px;
     }
@@ -427,7 +419,6 @@ ce qui est voulu. */
     }
 }
 
-/* ── Merged FAQ Accordion ── */
 .faq-header {
     text-align: center;
     margin-top: 60px;
@@ -443,7 +434,6 @@ ce qui est voulu. */
     margin: 0 0 16px 0;
 }
 
-/* ── Accordion list ── */
 .faq-list-wrap {
     display: flex;
     flex-direction: column;
@@ -467,7 +457,6 @@ ce qui est voulu. */
     background: #fafcff;
 }
 
-/* ── Question button ── */
 .faq-question {
     width: 100%;
     display: flex;
@@ -541,7 +530,6 @@ ce qui est voulu. */
     color: #0a2a43;
 }
 
-/* ── Answer ── */
 .faq-answer-wrap {
     overflow: hidden;
     max-height: 0;
@@ -622,17 +610,6 @@ ce qui est voulu. */
         padding: 0 20px 20px 20px;
     }
 
-    .faq-closing {
-        padding: 40px 32px;
-        border-radius: 24px;
-    }
-
-    .faq-closing::before {
-        font-size: 100px;
-        top: 16px;
-        left: 16px;
-    }
-
     .faq-q-number {
         width: 28px;
         height: 28px;
@@ -640,15 +617,6 @@ ce qui est voulu. */
         font-size: 11px;
     }
 }
-/* Carte d'un jour ordinaire : elle ouvre la réponse de la FAQ qui décrit ce
-   jour. Volontairement sans le coin doré de .program-card--clickable,
-qui
-   garde son sens précis,
-« ce jour est remplacé par un événement ». Au repos
-   l'aspect ne change pas : c'est le survol,
-absent sur téléphone,
-qui
-   distingue. */
 .program-card--info {
     cursor: pointer;
     transition: transform 0.15s ease;
@@ -669,9 +637,6 @@ qui
     outline-offset: 3px;
 }
 
-/* Modale d'un jour : le cadre vient des classes ev-* de la modale
-   d'événement,
-seul le contenu est habillé ici. */
 .program-dayModalMeta {
     display: flex;
     flex-wrap: wrap;
@@ -690,11 +655,6 @@ seul le contenu est habillé ici. */
     background: rgba(10, 42, 67, 0.06);
 }
 
-/* Le bleu du site,
-et non le dore : celui-ci designe ailleurs un jour
-   remplace par un evenement,
-ce que le nom du jour n'a aucune raison
-   d'evoquer. */
 .program-dayModalChip--day {
     color: #0a2a43;
     background: rgba(10, 42, 67, 0.1);
@@ -712,9 +672,6 @@ ce que le nom du jour n'a aucune raison
     color: #0a2a43;
 }
 
-/* Même typographie que la réponse de l'accordéon,
-sans son retrait de 76 px
-   qui réservait la place au numéro de la question. */
 .program-dayModalAnswer {
     font-size: 14.5px;
     line-height: 1.75;
@@ -738,14 +695,6 @@ la fenêtre y occupe toute la largeur. */
     }
 }
 
-/* Repère « cliquable » des jours ordinaires.
-   Même forme que le coin des jours remplacés par un événement,
-pour que le
-   geste se lise pareil,
-mais dans le bleu du site et non en doré : les deux
-   marques restent ainsi distinctes,
-le doré continuant de signifier « ce jour
-   est remplacé par un événement ». */
 .program-card--info::before {
     content: "";
     position: absolute;

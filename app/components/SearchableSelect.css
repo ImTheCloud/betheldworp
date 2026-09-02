@@ -86,7 +86,6 @@
     color: #0a2a43;
 }
 
-/* Ensure text doesn't overlap chevron */
 .searchableSelect input {
     padding-right: 36px !important;
 }

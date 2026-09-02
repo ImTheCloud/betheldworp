@@ -18,7 +18,6 @@
     box-sizing: border-box;
 }
 
-/* ── Login / Access Denied Wrapper ── */
 .adminLoginWrap {
     width: 100%;
     max-width: 480px;
@@ -30,7 +29,6 @@
     min-height: 100vh;
 }
 
-/* ── Main Layout (Sidebar + Content) ── */
 .adminLayout {
     width: 100vw;
     height: 100vh;
@@ -51,7 +49,6 @@
     overflow: hidden;
 }
 
-/* ── Sidebar ── */
 .adminSidebar {
     background: #fff;
     /* Solid white or very light gray */
@@ -191,7 +188,6 @@
     padding: 8px 0;
 }
 
-/* ── Content Area ── */
 .adminContent {
     background: transparent;
     /* Transparent to show layout bg */
@@ -206,7 +202,6 @@
     /* Aggressively reduced padding */
 }
 
-/* Hide scrollbar for cleaner ook but keep functionality */
 .adminContent::-webkit-scrollbar {
     width: 8px;
 }
@@ -281,7 +276,6 @@
     color: #0a2a43;
 }
 
-/* ── Standardized Search Bar ── */
 .adminSearchWrapper {
     position: relative;
     width: 100%;
@@ -337,7 +331,6 @@
     color: #ef4444;
 }
 
-/* ── Standardized Date/Time/Week Inputs ── */
 .adminInput[type="date"],
 .adminInput[type="time"],
 .adminInput[type="week"] {
@@ -427,8 +420,8 @@
 @media (max-width: 600px) {
 
     .adminDeleteBtn,
-    .adminMsgSaveBtn,
-    .adminResubscribeBtn {
+.adminMsgSaveBtn,
+.adminResubscribeBtn {
         width: 100%;
         justify-content: center;
     }
@@ -453,7 +446,6 @@
     font-size: 14px;
 }
 
-/* ── Bar Chart ── */
 .statsBarChartWrap {
     background: #fff;
     border: 1px solid rgba(10, 42, 67, 0.08);
@@ -630,10 +622,6 @@
     }
 }
 
-/* ── Specific Components (Chips,
-Toggles,
-etc) ── */
-
 .adminAffectGrid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
@@ -779,8 +767,6 @@ etc) ── */
     text-overflow: ellipsis;
 }
 
-/* Default truncation applied above */
-
 .adminSmallBtn {
     background: transparent;
     border: 1px solid rgba(10, 42, 67, 0.1);
@@ -892,7 +878,6 @@ etc) ── */
     grid-template-columns: 1fr 1fr 1fr;
 }
 
-/* ── Basic Switch ── */
 .adminSwitch {
     position: relative;
     display: inline-block;
@@ -977,8 +962,6 @@ input:checked + .adminSlider:before {
     min-width: 0;
 }
 
-/* ── Pagination Buttons ── */
-
 .adminPagination {
     display: flex;
     justify-content: center;
@@ -1055,10 +1038,6 @@ input:checked + .adminSlider:before {
     padding: 0 4px;
 }
 
-/* ── Mobile Responsive ── */
-
-/* ── Full Width / Fixed Low-Level Layout (New Standard) ── */
-
 .adminFullPage {
     width: 100%;
     height: 100%;
@@ -1109,7 +1088,6 @@ input:checked + .adminSlider:before {
     /* Container itself doesn't scroll, children do */
 }
 
-/* Common container for list items (scrollable) */
 .adminFullList {
     flex: 1;
     overflow-y: auto;
@@ -1121,7 +1099,6 @@ input:checked + .adminSlider:before {
     padding-bottom: 0;
 }
 
-/* ── Sticky/Fixed Pagination Footer ── */
 .adminPaginationFooter {
     flex-shrink: 0;
     padding-top: 12px;
@@ -1138,7 +1115,6 @@ input:checked + .adminSlider:before {
     padding-top: 0;
 }
 
-/* Scrollbar for the list */
 .adminFullList::-webkit-scrollbar {
     width: 6px;
 }
@@ -1156,8 +1132,6 @@ input:checked + .adminSlider:before {
     background: rgba(10, 42, 67, 0.25);
 }
 
-/* Enhanced Inputs for Full Layout Headers */
-/* Enhanced Inputs for Full Layout Headers */
 .adminFullTop .adminInput {
     padding: 12px 16px;
     font-size: 15px;
@@ -1179,8 +1153,6 @@ input:checked + .adminSlider:before {
     background: #0a2a43;
     opacity: 0.5;
 }
-
-/* ── Program Overrides Sections ── */
 
 .overrideWeekRow {
     display: grid;
@@ -1256,7 +1228,6 @@ input:checked + .adminSlider:before {
     -webkit-appearance: none;
 }
 
-/* Ensure the native indicator covers the whole field for 100% click reliability */
 .adminInputHidden::-webkit-calendar-picker-indicator {
     position: absolute;
     top: 0;
@@ -1295,9 +1266,6 @@ input:checked + .adminSlider:before {
     background-repeat: no-repeat;
 }
 
-/* Unified styling for date,
-time,
-and week inputs */
 .adminInput[type="date"],
 .adminInput[type="time"],
 .adminInput[type="week"] {
@@ -1338,8 +1306,6 @@ and week inputs */
 .adminInput[type="week"]::-webkit-calendar-picker-indicator:hover {
     opacity: 1;
 }
-
-/* ── Mobile Sidebar Logic ── */
 
 .adminMobileHeader {
     display: none;
@@ -1444,7 +1410,6 @@ and week inputs */
         grid-template-columns: 1fr;
     }
 
-    /* Stack the Full Page Header on Mobile */
     .adminFullPage {
         overflow: visible;
     }
@@ -1477,46 +1442,12 @@ and week inputs */
         margin: 0;
     }
 
-    .adminFullTop .adminActions .adminBtn,
-    .adminFullTop .adminActions .adminCountBadge {
+    .adminFullTop .adminActions .adminBtn {
         width: 100%;
         justify-content: center;
         padding: 10px 12px;
         font-size: 13px;
         height: 42px;
-    }
-
-    /* Suggestions page: make Country + Discover share the first row */
-    .adminFullTop .adminActions .adminActionsGroup--suggestionsDiscover {
-        display: contents;
-    }
-
-    .adminFullTop .adminActions .adminActionsSelectWrap {
-        width: 100%;
-    }
-
-    /* If there are flex containers inside actions (like tabs), let them scroll or wrap */
-    .statsTabs {
-        /* From StatsAdmin.css but might need override here or there */
-        overflow-x: auto;
-        max-width: 100%;
-        margin-right: 0 !important;
-        /* Remove margin if it causes issues */
-        justify-content: flex-start;
-    }
-
-    .statsControls {
-        /* Container for selects */
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        width: 100%;
-    }
-
-    .adminFullTop .statsSelect {
-        width: 100%;
-        margin-left: 0 !important;
-        /* Remove margin if set */
     }
 }
 
@@ -1526,7 +1457,6 @@ and week inputs */
     }
 }
 
-/* Override existing affects grid within cards */
 .adminAffectGrid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -1557,12 +1487,12 @@ and week inputs */
 /* ── Program Overrides Mobile Responsive ── */
 @media (max-width: 768px) {
     .adminInput,
-    .adminTextarea,
-    .adminSelect,
-    .adminSearchInput,
-    .adminInput[type="date"],
-    .adminInput[type="time"],
-    .adminInput[type="week"] {
+.adminTextarea,
+.adminSelect,
+.adminSearchInput,
+.adminInput[type="date"],
+.adminInput[type="time"],
+.adminInput[type="week"] {
         font-size: 16px;
     }
 
@@ -1609,13 +1539,6 @@ and week inputs */
         min-width: 0;
     }
 
-    .overrideSection {
-        padding: 12px;
-        width: 100%;
-        min-width: 0;
-        overflow: hidden;
-    }
-
     .adminLabel {
         width: 100%;
         min-width: 0;
@@ -1632,8 +1555,6 @@ and week inputs */
         min-width: 0;
     }
 }
-
-/* ── Custom Confirm Modal ── */
 
 .adminModalOverlay {
     position: fixed;
@@ -1737,7 +1658,6 @@ and week inputs */
     background: #164678;
 }
 
-/* Sober Variant */
 .adminModalBtn--accent {
     background: #64748b !important;
     color: #fff !important;
@@ -1786,7 +1706,6 @@ and week inputs */
         padding: 20px;
     }
 }
-/* Sync Highlighting */
 .adminInput.is-synced-highlight,
 .adminSelect.is-synced-highlight {
     background-color: #f0fdf4 !important; /* Very light green */
@@ -1822,7 +1741,6 @@ and week inputs */
     display: block;
 }
 
-/* ── Link Preview Helper ── */
 .adminLinkPreviewBtn {
     display: inline-flex;
     align-items: center;
@@ -1841,7 +1759,6 @@ and week inputs */
     color: #10b981; /* Success Green */
 }
 
-/* ── Magic Fill & Suggestions Diff Visualization ── */
 .is-magic-new {
     border-color: #10b981 !important;
     background-color: #f0fdf4 !important;
@@ -1893,7 +1810,6 @@ and week inputs */
     text-transform: uppercase;
 }
 
-/* ── Progress Bar ── */
 .adminModalProgress {
     margin: 16px 0 8px;
 }
@@ -1928,7 +1844,6 @@ and week inputs */
     letter-spacing: 0.02em;
 }
 
-/* ── Weekly Program Overrides Grid ── */
 .overrideGrid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -2071,7 +1986,6 @@ and week inputs */
     gap: 4px;
 }
 
-/* Force standard select to behave and truncate where possible */
 .overrideSlotCard .adminSelect {
     width: 100%;
     max-width: 100%;
@@ -2111,7 +2025,6 @@ and week inputs */
     width: 100%;
 }
 
-/* Toggle Switch */
 .adminToggleWrap {
     display: flex;
     align-items: center;
@@ -2176,14 +2089,11 @@ and week inputs */
     }
 }
 
-/* ── Champ mot de passe avec œil de révélation ─────────────────────────── */
-
 .adminPasswordField {
     position: relative;
     display: block;
 }
 
-/* Réserve la place du bouton pour que le texte saisi ne passe pas dessous. */
 .adminPasswordField .adminInput {
     width: 100%;
     padding-right: 44px;
@@ -2217,8 +2127,6 @@ and week inputs */
 .adminPasswordToggle:active {
     background: rgba(10, 42, 67, 0.1);
 }
-
-/* ── Conseil de format dans le sélecteur d'images ─────────────────────────── */
 
 .adminImageHint {
     margin: 4px 0 2px;

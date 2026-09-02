@@ -34,7 +34,7 @@ export default function Footer() {
         (async () => {
             try {
                 const paliers = paliersDuJour(brusselsDayKey());
-                const montres = ["total", "moisCourant", "aujourdhui"];
+                const montres = ["total", "anCourant", "moisCourant", "aujourdhui"];
                 const lus = await Promise.all(
                     montres.map((cle) => getDoc(doc(db, "stats_public", paliers[cle])))
                 );
@@ -227,6 +227,7 @@ export default function Footer() {
                         <div className="footer-stats-row">
                             {[
                                 [t("visits_total"), compteurs.total],
+                                [t("visits_year"), compteurs.anCourant],
                                 [t("visits_month"), compteurs.moisCourant],
                                 [t("visits_today"), compteurs.aujourdhui],
                             ].map(([libelle, valeur]) => (

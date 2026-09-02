@@ -41,10 +41,6 @@
     .churchMapSearch.floating.google-style {
         width: 240px;
     }
-    .countryPill {
-        padding: 0 10px;
-        gap: 6px;
-    }
 }
 
 /* Landscape Laptops / Short Screens */
@@ -55,7 +51,7 @@
         right: 12px !important;
     }
     
-    .mapHeaderLeft, .mapHeaderRight {
+    .mapHeaderLeft {
         gap: 6px;
     }
     
@@ -69,34 +65,17 @@
         font-size: 0.9rem;
     }
     
-    .countryPill {
-        height: 40px;
-        padding: 0 8px;
-        gap: 4px;
-        font-size: 0.75rem;
-    }
-    
     .pillCount {
         font-size: 0.7rem;
         padding: 1px 5px;
     }
     
     .dropdownFlag .flag-img,
-    .flag-img {
+.flag-img {
         width: 16px !important;
-    }
-    
-    .mapSuggestBtn {
-        height: 40px;
-        padding: 0 12px;
-        font-size: 0.75rem;
-        border-radius: 20px;
     }
 }
 
-/* =============================================
-   SIDEBAR
-   ============================================= */
 .churchMapSidebar {
     width: 380px;
     height: 100%;
@@ -127,7 +106,6 @@
     width: 60px;
 }
 
-/* Sidebar Header */
 .sidebarHeader {
     padding: 20px 16px 12px 16px;
     border-bottom: 1px solid rgba(0, 0, 0, 0.05);
@@ -191,24 +169,6 @@
     width: 100vw;
 }
 
-/* On mid-size desktop,
-use compact "Others" button */
-@media (min-width: 769px) and (max-width: 1350px) {
-    .countryPill.otherBtn {
-        padding: 0;
-        width: 40px;
-        justify-content: center;
-    }
-    .fullLabel {
-        display: none;
-    }
-    .shortLabel {
-        display: inline;
-        font-size: 1.2rem;
-        font-weight: 700;
-    }
-}
-
 .churchMapSearch input {
     width: 100%;
     padding: 10px 14px 10px 38px;
@@ -218,7 +178,6 @@ use compact "Others" button */
     font-size: 0.85rem;
 }
 
-/* Floating Header Container */
 .mapFloatingHeader {
     position: absolute;
     top: 20px;
@@ -484,16 +443,12 @@ use compact "Others" button */
     font-weight: 600;
 }
 
-/* =============================================
-   BOTTOM SHEET (Common Defaults)
-   ============================================= */
 .churchMapBottomSheet {
     display: flex;
     flex-direction: column;
     background: #ffffff;
 }
 
-/* Container for all sidebar content to handle scrolling and button positioning */
 .bottomSheetInner {
     display: flex;
     flex-direction: column;
@@ -511,7 +466,6 @@ use compact "Others" button */
     }
 }
 
-/* Hide drag handle on desktop completely as it's a mobile-only element now */
 .bottomSheetDragHandleArea {
     display: none;
 }
@@ -537,9 +491,6 @@ use compact "Others" button */
     margin: 0 auto;
 }
 
-/* =============================================
-   SEARCH BAR
-   ============================================= */
 .churchMapSearch {
     position: relative;
     flex: 1;
@@ -568,9 +519,6 @@ use compact "Others" button */
     color: #94a3b8;
 }
 
-/* =============================================
-   CHURCH LIST
-   ============================================= */
 .churchList {
     flex: 1;
     overflow-y: auto;
@@ -640,7 +588,6 @@ use compact "Others" button */
     border-radius: 10px;
 }
 
-/* Church List Item */
 .churchListItem {
     display: flex;
     align-items: center;
@@ -664,7 +611,6 @@ use compact "Others" button */
     background: rgba(19, 75, 123, 0.04);
 }
 
-/* Suppress highlights when dragging the bottom sheet */
 .churchMapBottomSheet.is-dragging .churchListItem:hover,
 .churchMapBottomSheet.is-dragging .churchListItem:active,
 .churchMapBottomSheet.is-dragging .churchListItem.active {
@@ -744,7 +690,6 @@ use compact "Others" button */
     color: #134b7b;
 }
 
-/* Empty State */
 .churchListEmpty {
     display: flex;
     flex-direction: column;
@@ -763,9 +708,6 @@ use compact "Others" button */
     color: #64748b;
 }
 
-/* =============================================
-   MAP CONTAINER
-   ============================================= */
 .churchMapContainer {
     flex: 1;
     height: 100%;
@@ -785,7 +727,6 @@ use compact "Others" button */
     }
 }
 
-/* Map Return/Back Button - Shared Styles with Suggest Button */
 .mapReturnBtn {
     position: absolute;
     top: 20px;
@@ -835,19 +776,6 @@ use compact "Others" button */
     }
 }
 
-/* Specific mobile adjustment for suggest button */
-@media (max-width: 768px) {
-    .mapSuggestBtn {
-        top: calc(env(safe-area-inset-top, 0px) + 16px);
-        right: 16px;
-        padding: 0 16px; /* Optimized for mobile */
-        height: 40px; /* Reduced from 48px to be more compact */
-        font-size: 0.75rem; 
-        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-        border-radius: 20px; /* Standardize pill shape based on height */
-    }
-}
-
 @keyframes backdropFadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
@@ -857,9 +785,6 @@ use compact "Others" button */
     overflow: hidden !important;
 }
 
-/* =============================================
-   CUSTOM MARKERS
-   ============================================= */
 .markerWrapper {
     position: relative;
 }
@@ -914,7 +839,6 @@ use compact "Others" button */
     }
 }
 
-/* Marker Tooltip */
 .markerTooltip {
     position: absolute;
     bottom: calc(100% + 8px);
@@ -954,7 +878,6 @@ use compact "Others" button */
     }
 }
 
-/* Custom Cluster Marker */
 .customClusterMarker {
     background: #134b7b;
     color: white;
@@ -976,7 +899,6 @@ use compact "Others" button */
     background: #1a64a3;
 }
 
-/* User Location Dot */
 .userLocationDot {
     width: 20px;
     height: 20px;
@@ -998,7 +920,6 @@ use compact "Others" button */
     animation: userDotPulse 2s infinite;
 }
 
-/* User Location Center Button */
 .mapRecenterBtn {
     position: absolute;
     right: 24px;
@@ -1044,9 +965,6 @@ use compact "Others" button */
     100% { transform: scale(1); opacity: 1; }
 }
 
-/* =============================================
-   CHURCH DETAILS CARD
-   ============================================= */
 .churchDetailsCard {
     position: absolute;
     bottom: 32px;
@@ -1146,7 +1064,6 @@ use compact "Others" button */
     word-break: break-word;
 }
 
-/* Info List */
 .churchDetailsInfoList {
     margin-bottom: 24px;
     display: grid;
@@ -1204,7 +1121,6 @@ use compact "Others" button */
     text-decoration: underline;
 }
 
-/* Actions Buttons */
 .churchDetailsActions {
     display: flex;
     gap: 12px;
@@ -1227,9 +1143,6 @@ use compact "Others" button */
     white-space: normal;
 }
 
-/* =============================================
-   MOBILE
-   ============================================= */
 .mobileBackToList {
     display: none;
 }
@@ -1273,7 +1186,6 @@ use compact "Others" button */
         z-index: 2000; /* Increased to be above marker tooltips but below modas */
     }
 
-    /* Adjust country filter menu for mobile bottom sheet */
     .countryFilterMenu.mobileVersion {
         position: absolute;
         top: calc(100% + 4px); /* Open downwards to stay within screen/sheet */
@@ -1290,8 +1202,6 @@ use compact "Others" button */
         to { opacity: 1; transform: scale(1) translateY(0); }
     }
 
-    /* Bottom Sheet Overrides,
-Mobile */
     .churchMapBottomSheet {
         position: relative;
         pointer-events: none;
@@ -1370,8 +1280,6 @@ Mobile */
         border-radius: 4px;
     }
 
-    /* New Mobile Floating Header */
-    /* Unified Mobile Floating Header - Polished & High Z-Index */
     .mapFloatingHeader.mobileHeader {
         top: calc(env(safe-area-inset-top, 0px) + 20px); 
         left: 12px;
@@ -1575,8 +1483,6 @@ Mobile */
         padding-bottom: 0;
     }
 
-    /* ONLY allow scrolling when fully expanded. In all other modes,
-touch-drag moves the sheet. */
     .churchMapBottomSheet:not([data-mode="expanded"]) .churchList,
 .churchMapBottomSheet:not([data-mode="expanded"]) .mobileDetailsBody {
         overflow: hidden !important;
@@ -1594,12 +1500,10 @@ touch-drag moves the sheet. */
         height: 22px;
     }
 
-    /* Disable transition while dragging for instant feedback */
     .churchMapLayout:has(.churchMapBottomSheet.is-dragging) .mapRecenterBtn {
         transition: none !important;
     }
 
-    /* Adjust base height for the button when sheet is in specific modes and NOT dragging */
     .churchMapLayout:not(:has(.churchMapBottomSheet.is-dragging)) .mapRecenterBtn {
         transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
@@ -1652,11 +1556,6 @@ touch-drag moves the sheet. */
     }
 }
 
-/* =============================================
-   CHURCH SUGGESTION SYSTEM
-   ============================================= */
-
-/* Sidebar Footer & Suggest Button */
 .churchSidebarFooter {
     padding: 12px 16px;
     background: #ffffff;
@@ -1674,7 +1573,6 @@ touch-drag moves the sheet. */
         bottom: 0;
     }
 
-    /* sticky in detail view always */
     .churchMapBottomSheet[data-mode="expanded"] .churchSidebarFooter {
         border-top: none !important;
     }
@@ -1786,7 +1684,6 @@ touch-drag moves the sheet. */
     transform: translateY(-2px);
 }
 
-/* Mobile Details inside Bottom Sheet */
 .mobileChurchDetails {
     display: flex;
     flex-direction: column;
@@ -1861,7 +1758,6 @@ touch-drag moves the sheet. */
     text-overflow: ellipsis;
 }
 
-/* Allow name to wrap to multiple lines on Mobile */
 .mobileChurchDetails .churchDetailsTitle span {
     white-space: normal;
     overflow: visible;
@@ -1926,13 +1822,10 @@ touch-drag moves the sheet. */
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* When EXPANDED,
-links stay at the top with a bit more spacing */
 .churchMapBottomSheet[data-mode="expanded"] .mobileChurchDetails .churchDetailsInfoList {
     gap: 24px 20px; 
 }
 
-/* Suggestion Modal */
 .suggestionModalOverlay {
     position: fixed;
     top: 0;
@@ -2020,7 +1913,6 @@ links stay at the top with a bit more spacing */
     border-radius: 20px;
 }
 
-/* Stepper Design - More Compact */
 .suggestionStepper {
     display: flex;
     align-items: center;
@@ -2084,7 +1976,6 @@ links stay at the top with a bit more spacing */
     border-radius: 2px;
 }
 
-/* Form Groups - Very Compact */
 .suggestionFormRow {
     display: flex;
     gap: 12px;
@@ -2142,7 +2033,6 @@ links stay at the top with a bit more spacing */
     min-height: 80px;
 }
 
-/* Step 2 - Compact */
 .step2Header {
     text-align: center;
     margin-bottom: 24px;
@@ -2159,14 +2049,12 @@ links stay at the top with a bit more spacing */
     max-width: 300px;
 }
 
-/* Actions */
 .suggestionFormActions {
     padding: 12px 24px;
     background: #ffffff;
     border-top: 1px solid #f1f5f9;
 }
 
-/* Step 1: Cancel (left) + Next (right) */
 .suggestionStep1Actions {
     display: flex;
     gap: 8px;
@@ -2179,8 +2067,6 @@ links stay at the top with a bit more spacing */
     width: auto;
 }
 
-/* Cancel button,
-grey with dark border */
 .suggestionCancelBtn {
     height: 36px;
     padding: 0 16px;
@@ -2201,9 +2087,6 @@ grey with dark border */
     border-color: #334155;
 }
 
-/* Next / Send button,
-blue,
-compact */
 .suggestionSubmitBtn {
     height: 36px;
     padding: 0 18px;
@@ -2230,7 +2113,6 @@ compact */
     transform: none;
 }
 
-/* Step 2: Back (left) + Send (right) */
 .step2Actions {
     display: flex;
     gap: 8px;
@@ -2243,8 +2125,6 @@ compact */
     width: auto;
 }
 
-/* Back button,
-same style as Cancel */
 .suggestionSkipBtn {
     height: 36px;
     padding: 0 16px;
@@ -2355,7 +2235,6 @@ same style as Cancel */
     flex: 1;
 }
 
-/* Loading Indicator */
 .loaderContainer {
     display: flex;
     flex-direction: column;
@@ -2523,7 +2402,6 @@ same style as Cancel */
     }
 }
 
-/* Flag Image Global Polish */
 .flag-img {
     flex-shrink: 0;
     pointer-events: none;
@@ -2533,7 +2411,7 @@ same style as Cancel */
 /* Fix for iOS Safari auto-zoom on input focus */
 @media screen and (max-width: 768px) {
     .churchMapSearch input,
-    .churchMapSearch.floating.google-style input {
+.churchMapSearch.floating.google-style input {
         font-size: 16px !important;
     }
 }

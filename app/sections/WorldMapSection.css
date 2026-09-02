@@ -18,11 +18,6 @@
     z-index: 2;
 }
 
-/* ─────────────────────────────────────────
-   HEADER,
-centred,
-same as other sections
-───────────────────────────────────────── */
 .worldmap-header {
     text-align: center;
     margin-bottom: 50px;
@@ -37,9 +32,6 @@ same as other sections
     line-height: 1.1;
 }
 
-/* ─────────────────────────────────────────
-   BANNER / LAYOUT
-───────────────────────────────────────── */
 .worldmap-banner {
     position: relative;
     border-radius: 28px;
@@ -59,10 +51,6 @@ same as other sections
     gap: 48px;
 }
 
-/* ─────────────────────────────────────────
-   BODY,
-left content panel
-───────────────────────────────────────── */
 .worldmap-body {
     display: flex;
     flex-direction: column;
@@ -99,10 +87,6 @@ left content panel
     font-weight: 500;
 }
 
-/* ─────────────────────────────────────────
-   STATS ROW,
-white cards
-───────────────────────────────────────── */
 .worldmap-stats-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -144,10 +128,6 @@ white cards
     color: rgba(10, 42, 67, 0.5);
 }
 
-/* ─────────────────────────────────────────
-   CTA BUTTON,
-dark gradient
-───────────────────────────────────────── */
 .worldmap-cta {
     display: inline-flex;
     align-items: center;
@@ -186,10 +166,6 @@ dark gradient
     flex-shrink: 0;
 }
 
-/* ─────────────────────────────────────────
-   3D GLOBE,
-free-floating circle
-───────────────────────────────────────── */
 .worldmap-globe-wrap {
     width: 320px;
     height: 320px;
@@ -222,10 +198,6 @@ free-floating circle
     height: 100%;
 }
 
-/* ─────────────────────────────────────────
-   VERSE,
-Dark blue background
-───────────────────────────────────────── */
 .worldmap-verse {
     position: relative;
     padding: 48px 56px;

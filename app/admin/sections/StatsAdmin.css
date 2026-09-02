@@ -1,7 +1,5 @@
 /* StatsAdmin.css - Component Specific Styles */
 
-/* Header Controls */
-
 .statsActions {
     display: flex;
     flex-wrap: wrap;
@@ -18,7 +16,6 @@
     max-width: 250px;
 }
 
-/* Main Card for the Chart - Expand to fill remaining height */
 .statsCard {
     background: #fff;
     border: 1px solid rgba(10, 42, 67, 0.08);
@@ -99,7 +96,6 @@
     text-transform: uppercase;
 }
 
-/* Legend Side - Scrollable */
 .statsLegend {
     flex: 1;
     min-width: 300px;
@@ -126,15 +122,12 @@
     text-transform: uppercase;
 }
 
-/* THE MAGIC SCROLL AREA - Use natural height if not too long,
-or set a reasonable min-height */
 .statsLegendScroll {
     overflow-y: auto;
     padding-right: 6px;
     max-height: 600px; 
 }
 
-/* Scrollbar styling */
 .statsLegendScroll::-webkit-scrollbar {
     width: 6px;
 }
@@ -199,7 +192,6 @@ or set a reasonable min-height */
     padding: 20px;
 }
 
-/* Ensure scrollability of the main container */
 .adminFullContent {
     flex: 1;
     overflow-y: auto;
@@ -267,55 +259,3 @@ or set a reasonable min-height */
     margin-bottom: 14px;
 }
 
-/* Bandeau des deux compteurs,
-au-dessus du graphique.
-   Deux colonnes dès le plus petit écran : les nombres sont courts,
-les
-   empiler gaspillerait la hauteur là où elle est la plus rare. */
-.statsKpis {
-    display: grid;
-    /* Deux colonnes sur telephone, jusqu'a cinq sur grand ecran, sans palier
-       code en dur : chaque cellule reclame 120 px et la grille en met autant
-       qu'il en tient. */
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 12px;
-    margin-bottom: 20px;
-}
-
-.statsKpi {
-    background: #fff;
-    border: 1px solid rgba(10, 42, 67, 0.08);
-    border-radius: 16px;
-    padding: 16px;
-    box-sizing: border-box;
-    min-width: 0;
-}
-
-.statsKpiValue {
-    font-size: 28px;
-    font-weight: 700;
-    line-height: 1.1;
-    color: #0a2a43;
-    /* Les chiffres gardent la même largeur : le nombre ne tressaute pas
-       quand il passe de 9 à 10 pendant la journée. */
-    font-variant-numeric: tabular-nums;
-}
-
-.statsKpiLabel {
-    margin-top: 6px;
-    font-size: 13px;
-    font-weight: 600;
-    color: rgba(10, 42, 67, 0.75);
-}
-
-.statsKpiHint {
-    margin-top: 2px;
-    font-size: 12px;
-    color: rgba(10, 42, 67, 0.5);
-}
-
-@media (min-width: 700px) {
-    .statsKpiValue {
-        font-size: 28px;
-    }
-}

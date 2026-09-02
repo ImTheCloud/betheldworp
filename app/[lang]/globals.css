@@ -25,18 +25,6 @@ button {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Le focus au clavier doit rester visible.
-   Cette règle portait « outline: none » sans rien mettre à la place : plus
-   aucun bouton du site n'indiquait où l'on se trouvait en naviguant au
-   clavier,
-et seuls trois fichiers CSS sur vingt le rétablissaient
-   localement. On enlève le contour pour le clic à la souris uniquement
-   (:focus:not(:focus-visible)),
-et on en pose un franc pour le clavier.
-   Le double contour,
-sombre puis clair,
-garde le repère lisible aussi
-   bien sur les fonds clairs que sur les fonds sombres du site. */
 :focus-visible {
   outline: 3px solid #1f66ff;
   outline-offset: 2px;
@@ -89,8 +77,8 @@ pas par préférence esthétique.
    nulle empêche certains scripts de recevoir l'événement de fin. */
 @media (prefers-reduced-motion: reduce) {
   *,
-  *::before,
-  *::after {
+*::before,
+*::after {
     animation-duration: 1ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 1ms !important;

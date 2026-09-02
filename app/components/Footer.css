@@ -21,7 +21,6 @@
     margin-bottom: 40px; /* Reduced from 60px */
 }
 
-/* Info Column */
 .footer-info {
     display: flex;
     flex-direction: column;
@@ -49,7 +48,6 @@
     color: #ffffff;
 }
 
-/* Newsletter */
 .footer-nl {
     display: flex;
     flex-direction: column;
@@ -156,7 +154,6 @@
     padding-left: 4px;
 }
 
-/* Contacts Column */
 .footer-contacts {
     display: flex;
     flex-direction: column;
@@ -221,7 +218,6 @@
     color: #34A853;
 }
 
-/* Bottom */
 .footer-bottom {
     display: flex;
     justify-content: space-between;
@@ -231,10 +227,6 @@
     gap: 16px;
 }
 
-/* Deux elements espaces plutot qu'un point median.
-   Le separateur se retrouvait suspendu en fin de ligne au moindre repli,
-et
-   faisait un troisieme point sur une ligne qui en comptait deja deux. */
 .footer-copy {
     display: flex;
     flex-wrap: wrap;
@@ -363,16 +355,6 @@ et
     opacity: 1;
 }
 
-/* Compteurs de visites,
-sous la boîte d'inscription à la newsletter.
-   Quatre paliers sur une rangée qui se replie d'elle-même sur les écrans
-   étroits : les cellules gardent leur largeur naturelle,
-aucune ne se coupe. */
-/* Bandeau pleine largeur,
-sous les deux colonnes.
-   Loge dans la colonne de gauche,
-il y ajoutait deux rangees et laissait la
-   colonne de droite vide sur la meme hauteur. */
 .footer-stats {
     margin: 0 0 28px 0;
     padding-top: 24px;
@@ -385,11 +367,20 @@ il y ajoutait deux rangees et laissait la
        une grille auto-fit laissait des cellules seules sur une rangee de
        plus des que la largeur changeait. */
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     justify-items: start;
     gap: 14px 18px;
     margin-top: 12px;
-    max-width: 420px;
+    max-width: 520px;
+}
+
+/* Quatre colonnes demandent une largeur que le telephone n'a pas : deux
+   rangees de deux y valent mieux qu'une rangee serree ou chaque libelle se
+   replierait. */
+@media (max-width: 700px) {
+    .footer-stats-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
 .footer-stat {
@@ -418,9 +409,6 @@ il y ajoutait deux rangees et laissait la
     color: rgba(255, 255, 255, 0.42);
 }
 
-
-/* Depuis quand ces chiffres comptent,
-et sur quelle version du site. */
 .footer-stats-since {
     margin: 10px 0 0 0;
     font-size: 11px;

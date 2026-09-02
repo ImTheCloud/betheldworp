@@ -4,7 +4,6 @@ import "./StatsAdmin.css";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../../lib/Firebase";
-import { brusselsWeekKey, paliersDuJour } from "../../lib/Tracker";
 import AdminSearch from "../components/AdminSearch";
 import ConfirmModal from "../components/ConfirmModal";
 
@@ -42,13 +41,6 @@ function languageDisplayName(code) {
     };
 
     return map[c] || c.toUpperCase();
-}
-
-function nomDeMois(cle) {
-    const [an, mois] = s(cle).split("-").map(Number);
-    if (!an || !mois) return "";
-    return new Intl.DateTimeFormat("en-GB", { month: "long", timeZone: "UTC" })
-        .format(new Date(Date.UTC(an, mois - 1, 1)));
 }
 
 function formatEnDateFromKey(key) {
@@ -447,36 +439,6 @@ export default function StatsAdmin() {
     // Deux repères qui ignorent volontairement le sélecteur de période : le
     // cumul depuis l'ouverture de la v2 du site, et le compteur du jour. Ils
     // gardent le même sens quand la vue est filtrée sur sept jours.
-    // Cinq paliers, recalcules a partir des jours deja charges : depuis
-    // l'ouverture, l'annee, le mois, la semaine et aujourd'hui. Ils ignorent
-    // volontairement le selecteur de periode, sinon ils changeraient de sens
-    // des que la vue est filtree sur sept jours.
-    //
-    // Le pied de page du site affiche les memes chiffres, mais les lit dans
-    // stats_public. Ici, tout est deja en memoire : recalculer coute moins que
-    // cinq acces supplementaires, et donne le meme resultat puisque les deux
-    // series sont incrementees par la meme visite.
-    const paliers = useMemo(() => {
-        const P = paliersDuJour(todayKey);
-        const compte = (j) => (page === "world_map" ? j.mapVisits : j.visits);
-        const somme = (garde) =>
-            jours.reduce((total, j) => (garde(j.day) ? total + compte(j) : total), 0);
-
-        return {
-            cles: P,
-            total: somme(() => true),
-            anPasse: somme((d) => d.startsWith(P.anPasse)),
-            anCourant: somme((d) => d.startsWith(P.anCourant)),
-            moisPasse: somme((d) => d.startsWith(P.moisPasse)),
-            moisCourant: somme((d) => d.startsWith(P.moisCourant)),
-            semainePassee: somme((d) => brusselsWeekKey(d) === P.semainePassee),
-            semaineCourante: somme((d) => brusselsWeekKey(d) === P.semaineCourante),
-            hier: somme((d) => d === P.hier),
-            aujourdhui: somme((d) => d === P.aujourdhui),
-        };
-    }, [jours, todayKey, page]);
-
-    const jourDOuverture = jours.length ? jours[0].day : "";
 
 
     const rowsForMode = useMemo(() => {
@@ -621,28 +583,6 @@ export default function StatsAdmin() {
                 <div className="adminSkeleton" />
             ) : (
                 <div className="adminFullContent">
-                    <div className="statsKpis">
-                        {[
-                            ["Total", paliers.total, jourDOuverture ? `since ${formatEnDateFromKey(jourDOuverture)}` : ""],
-                            ["Last year", paliers.anPasse, paliers.cles.anPasse],
-                            ["This year", paliers.anCourant, paliers.cles.anCourant],
-                            ["Last month", paliers.moisPasse, nomDeMois(paliers.cles.moisPasse)],
-                            ["This month", paliers.moisCourant, nomDeMois(paliers.cles.moisCourant)],
-                            ["Last week", paliers.semainePassee, paliers.cles.semainePassee],
-                            ["This week", paliers.semaineCourante, paliers.cles.semaineCourante],
-                            ["Yesterday", paliers.hier, formatEnDateFromKey(paliers.cles.hier)],
-                            ["Today", paliers.aujourdhui, formatEnDateFromKey(todayKey)],
-                        ].map(([libelle, valeur, precision]) => (
-                            <div className="statsKpi" key={libelle}>
-                                <div className="statsKpiValue">{valeur.toLocaleString("fr-BE")}</div>
-                                <div className="statsKpiLabel">
-                                    {page === "world_map" ? `Map · ${libelle}` : libelle}
-                                </div>
-                                {precision ? <div className="statsKpiHint">{precision}</div> : null}
-                            </div>
-                        ))}
-                    </div>
-
                     <BarChart
                         title={`${page === "world_map" ? "World Map Visits" : "Daily Traffic"} • Timeline`}
                         rows={agg.timeline}
