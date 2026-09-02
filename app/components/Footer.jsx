@@ -246,8 +246,7 @@ export default function Footer() {
                                         {valeur.toLocaleString(lang)}
                                     </span>
                                     <span className="footer-stat-label">
-                                        {libelle}
-                                        {depuis && <span className="footer-stat-since">{depuis}</span>}
+                                        {depuis ? `${libelle} ${depuis}` : libelle}
                                     </span>
                                 </div>
                             ))}

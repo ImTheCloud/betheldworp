@@ -423,21 +423,6 @@
     color: rgba(255, 255, 255, 0.42);
 }
 
-/* Sur la meme ligne que « total », dont elle est la suite : « TOTAL din
-   decembrie 2025 » se lit d un trait, alors qu une ligne en dessous ajoutait
-   une hauteur pour rien et laissait croire a un cinquieme compteur.
-
-   Elle ne qualifie que le total, les trois autres compteurs disent deja leur
-   periode dans leur libelle. Ni majuscules ni interlettrage, hérités sinon du
-   libelle qui l entoure, pour qu elle reste une precision. */
-.footer-stat-since {
-    margin-left: 6px;
-    font-weight: 600;
-    text-transform: none;
-    letter-spacing: normal;
-    color: rgba(255, 255, 255, 0.3);
-}
-
 /* Six colonnes ne tiennent que sur un ecran large : en dessous,
 deux rangees
    de trois,
