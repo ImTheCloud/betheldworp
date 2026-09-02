@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { collection, serverTimestamp, setDoc, doc } from "firebase/firestore";
+import { db } from "../lib/Firebase";
 import "./NewsletterSection.css";
 import { useLang } from "../components/LanguageProvider";
 import { makeT } from "../lib/i18n";
@@ -18,7 +20,6 @@ export default function NewsletterSection() {
     const [nlCopied, setNlCopied] = useState(false);
 
     const [successText, setSuccessText] = useState("");
-    const [successLong, setSuccessLong] = useState("");
 
     const handleNlShare = async () => {
         try {
@@ -52,7 +53,7 @@ export default function NewsletterSection() {
     const onSubscribe = async (e) => {
         e.preventDefault();
         setError("");
-
+        
         const em = email.trim().toLowerCase();
         if (!isValidEmail(em)) {
             setError(t("email_invalid"));
@@ -61,26 +62,44 @@ export default function NewsletterSection() {
 
         setSending(true);
         try {
-            // Le site n'écrit plus rien : la route envoie un e-mail de
-            // confirmation, et l'adresse n'entre dans Firestore et dans la
-            // liste d'envoi qu'une fois le lien ouvert. Sans ce détour,
-            // n'importe qui pouvait remplir la liste d'adresses inventées.
-            const res = await fetch("/api/newsletter/subscribe", {
-                method: "POST",
-                headers: { "content-type": "application/json" },
-                body: JSON.stringify({ email: em, source: "website" }),
-            });
+            const nlRef = collection(db, "newsletter");
+            const docRef = doc(nlRef, em);
 
-            if (!res.ok) {
-                setError(t("subscribe_error"));
+            const { getDoc } = await import("firebase/firestore");
+            const snapshot = await getDoc(docRef);
+
+            if (snapshot.exists()) {
+                // L'adresse est connue, mais elle a pu être mise en blocklist chez
+                // Brevo par une désinscription faite depuis un e-mail. Redonner son
+                // adresse vaut demande de retour : la route lève le blocage, et ne
+                // fait rien si le contact est déjà joignable.
+                fetch("/api/newsletter/subscribe", {
+                    method: "POST",
+                    headers: { "content-type": "application/json" },
+                    body: JSON.stringify({ email: em, source: "website" }),
+                }).catch((e) => console.error("Brevo sync error:", e));
+
+                setSuccessText(t("subscribe_already"));
+                setSuccess(true);
+                setSending(false);
                 return;
             }
 
-            const data = await res.json().catch(() => null);
-            const dejaAbonne = data?.status === "already";
+            await setDoc(docRef, {
+                email: em,
+                subscribedAt: serverTimestamp(),
+                source: "website",
+            });
 
-            setSuccessText(dejaAbonne ? t("subscribe_already") : t("subscribe_pending_short"));
-            setSuccessLong(dejaAbonne ? t("subscribe_success_long") : t("subscribe_pending_long"));
+            // Réplique le contact dans la liste Brevo. Un échec ici ne doit pas
+            // faire échouer l'abonnement : Firestore reste la source de vérité.
+            fetch("/api/newsletter/subscribe", {
+                method: "POST",
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify({ email: em, source: "website" }),
+            }).catch((e) => console.error("Brevo sync error:", e));
+
+            setSuccessText("");
             setSuccess(true);
             setEmail("");
         } catch (err) {
@@ -121,7 +140,7 @@ export default function NewsletterSection() {
                     {success ? (
                         <div className="nl-success">
                             <div className="nl-success-title">{successText || t("subscribe_success_short")}</div>
-                            <div className="nl-success-text">{successLong || t("subscribe_success_long")}</div>
+                            <div className="nl-success-text">{t("subscribe_success_long")}</div>
                         </div>
                     ) : (
                         <form className="nl-form" onSubmit={onSubscribe}>

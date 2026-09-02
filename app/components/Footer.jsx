@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useLang } from "./LanguageProvider";
 import { makeT } from "../lib/i18n";
 import tr from "../translations/Footer.json";
-import { doc, getDoc } from "firebase/firestore";
+import { collection, serverTimestamp, setDoc, doc, getDoc } from "firebase/firestore";
 import { brusselsDayKey, paliersDuJour } from "../lib/Tracker";
 import { SIGNAL_VISITE_COMPTEE } from "../lib/tracking";
 import { db } from "../lib/Firebase";
@@ -72,22 +72,44 @@ export default function Footer() {
 
         setSending(true);
         try {
-            // Le site n'écrit plus rien : la route envoie un e-mail de
-            // confirmation, et l'adresse n'entre dans Firestore et dans la
-            // liste d'envoi qu'une fois le lien ouvert.
-            const res = await fetch("/api/newsletter/subscribe", {
-                method: "POST",
-                headers: { "content-type": "application/json" },
-                body: JSON.stringify({ email: em, source: "footer" }),
-            });
+            const nlRef = collection(db, "newsletter");
+            const docRef = doc(nlRef, em);
 
-            if (!res.ok) {
-                setError(t("subscribe_error"));
+            const { getDoc } = await import("firebase/firestore");
+            const snapshot = await getDoc(docRef);
+
+            if (snapshot.exists()) {
+                // L'adresse est connue, mais elle a pu être mise en blocklist chez
+                // Brevo par une désinscription faite depuis un e-mail. Redonner son
+                // adresse vaut demande de retour : la route lève le blocage, et ne
+                // fait rien si le contact est déjà joignable.
+                fetch("/api/newsletter/subscribe", {
+                    method: "POST",
+                    headers: { "content-type": "application/json" },
+                    body: JSON.stringify({ email: em, source: "footer" }),
+                }).catch((e) => console.error("Brevo sync error:", e));
+
+                setSuccessText(t("subscribe_already"));
+                setSuccess(true);
+                setSending(false);
                 return;
             }
 
-            const data = await res.json().catch(() => null);
-            setSuccessText(data?.status === "already" ? t("subscribe_already") : t("subscribe_pending"));
+            await setDoc(docRef, {
+                email: em,
+                subscribedAt: serverTimestamp(),
+                source: "footer",
+            });
+
+            // Réplique le contact dans la liste Brevo. Un échec ici ne doit pas
+            // faire échouer l'abonnement : Firestore reste la source de vérité.
+            fetch("/api/newsletter/subscribe", {
+                method: "POST",
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify({ email: em, source: "footer" }),
+            }).catch((e) => console.error("Brevo sync error:", e));
+
+            setSuccessText("");
             setSuccess(true);
             setEmail("");
         } catch (err) {

@@ -21,8 +21,7 @@
         "visits_label": "Vizite",
         "visits_since": "Site v2, din 21 decembrie 2025",
         "visits_month": "luna aceasta",
-        "visits_year": "anul acesta",
-        "subscribe_pending": "Verifică e-mailul!"
+        "visits_year": "anul acesta"
     },
     "fr": {
         "logo_alt": "Bethel",
@@ -46,8 +45,7 @@
         "visits_label": "Visites",
         "visits_since": "Site v2, depuis le 21 décembre 2025",
         "visits_month": "mois en cours",
-        "visits_year": "année en cours",
-        "subscribe_pending": "Vérifiez vos e-mails !"
+        "visits_year": "année en cours"
     },
     "nl": {
         "logo_alt": "Bethel",
@@ -71,8 +69,7 @@
         "visits_label": "Bezoeken",
         "visits_since": "Site v2, sinds 21 december 2025",
         "visits_month": "deze maand",
-        "visits_year": "dit jaar",
-        "subscribe_pending": "Controleer je e-mail!"
+        "visits_year": "dit jaar"
     },
     "en": {
         "logo_alt": "Bethel",
@@ -96,7 +93,6 @@
         "visits_label": "Visits",
         "visits_since": "Site v2, since 21 December 2025",
         "visits_month": "this month",
-        "visits_year": "this year",
-        "subscribe_pending": "Check your email!"
+        "visits_year": "this year"
     }
 }
