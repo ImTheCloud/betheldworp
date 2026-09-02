@@ -1,6 +1,7 @@
 "use client";
 
 import "./Hero.css";
+import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "../lib/Firebase";
@@ -91,15 +92,23 @@ export default function Hero() {
                 </div>
             )}
             
-            <img
+            {/* next/image plutot qu une balise img : la source fait 1080 de
+                large et etait servie telle quelle a tout le monde. Le srcset
+                donne aux petits ecrans une version a leur taille, sans jamais
+                envoyer plus qu avant aux grands. quality 90 comme ailleurs sur
+                le site, les photos etant deja compressees a 80.
+                fill reproduit exactement ce que .hero-bgImg fait deja en CSS :
+                position absolue, inset 0, 100 % de large et de haut. */}
+            <Image
                 ref={imgRef}
                 className={`hero-bgImg ${bgLoaded ? 'is-loaded' : ''}`}
                 src="/images/landing_page/drone.jpg"
                 alt=""
                 aria-hidden="true"
-                loading="eager"
-                decoding="async"
-                fetchPriority="high"
+                fill
+                sizes="100vw"
+                quality={90}
+                priority
                 onLoad={() => setBgLoaded(true)}
             />
 
