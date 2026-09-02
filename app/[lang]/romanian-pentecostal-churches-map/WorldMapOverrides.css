@@ -1,0 +1,66 @@
+/* Corrections de fin de fichier.
+   Ces regles doivent rester les dernieres : elles corrigent sur mobile
+   ce que les precedentes posent, et ne gagnent que par leur position.
+
+   Decoupe de WorldMap.css, qui faisait 2425 lignes. Les trois fichiers sont
+   importes dans l'ordre par ChurchMap.jsx : la cascade est donc exactement
+   celle d'avant, seule la lecture change. */
+
+
+/* Mobile Suggestion Modal Fixes - High Priority at end of file */
+@media (max-width: 768px) {
+    .suggestionModalOverlay {
+        padding: 8px;
+        /* Slightly tighter overlay padding */
+    }
+
+    .suggestionModal {
+        width: 100%;
+        max-width: 540px;
+        height: auto;
+        max-height: 96vh;
+        /* Taller on mobile to fit everything */
+        max-height: 96dvh;
+        border-radius: 16px;
+        /* Slightly tighter rounding */
+        margin: 0 auto;
+    }
+
+    .suggestionModalHeader {
+        padding: 12px 16px;
+    }
+
+    .suggestionFormBody {
+        flex: 0 1 auto;
+        padding: 12px 16px;
+    }
+
+    .suggestionFormActions {
+        padding: 12px 16px;
+        padding-bottom: calc(12px + env(safe-area-inset-bottom));
+        background: #f8fafc;
+        border-top: 1px solid #e2e8f0;
+    }
+}
+
+.flag-img {
+    flex-shrink: 0;
+    pointer-events: none;
+    user-select: none;
+}
+
+/* Fix for iOS Safari auto-zoom on input focus */
+@media screen and (max-width: 768px) {
+    .churchMapSearch input,
+.churchMapSearch.floating.google-style input {
+        font-size: 16px !important;
+    }
+}
+
+/* Hide language switcher on mobile maps to save screen space */
+@media (max-width: 768px) {
+  .mapLanguageSwitcherWrapper {
+    display: none !important;
+  }
+}
+

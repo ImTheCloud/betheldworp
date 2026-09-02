@@ -11,7 +11,12 @@ import { useLang } from "../../components/LanguageProvider";
 import { makeT } from "../../lib/i18n";
 import worldMapTranslations from "../../translations/WorldMap.json";
 import SearchableSelect from "../../components/SearchableSelect";
+// L ordre de ces trois imports est celui du fichier d origine : la cascade en
+// depend, les corrections de la fin ne gagnent que parce qu elles arrivent
+// apres.
 import "./WorldMap.css";
+import "./WorldMapSuggestion.css";
+import "./WorldMapOverrides.css";
 import FlagImage from "./FlagImage";
 import ChurchInfoLinks from "./ChurchInfoLinks";
 import Markers from "./Markers";
