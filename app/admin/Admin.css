@@ -224,7 +224,6 @@
     background: rgba(10, 42, 67, 0.2);
 }
 
-
 .adminCard {
     background: #fff;
     border: 1px solid rgba(10, 42, 67, 0.06);
@@ -248,21 +247,10 @@
     color: #0a2a43;
 }
 
-.adminSubtitle {
-    margin: 24px 0 12px;
-    font-size: 16px;
-    font-weight: 700;
-    color: rgba(10, 42, 67, 0.7);
-}
-
 .adminForm {
     /* margin-top moved to title wrapper or direct gaps */
     display: grid;
     gap: 16px;
-}
-
-.adminForm--edit {
-    margin-top: 20px;
 }
 
 .adminLabel {
@@ -298,14 +286,6 @@
     position: relative;
     width: 100%;
     margin-top: 8px;
-}
-
-.adminSearchLabel {
-    font-size: 12px;
-    font-weight: 700;
-    text-transform: uppercase;
-    color: rgba(10, 42, 67, 0.5);
-    letter-spacing: 0.02em;
 }
 
 .adminSearchInput {
@@ -443,64 +423,6 @@
     background: #fff;
 }
 
-.adminBtn--discover {
-    background: rgba(16, 185, 129, 0.12);
-    color: #0a6b4a;
-    border: 1px solid rgba(16, 185, 129, 0.35);
-}
-
-.adminBtn--discover svg {
-    opacity: 0.9;
-    flex-shrink: 0;
-}
-
-@media (hover: hover) {
-    .adminBtn.adminBtn--discover:hover {
-        background: rgba(16, 185, 129, 0.18);
-        border-color: rgba(10, 107, 74, 0.65);
-        color: #065f41;
-        transform: translateY(-1px);
-    }
-}
-
-/* Subtle text-link style for the Override Week action */
-.adminOverrideLink {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    background: rgba(10, 107, 74, 0.08);
-    border: 1px solid rgba(10, 107, 74, 0.2);
-    border-radius: 8px;
-    padding: 10px 16px;
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 700;
-    color: #0a6b4a; /* More prominent green */
-    letter-spacing: 0.01em;
-    transition: all 0.2s ease;
-    text-decoration: none;
-    width: 100%;
-    margin-top: 16px; /* Increased margin for separation */
-}
-
-.adminOverrideLink svg {
-    opacity: 0.7;
-    flex-shrink: 0;
-}
-
-@media (hover: hover) {
-    .adminOverrideLink:hover {
-        background: rgba(10, 107, 74, 0.12);
-        border-color: #0a6b4a;
-        color: #065f41;
-    }
-
-    .adminOverrideLink:hover svg {
-        opacity: 1;
-    }
-}
-
 /* On small screens: both action group and save stretch full width */
 @media (max-width: 600px) {
 
@@ -512,37 +434,10 @@
     }
 }
 
-
-.adminTop {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 24px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid rgba(10, 42, 67, 0.08);
-}
-
-.adminTop .adminTitle {
-    margin: 0;
-    /* Reset excessive margin inside headers */
-}
-
 .adminActions {
     display: flex;
     gap: 10px;
     align-items: center;
-}
-
-.adminActionsGroup {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    flex-wrap: wrap;
-}
-
-.adminActionsSelectWrap {
-    width: 240px;
 }
 
 .adminList {
@@ -701,14 +596,6 @@
     font-weight: 500;
 }
 
-.statsChart {
-    height: 300px;
-    border-radius: 12px;
-    background: linear-gradient(90deg, #f3f4f6, #e5e7eb, #f3f4f6);
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite linear;
-}
-
 .adminSkeleton {
     height: 300px;
     border-radius: 12px;
@@ -743,7 +630,9 @@
     }
 }
 
-/* ── Specific Components (Chips, Toggles, etc) ── */
+/* ── Specific Components (Chips,
+Toggles,
+etc) ── */
 
 .adminAffectGrid {
     display: grid;
@@ -791,15 +680,6 @@
     }
 }
 
-.adminPulseDot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #f59e0b;
-    display: inline-block;
-    animation: adminPulse 2s infinite ease-in-out;
-}
-
 .adminChip--success {
     background: #dcfce7;
     color: #166534;
@@ -808,16 +688,6 @@
 .adminChip--warning {
     background: #fef9c3;
     color: #854d0e;
-}
-
-.adminChip--danger {
-    background: #fee2e2;
-    color: #991b1b;
-}
-
-.adminChip--info {
-    background: #e0f2fe;
-    color: #075985;
 }
 
 @media (hover: hover) {
@@ -1302,19 +1172,6 @@ input:checked + .adminSlider:before {
     border-color: #0a2a43;
 }
 
-/* Count Pills in Header */
-.adminCountPill {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    border-radius: 99px;
-    background: rgba(10, 42, 67, 0.05);
-    color: rgba(10, 42, 67, 0.7);
-    font-size: 14px;
-    font-weight: 700;
-}
-
 .adminCountDot {
     width: 8px;
     height: 8px;
@@ -1438,7 +1295,9 @@ input:checked + .adminSlider:before {
     background-repeat: no-repeat;
 }
 
-/* Unified styling for date, time, and week inputs */
+/* Unified styling for date,
+time,
+and week inputs */
 .adminInput[type="date"],
 .adminInput[type="time"],
 .adminInput[type="week"] {
@@ -1478,82 +1337,6 @@ input:checked + .adminSlider:before {
 .adminInput[type="time"]::-webkit-calendar-picker-indicator:hover,
 .adminInput[type="week"]::-webkit-calendar-picker-indicator:hover {
     opacity: 1;
-}
-
-.overrideDateRange {
-    font-size: 14px;
-    color: #0a2a43;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-}
-
-.overrideSection {
-    margin: 16px 0;
-    padding: 16px;
-    border-radius: 12px;
-    background: #fff;
-    border: 1px solid rgba(10, 42, 67, 0.08);
-    transition: all 0.2s ease;
-}
-
-.overrideSection--cancel {
-    border-left: 4px solid #ef4444;
-    /* red-500 */
-    background: rgba(239, 68, 68, 0.02);
-}
-
-.overrideSection--extra {
-    border-left: 4px solid #f59e0b;
-    /* amber-500 */
-    background: rgba(245, 158, 11, 0.02);
-}
-
-.overrideSection--modify {
-    border-left: 4px solid #f59e0b;
-    /* amber-500 */
-    background: rgba(245, 158, 11, 0.02);
-}
-
-.overrideSectionHeader {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 12px;
-}
-
-.overrideSectionIcon {
-    width: 24px;
-    height: 24px;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    font-weight: 800;
-}
-
-.overrideSectionIcon--cancel {
-    background: #fee2e2;
-    color: #ef4444;
-}
-
-.overrideSectionIcon--extra {
-    background: #fef3c7;
-    color: #f59e0b;
-}
-
-.overrideSectionIcon--modify {
-    background: #fef3c7;
-    color: #f59e0b;
-}
-
-.overrideSectionTitle {
-    font-size: 14px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: #0a2a43;
 }
 
 /* ── Mobile Sidebar Logic ── */
@@ -1703,8 +1486,6 @@ input:checked + .adminSlider:before {
         height: 42px;
     }
 
-
-
     /* Suggestions page: make Country + Discover share the first row */
     .adminFullTop .adminActions .adminActionsGroup--suggestionsDiscover {
         display: contents;
@@ -1743,44 +1524,6 @@ input:checked + .adminSlider:before {
     to {
         opacity: 1;
     }
-}
-
-.overrideSelectGrid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
-    margin-top: 12px;
-}
-
-@media (max-width: 1200px) {
-    .overrideSelectGrid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-.overrideSelectCol {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    background: #fff;
-    border: 1px solid rgba(10, 42, 67, 0.08);
-    border-radius: 8px;
-    padding: 10px;
-}
-
-.overrideSelectCol .overrideSlotDay {
-    min-width: auto;
-    font-weight: 800;
-    font-size: 11px;
-    color: rgba(10, 42, 67, 0.6);
-    text-transform: uppercase;
-}
-
-.overrideSelectCol .adminSelect {
-    width: 100%;
-    padding: 8px 10px;
-    font-size: 13px;
-    border-radius: 6px;
 }
 
 /* Override existing affects grid within cards */
@@ -1949,27 +1692,6 @@ input:checked + .adminSlider:before {
     font-weight: 500;
 }
 
-.adminModalClose {
-    position: absolute;
-    top: 18px;
-    right: 18px;
-    background: transparent;
-    border: none;
-    padding: 6px;
-    cursor: pointer;
-    color: rgba(10, 42, 67, 0.4);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-}
-
-.adminModalClose:hover {
-    background: rgba(10, 42, 67, 0.05);
-    color: #ef4444;
-}
-
 .adminModalBtn {
     height: 44px;
     flex: 1;
@@ -2065,49 +1787,17 @@ input:checked + .adminSlider:before {
     }
 }
 /* Sync Highlighting */
-.adminInput.is-synced-highlight, 
+.adminInput.is-synced-highlight,
 .adminSelect.is-synced-highlight {
     background-color: #f0fdf4 !important; /* Very light green */
     border-color: #86efac !important;
 }
-
-
-
 
 /* ── Sync Feedback ── */
 @keyframes syncSuccessPop {
     0% { transform: scale(0.5); opacity: 0; }
     50% { transform: scale(1.2); opacity: 1; }
     100% { transform: scale(1); opacity: 1; }
-}
-
-.adminSyncSuccess {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    color: #059669;
-    font-size: 11px;
-    font-weight: 700;
-    animation: syncSuccessPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-/* ── Google Search Helper ── */
-.adminGoogleSearchBtn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 20px;
-    height: 20px;
-    border-radius: 4px;
-    color: rgba(10, 42, 67, 0.4);
-    transition: all 0.2s ease;
-    cursor: pointer;
-    vertical-align: middle;
-}
-
-.adminGoogleSearchBtn:hover {
-    background-color: rgba(10, 42, 67, 0.05);
-    color: #4285F4; /* Google Blue */
 }
 
 .adminLinkSearchBtn {
@@ -2201,245 +1891,6 @@ input:checked + .adminSlider:before {
     font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
-}
-
-/* ── Bulk Sync Modal ── */
-
-.adminMagicFillBtn svg {
-    display: block;
-    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.1));
-}
-
-.adminBulkSyncHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-}
-
-.adminBulkSyncHeader h3 {
-    margin: 0;
-    font-size: 18px;
-    color: #0a2a43;
-}
-
-.adminBulkSyncHeader span {
-    font-weight: 600;
-    font-size: 14px;
-    color: #64748b;
-}
-
-.adminBulkSyncProgressBar {
-    height: 8px;
-    background: #f1f5f9;
-    border-radius: 4px;
-    overflow: hidden;
-    margin-bottom: 20px;
-}
-
-.adminBulkSyncProgressFill {
-    height: 100%;
-    background: #3b82f6;
-    transition: width 0.3s ease;
-}
-
-.adminBulkSyncCurrentInfo {
-    background: #f8fafc;
-    padding: 16px;
-    border-radius: 12px;
-    margin-bottom: 20px;
-    font-size: 14px;
-    color: #334155;
-    text-align: left;
-}
-
-.adminBulkSyncCurrentInfo p {
-    margin: 4px 0;
-}
-
-.adminBulkSyncCurrentInfo strong {
-    color: #0f172a;
-}
-
-.adminBulkSyncCount {
-    background: #dcfce7;
-    color: #166534;
-    padding: 2px 8px;
-    border-radius: 6px;
-    font-weight: 700;
-    margin-left: 4px;
-}
-
-.adminBulkSyncWarning {
-    font-size: 12px;
-    color: #ef4444;
-    font-weight: 500;
-}
-
-/* ── Full-Width Sync Diff (Old Value) ── */
-.adminSyncDiffWrapper {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    background: rgba(239, 68, 68, 0.04);
-    border: 1px dashed rgba(239, 68, 68, 0.2);
-    border-radius: 8px;
-    padding: 8px 12px;
-    margin-top: 4px;
-    min-width: 0;
-}
-
-.adminSyncDiffLabelText {
-    flex: 1;
-    min-width: 0; /* Allow truncation only when necessary */
-    text-decoration: line-through;
-    color: #ef4444;
-    opacity: 0.8;
-    font-size: 13px;
-    font-weight: 500;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    display: block;
-}
-
-.adminSyncDiffActions {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    flex-shrink: 0;
-}
-
-.adminSyncRestoreBtn {
-    background: transparent;
-    border: none;
-    color: #ef4444;
-    cursor: pointer;
-    padding: 4px;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-    opacity: 0.6;
-}
-
-.adminSyncRestoreBtn:hover {
-    background: rgba(239, 68, 68, 0.1);
-    opacity: 1;
-}
-
-/* ── UI Adjustment for Inputs with Icons ── */
-.adminInput--withIcon {
-    padding-right: 42px !important;
-}
-
-.adminInputIconWrapper {
-    position: absolute;
-    right: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    display: flex;
-    gap: 4px;
-    align-items: center;
-}
-
-/* ── Admin Card Header Buttons ── */
-.adminHeaderCircleBtn {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(37, 99, 235, 0.06);
-    color: #2563eb;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 1px solid rgba(37, 99, 235, 0.1);
-}
-
-.adminHeaderCircleBtn:hover {
-    background: #2563eb;
-    color: white;
-    transform: translateY(-2px);
-}
-
-/* ── Opening Hours Redesign ── */
-.adminHoursContainer {
-    background: white;
-    border-radius: 12px;
-    padding: 20px;
-    border: 1px solid rgba(10, 42, 67, 0.08);
-}
-
-.adminHoursGrid {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.adminHoursRow {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    padding: 8px 0;
-    border-bottom: 1px solid rgba(10, 42, 67, 0.04);
-    gap: 16px;
-}
-
-.adminHoursRow:last-child {
-    border-bottom: none;
-}
-
-.adminHoursDay {
-    font-size: 11.5px;
-    font-weight: 700;
-    color: rgba(10, 42, 67, 0.5);
-    text-transform: capitalize;
-    flex-shrink: 0;
-}
-
-.adminHoursTime {
-    font-size: 11px;
-    line-height: 1.4;
-    font-weight: 600;
-    color: #134b7b;
-    text-align: right;
-    flex: 1;
-}
-
-.adminMapsLinkCard {
-    display: block;
-    background: white;
-    border: 1px solid rgba(37, 99, 235, 0.1);
-    border-radius: 12px;
-    padding: 16px;
-    text-decoration: none;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.adminMapsLinkCard:hover {
-    background: #f0f7ff;
-    border-color: #2563eb;
-    transform: translateY(-2px);
-}
-
-.adminMapsLinkIcon {
-    width: 40px;
-    height: 40px;
-    background: #f0f7ff;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #2563eb;
-    transition: all 0.2s;
-}
-
-.adminMapsLinkCard:hover .adminMapsLinkIcon {
-    background: #2563eb;
-    color: white;
 }
 
 /* ── Progress Bar ── */
@@ -2724,7 +2175,6 @@ input:checked + .adminSlider:before {
         margin-bottom: 8px; /* Adds space between toggle and Date field */
     }
 }
-
 
 /* ── Champ mot de passe avec œil de révélation ─────────────────────────── */
 

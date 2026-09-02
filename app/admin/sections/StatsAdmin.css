@@ -18,14 +18,6 @@
     max-width: 250px;
 }
 
-.statsControls {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-}
-
-
-
 /* Main Card for the Chart - Expand to fill remaining height */
 .statsCard {
     background: #fff;
@@ -116,35 +108,6 @@
     gap: 16px;
 }
 
-.statsSearch {
-    display: grid;
-    gap: 8px;
-    flex-shrink: 0;
-}
-
-.statsSearchLabel {
-    font-size: 12px;
-    font-weight: 700;
-    text-transform: uppercase;
-    color: rgba(10, 42, 67, 0.5);
-}
-
-.statsSearchInput {
-    width: 100%;
-    border: 1px solid rgba(10, 42, 67, 0.15);
-    border-radius: 8px;
-    padding: 10px;
-    font-weight: 600;
-    color: #0a2a43;
-    outline: none;
-    background: #f9fafb;
-}
-
-.statsSearchInput:focus {
-    border-color: #0a2a43;
-    background: #fff;
-}
-
 .statsLegendHead {
     display: grid;
     grid-template-columns: 16px 1fr 100px 80px;
@@ -163,7 +126,8 @@
     text-transform: uppercase;
 }
 
-/* THE MAGIC SCROLL AREA - Use natural height if not too long, or set a reasonable min-height */
+/* THE MAGIC SCROLL AREA - Use natural height if not too long,
+or set a reasonable min-height */
 .statsLegendScroll {
     overflow-y: auto;
     padding-right: 6px;
@@ -255,7 +219,7 @@
     }
 
     .statsLegendHead,
-    .statsLegendRow {
+.statsLegendRow {
         grid-template-columns: 16px 1fr 80px 60px;
     }
 }
@@ -277,140 +241,15 @@
     }
 
     .statsLegendHead,
-    .statsLegendRow {
+.statsLegendRow {
         grid-template-columns: 16px 1fr 60px 40px;
         gap: 8px;
         font-size: 13px;
     }
 }
-
-/* GPS Table Specific Styles */
-
-.statsGPSHead,
-.statsGPSRow {
-    grid-template-columns: 110px 1fr 70px !important;
-}
-
-.statsGPSInfo {
-    display: contents; /* Behaves as individual cells on desktop */
-}
-
-.statsGPSDateCol {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 12px;
-    color: rgba(10, 42, 67, 0.6);
-}
-
-.statsGPSDate {
-    font-weight: 500;
-}
-
-.statsGPSTime {
-    font-weight: 400;
-}
-
-.statsGPSLocation {
-    font-size: 14px;
-    font-weight: 500;
-    color: #0a2a43;
-}
-
-.statsGPSNoCoord {
-    font-size: 10px;
-    color: rgba(10, 42, 67, 0.3);
-    font-style: italic;
-}
-
-.statsGPSCounter {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(10, 42, 67, 0.05);
-    color: #0a2a43;
-    font-size: 12px;
-    font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 99px;
-    vertical-align: middle;
-}
-
-.statsGPSBtn {
-    padding: 6px !important;
-    width: 32px;
-    height: 32px !important;
-    border-radius: 8px !important;
-    font-size: 11px !important;
-    text-decoration: none !important;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-left: auto;
-}
-
-.statsGPSBtnIcon {
-    display: block;
-    width: 16px;
-    height: 16px;
-}
-
-@media (max-width: 600px) {
-    .statsGPSHead {
-        display: none !important;
-    }
-
-    .statsGPSRow {
-        grid-template-columns: 1fr auto !important;
-        gap: 0 12px !important;
-        padding: 8px 0 !important;
-        align-items: flex-start !important;
-    }
-
-    .statsGPSInfo {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-    }
-
-    .statsGPSDateCol {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        gap: 6px;
-        margin-bottom: 0;
-    }
-
-    .statsGPSDate {
-        font-size: 10px;
-    }
-
-    .statsGPSTime {
-        font-size: 10px;
-        color: rgba(10, 42, 67, 0.4);
-    }
-
-    .statsGPSLocation {
-        font-size: 12px;
-        line-height: 1.2;
-    }
-
-    .statsGPSMaps {
-        grid-row: 1;
-        grid-column: 2;
-        margin-top: 2px; /* Slight adjustment to align with the first line of text */
-    }
-
-    .statsGPSBtn {
-        width: 30px;
-        height: 30px !important;
-    }
-}
 /* ── Conservation RGPD ─────────────────────────────────────────────────────
    Bloc de fin de page : il ne doit pas attirer l'œil pendant la consultation
-   des statistiques, mais rester trouvable quand on le cherche. */
-
-.statsPurge {
+   des statistiques {
     margin-top: 40px;
     padding: 20px;
     border: 1px solid rgba(10, 42, 67, 0.12);
@@ -418,33 +257,7 @@
     background: #fbfcfd;
 }
 
-.statsPurgeHead {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    margin-bottom: 14px;
-}
-
-.statsPurgeTitle {
-    font-weight: 800;
-    font-size: 0.95rem;
-    color: #0a2a43;
-}
-
-.statsPurgeSub {
-    font-size: 0.82rem;
-    line-height: 1.5;
-    color: rgba(10, 42, 67, 0.65);
-}
-
-.statsPurgeOk {
-    font-size: 0.85rem;
-    line-height: 1.55;
-    color: rgba(10, 42, 67, 0.75);
-}
-
-/* Ambre et non rouge : il y a quelque chose à faire, ce n'est pas une panne. */
-.statsPurgeAlert {
+/* Ambre et non rouge : il y a quelque chose à faire {
     padding: 10px 12px;
     border-radius: 8px;
     background: #fef3c7;
@@ -454,47 +267,10 @@
     margin-bottom: 14px;
 }
 
-.statsPurgeLabel {
-    display: block;
-    margin-bottom: 12px;
-    max-width: 320px;
-}
-
-.statsPurgeLabel code {
-    padding: 1px 5px;
-    border-radius: 4px;
-    background: rgba(10, 42, 67, 0.08);
-    font-size: 0.85em;
-}
-
-.statsPurgeBtn {
-    width: auto;
-}
-
-.statsPurgeWarn {
-    margin-top: 10px;
-    font-size: 0.78rem;
-    line-height: 1.5;
-    color: rgba(10, 42, 67, 0.55);
-}
-
-@media (max-width: 600px) {
-    .statsPurge {
-        margin-top: 28px;
-        padding: 16px;
-    }
-
-    /* Cible tactile pleine largeur : une action irréversible ne doit pas
-       demander de viser. */
-    .statsPurgeBtn,
-    .statsPurgeLabel {
-        width: 100%;
-        max-width: none;
-    }
-}
-
-/* Bandeau des deux compteurs, au-dessus du graphique.
-   Deux colonnes dès le plus petit écran : les nombres sont courts, les
+/* Bandeau des deux compteurs,
+au-dessus du graphique.
+   Deux colonnes dès le plus petit écran : les nombres sont courts,
+les
    empiler gaspillerait la hauteur là où elle est la plus rare. */
 .statsKpis {
     display: grid;

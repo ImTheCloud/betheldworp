@@ -232,7 +232,8 @@
 }
 
 /* Deux elements espaces plutot qu'un point median.
-   Le separateur se retrouvait suspendu en fin de ligne au moindre repli, et
+   Le separateur se retrouvait suspendu en fin de ligne au moindre repli,
+et
    faisait un troisieme point sur une ligne qui en comptait deja deux. */
 .footer-copy {
     display: flex;
@@ -300,7 +301,6 @@
         order: 3;
     }
 
-
     .footer-bottom {
         flex-direction: column;
         gap: 12px;
@@ -363,11 +363,15 @@
     opacity: 1;
 }
 
-/* Compteurs de visites, sous la boîte d'inscription à la newsletter.
+/* Compteurs de visites,
+sous la boîte d'inscription à la newsletter.
    Quatre paliers sur une rangée qui se replie d'elle-même sur les écrans
-   étroits : les cellules gardent leur largeur naturelle, aucune ne se coupe. */
-/* Bandeau pleine largeur, sous les deux colonnes.
-   Loge dans la colonne de gauche, il y ajoutait deux rangees et laissait la
+   étroits : les cellules gardent leur largeur naturelle,
+aucune ne se coupe. */
+/* Bandeau pleine largeur,
+sous les deux colonnes.
+   Loge dans la colonne de gauche,
+il y ajoutait deux rangees et laissait la
    colonne de droite vide sur la meme hauteur. */
 .footer-stats {
     margin: 0 0 28px 0;
@@ -416,10 +420,15 @@
     min-height: 26px;
 }
 
-/* Quelle periode exactement : « 2025 », « august », « 2 sept. ». Le libelle
-   au-dessus dit de quoi il s'agit, cette ligne dit laquelle. Elle reste vide
-   pour le total et les semaines, un numero de semaine ISO n'apprenant rien a
-   personne, mais garde sa hauteur pour que les rangees restent alignees. */
+/* Quelle periode exactement : « 2025 »,
+« august »,
+« 2 sept. ». Le libelle
+   au-dessus dit de quoi il s'agit,
+cette ligne dit laquelle. Elle reste vide
+   pour le total et les semaines,
+un numero de semaine ISO n'apprenant rien a
+   personne,
+mais garde sa hauteur pour que les rangees restent alignees. */
 .footer-stat-hint {
     display: block;
     margin-top: 1px;
@@ -430,7 +439,8 @@
     color: rgba(255, 255, 255, 0.28);
 }
 
-/* Depuis quand ces chiffres comptent, et sur quelle version du site. */
+/* Depuis quand ces chiffres comptent,
+et sur quelle version du site. */
 .footer-stats-since {
     margin: 10px 0 0 0;
     font-size: 11px;
@@ -438,13 +448,16 @@
     color: rgba(255, 255, 255, 0.38);
 }
 
-
-
-/* Six colonnes ne tiennent que sur un ecran large : en dessous, deux rangees
-   de trois, ce qui reste deux rangees pleines. */
-/* Neuf colonnes ne tiennent que sur un ecran large. En dessous, trois
-   colonnes, soit trois rangees pleines : jamais de cellule seule en bout de
-   grille, quelle que soit la largeur. */
+/* Six colonnes ne tiennent que sur un ecran large : en dessous,
+deux rangees
+   de trois,
+ce qui reste deux rangees pleines. */
+/* Neuf colonnes ne tiennent que sur un ecran large. En dessous,
+trois
+   colonnes,
+soit trois rangees pleines : jamais de cellule seule en bout de
+   grille,
+quelle que soit la largeur. */
 @media (max-width: 1100px) {
     .footer-stats-row {
         grid-template-columns: repeat(3, 1fr);

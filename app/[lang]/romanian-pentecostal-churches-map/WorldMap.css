@@ -94,19 +94,6 @@
     }
 }
 
-/* Screen Reader Only - For SEO */
-.sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border-width: 0;
-}
-
 /* =============================================
    SIDEBAR
    ============================================= */
@@ -163,13 +150,6 @@
     gap: 4px;
 }
 
-.sidebarLogo {
-    width: 42px;
-    height: 42px;
-    object-fit: contain;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
-}
-
 .sidebarTitle {
     font-size: 1.1rem;
     font-weight: 700;
@@ -184,7 +164,7 @@
     justify-content: center;
 }
 
-.sidebarCloseBtn, .sidebarHamburgerBtn {
+.sidebarHamburgerBtn {
     background: transparent;
     border: none;
     padding: 6px;
@@ -197,12 +177,11 @@
     justify-content: center;
 }
 
-.sidebarCloseBtn:hover, .sidebarHamburgerBtn:hover {
+.sidebarHamburgerBtn:hover {
     background: #f8fafc;
     color: #134b7b;
     transform: translateY(-1px);
 }
-
 
 .churchMapLayout .churchMapSidebar.collapsed .churchMapBottomSheet {
     display: none;
@@ -212,57 +191,8 @@
     width: 100vw;
 }
 
-
-.churchMapTitle {
-    font-size: 1.4rem;
-    font-weight: 800;
-    margin: 0 0 4px 0;
-    color: #0f172a;
-    letter-spacing: -0.02em;
-}
-
-.churchMapSubtitle {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #475569;
-    margin: 0 0 14px 0;
-    line-height: 1.3;
-}
-
-.churchMapControls {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 24px;
-}
-
-/* Church Count Badge */
-.churchMapMeta {
-    margin-bottom: 0;
-}
-
-.churchCountBadge {
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-    padding: 6px 14px;
-    background: #ffffff;
-    border: 1px solid rgba(19, 75, 123, 0.15);
-    border-radius: 12px;
-}
-
-.countryPill.otherBtn {
-    background: #ffffff;
-    border-color: rgba(19, 75, 123, 0.15);
-    padding: 0 16px;
-}
-
-.shortLabel {
-    display: none;
-}
-
-/* On mid-size desktop, use compact "Others" button */
+/* On mid-size desktop,
+use compact "Others" button */
 @media (min-width: 769px) and (max-width: 1350px) {
     .countryPill.otherBtn {
         padding: 0;
@@ -288,36 +218,6 @@
     font-size: 0.85rem;
 }
 
-.churchCountValue {
-    font-size: 1.15rem;
-    font-weight: 900;
-    color: #134b7b;
-    position: relative;
-    padding-right: 12px;
-}
-
-.churchCountValue::after {
-    content: "";
-    position: absolute;
-    right: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 1px;
-    height: 14px;
-    background: rgba(19, 75, 123, 0.2);
-}
-
-.churchCountType {
-    font-size: 0.7rem;
-    font-weight: 800;
-    color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
 /* Floating Header Container */
 .mapFloatingHeader {
     position: absolute;
@@ -339,14 +239,6 @@
     pointer-events: auto;
     flex: 1;
     min-width: 0; /* Important for flex-shrink/scroll children */
-}
-
-.mapHeaderRight {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    pointer-events: auto;
-    flex-shrink: 0; /* Never hide the suggest button */
 }
 
 .churchMapSearch.floating.google-style {
@@ -401,20 +293,6 @@
 
 .searchClearBtn {
     color: #70757a !important;
-}
-
-.searchDivider {
-    width: 1px;
-    height: 24px;
-    background: #dadce0;
-    margin: 0 4px;
-}
-
-.searchDirectionsBtn svg rect {
-    fill: #134b7b;
-}
-.searchDirectionsBtn:hover svg rect {
-    fill: #0f3d63;
 }
 
 .countryFilterDropdown {
@@ -568,30 +446,6 @@
     color: #ffffff;
 }
 
-.otherCountriesWrapper {
-    position: relative;
-    display: flex;
-}
-
-.otherCountriesDropdown {
-    position: absolute;
-    top: calc(100% + 12px);
-    right: 0;
-    width: 200px;
-    background: #ffffff;
-    border-radius: 16px;
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    padding: 8px;
-    z-index: 2000; /* Boosted for mobile safety */
-    max-height: 300px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-
-
 .dropdownItem:hover {
     background: #f1f5f9;
 }
@@ -628,32 +482,6 @@
     padding: 2px 6px;
     border-radius: 8px;
     font-weight: 600;
-}
-
-.countryPill.otherBtn.selected {
-    background: #134b7b;
-    color: #ffffff;
-    border-color: #134b7b;
-}
-
-.countryPill.otherBtn.selected .pillCount {
-    background: rgba(255, 255, 255, 0.2);
-    color: #ffffff;
-}
-
-
-.countryPill.otherBtn.active {
-    border-color: #134b7b;
-}
-
-
-
-.churchCountType::before {
-    content: "";
-    width: 6px;
-    height: 6px;
-    background: #22c55e;
-    border-radius: 50%;
 }
 
 /* =============================================
@@ -710,83 +538,12 @@
 }
 
 /* =============================================
-   SEARCH & FILTER CONTAINER
-   ============================================= */
-.churchMapFilterContainer {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 12px;
-    flex-shrink: 0;
-    padding: 24px 24px 0 24px;
-    /* Default for Web */
-}
-
-/* Back Link Button next to Search */
-.churchMapBackLink {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 38px;
-    height: 38px;
-    background: #ffffff;
-    border-radius: 10px;
-    color: #64748b;
-    flex-shrink: 0;
-    text-decoration: none;
-    border: 1px solid rgba(10, 42, 67, 0.12);
-    transition: all 0.2s ease;
-}
-
-.churchMapBackLink:hover {
-    background: #e2e8f0;
-    color: #0f172a;
-    border-color: #cbd5e1;
-}
-
-.churchMapBackLink svg {
-    transition: transform 0.2s ease;
-}
-
-.churchMapBackLink:hover svg {
-    transform: translateX(-2px);
-}
-
-@media (max-width: 1024px) {
-    .churchMapFilterContainer {
-        padding: 4px 16px 0 16px;
-        /* Shifted higher for Mobile */
-        background: #ffffff;
-    }
-
-    .churchMapBackLink {
-        display: none !important;
-    }
-
-    /* Hide filters when a church is selected on mobile to give more space */
-    .churchMapBottomSheet:has(.mobileChurchDetails) .churchMapFilterContainer {
-        display: none;
-    }
-}
-
-/* =============================================
    SEARCH BAR
    ============================================= */
 .churchMapSearch {
     position: relative;
     flex: 1;
     min-width: 0;
-}
-
-.churchMapSearchIcon {
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #94a3b8;
-    pointer-events: none;
-    display: flex;
-    align-items: center;
 }
 
 .churchMapSearch input {
@@ -809,28 +566,6 @@
 .churchMapSearch input::placeholder {
     font-size: 0.75rem;
     color: #94a3b8;
-}
-
-.churchMapSearchClear {
-    position: absolute;
-    right: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: transparent;
-    border: none;
-    padding: 6px;
-    cursor: pointer;
-    color: #94a3b8;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 8px;
-    transition: all 0.2s;
-}
-
-.churchMapSearchClear:hover {
-    background: #f1f5f9;
-    color: #ef4444;
 }
 
 /* =============================================
@@ -955,14 +690,10 @@
     font-size: 0.9rem; /* Slightly smaller icon */
 }
 
-
-
 .churchListItem.active .churchListItemIcon {
     background: #134b7b;
     color: #ffffff;
 }
-
-
 
 .churchListItemContent {
     flex: 1;
@@ -1013,9 +744,6 @@
     color: #134b7b;
 }
 
-
-
-
 /* Empty State */
 .churchListEmpty {
     display: flex;
@@ -1035,23 +763,6 @@
     color: #64748b;
 }
 
-.resetSearchBtn {
-    background: none;
-    border: 1px solid #e2e8f0;
-    padding: 6px 16px;
-    border-radius: 8px;
-    color: #475569;
-    cursor: pointer;
-    font-size: 0.85rem;
-    font-weight: 500;
-    transition: all 0.2s ease;
-}
-
-.resetSearchBtn:hover {
-    background: #f1f5f9;
-    border-color: #cbd5e1;
-}
-
 /* =============================================
    MAP CONTAINER
    ============================================= */
@@ -1060,32 +771,6 @@
     height: 100%;
     background: #000;
     position: relative;
-}
-
-/* =============================================
-   MAP OVERLAY TITLE
-   ============================================= */
-.mapOverlayTitle {
-    position: absolute;
-    top: 24px;
-    left: 0;
-    right: 0;
-    z-index: 50;
-    display: flex;
-    justify-content: center;
-    text-align: center;
-    pointer-events: none;
-    animation: mapTitleFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.mapOverlayTitleContent {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    pointer-events: none;
-    width: 100%;
-    max-width: min(1200px, calc(100vw - 480px));
-    margin: 0 auto;
 }
 
 @keyframes mapTitleFadeIn {
@@ -1098,39 +783,6 @@
         opacity: 1;
         transform: translateY(0);
     }
-}
-
-/* Map Settings Buttons */
-/* Map Suggest Button - THE MOST VISIBLE */
-.mapSuggestBtn {
-    position: absolute;
-    top: 20px; /* Aligned with .desktopMapControls */
-    right: 20px;
-    background: #134b7b;
-    color: #ffffff;
-    border: none;
-    padding: 8px 14px;
-    height: 48px; /* Fixed height for consistency */
-    border-radius: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    white-space: normal;
-    line-height: 1.1;
-    gap: 8px; 
-    font-weight: 700;
-    font-size: 0.95rem;
-    cursor: pointer;
-    z-index: 1001; /* Above almost everything */
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    border: 2px solid rgba(255, 255, 255, 0.1);
-    text-decoration: none;
-}
-
-.mapSuggestBtn:hover {
-    background: #0f3d63;
-    transform: translateY(-2px);
 }
 
 /* Map Return/Back Button - Shared Styles with Suggest Button */
@@ -1169,10 +821,6 @@
     position: static;
 }
 
-.mapHeaderRight .mapSuggestBtn {
-    position: static;
-}
-
 @media (max-width: 768px) {
     .mapReturnBtn {
         top: calc(env(safe-area-inset-top, 0px) + 16px);
@@ -1185,24 +833,6 @@
     .mapReturnBtn span {
         display: none;
     }
-}
-
-.mapSuggestBtn.compact {
-    width: 48px;
-    padding: 0;
-    justify-content: center;
-}
-
-.mapSuggestBtn.compact span {
-    display: none;
-}
-
-.mapSuggestBtn.compact svg {
-    margin: 0;
-}
-
-.mapSuggestBtn:active {
-    transform: translateY(0) scale(0.96);
 }
 
 /* Specific mobile adjustment for suggest button */
@@ -1218,317 +848,13 @@
     }
 }
 
-/* Settings Backdrop Overlay */
-.mapSettingsBackdrop {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-    z-index: 2000;
-    animation: backdropFadeIn 0.3s ease;
-}
-
 @keyframes backdropFadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
 }
 
-/* Redesigned Settings Menu - Desktop Flyout */
-.mapSettingsMenu {
-    position: absolute;
-    top: 80px;
-    right: 20px;
-    width: 260px;
-    background: #ffffff;
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: 16px;
-    padding: 0;
-    z-index: 2005;
-    overflow: hidden;
-    opacity: 0;
-    visibility: hidden;
-    transform: scale(0.95) translateY(-10px);
-    transform-origin: top right;
-    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
 .churchMapBottomSheet.is-dragging .churchList {
     overflow: hidden !important;
-}
-
-.mapSettingsMenu.open {
-    opacity: 1;
-    visibility: visible;
-    transform: scale(1) translateY(0);
-}
-
-.mapSettingsSection {
-    display: flex;
-    flex-direction: column;
-}
-
-.mapSettingsHeader {
-    padding: 8px 14px;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
-}
-
-.mapSettingsHeader h3 {
-    margin: 0;
-    font-size: 1rem;
-    font-weight: 800;
-    color: #0f172a;
-    letter-spacing: -0.01em;
-}
-
-.closeSettings {
-    background: none;
-    border: none;
-    padding: 4px;
-    cursor: pointer;
-    color: #64748b;
-    border-radius: 50%;
-    transition: all 0.2s;
-    display: flex;
-}
-
-.closeSettings:hover {
-    background: rgba(0, 0, 0, 0.05);
-    color: #1e293b;
-}
-
-.mapSettingsItem {
-    padding: 8px 14px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.mapSettingsItem.compact {
-    padding-top: 4px;
-    padding-bottom: 12px;
-}
-
-.mapSettingsLabel {
-    display: flex;
-    flex-direction: column;
-}
-
-.mapSettingsLabel span {
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: #1e293b;
-}
-
-.mapSettingsItem.vertical {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-}
-
-
-
-/* Modern Segmented Language Picker - More Compact */
-.langSegmentedControl {
-    display: flex;
-    background: #f1f5f9;
-    padding: 2px;
-    border-radius: 10px;
-    width: 100%;
-    position: relative;
-}
-
-.langSegmentOption {
-    flex: 1;
-    border: none;
-    background: transparent;
-    border-radius: 8px;
-    padding: 6px 2px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    z-index: 1;
-}
-
-.langSegmentOption img {
-    width: 22px;
-    height: auto;
-    border-radius: 4px;
-    filter: grayscale(0.2);
-    transition: all 0.3s;
-}
-
-.langSegmentOption span {
-    font-size: 0.6rem;
-    font-weight: 700;
-    color: #64748b;
-    transition: all 0.3s;
-}
-
-.langSegmentOption:hover img {
-    filter: grayscale(0);
-}
-
-.langSegmentOption.active {
-    background: #ffffff;
-}
-
-.langSegmentOption.active img {
-    filter: grayscale(0);
-}
-
-.langSegmentOption.active span {
-    color: #134b7b;
-}
-
-
-
-/* Contact Button in Settings - Unified with primary brand style */
-/* Unified Action Buttons in Settings */
-.mapSettingsBackLink,
-.mapSettingsContactBtn {
-    flex: 1;
-    height: 40px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 6px;
-    border-radius: 8px;
-    font-size: 0.8rem !important;
-    font-weight: 700 !important;
-    text-decoration: none !important;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    box-sizing: border-box !important;
-    margin: 0 !important;
-    padding: 0 12px !important;
-    line-height: 1 !important;
-    cursor: pointer;
-    outline: none;
-    -webkit-appearance: none;
-    appearance: none;
-    border: 1px solid transparent;
-}
-
-.mapSettingsContactBtn {
-    background: #134b7b;
-    border-color: #134b7b;
-    color: #ffffff !important;
-}
-
-.mapSettingsContactBtn:hover {
-    background: #0d345a;
-    border-color: #0d345a;
-    transform: translateY(-1px);
-}
-
-.mapSettingsBackLink {
-    background: #f8fafc;
-    border-color: #cbd5e1;
-    color: #475569 !important;
-}
-
-.mapSettingsBackLink:hover {
-    background: #f8fafc;
-    border-color: #134b7b;
-    color: #134b7b !important;
-    transform: translateY(-1px);
-}
-
-.mapSettingsContactBtn svg,
-.mapSettingsBackLink svg {
-    flex-shrink: 0;
-}
-
-
-
-.langOptionBtn.active span {
-    color: #fff;
-}
-
-.mapSettingsItem {
-    padding: 8px 16px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.03);
-}
-
-.mapSettingsItem.actionsRow {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 14px;
-    border-top: 1px solid rgba(0, 0, 0, 0.04);
-}
-
-.mapSettingsItem:last-of-type {
-    border-bottom: none;
-}
-
-.mapSettingsFooter {
-    padding: 10px 14px;
-    background: transparent;
-    text-align: center;
-    border-top: 1px solid rgba(0, 0, 0, 0.04);
-}
-
-.mapSettingsFooter p {
-    margin: 0;
-    font-size: 0.7rem;
-    color: #94a3b8;
-    font-weight: 500;
-}
-
-
-.mapOverlaySubtitle {
-    display: none;
-}
-
-.mapOverlayHeading {
-    margin: 0;
-    font-size: clamp(1.8rem, 3.5vw, 3rem);
-    font-weight: 900;
-    letter-spacing: -0.03em;
-    line-height: 1.15;
-    background: linear-gradient(135deg, #0a1e3c 0%, #134b7b 45%, #1a6cb5 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    filter: drop-shadow(0 2px 4px rgba(255, 255, 255, 0.8)) drop-shadow(0 0 24px rgba(255, 255, 255, 0.6));
-    text-align: center;
-    transition: all 0.5s ease;
-}
-
-
-
-/* Sidebar Credits */
-.sidebarCredits {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 14px 24px;
-    border-top: 1px solid #f1f5f9;
-    background: #fafbfc;
-    color: #94a3b8;
-    font-size: 0.75rem;
-    font-weight: 500;
-    flex-shrink: 0;
-}
-
-.sidebarCredits svg {
-    color: #e11d48;
-    opacity: 0.6;
-    flex-shrink: 0;
 }
 
 /* =============================================
@@ -1575,8 +901,6 @@
     fill: #134b7b;
     transition: fill 0.3s ease;
 }
-
-
 
 @keyframes pulse {
     0% {
@@ -1652,8 +976,6 @@
     background: #1a64a3;
 }
 
-
-
 /* User Location Dot */
 .userLocationDot {
     width: 20px;
@@ -1721,7 +1043,6 @@
     50% { transform: scale(0.8); opacity: 0.5; }
     100% { transform: scale(1); opacity: 1; }
 }
-
 
 /* =============================================
    CHURCH DETAILS CARD
@@ -1825,59 +1146,6 @@
     word-break: break-word;
 }
 
-
-/* Schedule Section */
-.churchSchedule {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 14px;
-    margin-bottom: 16px;
-}
-
-/* mapSettingsBackLink styles moved and consolidated earlier */
-
-.churchScheduleTitle {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin: 0 0 10px 0;
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: #334155;
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-}
-
-.churchScheduleTitle svg {
-    color: #134b7b;
-}
-
-.churchScheduleList {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.churchScheduleItem {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-}
-
-.scheduleDay {
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: #475569;
-}
-
-.scheduleTime {
-    font-size: 0.8rem;
-    color: #64748b;
-    font-weight: 500;
-}
-
 /* Info List */
 .churchDetailsInfoList {
     margin-bottom: 24px;
@@ -1959,59 +1227,10 @@
     white-space: normal;
 }
 
-
-
-/* Share Button */
-.churchShareBtn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 12px 16px;
-    background: #f1f5f9;
-    color: #475569;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 0.85rem;
-    transition: all 0.2s ease;
-    white-space: nowrap;
-}
-
-.churchShareBtn:hover {
-    background: #e2e8f0;
-    color: #334155;
-}
-
-.churchShareBtn.copied {
-    background: #dcfce7;
-    color: #16a34a;
-    border-color: #bbf7d0;
-}
-
-.churchDetailsDisclaimer {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    margin: 12px 0 0 0;
-    font-size: 0.72rem;
-    color: #94a3b8;
-    line-height: 1.4;
-    font-style: italic;
-}
-
 /* =============================================
    MOBILE
    ============================================= */
-.mobileBackToList,
-.mapSettingsBackdrop,
-.mapSettingsHandle {
-    display: none;
-}
-
-.mobileMapBackLink,
-.mobileMapSettingsBtn {
+.mobileBackToList {
     display: none;
 }
 
@@ -2054,133 +1273,6 @@
         z-index: 2000; /* Increased to be above marker tooltips but below modas */
     }
 
-    .churchMapSidebarHeader {
-        display: none;
-    }
-
-    .mobileSearchBox {
-        flex: 1; /* Take up majority of space */
-        height: 44px; /* Slightly more compact height */
-        background: #f8fafc;
-        border: 1.5px solid #e2e8f0;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        padding: 0 4px 0 12px;
-        gap: 6px;
-        transition: all 0.2s ease;
-        overflow: hidden;
-    }
-
-    .mobileSearchBox:focus-within {
-        border-color: #134b7b;
-        background: #ffffff;
-    }
-
-    .mobileSearchBox input {
-        border: none;
-        background: transparent;
-        flex: 1;
-        min-width: 0; /* CRITICAL: allows input to shrink below its content width */
-        width: 100%;
-        height: 100%;
-        font-size: 0.95rem;
-        color: #1e293b;
-        outline: none;
-        padding: 0;
-    }
-
-    .mobileSearchIcon {
-        width: 18px;
-        height: 18px;
-        color: #94a3b8;
-        flex-shrink: 0;
-    }
-
-    .mobileSearchIconWrapper {
-        width: 32px;
-        height: 32px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-        margin-right: 2px;
-    }
-
-    .mobileSearchClear {
-        width: 32px;
-        height: 32px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: transparent;
-        border: none;
-        border-radius: 8px;
-        color: #94a3b8;
-        transition: all 0.2s ease;
-        flex-shrink: 0; /* Ensure X button never shrinks */
-        margin-right: 2px;
-    }
-
-    .mobileSearchClear svg {
-        width: 18px;
-        height: 18px;
-    }
-
-    .mobileSearchClear:active {
-        background: rgba(0, 0, 0, 0.05);
-        color: #ef4444;
-        transform: scale(0.9);
-    }
-
-    .mobileFilterAction {
-        position: relative;
-    }
-
-    .mobileHeaderFilterBtn {
-        width: auto;
-        height: 44px;
-        padding: 0 12px;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        background: #ffffff;
-        border: 1.5px solid #e2e8f0;
-        border-radius: 12px;
-        transition: all 0.2s ease;
-        flex-shrink: 0;
-    }
-
-    .mobileHeaderFilterBtn.hasFilter {
-        border-color: #134b7b;
-        background: #f0f7ff;
-        color: #134b7b;
-    }
-
-    .mobileFlagIcon {
-        font-size: 1.2rem;
-    }
-
-    .mobileFilterCount {
-        font-size: 0.85rem;
-        font-weight: 700;
-        color: #1e293b;
-        opacity: 0.9;
-        font-variant-numeric: tabular-nums;
-    }
-
-    .mobileFilterChevron {
-        color: #94a3b8;
-        transition: transform 0.3s ease;
-    }
-
-    .mobileFilterChevron.open {
-        transform: rotate(180deg);
-        color: #134b7b;
-    }
-
-
-
     /* Adjust country filter menu for mobile bottom sheet */
     .countryFilterMenu.mobileVersion {
         position: absolute;
@@ -2198,27 +1290,8 @@
         to { opacity: 1; transform: scale(1) translateY(0); }
     }
 
-    .churchMapFilterContainer {
-        display: none;
-    }
-
-    .mobileMapBackLink, .mobileMapSettingsBtn, .mapOverlayTitle {
-        display: none !important;
-    }
-
-
-    .mapOverlayHeading {
-        font-size: clamp(2rem, 9vw, 3rem);
-        letter-spacing: -0.02em;
-    }
-
-    .mapOverlaySubtitle {
-        font-size: 0.65rem;
-        letter-spacing: 0.14em;
-        padding: 3px 10px;
-    }
-
-    /* Bottom Sheet Overrides, Mobile */
+    /* Bottom Sheet Overrides,
+Mobile */
     .churchMapBottomSheet {
         position: relative;
         pointer-events: none;
@@ -2270,20 +1343,12 @@
         opacity: 1;
     }
 
-
     .churchMapBottomSheet[data-mode="expanded"] {
         height: var(--dynamic-height, calc(100dvh - var(--mobile-header-height) - 12px));
     }
 
     .churchMapBottomSheet:has(.mobileChurchDetails)[data-mode="expanded"] {
         max-height: 100dvh;
-    }
-
-    /* Completely hide church list only when settings are active */
-    .churchMapBottomSheet.settings-active {
-        transform: translateY(100%) !important;
-        opacity: 0 !important;
-        pointer-events: none;
     }
 
     .bottomSheetDragHandleArea {
@@ -2485,7 +1550,6 @@
         to { opacity: 1; transform: scale(1) translateY(0); }
     }
 
-
     .churchList {
         flex: 1;
         overflow-y: auto;
@@ -2511,14 +1575,11 @@
         padding-bottom: 0;
     }
 
-    /* ONLY allow scrolling when fully expanded. In all other modes, touch-drag moves the sheet. */
+    /* ONLY allow scrolling when fully expanded. In all other modes,
+touch-drag moves the sheet. */
     .churchMapBottomSheet:not([data-mode="expanded"]) .churchList,
-    .churchMapBottomSheet:not([data-mode="expanded"]) .mobileDetailsBody {
+.churchMapBottomSheet:not([data-mode="expanded"]) .mobileDetailsBody {
         overflow: hidden !important;
-    }
-
-    .churchMapTitle {
-        font-size: 1.35rem;
     }
 
     .mapRecenterBtn {
@@ -2572,7 +1633,6 @@
     }
 
 }
-
 
 @media (max-width: 480px) {
     .churchMapBottomSheet {
@@ -2688,34 +1748,6 @@
     transform: scale(0.98);
 }
 
-.sidebarShareBtn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    background: #ffffff;
-    border: 1.5px solid #134b7b;
-    border-radius: 20px;
-    color: #134b7b;
-    font-size: 0.75rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-    height: 38px;
-    padding: 0 16px;
-}
-
-.sidebarShareBtn:hover {
-    background: #f8fafc;
-    transform: translateY(-1px);
-}
-
-.sidebarShareBtn:active {
-    transform: scale(0.98);
-}
-
-
-
 .sidebarSuggestBtn {
     display: flex;
     align-items: center;
@@ -2811,8 +1843,6 @@
     min-width: 0;
 }
 
-
-
 .mobileChurchDetails .churchDetailsTitle {
     margin: 0;
     font-size: 1.05rem; /* Reduced from 1.1rem */
@@ -2842,7 +1872,6 @@
     flex-shrink: 0;
 }
 
-
 .mobileDetailsBack {
     display: flex;
     align-items: center;
@@ -2857,76 +1886,6 @@
     transition: all 0.2s ease;
     margin-right: -8px;
     margin-top: -2px; /* Nudge up to align with text cap-height */
-}
-
-.mobileDetailsShare {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    border: none;
-    background: transparent;
-    color: #134b7b;
-    cursor: pointer;
-    transition: all 0.2s;
-    position: relative;
-    padding: 0;
-    margin-top: 2px;
-}
-
-.mobileDetailsShare:active {
-    background: rgba(0, 0, 0, 0.05);
-    transform: scale(0.9);
-}
-
-.desktopDetailsShare {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 34px;
-    height: 34px;
-    border-radius: 50%;
-    border: none;
-    background: transparent;
-    color: #475569;
-    cursor: pointer;
-    transition: all 0.2s;
-    position: relative;
-    padding: 0;
-}
-
-.desktopDetailsShare:hover {
-    background: #f1f5f9;
-    color: #134b7b;
-}
-
-.desktopDetailsShare:active {
-    background: #e2e8f0;
-    transform: scale(0.95);
-}
-
-.shareCopiedFeedback {
-    position: absolute;
-    bottom: -22px; /* Position below on mobile header */
-    right: 0;
-    background: #134b7b;
-    color: white;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 0.65rem;
-    font-weight: 700;
-    white-space: nowrap;
-    pointer-events: none;
-    z-index: 100;
-}
-
-.shareCopiedFeedback.desktop {
-    bottom: auto;
-    top: -28px;
-    right: 50%;
-    transform: translateX(50%);
 }
 
 .mobileDetailsBack:active {
@@ -2957,7 +1916,6 @@
     display: block;
 }
 
-
 .mobileChurchDetails .churchDetailsInfoList {
     flex: 0 0 auto;
     display: grid;
@@ -2968,22 +1926,11 @@
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* When EXPANDED, links stay at the top with a bit more spacing */
+/* When EXPANDED,
+links stay at the top with a bit more spacing */
 .churchMapBottomSheet[data-mode="expanded"] .mobileChurchDetails .churchDetailsInfoList {
     gap: 24px 20px; 
 }
-
-.mobileChurchDetails .churchDetailsDisclaimer {
-    font-size: 0.85rem;
-    color: #94a3b8;
-    line-height: 1.5;
-    background: #ffffff;
-    border: 1px solid #f1f5f9;
-    padding: 12px;
-    border-radius: 8px;
-}
-
-
 
 /* Suggestion Modal */
 .suggestionModalOverlay {
@@ -3042,21 +1989,6 @@
     color: #0f172a;
     font-weight: 800;
     letter-spacing: -0.01em;
-}
-
-.suggestionModalClose {
-    background: #f1f5f9;
-    border: none;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.1rem;
-    color: #64748b;
-    cursor: pointer;
-    transition: all 0.2s;
 }
 
 .suggestionForm {
@@ -3176,20 +2108,6 @@
     letter-spacing: 0.02em;
 }
 
-.inputWithIcon {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-.fieldIcon {
-    position: absolute;
-    left: 12px;
-    color: #94a3b8;
-    pointer-events: none;
-    transition: color 0.2s;
-}
-
 .suggestionFormGroup input,
 .suggestionFormGroup select,
 .suggestionInput {
@@ -3230,18 +2148,6 @@
     margin-bottom: 24px;
 }
 
-.premiumIconBox {
-    width: 44px;
-    height: 44px;
-    background: rgba(19, 75, 123, 0.08);
-    color: #134b7b;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 12px auto;
-}
-
 .step2Header h4 {
     font-size: 1.15rem;
     font-weight: 800;
@@ -3273,7 +2179,8 @@
     width: auto;
 }
 
-/* Cancel button, grey with dark border */
+/* Cancel button,
+grey with dark border */
 .suggestionCancelBtn {
     height: 36px;
     padding: 0 16px;
@@ -3294,7 +2201,9 @@
     border-color: #334155;
 }
 
-/* Next / Send button, blue, compact */
+/* Next / Send button,
+blue,
+compact */
 .suggestionSubmitBtn {
     height: 36px;
     padding: 0 18px;
@@ -3334,7 +2243,8 @@
     width: auto;
 }
 
-/* Back button, same style as Cancel */
+/* Back button,
+same style as Cancel */
 .suggestionSkipBtn {
     height: 36px;
     padding: 0 16px;
@@ -3353,13 +2263,10 @@
     color: #1e293b;
 }
 
-
 @keyframes slideIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
-
-
 
 .suggestionSuccess {
     padding: 48px 24px;
@@ -3512,35 +2419,6 @@
     animation: loader-fade 1.5s ease-in-out infinite;
 }
 
-.emptyActions {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    width: 100%;
-    align-items: center;
-}
-
-.suggestNewBtn {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: none;
-    border: 1px solid #cbd5e1;
-    padding: 8px 16px;
-    border-radius: 999px;
-    color: #64748b;
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.suggestNewBtn:hover {
-    background: #f8fafc;
-    border-color: #134b7b;
-    color: #134b7b;
-}
-
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -3644,48 +2522,6 @@
         border-top: 1px solid #e2e8f0;
     }
 }
-.mapSettingsBackLink {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    width: 100%;
-    padding: 12px 16px;
-    background: #ffffff;
-    color: #134b7b;
-    border-radius: 14px;
-    text-decoration: none;
-    font-weight: 700;
-    font-size: 0.9rem;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 1.5px solid #134b7b;
-    margin-top: 12px;
-}
-
-.mapSettingsBackLink svg {
-    color: #134b7b;
-    transition: transform 0.3s ease;
-}
-
-.mapSettingsBackLink:hover {
-    background: #f8fafc;
-    color: #134b7b;
-}
-
-.mapSettingsBackLink:hover svg {
-    color: #134b7b;
-    transform: translateX(-3px);
-}
-
-.mapSettingsBackLink:active {
-    transform: scale(0.96);
-}
-
-.mapSettingsItem.divider {
-    border-top: none;
-    padding-top: 12px;
-    margin-top: 0;
-}
 
 /* Flag Image Global Polish */
 .flag-img {
@@ -3708,5 +2544,4 @@
     display: none !important;
   }
 }
-
 

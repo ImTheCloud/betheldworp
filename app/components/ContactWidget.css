@@ -118,7 +118,7 @@
 @media (prefers-reduced-motion: reduce) {
     .cw-fab--pulse { animation: none; }
     .cw-fab--pulse .cw-fabIcon::after,
-    .cw-fab--pulse .cw-fabIcon::before { animation: none; }
+.cw-fab--pulse .cw-fabIcon::before { animation: none; }
 }
 
 .cw-overlay {
@@ -348,7 +348,8 @@
 
     .cw-header { padding: 16px 14px 10px; background: #ffffff; }
     .cw-body { padding: 12px 14px 14px; background: #ffffff; }
-    .cw-form, .cw-field { background: #ffffff; }
+    .cw-form,
+.cw-field { background: #ffffff; }
 
     .cw-field textarea { min-height: 110px; }
 

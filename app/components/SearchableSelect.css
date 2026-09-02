@@ -19,7 +19,6 @@
     animation: dropdownSlideIn 0.2s cubic-bezier(0, 0, 0.2, 1);
 }
 
-
 .searchableSelectItem {
     padding: 8px 12px;
     font-size: 13px;
@@ -33,13 +32,11 @@
     justify-content: space-between;
 }
 
-
 .searchableSelectItem:hover,
 .searchableSelectItem.is-focused {
     background: rgba(37, 99, 235, 0.06);
     color: #2563eb;
 }
-
 
 .searchableSelectItem.is-selected {
     background: #2563eb;
@@ -53,7 +50,6 @@
     text-align: center;
     font-style: italic;
 }
-
 
 @keyframes dropdownSlideIn {
     from {
