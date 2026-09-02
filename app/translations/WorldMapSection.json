@@ -8,8 +8,6 @@
         "cta": "Găsește o biserică",
         "statChurches": "Biserici",
         "statCountries": "Țări",
-        "statLive": "Live",
-        "statLiveLabel": "Timp real",
         "verse_text": "„Duceți-vă în toată lumea și propovăduiți Evanghelia la orice făptură.”",
         "verse_ref": "Marcu 16:15"
     },
@@ -22,8 +20,6 @@
         "cta": "Trouver une église",
         "statChurches": "Églises",
         "statCountries": "Pays",
-        "statLive": "Live",
-        "statLiveLabel": "Temps réel",
         "verse_text": "« Allez par tout le monde, et prêchez la bonne nouvelle à toute la création. »",
         "verse_ref": "Marc 16:15"
     },
@@ -36,8 +32,6 @@
         "cta": "Find a Church",
         "statChurches": "Churches",
         "statCountries": "Countries",
-        "statLive": "Live",
-        "statLiveLabel": "Real-time",
         "verse_text": "\"Go into all the world and preach the gospel to all creation.\"",
         "verse_ref": "Mark 16:15"
     },
@@ -50,8 +44,6 @@
         "cta": "Vind een kerk",
         "statChurches": "Kerken",
         "statCountries": "Landen",
-        "statLive": "Live",
-        "statLiveLabel": "Realtime",
         "verse_text": "\"Trek de hele wereld rond en maak aan ieder schepsel het goede nieuws bekend.\"",
         "verse_ref": "Marcus 16:15"
     }
