@@ -862,7 +862,7 @@
 }
 
 .program-card--info:focus-visible {
-    outline: 2px solid #d99b19;
+    outline: 2px solid #0a2a43;
     outline-offset: 3px;
 }
 
@@ -886,9 +886,12 @@
     background: rgba(10, 42, 67, 0.06);
 }
 
+/* Le bleu du site, et non le dore : celui-ci designe ailleurs un jour
+   remplace par un evenement, ce que le nom du jour n'a aucune raison
+   d'evoquer. */
 .program-dayModalChip--day {
-    color: #92600a;
-    background: rgba(217, 155, 25, 0.14);
+    color: #0a2a43;
+    background: rgba(10, 42, 67, 0.1);
 }
 
 .program-dayModalChip--cancelled {
