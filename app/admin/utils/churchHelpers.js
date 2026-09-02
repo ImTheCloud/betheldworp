@@ -94,7 +94,7 @@ export async function geocodeAddress(church) {
     }
 }
 
-export function parseAddressComponents(components) {
+function parseAddressComponents(components) {
     if (!components) return {};
     const map = {};
     components.forEach(c => {

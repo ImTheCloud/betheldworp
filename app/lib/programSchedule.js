@@ -1,10 +1,10 @@
 // Shared rules for the recurring weekly program, used by the public site and the admin.
 
 /** Slots that keep running during the summer break; everything else is cancelled. */
-export const SUMMER_ACTIVE_SLOT_IDS = new Set(["fri", "sun_am", "sun_pm"]);
+const SUMMER_ACTIVE_SLOT_IDS = new Set(["fri", "sun_am", "sun_pm"]);
 
 /** The summer break covers the weeks of July and August, every year. */
-export function isSummerBreakMonth(month) {
+function isSummerBreakMonth(month) {
     return month === 7 || month === 8;
 }
 
@@ -29,7 +29,7 @@ function getBrusselsYMD(dateObj) {
  * The month a whole week belongs to, decided by its Thursday (the ISO rule).
  * So 31 Aug, 6 Sep counts as September, and 29 Jun, 5 Jul as July.
  */
-export function getISOWeekMonth(dateObj) {
+function getISOWeekMonth(dateObj) {
     const { yy, mm, dd } = getBrusselsYMD(dateObj);
     const d = new Date(Date.UTC(yy, mm - 1, dd, 12, 0, 0));
     const isoDow = d.getUTCDay() || 7; // Mon=1 … Sun=7

@@ -624,10 +624,10 @@ export default function StatsAdmin() {
                     <div className="statsKpis">
                         {[
                             ["Total", paliers.total, jourDOuverture ? `since ${formatEnDateFromKey(jourDOuverture)}` : ""],
-                            [paliers.cles.anPasse, paliers.anPasse, "last year"],
-                            [paliers.cles.anCourant, paliers.anCourant, "this year"],
-                            [nomDeMois(paliers.cles.moisPasse), paliers.moisPasse, "last month"],
-                            [nomDeMois(paliers.cles.moisCourant), paliers.moisCourant, "this month"],
+                            ["Last year", paliers.anPasse, paliers.cles.anPasse],
+                            ["This year", paliers.anCourant, paliers.cles.anCourant],
+                            ["Last month", paliers.moisPasse, nomDeMois(paliers.cles.moisPasse)],
+                            ["This month", paliers.moisCourant, nomDeMois(paliers.cles.moisCourant)],
                             ["Last week", paliers.semainePassee, paliers.cles.semainePassee],
                             ["This week", paliers.semaineCourante, paliers.cles.semaineCourante],
                             ["Yesterday", paliers.hier, formatEnDateFromKey(paliers.cles.hier)],

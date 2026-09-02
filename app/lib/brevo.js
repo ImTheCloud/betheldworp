@@ -11,7 +11,7 @@ function getApiKey() {
 }
 
 // Liste "Newsletter Bethel" (#7 dans le compte Brevo).
-export function getListId() {
+function getListId() {
     return Number(process.env.BREVO_LIST_ID || 7);
 }
 

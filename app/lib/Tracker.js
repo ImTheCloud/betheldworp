@@ -81,7 +81,7 @@ export function deviceTypeSafe() {
     }
 }
 
-export function normalizeTrackerLang(code) {
+function normalizeTrackerLang(code) {
     const base = String(code || "ro").trim().toLowerCase().split("-")[0];
     return base.slice(0, 16) || "ro";
 }

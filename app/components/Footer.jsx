@@ -10,8 +10,17 @@ import { brusselsDayKey, paliersDuJour } from "../lib/Tracker";
 import { db } from "../lib/Firebase";
 import { isValidEmail } from "../lib/validation";
 
-function nomAnnee(cle) {
-    return String(cle || "");
+// Jour au format court, « 1 sept. », pour distinguer hier d'aujourd'hui sans
+// alourdir la cellule.
+function jourCourt(cle, lang) {
+    const [an, mois, quantieme] = String(cle || "").split("-").map(Number);
+    if (!an || !mois || !quantieme) return "";
+    try {
+        return new Intl.DateTimeFormat(lang, { day: "numeric", month: "short", timeZone: "UTC" })
+            .format(new Date(Date.UTC(an, mois - 1, quantieme)));
+    } catch {
+        return "";
+    }
 }
 
 function nomMois(cle, lang) {
@@ -240,21 +249,22 @@ export default function Footer() {
                         <span className="footer-label">{t("visits_label")}:</span>
                         <div className="footer-stats-row">
                             {[
-                                [t("visits_total"), compteurs.total],
-                                [nomAnnee(compteurs.cles.anPasse), compteurs.anPasse],
-                                [nomAnnee(compteurs.cles.anCourant), compteurs.anCourant],
-                                [nomMois(compteurs.cles.moisPasse, lang), compteurs.moisPasse],
-                                [nomMois(compteurs.cles.moisCourant, lang), compteurs.moisCourant],
-                                [t("visits_last_week"), compteurs.semainePassee],
-                                [t("visits_week"), compteurs.semaineCourante],
-                                [t("visits_yesterday"), compteurs.hier],
-                                [t("visits_today"), compteurs.aujourdhui],
-                            ].map(([libelle, valeur]) => (
+                                [t("visits_total"), compteurs.total, ""],
+                                [t("visits_last_year"), compteurs.anPasse, compteurs.cles.anPasse],
+                                [t("visits_year"), compteurs.anCourant, compteurs.cles.anCourant],
+                                [t("visits_last_month"), compteurs.moisPasse, nomMois(compteurs.cles.moisPasse, lang)],
+                                [t("visits_month"), compteurs.moisCourant, nomMois(compteurs.cles.moisCourant, lang)],
+                                [t("visits_last_week"), compteurs.semainePassee, ""],
+                                [t("visits_week"), compteurs.semaineCourante, ""],
+                                [t("visits_yesterday"), compteurs.hier, jourCourt(compteurs.cles.hier, lang)],
+                                [t("visits_today"), compteurs.aujourdhui, jourCourt(compteurs.cles.aujourdhui, lang)],
+                            ].map(([libelle, valeur, precision]) => (
                                 <div className="footer-stat" key={libelle}>
                                     <span className="footer-stat-value">
                                         {valeur.toLocaleString(lang)}
                                     </span>
                                     <span className="footer-stat-label">{libelle}</span>
+                                    <span className="footer-stat-hint">{precision}</span>
                                 </div>
                             ))}
                         </div>

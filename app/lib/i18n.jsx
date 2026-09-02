@@ -1,4 +1,4 @@
-export const DEFAULT_LANG = "ro";
+const DEFAULT_LANG = "ro";
 
 const LOCALE_MAP = {
     ro: "ro-RO",

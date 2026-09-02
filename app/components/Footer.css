@@ -412,8 +412,22 @@
     letter-spacing: 0.08em;
     color: rgba(255, 255, 255, 0.42);
     /* Deux lignes reservees d'office : les libelles longs en roumain se
-       replient, et sans cette hauteur les deux rangees ne s'alignaient plus. */
+       replient, et sans cette hauteur les rangees ne s'alignaient plus. */
     min-height: 26px;
+}
+
+/* Quelle periode exactement : « 2025 », « august », « 2 sept. ». Le libelle
+   au-dessus dit de quoi il s'agit, cette ligne dit laquelle. Elle reste vide
+   pour le total et les semaines, un numero de semaine ISO n'apprenant rien a
+   personne, mais garde sa hauteur pour que les rangees restent alignees. */
+.footer-stat-hint {
+    display: block;
+    margin-top: 1px;
+    min-height: 13px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: rgba(255, 255, 255, 0.28);
 }
 
 /* Depuis quand ces chiffres comptent, et sur quelle version du site. */
