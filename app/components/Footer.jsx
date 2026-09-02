@@ -7,6 +7,7 @@ import { makeT } from "../lib/i18n";
 import tr from "../translations/Footer.json";
 import { collection, serverTimestamp, setDoc, doc, getDoc } from "firebase/firestore";
 import { brusselsDayKey, paliersDuJour } from "../lib/Tracker";
+import { SIGNAL_VISITE_COMPTEE } from "../lib/tracking";
 import { db } from "../lib/Firebase";
 import { isValidEmail } from "../lib/validation";
 
@@ -31,7 +32,7 @@ export default function Footer() {
     useEffect(() => {
         let vivant = true;
 
-        (async () => {
+        const lire = async () => {
             try {
                 const paliers = paliersDuJour(brusselsDayKey());
                 const montres = ["total", "anCourant", "moisCourant", "aujourdhui"];
@@ -46,11 +47,17 @@ export default function Footer() {
                 );
             } catch {
                 // Un compteur indisponible laisse simplement le pied de page
-                // tel qu'il était : rien ne s'affiche, rien ne casse.
+                // tel qu'il etait : rien ne s'affiche, rien ne casse.
             }
-        })();
+        };
 
-        return () => { vivant = false; };
+        lire();
+        window.addEventListener(SIGNAL_VISITE_COMPTEE, lire);
+
+        return () => {
+            vivant = false;
+            window.removeEventListener(SIGNAL_VISITE_COMPTEE, lire);
+        };
     }, []);
 
     const onSubscribe = async (e) => {

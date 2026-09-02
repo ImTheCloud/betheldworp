@@ -14,6 +14,10 @@
 // visiteurs entre eux, il empêche seulement de compter deux fois la même
 // personne dans la journée.
 
+// Emis sur window quand une visite vient d'etre comptee. Le pied de page s'en
+// sert pour relire ses compteurs, sans quoi il afficherait le total d'avant.
+export const SIGNAL_VISITE_COMPTEE = "bethel:visite-comptee";
+
 const OPT_OUT_KEY = "bethel_no_track";
 
 // Clés posées par le compteur, effacées lorsque le visiteur s'oppose.

@@ -6,6 +6,7 @@ import { db } from "../lib/Firebase";
 import { isOptedOut } from "../lib/tracking";
 import { brusselsDayKey, brusselsWeekKey, deviceTypeSafe, getBrowserLanguageSafe, getGeoSafe, safeStorageGet, safeStorageSet } from "../lib/Tracker";
 import { sanitizeKey, makeCityKey, normalizeLang, normalizeDevice } from "../lib/statsKeys";
+import { SIGNAL_VISITE_COMPTEE } from "../lib/tracking";
 
 // Incrémente les compteurs du jour. Rien d'autre n'est écrit : pas
 // d'identifiant, pas d'heure, pas de coordonnées, seulement des nombres.
@@ -42,17 +43,18 @@ async function compterVisite() {
     // deux fois à la page suivante.
     safeStorageSet(dejaCompte, "1");
 
-    // Compteurs publics affichés dans le pied de page. Ils vivent à part de
+    // Compteurs publics, ceux qu'affiche le pied de page. Ils vivent a part de
     // stats_daily parce qu'ils sont lisibles par tous : ils ne portent qu'un
-    // nombre, jamais une répartition par pays ou par ville.
-    // Cinq paliers, chacun dans son document : depuis toujours, l'annee en
-    // cours, le mois en cours, la semaine en cours, le jour. Additionner les jours a l'affichage
-    // aurait oblige a lire toute la collection sur chaque page ; quatre
-    // documents d'un nombre se lisent en quatre acces constants.
+    // nombre, jamais une repartition par pays ou par ville.
     //
-    // Le premier visiteur d'une annee ou d'un mois cree le document
-    // correspondant, sans traitement particulier : increment sur un document
-    // absent le cree a 1.
+    // Cinq documents, un par periode en cours : depuis toujours, l'annee, le
+    // mois, la semaine et le jour. Les additionner a l'affichage aurait oblige
+    // a lire toute la collection sur chaque page ; cinq documents d'un nombre
+    // se lisent en cinq acces constants. Les periodes passees existent parce
+    // qu'elles ont ete ecrites quand elles etaient courantes.
+    //
+    // Le premier visiteur d'une annee ou d'un mois cree son document sans
+    // traitement particulier : increment sur un document absent l'ecrit a 1.
     try {
         const paliers = ["total", jour.slice(0, 4), jour.slice(0, 7), brusselsWeekKey(jour), jour];
         await Promise.all(
@@ -60,6 +62,11 @@ async function compterVisite() {
                 setDoc(doc(db, "stats_public", id), { visits: increment(1) }, { merge: true })
             )
         );
+        // Le pied de page affiche ces compteurs et les lit a son montage, or
+        // l'ecriture ci-dessus arrive apres : sans ce signal il montrerait le
+        // total d'avant la visite en cours, et il faudrait recharger la page
+        // pour s'y voir compte.
+        window.dispatchEvent(new CustomEvent(SIGNAL_VISITE_COMPTEE));
     } catch (e) {
         console.error("Compteurs publics indisponibles :", e);
     }
