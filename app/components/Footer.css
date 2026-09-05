@@ -200,7 +200,8 @@
 }
 
 .footer-yt-row,
-.footer-map-row {
+.footer-map-row,
+.footer-mail-row {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -221,6 +222,13 @@
     color: #34A853; /* Google Green */
 }
 
+.footer-mail-icon {
+    width: 18px;
+    height: auto;
+    flex-shrink: 0;
+    color: #8ab4f8;
+}
+
 .footer-contact-item--yt:hover .footer-value {
     color: #FF0000;
 }
@@ -229,11 +237,15 @@
     color: #34A853;
 }
 
+.footer-contact-item--mail:hover .footer-value {
+    color: #8ab4f8;
+}
+
 .footer-bottom {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-top: 20px; /* Reduced from 30px */
+    padding-top: 16px;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     gap: 16px;
 }
@@ -249,12 +261,6 @@
     font-weight: 600;
 }
 
-/* L'adresse du developpeur suit celle de l'eglise, dans la meme colonne de
-   contacts : elle se lit comme les autres, en un peu plus discret. */
-.footer-contact-item--dev .footer-value {
-    font-size: 13px;
-    color: rgba(255, 255, 255, 0.7);
-}
 
 /* Spinner for button */
 @keyframes spin {
@@ -359,8 +365,11 @@
 }
 
 .footer-stats {
-    margin: 0 0 28px 0;
-    padding-top: 24px;
+    /* Les compteurs se serrent contre leurs traits de separation : ce n'est
+       qu'une ligne de chiffres, elle n'a pas besoin d'autant d'air qu'un bloc
+       de contenu. */
+    margin: 0 0 16px 0;
+    padding-top: 16px;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
@@ -376,7 +385,7 @@
     justify-content: start;
     justify-items: start;
     gap: 14px 22px;
-    margin-top: 12px;
+    margin-top: 8px;
 }
 
 .footer-stat {
