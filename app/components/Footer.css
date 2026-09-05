@@ -249,18 +249,10 @@
     font-weight: 600;
 }
 
-.footer-contact-item--dev {
-    flex-direction: row;
-    align-items: center;
-    gap: 6px;
-}
-
-.footer-contact-item--dev .footer-label {
-    font-size: 10px;
-}
-
+/* L'adresse du developpeur suit celle de l'eglise, dans la meme colonne de
+   contacts : elle se lit comme les autres, en un peu plus discret. */
 .footer-contact-item--dev .footer-value {
-    font-size: 12px;
+    font-size: 13px;
     color: rgba(255, 255, 255, 0.7);
 }
 

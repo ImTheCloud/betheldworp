@@ -206,6 +206,15 @@ export default function Footer() {
                         </a>
 
                         <a
+                            className="footer-contact-item footer-contact-item--dev"
+                            href={`mailto:${devEmail}?subject=${encodeURIComponent(mailSubject)}`}
+                            aria-label={t("email_dev_aria")}
+                        >
+                            <span className="footer-label">{t("developer")}:</span>
+                            <span className="footer-value">{devEmail}</span>
+                        </a>
+
+                        <a
                             className="footer-contact-item footer-contact-item--map"
                             href="https://www.google.com/maps/search/?api=1&query=Alsembergsesteenweg+572B,+1653+Beersel&query_place_id=ChIJWdWyrJPPw0cRL74a9ysasVE"
                             target="_blank"
@@ -272,14 +281,6 @@ export default function Footer() {
                             {t("privacy")}
                         </a>
                     </div>
-                    <a
-                        className="footer-contact-item footer-contact-item--dev"
-                        href={`mailto:${devEmail}?subject=${encodeURIComponent(mailSubject)}`}
-                        aria-label={t("email_dev_aria")}
-                    >
-                        <span className="footer-label">{t("developer")}:</span>
-                        <span className="footer-value">{devEmail}</span>
-                    </a>
                 </div>
             </div>
         </footer>
