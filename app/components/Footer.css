@@ -432,9 +432,11 @@
     }
 
     .footer-stat-value {
-        /* Meme largeur pour les quatre chiffres : les periodes s'alignent les
-           unes sous les autres. */
+        /* Meme largeur pour les quatre chiffres, cales a droite : les unites
+           tombent dans la meme colonne et les periodes s'alignent les unes
+           sous les autres. */
         min-width: 52px;
+        text-align: right;
     }
 
     .footer-stat-label {
