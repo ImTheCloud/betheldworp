@@ -373,28 +373,18 @@
 }
 
 .footer-stats-row {
-    /* Six colonnes sur une seule rangee, toute la largeur du pied de page.
-       Le nombre de colonnes est fixe et non deduit de la place disponible :
-       une grille auto-fit laissait des cellules seules sur une rangee de
-       plus des que la largeur changeait. */
+    /* Quatre compteurs sur une seule rangee. Le nombre de colonnes est fixe et
+       non deduit de la place disponible : une grille auto-fit laissait des
+       cellules seules sur une rangee de plus des que la largeur changeait. */
     display: grid;
-    /* La premiere colonne prend la largeur de son contenu : elle porte « TOTAL »
-       suivi de la date de depart, plus large qu un quart de la rangee. Les
-       trois autres se partagent le reste a egalite. */
-    grid-template-columns: auto repeat(3, 1fr);
+    /* Chaque colonne prend la largeur de son libelle : ils portent tous leur
+       periode (« TOTAL DIN DECEMBRIE 2025 », « LUNA ACEASTA SEPTEMBRIE ») et
+       des colonnes egales en couperaient certains. */
+    grid-template-columns: repeat(4, auto);
+    justify-content: start;
     justify-items: start;
-    gap: 14px 18px;
+    gap: 14px 22px;
     margin-top: 12px;
-    max-width: 580px;
-}
-
-/* Quatre colonnes demandent une largeur que le telephone n'a pas : deux
-   rangees de deux y valent mieux qu'une rangee serree ou chaque libelle se
-   replierait. */
-@media (max-width: 700px) {
-    .footer-stats-row {
-        grid-template-columns: repeat(2, 1fr);
-    }
 }
 
 .footer-stat {
@@ -415,6 +405,9 @@
 .footer-stat-label {
     display: block;
     margin-top: 3px;
+    /* Le libelle et sa periode restent d'un seul tenant : « LUNA ACEASTA »
+       seul, sans son mois, ne veut plus rien dire. */
+    white-space: nowrap;
     font-size: 10px;
     font-weight: 700;
     line-height: 1.3;
@@ -423,7 +416,29 @@
     color: rgba(255, 255, 255, 0.42);
 }
 
-/* Six colonnes ne tiennent que sur un ecran large : en dessous,
-deux rangees
-   de trois,
-ce qui reste deux rangees pleines. */
+/* Quatre colonnes demandent une largeur que le telephone n'a pas : un
+   compteur par ligne, chiffre a gauche et periode a droite, se lit mieux
+   qu'une grille ou les libelles se replient. */
+@media (max-width: 700px) {
+    .footer-stats-row {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .footer-stat {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+    }
+
+    .footer-stat-value {
+        /* Meme largeur pour les quatre chiffres : les periodes s'alignent les
+           unes sous les autres. */
+        min-width: 52px;
+    }
+
+    .footer-stat-label {
+        margin-top: 0;
+        white-space: normal;
+    }
+}
