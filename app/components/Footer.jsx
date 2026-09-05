@@ -29,9 +29,9 @@ export default function Footer() {
     // et un écouteur de plus sur chaque page coûterait plus qu'il ne sert.
     const [compteurs, setCompteurs] = useState(null);
 
-    // L'annee et le mois en cours se nomment eux-memes : « 2026 » et
-    // « septembrie » disent la periode sans que le visiteur ait a deviner de
-    // quelle annee ou de quel mois il s'agit.
+    // L'annee et le mois en cours completent leur libelle : « anul acesta
+    // 2026 », « luna aceasta septembrie », pour que le visiteur n'ait pas a
+    // deviner de quelle annee ni de quel mois il s'agit.
     const [libelleAn, libelleMois] = useMemo(() => {
         const [an, mois, quantieme] = brusselsDayKey().split("-").map(Number);
         const nomMois = new Intl.DateTimeFormat(lang, {
@@ -245,12 +245,11 @@ export default function Footer() {
                         <span className="footer-label">{t("visits_label")}:</span>
                         <div className="footer-stats-row">
                             {[
-                                // La date de depart ne qualifie que le total : les
-                                // trois autres compteurs portent leur periode dans
-                                // leur propre libelle.
+                                // Chaque compteur dit sa periode : le total depuis
+                                // quand il compte, l'annee et le mois lesquels.
                                 [t("visits_total"), compteurs.total, t("visits_since")],
-                                [libelleAn, compteurs.anCourant],
-                                [libelleMois, compteurs.moisCourant],
+                                [t("visits_year"), compteurs.anCourant, libelleAn],
+                                [t("visits_month"), compteurs.moisCourant, libelleMois],
                                 [t("visits_today"), compteurs.aujourdhui],
                             ].map(([libelle, valeur, depuis]) => (
                                 <div className="footer-stat" key={libelle}>
