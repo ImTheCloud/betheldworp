@@ -29,6 +29,18 @@ export default function Footer() {
     // et un écouteur de plus sur chaque page coûterait plus qu'il ne sert.
     const [compteurs, setCompteurs] = useState(null);
 
+    // L'annee et le mois en cours se nomment eux-memes : « 2026 » et
+    // « septembrie » disent la periode sans que le visiteur ait a deviner de
+    // quelle annee ou de quel mois il s'agit.
+    const [libelleAn, libelleMois] = useMemo(() => {
+        const [an, mois, quantieme] = brusselsDayKey().split("-").map(Number);
+        const nomMois = new Intl.DateTimeFormat(lang, {
+            month: "long",
+            timeZone: "UTC",
+        }).format(new Date(Date.UTC(an, mois - 1, quantieme)));
+        return [String(an), nomMois];
+    }, [lang]);
+
     useEffect(() => {
         let vivant = true;
 
@@ -237,8 +249,8 @@ export default function Footer() {
                                 // trois autres compteurs portent leur periode dans
                                 // leur propre libelle.
                                 [t("visits_total"), compteurs.total, t("visits_since")],
-                                [t("visits_year"), compteurs.anCourant],
-                                [t("visits_month"), compteurs.moisCourant],
+                                [libelleAn, compteurs.anCourant],
+                                [libelleMois, compteurs.moisCourant],
                                 [t("visits_today"), compteurs.aujourdhui],
                             ].map(([libelle, valeur, depuis]) => (
                                 <div className="footer-stat" key={libelle}>
