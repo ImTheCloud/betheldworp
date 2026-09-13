@@ -116,6 +116,9 @@
     min-height: 164px;
     min-width: 0;
     overflow: hidden;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
 }
 
 .program-card:hover {
@@ -123,12 +126,52 @@
     border-color: rgba(10, 42, 67, 0.25);
 }
 
+.program-verticalBadge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    flex-shrink: 0;
+    padding: 10px 0;
+    user-select: none;
+    pointer-events: none;
+}
+
+.program-verticalBadge span {
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    line-height: 1.15;
+    white-space: nowrap;
+}
+
+.program-verticalBadge--replaced {
+    background: linear-gradient(180deg, rgba(217, 155, 25, 0.18) 0%, rgba(217, 155, 25, 0.08) 100%);
+    border-right: 1px solid rgba(217, 155, 25, 0.25);
+    color: #92600a;
+}
+
+.program-verticalBadge--cancelled {
+    background: linear-gradient(180deg, rgba(185, 28, 28, 0.16) 0%, rgba(185, 28, 28, 0.06) 100%);
+    border-right: 1px solid rgba(185, 28, 28, 0.20);
+    color: #991b1b;
+}
+
 .program-cardInnerFlat {
     padding: 22px 24px;
     display: flex;
     flex-direction: column;
     min-width: 0;
+    flex: 1 1 auto;
     height: 100%;
+}
+
+.program-card--replaced .program-cardInnerFlat,
+.program-card--cancelled .program-cardInnerFlat {
+    padding: 22px 22px 22px 16px;
 }
 
 .program-cardTop {
@@ -149,23 +192,6 @@
     color: rgba(10, 42, 67, 0.55);
     margin: 0;
     min-width: 0;
-}
-
-.program-statusPill {
-    font-size: 10px;
-    font-weight: 800;
-    padding: 4px 8px;
-    border-radius: 6px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    white-space: nowrap;
-    flex-shrink: 0;
-}
-
-.program-statusPill--cancelled {
-    background: rgba(185, 28, 28, 0.12);
-    border: 1px solid rgba(185, 28, 28, 0.22);
-    color: #991b1b;
 }
 
 .program-activity {
@@ -232,53 +258,82 @@
     color: #0a2a43;
 }
 
-.program-statusPill--replaced {
-    background: rgba(217, 155, 25, 0.16);
-    border: 1px solid rgba(217, 155, 25, 0.30);
-    color: #92600a;
-}
 
 .program-timeLine--replaced {
     color: #92600a;
     background: rgba(217, 155, 25, 0.12);
 }
 
-.program-card--clickable {
+.program-card--clickable,
+.program-card--info {
     cursor: pointer;
     transition: transform 0.15s ease;
 }
 
-.program-card--clickable::before {
+.program-card--clickable:hover,
+.program-card--info:hover {
+    transform: translateY(-2px);
+}
+
+@media (hover: none) {
+    .program-card--clickable:hover,
+    .program-card--info:hover {
+        transform: none;
+    }
+}
+
+.program-card--clickable:focus-visible,
+.program-card--info:focus-visible {
+    outline: 2px solid #0a2a43;
+    outline-offset: 3px;
+}
+
+.program-card--clickable::before,
+.program-card--info::before {
     content: "";
     position: absolute;
     top: 0;
     right: 0;
     width: 24px;
     height: 24px;
-    background: linear-gradient(225deg, rgba(217, 155, 25, 0.25) 50%, transparent 50%);
+    background: linear-gradient(225deg, rgba(10, 42, 67, 0.16) 50%, transparent 50%);
     border-radius: 0 17px 0 0;
     pointer-events: none;
     z-index: 2;
 }
 
-.program-card--clickable::after {
+.program-card--clickable::after,
+.program-card--info::after {
     content: "↗";
     position: absolute;
     top: 2px;
     right: 4px;
     font-size: 8px;
     font-weight: 900;
-    color: #92600a;
+    color: rgba(10, 42, 67, 0.6);
     pointer-events: none;
     z-index: 3;
 }
 
-.program-card--clickable:hover::after {
+.program-card--clickable:hover::after,
+.program-card--info:hover::after {
     opacity: 1;
 }
 
-.program-card--clickable:hover {
-    transform: translateY(-2px);
+.program-card--replaced::before {
+    background: linear-gradient(225deg, rgba(217, 155, 25, 0.25) 50%, transparent 50%);
+}
+
+.program-card--replaced::after {
+    color: #92600a;
+}
+
+.program-card--cancelled::before {
+    background: linear-gradient(225deg, rgba(185, 28, 28, 0.22) 50%, transparent 50%);
+}
+
+.program-card--cancelled::after {
+    color: #991b1b;
 }
 
 .program-summerNotice {
@@ -349,6 +404,20 @@
         padding: 18px;
     }
 
+    .program-verticalBadge {
+        width: 26px;
+    }
+
+    .program-verticalBadge span {
+        font-size: 10px;
+        letter-spacing: 0.8px;
+    }
+
+    .program-card--replaced .program-cardInnerFlat,
+    .program-card--cancelled .program-cardInnerFlat {
+        padding: 18px 16px 18px 14px;
+    }
+
     .program-activity {
         font-size: 17px;
     }
@@ -402,20 +471,19 @@
         font-size: 12px;
     }
 
-    .program-cardTop {
-        align-items: center;
-        gap: 6px;
-        margin-bottom: 8px;
+    .program-verticalBadge {
+        width: 22px;
+        padding: 6px 0;
     }
 
-    .program-day {
-        font-size: 10px;
-        letter-spacing: 0.05em;
+    .program-verticalBadge span {
+        font-size: 9px;
+        letter-spacing: 0.5px;
     }
 
-    .program-statusPill {
-        font-size: 8.5px;
-        padding: 3px 6px;
+    .program-card--replaced .program-cardInnerFlat,
+    .program-card--cancelled .program-cardInnerFlat {
+        padding: 14px 10px 14px 10px;
     }
 }
 
@@ -617,25 +685,6 @@
         font-size: 11px;
     }
 }
-.program-card--info {
-    cursor: pointer;
-    transition: transform 0.15s ease;
-}
-
-.program-card--info:hover {
-    transform: translateY(-2px);
-}
-
-@media (hover: none) {
-    .program-card--info:hover {
-        transform: none;
-    }
-}
-
-.program-card--info:focus-visible {
-    outline: 2px solid #0a2a43;
-    outline-offset: 3px;
-}
 
 .program-dayModalMeta {
     display: flex;
@@ -653,11 +702,6 @@
     font-weight: 600;
     color: #374151;
     background: rgba(10, 42, 67, 0.06);
-}
-
-.program-dayModalChip--day {
-    color: #0a2a43;
-    background: rgba(10, 42, 67, 0.1);
 }
 
 .program-dayModalChip--cancelled {
@@ -695,27 +739,3 @@ la fenêtre y occupe toute la largeur. */
     }
 }
 
-.program-card--info::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 24px;
-    height: 24px;
-    background: linear-gradient(225deg, rgba(10, 42, 67, 0.16) 50%, transparent 50%);
-    border-radius: 0 17px 0 0;
-    pointer-events: none;
-    z-index: 2;
-}
-
-.program-card--info::after {
-    content: "↗";
-    position: absolute;
-    top: 2px;
-    right: 4px;
-    font-size: 8px;
-    font-weight: 900;
-    color: rgba(10, 42, 67, 0.6);
-    pointer-events: none;
-    z-index: 3;
-}
