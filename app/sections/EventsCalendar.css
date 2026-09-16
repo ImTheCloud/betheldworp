@@ -637,6 +637,7 @@
     padding: 16px;
     background: #ffffff;
     border: 1px solid rgba(10, 42, 67, 0.12);
+    min-width: 0;
 }
 
 .ev-infoCard--wide {
@@ -657,6 +658,12 @@
     font-weight: 800;
     color: #0a2a43;
     line-height: 1.35;
+}
+
+.ev-infoCard:not(.ev-infoCard--wide) .ev-infoValue {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .ev-infoSub {
@@ -778,12 +785,42 @@
         gap: 12px;
     }
 
+    .ev-infoGrid {
+        gap: 10px;
+    }
+
+    .ev-infoCard {
+        padding: 12px 14px;
+        border-radius: 14px;
+    }
+
+    .ev-infoLabel {
+        font-size: 10px;
+        margin-bottom: 6px;
+        letter-spacing: 0.08em;
+    }
+
+    .ev-infoValue {
+        font-size: clamp(12.5px, 3.4vw, 14.5px);
+        line-height: 1.25;
+    }
+
     .ev-heroImgWrap {
         width: 100%;
     }
 
     .ev-map {
         height: 190px;
+    }
+}
+
+@media (max-width: 420px) {
+    .ev-infoCard {
+        padding: 10px 11px;
+    }
+
+    .ev-infoValue {
+        font-size: clamp(11.5px, 3.2vw, 13px);
     }
 }
 
