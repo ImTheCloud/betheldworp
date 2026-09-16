@@ -68,12 +68,24 @@ function normalizeSlotTimes(value) {
     return res;
 }
 
+function normalizeImages(d) {
+    if (Array.isArray(d?.images)) {
+        return d.images.map((x) => safeStr(x).trim()).filter(Boolean);
+    }
+    if (d?.image && typeof d.image === "string" && d.image.trim()) {
+        return [d.image.trim()];
+    }
+    return [];
+}
+
 function cleanEvent(draft) {
+    const imgs = normalizeImages(draft);
     return {
         dateEvent: safeStr(draft?.dateEvent).trim(),
         time: safeStr(draft?.time).trim(),
         slotTimes: normalizeSlotTimes(draft?.slotTimes),
-        image: safeStr(draft?.image).trim(),
+        image: imgs[0] || "",
+        images: imgs,
         title: normalizeLangMap(draft?.title),
         description: normalizeLangMap(draft?.description),
         place: safeStr(draft?.place).trim(),
@@ -88,11 +100,13 @@ function pickFallback(map) {
 
 function normalizeEvent(data) {
     const d = data || {};
+    const imgs = normalizeImages(d);
     return {
         dateEvent: safeStr(d.dateEvent).trim(),
         time: safeStr(d.time).trim(),
         slotTimes: normalizeSlotTimes(d.slotTimes),
-        image: safeStr(d.image).trim(),
+        image: imgs[0] || "",
+        images: imgs,
         title: normalizeLangMap(d.title),
         description: normalizeLangMap(d.description),
         place: safeStr(d.place).trim(),
@@ -456,8 +470,8 @@ function EventCard({ item, expanded, draft, saveState, activeLang, onToggle, onL
                     <div className="adminLabel">
                         Image
                         <ImagePicker
-                            value={safeStr(draft?.image)}
-                            onChange={(val) => onChangeField(id, "image", null, val)}
+                            values={Array.isArray(draft?.images) ? draft.images : (draft?.image ? [draft.image] : [])}
+                            onChange={(val) => onChangeField(id, "images", null, val)}
                         />
                     </div>
 
@@ -775,8 +789,8 @@ function NewEventCard({ draft, saveState, activeLang, onLangChange, onChangeFiel
                 <div className="adminLabel">
                     Image
                     <ImagePicker
-                        value={safeStr(draft?.image)}
-                        onChange={(val) => onChangeField("image", null, val)}
+                        values={Array.isArray(draft?.images) ? draft.images : (draft?.image ? [draft.image] : [])}
+                        onChange={(val) => onChangeField("images", null, val)}
                     />
                 </div>
 
@@ -1032,6 +1046,14 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
                 const sub = { ...(next[field] || emptyLangMap()) };
                 sub[lang] = value;
                 next[field] = sub;
+            } else if (field === "images") {
+                const imgs = Array.isArray(value) ? value.filter(Boolean) : (value ? [value] : []);
+                next.images = imgs;
+                next.image = imgs[0] || "";
+            } else if (field === "image") {
+                const img = safeStr(value).trim();
+                next.image = img;
+                next.images = img ? [img] : [];
             } else {
                 next[field] = value;
             }
@@ -1046,6 +1068,14 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
                 const sub = { ...(next[field] || emptyLangMap()) };
                 sub[lang] = value;
                 next[field] = sub;
+            } else if (field === "images") {
+                const imgs = Array.isArray(value) ? value.filter(Boolean) : (value ? [value] : []);
+                next.images = imgs;
+                next.image = imgs[0] || "";
+            } else if (field === "image") {
+                const img = safeStr(value).trim();
+                next.image = img;
+                next.images = img ? [img] : [];
             } else {
                 next[field] = value;
             }

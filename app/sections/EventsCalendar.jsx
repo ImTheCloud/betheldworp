@@ -174,6 +174,17 @@ export default function EventsCalendar() {
         return eventsForSelectedDate[eventIndex] || null;
     }, [eventsForSelectedDate, eventIndex]);
 
+    const selectedEventImages = useMemo(() => {
+        if (!selectedEvent) return [];
+        if (Array.isArray(selectedEvent.images) && selectedEvent.images.length > 0) {
+            return selectedEvent.images.filter(Boolean);
+        }
+        if (selectedEvent.image) {
+            return [selectedEvent.image];
+        }
+        return [];
+    }, [selectedEvent]);
+
     useEffect(() => {
         if (!eventsSorted.length) return;
         if (selectedDate && eventsByDate.has(selectedDate)) return;
@@ -571,9 +582,19 @@ export default function EventsCalendar() {
                             {selectedEvent.description ? <p className="ev-desc" style={{ marginBottom: 20 }}>{selectedEvent.description}</p> : null}
                             <div className="ev-layout">
                                 <div className="ev-media">
-                                    <div className="ev-heroImgWrap">
-                                        <img className="ev-heroImg" src={selectedEvent.image} alt={t("event")} />
-                                    </div>
+                                    {selectedEventImages.length > 1 ? (
+                                        <div className={`ev-heroImgsGrid ev-heroImgsGrid--count-${Math.min(selectedEventImages.length, 4)}`}>
+                                            {selectedEventImages.map((imgSrc, i) => (
+                                                <div key={i} className="ev-heroImgWrap">
+                                                    <img className="ev-heroImg" src={imgSrc} alt={`${selectedEvent.title || t("event")} ${i + 1}`} />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : selectedEventImages.length === 1 ? (
+                                        <div className="ev-heroImgWrap">
+                                            <img className="ev-heroImg" src={selectedEventImages[0]} alt={selectedEvent.title || t("event")} />
+                                        </div>
+                                    ) : null}
                                 </div>
 
                                 <div className="ev-details">
@@ -634,27 +655,36 @@ export default function EventsCalendar() {
 function CalendarCellImage({ events, t }) {
     const [index, setIndex] = useState(0);
 
+    const allImages = useMemo(() => {
+        const list = [];
+        events.forEach((ev) => {
+            const imgs = Array.isArray(ev.images) && ev.images.length > 0
+                ? ev.images.filter(Boolean)
+                : (ev.image ? [ev.image] : []);
+            imgs.forEach((imgSrc, i) => {
+                list.push({ key: `${ev.id}-${i}-${imgSrc}`, src: imgSrc });
+            });
+        });
+        return list;
+    }, [events]);
+
     useEffect(() => {
-        if (events.length <= 1) return;
+        if (allImages.length <= 1) return;
         const timer = setInterval(() => {
-            setIndex((prev) => (prev + 1) % events.length);
+            setIndex((prev) => (prev + 1) % allImages.length);
         }, 3000);
         return () => clearInterval(timer);
-    }, [events.length]);
+    }, [allImages.length]);
+
+    if (allImages.length === 0) return null;
 
     return (
         <div className="ec-eventImgContainer">
-            {/* Ces images sont affichées dans une case de 118 px, carrée sur
-                téléphone, pour des fichiers qui pèsent parfois plus de 3 Mo.
-                C'est le cas le plus favorable pour next/image : mesuré, 15,4 Mo
-                deviennent 0,65 Mo sur les dix images les plus lourdes.
-                « fill » convient ici parce que le conteneur est déjà en position
-                absolue avec inset 0 : la mise en page ne bouge pas. */}
-            {events.map((ev, i) => (
+            {allImages.map((item, i) => (
                 <Image
-                    key={ev.id}
+                    key={item.key}
                     className={`ec-eventBg ${i === index ? "active" : ""}`}
-                    src={ev.image}
+                    src={item.src}
                     alt={t("event")}
                     fill
                     quality={90}

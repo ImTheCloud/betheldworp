@@ -525,6 +525,51 @@
     gap: 12px;
 }
 
+.ev-heroImgsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px;
+    width: 100%;
+}
+
+.ev-heroImgsGrid.ev-heroImgsGrid--count-2 {
+    grid-template-columns: 1fr 1fr;
+}
+
+.ev-heroImgsGrid.ev-heroImgsGrid--count-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.ev-heroImgsGrid.ev-heroImgsGrid--count-4 {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.ev-heroImgsGrid .ev-heroImgWrap {
+    height: 100%;
+    display: flex;
+}
+
+.ev-heroImgsGrid .ev-heroImg {
+    height: 100%;
+    object-fit: cover;
+}
+
+@media (max-width: 768px) {
+    .ev-heroImgsGrid.ev-heroImgsGrid--count-3 {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .ev-heroImgsGrid,
+    .ev-heroImgsGrid.ev-heroImgsGrid--count-2,
+    .ev-heroImgsGrid.ev-heroImgsGrid--count-3,
+    .ev-heroImgsGrid.ev-heroImgsGrid--count-4 {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+}
+
 .ev-heroImgWrap {
     position: relative;
     width: 100%;
