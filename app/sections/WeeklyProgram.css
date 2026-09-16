@@ -485,6 +485,23 @@
     .program-card--cancelled .program-cardInnerFlat {
         padding: 14px 10px 14px 10px;
     }
+
+    .program-card--replaced .program-bottomRow,
+    .program-card--cancelled .program-bottomRow {
+        gap: 6px;
+    }
+
+    .program-card--replaced .program-timeLine,
+    .program-card--cancelled .program-timeLine {
+        padding: 6px 8px;
+        font-size: 11px;
+    }
+
+    .program-card--replaced .program-dateFixed,
+    .program-card--cancelled .program-dateFixed {
+        font-size: 11px;
+        flex-shrink: 0;
+    }
 }
 
 .faq-header {
