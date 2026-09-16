@@ -33,7 +33,6 @@ function getTodayId() {
     return `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
 }
 
-
 const LANGS = [
     { key: "ro", label: "RO" },
     { key: "en", label: "EN" },
@@ -59,15 +58,26 @@ function normalizeLangMap(value) {
     return emptyLangMap();
 }
 
+function normalizeSlotTimes(value) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+    const res = {};
+    Object.entries(value).forEach(([k, v]) => {
+        const s = safeStr(v).trim();
+        if (s) res[k] = s;
+    });
+    return res;
+}
+
 function cleanEvent(draft) {
     return {
-        dateEvent: safeStr(draft.dateEvent).trim(),
-        time: safeStr(draft.time).trim(),
-        image: safeStr(draft.image).trim(),
-        title: normalizeLangMap(draft.title),
-        description: normalizeLangMap(draft.description),
-        place: safeStr(draft.place).trim(),
-        address: safeStr(draft.address).trim(),
+        dateEvent: safeStr(draft?.dateEvent).trim(),
+        time: safeStr(draft?.time).trim(),
+        slotTimes: normalizeSlotTimes(draft?.slotTimes),
+        image: safeStr(draft?.image).trim(),
+        title: normalizeLangMap(draft?.title),
+        description: normalizeLangMap(draft?.description),
+        place: safeStr(draft?.place).trim(),
+        address: safeStr(draft?.address).trim(),
     };
 }
 
@@ -81,6 +91,7 @@ function normalizeEvent(data) {
     return {
         dateEvent: safeStr(d.dateEvent).trim(),
         time: safeStr(d.time).trim(),
+        slotTimes: normalizeSlotTimes(d.slotTimes),
         image: safeStr(d.image).trim(),
         title: normalizeLangMap(d.title),
         description: normalizeLangMap(d.description),
@@ -111,15 +122,15 @@ function dateToWeekKey(dateStr) {
 }
 
 const SLOT_DEFINITIONS = {
-    mon: { id: "mon", label: "Monday · Youth & Teens (20:00 - 21:30)" },
-    tue_fast: { id: "tue_fast", label: "Tuesday Morning · Fasting (10:00 - 14:00)" },
-    tue: { id: "tue", label: "Tuesday Evening · Prayer (20:00 - 21:30)" },
-    wed: { id: "wed", label: "Wednesday · Mixed Choir (20:00 - 21:30)" },
-    thu: { id: "thu", label: "Thursday · Men's Choir (20:00 - 21:30)" },
-    fri: { id: "fri", label: "Friday · Prayer (20:00 - 21:30)" },
-    sat: { id: "sat", label: "Saturday · Kids (11:00 - 13:30)" },
-    sun_am: { id: "sun_am", label: "Sunday Morning · Service (10:00 - 12:00)" },
-    sun_pm: { id: "sun_pm", label: "Sunday Evening · Service (18:00 - 20:00)" },
+    mon: { id: "mon", label: "Monday · Youth & Teens (20:00 - 21:30)", shortLabel: "Monday · Youth & Teens", defaultTime: "20:00 - 21:30" },
+    tue_fast: { id: "tue_fast", label: "Tuesday Morning · Fasting (10:00 - 14:00)", shortLabel: "Tuesday Morning · Fasting", defaultTime: "10:00 - 14:00" },
+    tue: { id: "tue", label: "Tuesday Evening · Prayer (20:00 - 21:30)", shortLabel: "Tuesday Evening · Prayer", defaultTime: "20:00 - 21:30" },
+    wed: { id: "wed", label: "Wednesday · Mixed Choir (20:00 - 21:30)", shortLabel: "Wednesday · Mixed Choir", defaultTime: "20:00 - 21:30" },
+    thu: { id: "thu", label: "Thursday · Men's Choir (20:00 - 21:30)", shortLabel: "Thursday · Men's Choir", defaultTime: "20:00 - 21:30" },
+    fri: { id: "fri", label: "Friday · Prayer (20:00 - 21:30)", shortLabel: "Friday · Prayer", defaultTime: "20:00 - 21:30" },
+    sat: { id: "sat", label: "Saturday · Kids (11:00 - 13:30)", shortLabel: "Saturday · Kids", defaultTime: "11:00 - 13:30" },
+    sun_am: { id: "sun_am", label: "Sunday Morning · Service (10:00 - 12:00)", shortLabel: "Sunday Morning · Service", defaultTime: "10:00 - 12:00" },
+    sun_pm: { id: "sun_pm", label: "Sunday Evening · Service (18:00 - 20:00)", shortLabel: "Sunday Evening · Service", defaultTime: "18:00 - 20:00" },
 };
 
 function dateToSlots(dateStr) {
@@ -143,7 +154,6 @@ function dateToSlotIds(dateStr) {
     return dateToSlots(dateStr).map((s) => s.id);
 }
 
-
 function IconHistory(props) {
     return (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
@@ -153,7 +163,7 @@ function IconHistory(props) {
     );
 }
 
-function EventCard({ item, expanded, draft, saveState, activeLang, onToggle, onLangChange, onChangeField, onSave, onDelete, overriddenSlots = [] }) {
+function EventCard({ item, expanded, draft, saveState, activeLang, onToggle, onLangChange, onChangeField, onSave, onDelete, overriddenSlots = [], overriddenSlotTimes = {} }) {
     const id = safeStr(item?.id);
     const langKey = activeLang || "ro";
 
@@ -174,6 +184,13 @@ function EventCard({ item, expanded, draft, saveState, activeLang, onToggle, onL
     }, [draft?.overrideSlots, draft?.isOverride, overriddenSlots, availableSlotIds]);
 
     const isOverrideActive = selectedSlotIds.length > 0;
+    const hasMultipleSlots = isOverrideActive && selectedSlotIds.length > 1;
+
+    const currentSlotTimes = useMemo(() => {
+        if (draft?.slotTimes !== undefined) return draft.slotTimes;
+        if (item?.slotTimes && Object.keys(item.slotTimes).length > 0) return item.slotTimes;
+        return overriddenSlotTimes || {};
+    }, [draft?.slotTimes, item?.slotTimes, overriddenSlotTimes]);
 
     const isDirtyOverride = useMemo(() => {
         if (draft?.overrideSlots === undefined && draft?.isOverride === undefined) return false;
@@ -220,7 +237,16 @@ function EventCard({ item, expanded, draft, saveState, activeLang, onToggle, onL
                                     onChangeField(id, "dateEvent", null, newDate);
                                     const newSlots = dateToSlots(newDate).map((s) => s.id);
                                     if (isOverrideActive) {
+                                        const newTimes = {};
+                                        newSlots.forEach((sid) => {
+                                            newTimes[sid] = SLOT_DEFINITIONS[sid]?.defaultTime || "";
+                                        });
                                         onChangeField(id, "overrideSlots", null, newSlots);
+                                        onChangeField(id, "slotTimes", null, newTimes);
+                                        const combined = newSlots.map((sid) => newTimes[sid]).filter(Boolean).join(" & ");
+                                        if (combined) {
+                                            onChangeField(id, "time", null, combined);
+                                        }
                                     }
                                 }}
                             />
@@ -228,8 +254,10 @@ function EventCard({ item, expanded, draft, saveState, activeLang, onToggle, onL
                         <label className="adminLabel">
                             Time
                             <input
-                                className="adminInput"
+                                className={`adminInput${hasMultipleSlots ? " is-disabled" : ""}`}
                                 value={safeStr(draft?.time)}
+                                disabled={hasMultipleSlots}
+                                title={hasMultipleSlots ? "Calculated automatically from the schedule per slot below" : undefined}
                                 onChange={(e) => onChangeField(id, "time", null, e.target.value)}
                             />
                         </label>
@@ -243,9 +271,19 @@ function EventCard({ item, expanded, draft, saveState, activeLang, onToggle, onL
                                 if (isOverrideActive) {
                                     onChangeField(id, "isOverride", null, false);
                                     onChangeField(id, "overrideSlots", null, []);
+                                    onChangeField(id, "slotTimes", null, {});
                                 } else {
+                                    const initTimes = {};
+                                    availableSlotIds.forEach((sid) => {
+                                        initTimes[sid] = SLOT_DEFINITIONS[sid]?.defaultTime || draft?.time || "";
+                                    });
                                     onChangeField(id, "isOverride", null, true);
                                     onChangeField(id, "overrideSlots", null, availableSlotIds);
+                                    onChangeField(id, "slotTimes", null, initTimes);
+                                    const combined = availableSlotIds.map((sid) => initTimes[sid]).filter(Boolean).join(" & ");
+                                    if (combined) {
+                                        onChangeField(id, "time", null, combined);
+                                    }
                                 }
                             }}
                         >
@@ -282,8 +320,29 @@ function EventCard({ item, expanded, draft, saveState, activeLang, onToggle, onL
                                                     const next = isSelected
                                                         ? selectedSlotIds.filter((s) => s !== slot.id)
                                                         : [...selectedSlotIds, slot.id];
+                                                    
+                                                    const nextTimes = { ...currentSlotTimes };
+                                                    if (!isSelected) {
+                                                        if (!nextTimes[slot.id]) {
+                                                            nextTimes[slot.id] = slot.defaultTime || draft?.time || "";
+                                                        }
+                                                    } else {
+                                                        delete nextTimes[slot.id];
+                                                    }
+
                                                     onChangeField(id, "overrideSlots", null, next);
+                                                    onChangeField(id, "slotTimes", null, nextTimes);
                                                     onChangeField(id, "isOverride", null, next.length > 0);
+
+                                                    if (next.length > 0) {
+                                                        const combined = next
+                                                            .map((sid) => nextTimes[sid] || SLOT_DEFINITIONS[sid]?.defaultTime || "")
+                                                            .filter(Boolean)
+                                                            .join(" & ");
+                                                        if (combined) {
+                                                            onChangeField(id, "time", null, combined);
+                                                        }
+                                                    }
                                                 }}
                                             >
                                                 <span className="adminSlotCheck">{isSelected ? "✓" : ""}</span>
@@ -292,6 +351,50 @@ function EventCard({ item, expanded, draft, saveState, activeLang, onToggle, onL
                                         );
                                     })}
                                 </div>
+
+                                {selectedSlotIds.length > 1 && (
+                                    <div className="adminOverrideTimesContainer">
+                                        <div className="adminOverrideSlotsLabel">
+                                            Schedule per slot:
+                                        </div>
+                                        <div className="adminOverrideTimesGrid">
+                                            {selectedSlotIds.map((slotId) => {
+                                                const slotDef = SLOT_DEFINITIONS[slotId];
+                                                const slotVal = (currentSlotTimes && currentSlotTimes[slotId] !== undefined)
+                                                    ? currentSlotTimes[slotId]
+                                                    : (slotDef?.defaultTime || draft?.time || "");
+                                                return (
+                                                    <div key={slotId} className="adminOverrideTimeRow">
+                                                        <span className="adminOverrideTimeSlotName">
+                                                            {slotDef?.shortLabel || slotDef?.label || slotId}
+                                                        </span>
+                                                        <input
+                                                            type="text"
+                                                            className="adminInput adminInput--small"
+                                                            value={slotVal}
+                                                            placeholder={slotDef?.defaultTime || "e.g. 20:00 - 21:30"}
+                                                            onChange={(e) => {
+                                                                const newTime = e.target.value;
+                                                                const nextTimes = {
+                                                                    ...currentSlotTimes,
+                                                                    [slotId]: newTime,
+                                                                };
+                                                                onChangeField(id, "slotTimes", null, nextTimes);
+                                                                const combined = selectedSlotIds
+                                                                    .map((sid) => (sid === slotId ? newTime : (nextTimes[sid] ?? SLOT_DEFINITIONS[sid]?.defaultTime ?? "")))
+                                                                    .filter(Boolean)
+                                                                    .join(" & ");
+                                                                if (combined) {
+                                                                    onChangeField(id, "time", null, combined);
+                                                                }
+                                                            }}
+                                                        />
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
@@ -408,6 +511,9 @@ function NewEventCard({ draft, saveState, activeLang, onLangChange, onChangeFiel
         return isOverrideActive ? availableSlotIds : [];
     }, [draft?.overrideSlots, isOverrideActive, availableSlotIds]);
 
+    const currentSlotTimes = draft?.slotTimes || {};
+    const hasMultipleSlots = isOverrideActive && selectedSlotIds.length > 1;
+
     return (
         <div className="adminAnnCard is-active">
             <div className="adminAnnHeader">
@@ -448,10 +554,18 @@ function NewEventCard({ draft, saveState, activeLang, onLangChange, onChangeFiel
                             value={safeStr(draft?.dateEvent)}
                             onChange={(e) => {
                                 const newDate = e.target.value;
-                                onChangeField("dateEvent", null, newDate);
                                 const newSlots = dateToSlots(newDate).map((s) => s.id);
-                                if (isOverrideActive) {
-                                    onChangeField("overrideSlots", null, newSlots);
+                                const newTimes = {};
+                                newSlots.forEach((sid) => {
+                                    newTimes[sid] = SLOT_DEFINITIONS[sid]?.defaultTime || "";
+                                });
+                                onChangeField("dateEvent", null, newDate);
+                                onChangeField("overrideSlots", null, newSlots);
+                                onChangeField("slotTimes", null, newTimes);
+                                onChangeField("isOverride", null, true);
+                                const combined = newSlots.map((sid) => newTimes[sid]).filter(Boolean).join(" & ");
+                                if (combined) {
+                                    onChangeField("time", null, combined);
                                 }
                             }}
                         />
@@ -459,8 +573,10 @@ function NewEventCard({ draft, saveState, activeLang, onLangChange, onChangeFiel
                     <label className="adminLabel">
                         Time
                         <input
-                            className="adminInput"
+                            className={`adminInput${hasMultipleSlots ? " is-disabled" : ""}`}
                             value={safeStr(draft?.time)}
+                            disabled={hasMultipleSlots}
+                            title={hasMultipleSlots ? "Calculated automatically from the schedule per slot below" : undefined}
                             onChange={(e) => onChangeField("time", null, e.target.value)}
                         />
                     </label>
@@ -474,9 +590,19 @@ function NewEventCard({ draft, saveState, activeLang, onLangChange, onChangeFiel
                             if (isOverrideActive) {
                                 onChangeField("isOverride", null, false);
                                 onChangeField("overrideSlots", null, []);
+                                onChangeField("slotTimes", null, {});
                             } else {
+                                const initTimes = {};
+                                availableSlotIds.forEach((sid) => {
+                                    initTimes[sid] = SLOT_DEFINITIONS[sid]?.defaultTime || draft?.time || "";
+                                });
                                 onChangeField("isOverride", null, true);
                                 onChangeField("overrideSlots", null, availableSlotIds);
+                                onChangeField("slotTimes", null, initTimes);
+                                const combined = availableSlotIds.map((sid) => initTimes[sid]).filter(Boolean).join(" & ");
+                                if (combined) {
+                                    onChangeField("time", null, combined);
+                                }
                             }
                         }}
                     >
@@ -513,8 +639,29 @@ function NewEventCard({ draft, saveState, activeLang, onLangChange, onChangeFiel
                                                 const next = isSelected
                                                     ? selectedSlotIds.filter((s) => s !== slot.id)
                                                     : [...selectedSlotIds, slot.id];
+                                                
+                                                const nextTimes = { ...currentSlotTimes };
+                                                if (!isSelected) {
+                                                    if (!nextTimes[slot.id]) {
+                                                        nextTimes[slot.id] = slot.defaultTime || draft?.time || "";
+                                                    }
+                                                } else {
+                                                    delete nextTimes[slot.id];
+                                                }
+
                                                 onChangeField("overrideSlots", null, next);
+                                                onChangeField("slotTimes", null, nextTimes);
                                                 onChangeField("isOverride", null, next.length > 0);
+
+                                                if (next.length > 0) {
+                                                    const combined = next
+                                                        .map((sid) => nextTimes[sid] || SLOT_DEFINITIONS[sid]?.defaultTime || "")
+                                                        .filter(Boolean)
+                                                        .join(" & ");
+                                                    if (combined) {
+                                                        onChangeField("time", null, combined);
+                                                    }
+                                                }
                                             }}
                                         >
                                             <span className="adminSlotCheck">{isSelected ? "✓" : ""}</span>
@@ -523,6 +670,50 @@ function NewEventCard({ draft, saveState, activeLang, onLangChange, onChangeFiel
                                     );
                                 })}
                             </div>
+
+                            {selectedSlotIds.length > 1 && (
+                                <div className="adminOverrideTimesContainer">
+                                    <div className="adminOverrideSlotsLabel">
+                                        Schedule per slot:
+                                    </div>
+                                    <div className="adminOverrideTimesGrid">
+                                        {selectedSlotIds.map((slotId) => {
+                                            const slotDef = SLOT_DEFINITIONS[slotId];
+                                            const slotVal = (draft?.slotTimes && draft.slotTimes[slotId] !== undefined)
+                                                ? draft.slotTimes[slotId]
+                                                : (slotDef?.defaultTime || draft?.time || "");
+                                            return (
+                                                <div key={slotId} className="adminOverrideTimeRow">
+                                                    <span className="adminOverrideTimeSlotName">
+                                                        {slotDef?.shortLabel || slotDef?.label || slotId}
+                                                    </span>
+                                                    <input
+                                                        type="text"
+                                                        className="adminInput adminInput--small"
+                                                        value={slotVal}
+                                                        placeholder={slotDef?.defaultTime || "e.g. 20:00 - 21:30"}
+                                                        onChange={(e) => {
+                                                            const newTime = e.target.value;
+                                                            const nextTimes = {
+                                                                ...(draft?.slotTimes || {}),
+                                                                [slotId]: newTime,
+                                                            };
+                                                            onChangeField("slotTimes", null, nextTimes);
+                                                            const combined = selectedSlotIds
+                                                                .map((sid) => (sid === slotId ? newTime : (nextTimes[sid] ?? SLOT_DEFINITIONS[sid]?.defaultTime ?? "")))
+                                                                .filter(Boolean)
+                                                                .join(" & ");
+                                                            if (combined) {
+                                                                onChangeField("time", null, combined);
+                                                            }
+                                                        }}
+                                                    />
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
@@ -643,14 +834,21 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
 
     const [showHistory, setShowHistory] = useState(false);
 
-    const getEventOverriddenSlots = useCallback((eventId, dateStr) => {
-        if (!eventId || !dateStr) return [];
+    const getEventOverriddenData = useCallback((eventId, dateStr) => {
+        if (!eventId || !dateStr) return { slots: [], slotTimes: {} };
         const wk = dateToWeekKey(dateStr);
-        if (!wk) return [];
+        if (!wk) return { slots: [], slotTimes: {} };
         const override = overrides.find((o) => o.id === wk || o.weekKey === wk);
-        if (!override || !override.replacements) return [];
+        if (!override || !override.replacements) return { slots: [], slotTimes: {} };
         const possibleSlots = dateToSlotIds(dateStr);
-        return possibleSlots.filter((s) => override.replacements[s] === eventId);
+        const slots = possibleSlots.filter((s) => override.replacements[s] === eventId);
+        const slotTimes = {};
+        slots.forEach((s) => {
+            if (override.customTimes && override.customTimes[s]) {
+                slotTimes[s] = override.customTimes[s];
+            }
+        });
+        return { slots, slotTimes };
     }, [overrides]);
 
     const templates = useMemo(() => {
@@ -697,6 +895,21 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
     const upcomingPagination = usePagination(upcomingItems, PAGE_SIZE);
     const historyPagination = usePagination(historyItems, PAGE_SIZE);
 
+    const isEventItemDirty = useCallback((item, draft) => {
+        if (!item || !draft) return false;
+        if (!eventEqual(item, draft)) return true;
+        if (draft?.overrideSlots !== undefined || draft?.isOverride !== undefined) {
+            const origData = getEventOverriddenData(item.id, item.dateEvent);
+            const availableSlots = dateToSlotIds(draft?.dateEvent);
+            const currentSlots = draft?.overrideSlots !== undefined 
+                ? draft.overrideSlots 
+                : (draft?.isOverride ? availableSlots : []);
+            if (origData.slots.length !== currentSlots.length) return true;
+            if (!origData.slots.every((s) => currentSlots.includes(s))) return true;
+        }
+        return false;
+    }, [getEventOverriddenData]);
+
     // Report aggregate dirty state to parent
     useEffect(() => {
         if (!onDirtyChange) return;
@@ -704,26 +917,14 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
         const anyExpandedDirty = Array.from(expandedIds).some((id) => {
             const item = items.find((it) => it.id === id);
             const draft = draftsById[id];
-            if (!item || !draft) return false;
-            const eventDirty = !eventEqual(item, draft);
-            if (eventDirty) return true;
-            if (draft?.overrideSlots !== undefined || draft?.isOverride !== undefined) {
-                const origSlots = getEventOverriddenSlots(item.id, item.dateEvent);
-                const availableSlots = dateToSlotIds(draft?.dateEvent);
-                const currentSlots = draft?.overrideSlots !== undefined 
-                    ? draft.overrideSlots 
-                    : (draft?.isOverride ? availableSlots : []);
-                if (origSlots.length !== currentSlots.length) return true;
-                if (!origSlots.every((s) => currentSlots.includes(s))) return true;
-            }
-            return false;
+            return isEventItemDirty(item, draft);
         });
 
         // "New" form is dirty if it has any meaningful content or is just open
         const isNewDirty = showNew && (newDraft.dateEvent || pickFallback(newDraft.title));
         
         onDirtyChange(isNewDirty || anyExpandedDirty);
-    }, [showNew, newDraft, expandedIds, draftsById, items, onDirtyChange, getEventOverriddenSlots]);
+    }, [showNew, newDraft, expandedIds, draftsById, items, onDirtyChange, isEventItemDirty]);
 
     const setTransientState = (id, value = "saved") => {
         setSaveStateById((m) => ({ ...m, [id]: value }));
@@ -813,19 +1014,7 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
             id,
             items,
             draftsById,
-            isDirtyFn: (item, draft) => {
-                if (!eventEqual(item, draft)) return true;
-                if (draft?.overrideSlots !== undefined || draft?.isOverride !== undefined) {
-                    const origSlots = getEventOverriddenSlots(item.id, item.dateEvent);
-                    const availableSlots = dateToSlotIds(draft?.dateEvent);
-                    const currentSlots = draft?.overrideSlots !== undefined 
-                        ? draft.overrideSlots 
-                        : (draft?.isOverride ? availableSlots : []);
-                    if (origSlots.length !== currentSlots.length) return true;
-                    if (!origSlots.every((s) => currentSlots.includes(s))) return true;
-                }
-                return false;
-            },
+            isDirtyFn: isEventItemDirty,
             setModal,
             setExpandedIds,
             setDraftsById
@@ -884,7 +1073,7 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
         }));
     };
 
-    const syncOverride = async (eventId, dateStr, isOverride, targetSlotIds = null, oldEventId = null, oldDateStr = null) => {
+    const syncOverride = async (eventId, dateStr, isOverride, targetSlotIds = null, targetSlotTimes = null, oldEventId = null, oldDateStr = null) => {
         if (!eventId || !dateStr) return;
 
         // If date or event ID changed, clean up previous week
@@ -899,6 +1088,7 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
                     for (const s of oldSlots) {
                         if (oldOverride.replacements[s] === oldEventId) {
                             updates[`replacements.${s}`] = deleteField();
+                            updates[`customTimes.${s}`] = deleteField();
                             changed = true;
                         }
                     }
@@ -918,13 +1108,15 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
         if (!wk || daySlotIds.length === 0) return;
 
         const overrideDoc = overrides.find((o) => o.id === wk || o.weekKey === wk);
-        const base = overrideDoc || { weekKey: wk, affectedProgramIds: [], replacements: {} };
+        const base = overrideDoc || { weekKey: wk, affectedProgramIds: [], replacements: {}, customTimes: {} };
         const newReplacements = { ...(base.replacements || {}) };
+        const newCustomTimes = { ...(base.customTimes || {}) };
         let affected = [...(base.affectedProgramIds || [])];
 
         const selectedSlots = isOverride 
             ? (Array.isArray(targetSlotIds) ? targetSlotIds : daySlotIds)
             : [];
+        const slotTimesMap = targetSlotTimes || {};
 
         let changed = false;
 
@@ -938,9 +1130,18 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
                     affected.push(slotId);
                     changed = true;
                 }
+                const timeForSlot = safeStr(slotTimesMap[slotId] || (selectedSlots.length === 1 ? "" : SLOT_DEFINITIONS[slotId]?.defaultTime)).trim();
+                if (timeForSlot && newCustomTimes[slotId] !== timeForSlot) {
+                    newCustomTimes[slotId] = timeForSlot;
+                    changed = true;
+                } else if (!timeForSlot && newCustomTimes[slotId]) {
+                    delete newCustomTimes[slotId];
+                    changed = true;
+                }
             } else {
                 if (newReplacements[slotId] === eventId) {
                     delete newReplacements[slotId];
+                    delete newCustomTimes[slotId];
                     changed = true;
                     affected = affected.filter((id) => id !== slotId);
                 }
@@ -953,14 +1154,16 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
                     ...base,
                     weekKey: wk,
                     affectedProgramIds: [...new Set(affected)],
-                    replacements: newReplacements
+                    replacements: newReplacements,
+                    customTimes: newCustomTimes
                 }, { merge: true });
             } else if (overrideDoc) {
                 await setDoc(doc(db, "program_overrides", wk), {
                     ...base,
                     weekKey: wk,
                     affectedProgramIds: [],
-                    replacements: {}
+                    replacements: {},
+                    customTimes: {}
                 }, { merge: true });
             }
         }
@@ -980,6 +1183,7 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
         const availableSlots = dateToSlotIds(d.dateEvent);
         const isOv = newDraft?.isOverride !== undefined ? newDraft.isOverride : true;
         const targetSlots = newDraft?.overrideSlots !== undefined ? newDraft.overrideSlots : (isOv ? availableSlots : []);
+        const targetSlotTimes = newDraft?.slotTimes !== undefined ? newDraft.slotTimes : {};
 
         setModal({
             isOpen: true,
@@ -993,7 +1197,7 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
                 try {
                     const ref = doc(collection(db, "events"));
                     await setDoc(ref, d);
-                    await syncOverride(ref.id, d.dateEvent, isOv && targetSlots.length > 0, targetSlots);
+                    await syncOverride(ref.id, d.dateEvent, isOv && targetSlots.length > 0, targetSlots, targetSlotTimes);
 
                     if (!mountedRef.current) return;
                     setNewState("saved");
@@ -1082,27 +1286,31 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
 
         try {
             const availableSlots = dateToSlotIds(d.dateEvent);
-            const origSlots = getEventOverriddenSlots(original.id, original.dateEvent);
+            const origData = getEventOverriddenData(original.id, original.dateEvent);
             const isOv = draft?.isOverride !== undefined 
                 ? draft.isOverride 
-                : (draft?.overrideSlots !== undefined ? draft.overrideSlots.length > 0 : origSlots.length > 0);
+                : (draft?.overrideSlots !== undefined ? draft.overrideSlots.length > 0 : origData.slots.length > 0);
             const targetSlots = draft?.overrideSlots !== undefined 
                 ? draft.overrideSlots 
-                : (isOv ? (origSlots.length > 0 ? origSlots : availableSlots) : []);
+                : (isOv ? (origData.slots.length > 0 ? origData.slots : availableSlots) : []);
+            const targetSlotTimes = draft?.slotTimes !== undefined
+                ? draft.slotTimes
+                : (original?.slotTimes || origData.slotTimes || {});
 
             if (dateChanged) {
                 const ref = doc(collection(db, "events"));
                 await setDoc(ref, d);
-                await syncOverride(ref.id, d.dateEvent, isOv && targetSlots.length > 0, targetSlots);
+                await syncOverride(ref.id, d.dateEvent, isOv && targetSlots.length > 0, targetSlots, targetSlotTimes);
 
                 if (!mountedRef.current) return;
                 setDraftsById((prev) => ({ ...prev, [key]: normalizeEvent(original) }));
                 setTransientState(key, "saved");
             } else {
                 await setDoc(doc(db, "events", key), d, { merge: true });
-                await syncOverride(key, d.dateEvent, isOv && targetSlots.length > 0, targetSlots, key, original.dateEvent);
+                await syncOverride(key, d.dateEvent, isOv && targetSlots.length > 0, targetSlots, targetSlotTimes, key, original.dateEvent);
 
                 if (!mountedRef.current) return;
+                setDraftsById((prev) => ({ ...prev, [key]: normalizeEvent({ ...d, id: key }) }));
                 setTransientState(key, "saved");
             }
         } catch (err) {
@@ -1204,41 +1412,49 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
                     <div className="adminFullList">
                         {!showHistory ? (
                             <>
-                                {upcomingPagination.paginatedItems.map((it) => (
-                                    <EventCard
-                                        key={it.id}
-                                        item={it}
-                                        expanded={expandedIds.has(it.id)}
-                                        draft={draftsById[it.id]}
-                                        saveState={saveStateById[it.id] || "idle"}
-                                        activeLang={activeLangById[it.id]}
-                                        onLangChange={(id, l) => setActiveLangById((m) => ({ ...m, [id]: l }))}
-                                        onToggle={toggleExpand}
-                                        onChangeField={changeField}
-                                        onSave={saveOne}
-                                        onDelete={deleteOne}
-                                        overriddenSlots={getEventOverriddenSlots(it.id, it.dateEvent)}
-                                    />
-                                ))}
+                                {upcomingPagination.paginatedItems.map((it) => {
+                                    const overrideData = getEventOverriddenData(it.id, it.dateEvent);
+                                    return (
+                                        <EventCard
+                                            key={it.id}
+                                            item={it}
+                                            expanded={expandedIds.has(it.id)}
+                                            draft={draftsById[it.id]}
+                                            saveState={saveStateById[it.id] || "idle"}
+                                            activeLang={activeLangById[it.id]}
+                                            onLangChange={(id, l) => setActiveLangById((m) => ({ ...m, [id]: l }))}
+                                            onToggle={toggleExpand}
+                                            onChangeField={changeField}
+                                            onSave={saveOne}
+                                            onDelete={deleteOne}
+                                            overriddenSlots={overrideData.slots}
+                                            overriddenSlotTimes={overrideData.slotTimes}
+                                        />
+                                    );
+                                })}
                             </>
                         ) : (
                             <div className="adminList adminList--history">
-                                {historyPagination.paginatedItems.map((it) => (
-                                    <EventCard
-                                        key={it.id}
-                                        item={it}
-                                        expanded={expandedIds.has(it.id)}
-                                        draft={draftsById[it.id]}
-                                        saveState={saveStateById[it.id] || "idle"}
-                                        activeLang={activeLangById[it.id]}
-                                        onLangChange={(id, l) => setActiveLangById((m) => ({ ...m, [id]: l }))}
-                                        onToggle={toggleExpand}
-                                        onChangeField={changeField}
-                                        onSave={saveOne}
-                                        onDelete={deleteOne}
-                                        overriddenSlots={getEventOverriddenSlots(it.id, it.dateEvent)}
-                                    />
-                                ))}
+                                {historyPagination.paginatedItems.map((it) => {
+                                    const overrideData = getEventOverriddenData(it.id, it.dateEvent);
+                                    return (
+                                        <EventCard
+                                            key={it.id}
+                                            item={it}
+                                            expanded={expandedIds.has(it.id)}
+                                            draft={draftsById[it.id]}
+                                            saveState={saveStateById[it.id] || "idle"}
+                                            activeLang={activeLangById[it.id]}
+                                            onLangChange={(id, l) => setActiveLangById((m) => ({ ...m, [id]: l }))}
+                                            onToggle={toggleExpand}
+                                            onChangeField={changeField}
+                                            onSave={saveOne}
+                                            onDelete={deleteOne}
+                                            overriddenSlots={overrideData.slots}
+                                            overriddenSlotTimes={overrideData.slotTimes}
+                                        />
+                                    );
+                                })}
                             </div>
                         )}
                     </div>
