@@ -1160,7 +1160,9 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
                     affected.push(slotId);
                     changed = true;
                 }
-                const timeForSlot = safeStr(slotTimesMap[slotId] || (selectedSlots.length === 1 ? "" : SLOT_DEFINITIONS[slotId]?.defaultTime)).trim();
+                const timeForSlot = selectedSlots.length === 1
+                    ? ""
+                    : safeStr(slotTimesMap[slotId] || SLOT_DEFINITIONS[slotId]?.defaultTime).trim();
                 if (timeForSlot && newCustomTimes[slotId] !== timeForSlot) {
                     newCustomTimes[slotId] = timeForSlot;
                     changed = true;

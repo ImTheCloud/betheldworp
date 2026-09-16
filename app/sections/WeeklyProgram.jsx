@@ -183,7 +183,7 @@ function formatTimeToken(token) {
     const t = safeStr(token).trim();
     const m = t.match(/^(\d{1,2}):(\d{2})$/);
     if (!m) return t;
-    return `${String(Number(m[1]))}h${m[2]}`;
+    return `${String(Number(m[1]))}:${m[2]}`;
 }
 
 function formatRange(range) {
@@ -502,8 +502,8 @@ export default function Program() {
                         const cleanedTimes = times.map((x) => safeStr(x).trim()).filter(Boolean);
                         // Chaque creneau a sa propre pastille horaire, plutot qu'un « + » muet.
                         const timeLabels = customTime
-                            ? [customTime]
-                            : (isReplaced && displayTime ? [displayTime] : cleanedTimes.map(formatRange));
+                            ? [formatRange(customTime)]
+                            : (isReplaced && displayTime ? [formatRange(displayTime)] : cleanedTimes.map(formatRange));
 
                         const additionEventId = safeStr(additions[id]).trim();
                         const additionEvent = additionEventId ? eventsMap.get(additionEventId) : null;
