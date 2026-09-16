@@ -149,9 +149,9 @@
 }
 
 .program-verticalBadge--replaced {
-    background: linear-gradient(180deg, rgba(22, 163, 74, 0.18) 0%, rgba(22, 163, 74, 0.08) 100%);
-    border-right: 1px solid rgba(22, 163, 74, 0.25);
-    color: #15803d;
+    background: linear-gradient(180deg, rgba(217, 155, 25, 0.20) 0%, rgba(217, 155, 25, 0.08) 100%);
+    border-right: 1px solid rgba(217, 155, 25, 0.28);
+    color: #92600a;
 }
 
 .program-verticalBadge--cancelled {
@@ -250,8 +250,8 @@
 }
 
 .program-card--replaced {
-    background: #f0fdf4;
-    border-color: rgba(22, 163, 74, 0.28);
+    background: #fffdf5;
+    border-color: rgba(217, 155, 25, 0.30);
 }
 
 .program-card--replaced .program-activity {
@@ -260,8 +260,8 @@
 
 .program-timeLine--replaced,
 .program-card--replaced .program-timeLine {
-    color: #15803d;
-    background: rgba(22, 163, 74, 0.12);
+    color: #92600a;
+    background: rgba(217, 155, 25, 0.15);
 }
 
 .program-card--clickable,
