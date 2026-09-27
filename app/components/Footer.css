@@ -374,17 +374,15 @@
 }
 
 .footer-stats-row {
-    /* Quatre compteurs sur une seule rangee. Le nombre de colonnes est fixe et
+    /* Trois compteurs sur une seule rangee. Le nombre de colonnes est fixe et
        non deduit de la place disponible : une grille auto-fit laissait des
        cellules seules sur une rangee de plus des que la largeur changeait. */
     display: grid;
-    /* Chaque colonne prend la largeur de son libelle : ils portent tous leur
-       periode (« TOTAL DIN DECEMBRIE 2025 », « LUNA ACEASTA SEPTEMBRIE ») et
-       des colonnes egales en couperaient certains. */
-    grid-template-columns: repeat(4, auto);
+    /* Chaque colonne prend la largeur de son libelle. */
+    grid-template-columns: repeat(3, auto);
     justify-content: start;
     justify-items: start;
-    gap: 14px 22px;
+    gap: 14px 28px;
     margin-top: 8px;
 }
 

@@ -47,7 +47,7 @@ export default function Footer() {
         const lire = async () => {
             try {
                 const paliers = paliersDuJour(brusselsDayKey());
-                const montres = ["total", "anCourant", "moisCourant", "aujourdhui"];
+                const montres = ["anCourant", "moisCourant", "aujourdhui"];
                 const lus = await Promise.all(
                     montres.map((cle) => getDoc(doc(db, "stats_public", paliers[cle])))
                 );
@@ -259,14 +259,12 @@ export default function Footer() {
                     </div>
                 </div>
 
-                {compteurs && compteurs.total > 0 && (
+                {compteurs && (compteurs.anCourant > 0 || compteurs.moisCourant > 0 || compteurs.aujourdhui > 0) && (
                     <div className="footer-stats">
                         <span className="footer-label">{t("visits_label")}:</span>
                         <div className="footer-stats-row">
                             {[
-                                // Chaque compteur dit sa periode : le total depuis
-                                // quand il compte, l'annee et le mois lesquels.
-                                [t("visits_total"), compteurs.total, t("visits_since")],
+                                // Chaque compteur dit sa periode : l'annee et le mois lesquels.
                                 [t("visits_year"), compteurs.anCourant, libelleAn],
                                 [t("visits_month"), compteurs.moisCourant, libelleMois],
                                 [t("visits_today"), compteurs.aujourdhui],
