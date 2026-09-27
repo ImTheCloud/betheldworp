@@ -7,13 +7,18 @@ const SITE_TITLE = "Bethel Dworp";
 const SITE_URL = "https://www.betheldworp.be";
 const LANGS = ["ro", "fr", "nl", "en"];
 
-// La description était en roumain pour les quatre langues : c'est elle que Google
-// affiche sous le lien, un visiteur francophone lisait donc du roumain.
+const TITLES = {
+    ro: "Bethel Dworp — Biserica Penticostală",
+    fr: "Bethel Dworp — Église Pentecôtiste",
+    nl: "Bethel Dworp — Pinksterkerk",
+    en: "Bethel Dworp — Pentecostal Church",
+};
+
 const DESCRIPTIONS = {
-    ro: "Biserica Penticostală Betel din Dworp (Beersel, Belgia). Programul serviciilor, evenimente și harta bisericilor penticostale române din lume.",
-    fr: "Église pentecôtiste Bethel à Dworp (Beersel, Belgique). Horaires des cultes, événements et carte des églises pentecôtistes roumaines dans le monde.",
-    nl: "Pinksterkerk Bethel in Dworp (Beersel, België). Dienstentijden, activiteiten en de wereldkaart van Roemeense pinksterkerken.",
-    en: "Bethel Pentecostal Church in Dworp (Beersel, Belgium). Service times, events and a world map of Romanian Pentecostal churches.",
+    ro: "Biserica Penticostală Bethel din Dworp (Beersel, Belgia). O comunitate a credinței, rugăciunii și închinării. Descoperă programul serviciilor divine, evenimentele și harta bisericilor penticostale române.",
+    fr: "Église pentecôtiste Bethel à Dworp (Beersel, Belgique). Une communauté de foi, de prière et de louange. Découvrez les horaires des cultes, les événements et la carte des églises.",
+    nl: "Pinksterkerk Bethel in Dworp (Beersel, België). Een gemeenschap van geloof, gebed en aanbidding. Bekijk onze dienstentijden, activiteiten en de wereldkaart van pinksterkerken.",
+    en: "Bethel Pentecostal Church in Dworp (Beersel, Belgium). A community of faith, prayer, and worship. Explore our service times, events, and world map of Pentecostal churches.",
 };
 
 // Pré-génère les quatre langues au build plutôt qu'à chaque visite.
@@ -32,11 +37,13 @@ export function languageAlternates(path = "") {
 export async function generateMetadata({ params }) {
     const { lang } = await params;
     const l = LANGS.includes(lang) ? lang : "ro";
+    const pageTitle = TITLES[l] || TITLES.ro;
+    const pageDesc = DESCRIPTIONS[l] || DESCRIPTIONS.ro;
 
     return {
         metadataBase: new URL(SITE_URL),
-        title: SITE_TITLE,
-        description: DESCRIPTIONS[l],
+        title: pageTitle,
+        description: pageDesc,
         // apple est indispensable : sans balise apple-touch-icon, iOS ne prend
         // pas le favicon pour l'écran d'accueil, il fabrique une pastille avec
         // l'initiale du site, d'où le « B » à la place du logo. iOS exige aussi
@@ -53,16 +60,16 @@ export async function generateMetadata({ params }) {
         openGraph: {
             type: "website",
             siteName: SITE_TITLE,
-            title: SITE_TITLE,
-            description: DESCRIPTIONS[l],
+            title: pageTitle,
+            description: pageDesc,
             url: `${SITE_URL}/${l}`,
             locale: l,
-            images: [{ url: "/images/og.jpg", width: 1200, height: 630, alt: SITE_TITLE }],
+            images: [{ url: "/images/og.jpg", width: 1200, height: 630, alt: pageTitle }],
         },
         twitter: {
             card: "summary_large_image",
-            title: SITE_TITLE,
-            description: DESCRIPTIONS[l],
+            title: pageTitle,
+            description: pageDesc,
             images: ["/images/og.jpg"],
         },
     };
