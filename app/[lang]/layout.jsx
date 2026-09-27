@@ -64,13 +64,13 @@ export async function generateMetadata({ params }) {
             description: pageDesc,
             url: `${SITE_URL}/${l}`,
             locale: l,
-            images: [{ url: "/images/og-v3.jpg", width: 1200, height: 630, alt: pageTitle }],
+            images: [{ url: "/images/og-v4.jpg", width: 1200, height: 630, alt: pageTitle }],
         },
         twitter: {
             card: "summary_large_image",
             title: pageTitle,
             description: pageDesc,
-            images: ["/images/og-v3.jpg"],
+            images: ["/images/og-v4.jpg"],
         },
     };
 }
