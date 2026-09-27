@@ -201,6 +201,18 @@ export default function Gallery() {
         touchStartY.current = null;
     };
 
+    // Précharger les photos suivante et précédente pour un passage instantané sans clignotement
+    useEffect(() => {
+        if (activeImgIndex !== null && typeof window !== "undefined") {
+            const nextIdx = (activeImgIndex + 1) % IMAGES.length;
+            const prevIdx = (activeImgIndex - 1 + IMAGES.length) % IMAGES.length;
+            const imgNext = new window.Image();
+            imgNext.src = IMAGES[nextIdx].src;
+            const imgPrev = new window.Image();
+            imgPrev.src = IMAGES[prevIdx].src;
+        }
+    }, [activeImgIndex, IMAGES]);
+
     return (
         <>
             <section className="gal-section">
@@ -386,7 +398,7 @@ export default function Gallery() {
 
             {vidOpen && activeVid && (
                 <div
-                    className="gal-overlay gal-overlay--center"
+                    className="gal-overlay gal-overlay--center gal-overlay--video"
                     onClick={closeVidModal}
                     role="dialog"
                     aria-modal="true"
