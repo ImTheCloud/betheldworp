@@ -268,25 +268,24 @@
         }
 
         /* Cartes Duminica en Bleu Royal / Premium Navy */
+        /* Duminica style same as other cards */
         .sched-card--sunday {
-            background: linear-gradient(135deg, #0a2a43 0%, #164678 100%);
-            border-color: #0a2a43;
-            box-shadow: 0 4px 12px rgba(10, 42, 67, 0.15);
+            background: #fbfcfd;
+            border: 1.5px solid rgba(10, 42, 67, 0.12);
         }
 
         .sched-card--sunday .sched-day {
-            color: rgba(255, 255, 255, 0.78);
+            color: #164678;
         }
 
         .sched-card--sunday .sched-time {
-            background: rgba(255, 255, 255, 0.15);
-            color: #ffffff;
-            border-color: rgba(255, 255, 255, 0.25);
+            background: #ffffff;
+            color: #0a2a43;
+            border-color: rgba(10, 42, 67, 0.15);
         }
 
         .sched-card--sunday .sched-activity {
-            color: #ffffff;
-            font-size: 14px;
+            color: #0a2a43;
         }
 
         .sched-footer {
@@ -343,25 +342,8 @@
             <span class="sched-tag">Servicii Divine & Rugăciune</span>
         </div>
 
-        <div class="sched-grid">
-            <!-- Row 1: Duminica Dimineata & Duminica Seara -->
-            <div class="sched-card sched-card--sunday">
-                <div class="sched-card-top">
-                    <span class="sched-day">Duminică dimineață</span>
-                    <span class="sched-time">10:00 – 12:00</span>
-                </div>
-                <div class="sched-activity">Serviciu Divin de dimineață</div>
-            </div>
-
-            <div class="sched-card sched-card--sunday">
-                <div class="sched-card-top">
-                    <span class="sched-day">Duminică seară</span>
-                    <span class="sched-time">18:00 – 20:00</span>
-                </div>
-                <div class="sched-activity">Serviciu Divin de seară</div>
-            </div>
-
-            <!-- Row 2: Luni & Marti Dimineata -->
+                <div class="sched-grid">
+            <!-- Row 1: Luni & Marti Dimineata -->
             <div class="sched-card">
                 <div class="sched-card-top">
                     <span class="sched-day">Luni seară</span>
@@ -378,7 +360,7 @@
                 <div class="sched-activity">Zi de post și mijlocire</div>
             </div>
 
-            <!-- Row 3: Marti Seara & Miercuri -->
+            <!-- Row 2: Marti Seara & Miercuri -->
             <div class="sched-card">
                 <div class="sched-card-top">
                     <span class="sched-day">Marți seară</span>
@@ -395,7 +377,7 @@
                 <div class="sched-activity">Repetiția corului mixt</div>
             </div>
 
-            <!-- Row 4: Joi & Vineri -->
+            <!-- Row 3: Joi & Vineri -->
             <div class="sched-card">
                 <div class="sched-card-top">
                     <span class="sched-day">Joi seară</span>
@@ -412,13 +394,30 @@
                 <div class="sched-activity">Seară de rugăciune</div>
             </div>
 
-            <!-- Row 5: Sambata Dimineata (span 2 cols) -->
+            <!-- Row 4: Sambata Dimineata (span 2 cols) -->
             <div class="sched-card" style="grid-column: span 2;">
                 <div class="sched-card-top">
                     <span class="sched-day">Sâmbătă dimineață</span>
                     <span class="sched-time">11:00 – 13:30</span>
                 </div>
                 <div class="sched-activity">Program cu copiii (Școala duminicală)</div>
+            </div>
+
+            <!-- Row 5: Duminica Dimineata & Duminica Seara -->
+            <div class="sched-card sched-card--sunday">
+                <div class="sched-card-top">
+                    <span class="sched-day">Duminică dimineață</span>
+                    <span class="sched-time">10:00 – 12:00</span>
+                </div>
+                <div class="sched-activity">Serviciu Divin de dimineață</div>
+            </div>
+
+            <div class="sched-card sched-card--sunday">
+                <div class="sched-card-top">
+                    <span class="sched-day">Duminică seară</span>
+                    <span class="sched-time">18:00 – 20:00</span>
+                </div>
+                <div class="sched-activity">Serviciu Divin de seară</div>
             </div>
         </div>
 
