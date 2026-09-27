@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="utf-8">
+    <title>Bethel Dworp - Programul Săptămânal</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        html, body {
+            width: 1200px;
+            height: 630px;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: #ffffff;
+            color: #0a2a43;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px 32px 16px;
+            position: relative;
+        }
+
+        /* Ambient subtle radial glow */
+        body::before {
+            content: '';
+            position: absolute;
+            top: -120px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 900px;
+            height: 400px;
+            background: radial-gradient(ellipse at center, rgba(10, 42, 67, 0.05) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .header {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 12px;
+            border-bottom: 1.5px solid rgba(10, 42, 67, 0.09);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-logo {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            object-fit: cover;
+            box-shadow: 0 4px 10px rgba(10, 42, 67, 0.15);
+        }
+
+        .brand-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand-name {
+            font-size: 17px;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            color: #0a2a43;
+            text-transform: uppercase;
+            line-height: 1.1;
+        }
+
+        .brand-sub {
+            font-size: 11.5px;
+            font-weight: 600;
+            color: rgba(10, 42, 67, 0.55);
+            letter-spacing: 0.04em;
+        }
+
+        .title-block {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .title {
+            font-size: 24px;
+            font-weight: 900;
+            letter-spacing: -0.02em;
+            color: #0a2a43;
+        }
+
+        /* 3x3 Grid */
+        .grid {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 10px;
+            margin: 12px 0 10px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .card {
+            background: linear-gradient(180deg, rgba(10, 42, 67, 0.035) 0%, rgba(10, 42, 67, 0.01) 100%);
+            border: 1.5px solid rgba(10, 42, 67, 0.12);
+            border-radius: 13px;
+            padding: 10px 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 4px 12px -6px rgba(10, 42, 67, 0.08);
+        }
+
+        .card-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-day {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: rgba(10, 42, 67, 0.55);
+        }
+
+        .card-activity {
+            font-size: 15px;
+            font-weight: 800;
+            line-height: 1.25;
+            color: #0a2a43;
+            letter-spacing: -0.01em;
+            margin: 3px 0 6px;
+        }
+
+        .card-bottom {
+            display: flex;
+            align-items: center;
+            margin-top: auto;
+        }
+
+        .time-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 10px;
+            border-radius: 999px;
+            background: #ffffff;
+            border: 1px solid rgba(10, 42, 67, 0.14);
+            font-size: 11px;
+            font-weight: 800;
+            color: #0a2a43;
+            letter-spacing: 0.02em;
+        }
+
+        .time-pill svg {
+            opacity: 0.65;
+        }
+
+        /* Sunday highlight card */
+        .card--sunday {
+            background: linear-gradient(180deg, rgba(22, 70, 120, 0.07) 0%, rgba(10, 42, 67, 0.02) 100%);
+            border-color: rgba(22, 70, 120, 0.26);
+        }
+
+        .card--sunday .card-day {
+            color: #164678;
+        }
+
+        .footer {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 10px;
+            border-top: 1px solid rgba(10, 42, 67, 0.08);
+            font-size: 12px;
+            font-weight: 700;
+            color: rgba(10, 42, 67, 0.55);
+        }
+
+        .footer-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .footer-accent {
+            color: #16a34a;
+            font-weight: 800;
+            font-size: 12.5px;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="brand">
+            <img class="brand-logo" src="/apple-icon.png" alt="Bethel Dworp">
+            <div class="brand-text">
+                <span class="brand-name">Bethel Dworp</span>
+                <span class="brand-sub">Biserica Penticostală</span>
+            </div>
+        </div>
+
+        <div class="title-block">
+            <h1 class="title">Programul Săptămânal</h1>
+        </div>
+    </header>
+
+    <main class="grid">
+        <!-- Luni -->
+        <div class="card">
+            <div class="card-top">
+                <span class="card-day">Luni seară</span>
+            </div>
+            <div class="card-activity">Seară de Tineret și Adolescenți</div>
+            <div class="card-bottom">
+                <span class="time-pill">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    20:00 – 21:30
+                </span>
+            </div>
+        </div>
+
+        <!-- Marti Dimineata -->
+        <div class="card">
+            <div class="card-top">
+                <span class="card-day">Marți dimineață</span>
+            </div>
+            <div class="card-activity">Zi de post și mijlocire</div>
+            <div class="card-bottom">
+                <span class="time-pill">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    10:00 – 14:00
+                </span>
+            </div>
+        </div>
+
+        <!-- Marti Seara -->
+        <div class="card">
+            <div class="card-top">
+                <span class="card-day">Marți seară</span>
+            </div>
+            <div class="card-activity">Seară de rugăciune</div>
+            <div class="card-bottom">
+                <span class="time-pill">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    20:00 – 21:30
+                </span>
+            </div>
+        </div>
+
+        <!-- Miercuri -->
+        <div class="card">
+            <div class="card-top">
+                <span class="card-day">Miercuri seară</span>
+            </div>
+            <div class="card-activity">Repetiția corului mixt</div>
+            <div class="card-bottom">
+                <span class="time-pill">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    20:00 – 21:30
+                </span>
+            </div>
+        </div>
+
+        <!-- Joi -->
+        <div class="card">
+            <div class="card-top">
+                <span class="card-day">Joi seară</span>
+            </div>
+            <div class="card-activity">Repetiția corului bărbătesc</div>
+            <div class="card-bottom">
+                <span class="time-pill">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    20:00 – 21:30
+                </span>
+            </div>
+        </div>
+
+        <!-- Vineri -->
+        <div class="card">
+            <div class="card-top">
+                <span class="card-day">Vineri seară</span>
+            </div>
+            <div class="card-activity">Seară de rugăciune</div>
+            <div class="card-bottom">
+                <span class="time-pill">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    20:00 – 21:30
+                </span>
+            </div>
+        </div>
+
+        <!-- Sambata -->
+        <div class="card">
+            <div class="card-top">
+                <span class="card-day">Sâmbătă dimineață</span>
+            </div>
+            <div class="card-activity">Program cu copiii</div>
+            <div class="card-bottom">
+                <span class="time-pill">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    11:00 – 13:30
+                </span>
+            </div>
+        </div>
+
+        <!-- Duminica Dimineata -->
+        <div class="card card--sunday">
+            <div class="card-top">
+                <span class="card-day">Duminică dimineață</span>
+            </div>
+            <div class="card-activity">Serviciu Divin de dimineață</div>
+            <div class="card-bottom">
+                <span class="time-pill">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    10:00 – 12:00
+                </span>
+            </div>
+        </div>
+
+        <!-- Duminica Seara -->
+        <div class="card card--sunday">
+            <div class="card-top">
+                <span class="card-day">Duminică seară</span>
+            </div>
+            <div class="card-activity">Serviciu Divin de seară</div>
+            <div class="card-bottom">
+                <span class="time-pill">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    18:00 – 20:00
+                </span>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-left">
+            <span>Alsembergsesteenweg 572B, 1653 Beersel (Belgia)</span>
+        </div>
+        <div class="footer-accent">
+            www.betheldworp.be
+        </div>
+    </footer>
+</body>
+</html>

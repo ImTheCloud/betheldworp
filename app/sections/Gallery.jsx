@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import "./Gallery.css";
 import { useLang } from "../components/LanguageProvider";
@@ -93,23 +93,113 @@ export default function Gallery() {
     const featured = VIDEOS[0] || null;
     const others = VIDEOS.slice(1);
 
-    const [imgOpen, setImgOpen] = useState(false);
-    const [activeImg, setActiveImg] = useState(null);
+    const [activeImgIndex, setActiveImgIndex] = useState(null);
+    const [activeVidIndex, setActiveVidIndex] = useState(null);
 
-    const openImgModal = (img) => {
-        setActiveImg(img);
-        setImgOpen(true);
+    const imgOpen = activeImgIndex !== null;
+    const vidOpen = activeVidIndex !== null;
+
+    const activeImg = imgOpen ? IMAGES[activeImgIndex] : null;
+    const activeVid = vidOpen ? VIDEOS[activeVidIndex] : null;
+
+    const openImgModal = useCallback((index) => {
+        setActiveImgIndex(index);
+    }, []);
+
+    const closeImgModal = useCallback(() => {
+        setActiveImgIndex(null);
+    }, []);
+
+    const openVidModal = useCallback((index) => {
+        setActiveVidIndex(index);
+    }, []);
+
+    const closeVidModal = useCallback(() => {
+        setActiveVidIndex(null);
+    }, []);
+
+    const showPrevImg = useCallback(() => {
+        setActiveImgIndex((prev) => (prev !== null ? (prev > 0 ? prev - 1 : IMAGES.length - 1) : 0));
+    }, [IMAGES.length]);
+
+    const showNextImg = useCallback(() => {
+        setActiveImgIndex((prev) => (prev !== null ? (prev < IMAGES.length - 1 ? prev + 1 : 0) : 0));
+    }, [IMAGES.length]);
+
+    const showPrevVid = useCallback(() => {
+        setActiveVidIndex((prev) => (prev !== null ? (prev > 0 ? prev - 1 : VIDEOS.length - 1) : 0));
+    }, [VIDEOS.length]);
+
+    const showNextVid = useCallback(() => {
+        setActiveVidIndex((prev) => (prev !== null ? (prev < VIDEOS.length - 1 ? prev + 1 : 0) : 0));
+    }, [VIDEOS.length]);
+
+    // Bloquer le défilement de l'arrière-plan quand une modal est ouverte
+    useEffect(() => {
+        if (imgOpen || vidOpen) {
+            const originalBodyOverflow = document.body.style.overflow;
+            const originalHtmlOverflow = document.documentElement.style.overflow;
+            const originalPaddingRight = document.body.style.paddingRight;
+            const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+
+            if (scrollBarWidth > 0) {
+                document.body.style.paddingRight = `${scrollBarWidth}px`;
+            }
+            document.body.style.overflow = "hidden";
+            document.documentElement.style.overflow = "hidden";
+
+            return () => {
+                document.body.style.overflow = originalBodyOverflow;
+                document.documentElement.style.overflow = originalHtmlOverflow;
+                document.body.style.paddingRight = originalPaddingRight;
+            };
+        }
+    }, [imgOpen, vidOpen]);
+
+    // Navigation clavier (Flèches gauche/droite et Echap)
+    useEffect(() => {
+        if (!imgOpen && !vidOpen) return;
+
+        const handleKeyDown = (e) => {
+            if (e.key === "Escape") {
+                if (imgOpen) closeImgModal();
+                if (vidOpen) closeVidModal();
+            } else if (e.key === "ArrowLeft") {
+                if (imgOpen) showPrevImg();
+                if (vidOpen) showPrevVid();
+            } else if (e.key === "ArrowRight") {
+                if (imgOpen) showNextImg();
+                if (vidOpen) showNextVid();
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [imgOpen, vidOpen, closeImgModal, closeVidModal, showPrevImg, showNextImg, showPrevVid, showNextVid]);
+
+    // Gestes tactiles de balayage (swipe) sur mobile
+    const touchStartX = useRef(null);
+    const touchStartY = useRef(null);
+
+    const handleTouchStart = (e) => {
+        touchStartX.current = e.touches[0].clientX;
+        touchStartY.current = e.touches[0].clientY;
     };
-    const closeImgModal = () => setImgOpen(false);
 
-    const [vidOpen, setVidOpen] = useState(false);
-    const [activeVid, setActiveVid] = useState(null);
-
-    const openVidModal = (v) => {
-        setActiveVid(v);
-        setVidOpen(true);
+    const handleTouchEnd = (e, onSwipeLeft, onSwipeRight) => {
+        if (touchStartX.current === null || touchStartY.current === null) return;
+        const deltaX = e.changedTouches[0].clientX - touchStartX.current;
+        const deltaY = e.changedTouches[0].clientY - touchStartY.current;
+        if (Math.abs(deltaX) > 40 && Math.abs(deltaX) > Math.abs(deltaY)) {
+            if (deltaX < 0) {
+                onSwipeLeft();
+            } else {
+                onSwipeRight();
+            }
+        }
+        touchStartX.current = null;
+        touchStartY.current = null;
     };
-    const closeVidModal = () => setVidOpen(false);
 
     return (
         <>
@@ -128,7 +218,7 @@ export default function Gallery() {
                             <button
                                 type="button"
                                 className="gal-featured"
-                                onClick={() => openImgModal(featuredImage)}
+                                onClick={() => openImgModal(0)}
                                 aria-label={t("open_image")}
                             >
                                 {/* Volontairement une <img> ordinaire, et non next/image.
@@ -145,12 +235,12 @@ export default function Gallery() {
 
                         <div className="gal-rowScroller">
                             <div className="gal-rowOutside">
-                                {otherImages.map((img) => (
+                                {otherImages.map((img, idx) => (
                                     <button
                                         key={img.src}
                                         type="button"
                                         className="gal-rowCard"
-                                        onClick={() => openImgModal(img)}
+                                        onClick={() => openImgModal(idx + 1)}
                                         aria-label={t("open_image")}
                                     >
                                         <div className="gal-rowThumbWrap">
@@ -184,7 +274,7 @@ export default function Gallery() {
                             <button
                                 type="button"
                                 className="gal-featured"
-                                onClick={() => openVidModal(featured)}
+                                onClick={() => openVidModal(0)}
                                 aria-label={t("open_video")}
                             >
                                 <img className="gal-featuredThumb" src={featured.thumb} alt={t("featured_video")} loading="lazy" />
@@ -196,12 +286,12 @@ export default function Gallery() {
 
                         <div className="gal-rowScroller">
                             <div className="gal-rowOutside">
-                                {others.map((v) => (
+                                {others.map((v, idx) => (
                                     <button
                                         key={v.id}
                                         type="button"
                                         className="gal-rowCard"
-                                        onClick={() => openVidModal(v)}
+                                        onClick={() => openVidModal(idx + 1)}
                                         aria-label={t("open_video")}
                                     >
                                         <div className="gal-rowThumbWrap">
@@ -233,24 +323,122 @@ export default function Gallery() {
             </section>
 
             {imgOpen && activeImg && (
-                <div className="gal-overlay" onClick={closeImgModal}>
-                    <div className="gal-modal" onClick={(e) => e.stopPropagation()}>
-                        <button className="gal-close" onClick={closeImgModal} aria-label={t("close")}>
-                            ×
+                <div
+                    className="gal-overlay"
+                    onClick={closeImgModal}
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label={t("images")}
+                >
+                    <div
+                        className="gal-modal"
+                        onClick={(e) => e.stopPropagation()}
+                        onTouchStart={handleTouchStart}
+                        onTouchEnd={(e) => handleTouchEnd(e, showNextImg, showPrevImg)}
+                    >
+                        <div className="gal-counter" aria-live="polite">
+                            {activeImgIndex + 1} / {IMAGES.length}
+                        </div>
+
+                        <button
+                            type="button"
+                            className="gal-close"
+                            onClick={closeImgModal}
+                            aria-label={t("close")}
+                        >
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                <line x1="18" y1="6" x2="6" y2="18" />
+                                <line x1="6" y1="6" x2="18" y2="18" />
+                            </svg>
                         </button>
-                        <img className="gal-modalImg" src={activeImg.src} alt={t(activeImg.altKey)} />
+
+                        <button
+                            type="button"
+                            className="gal-navBtn gal-navBtn--prev"
+                            onClick={showPrevImg}
+                            aria-label={t("prev")}
+                        >
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                <polyline points="15 18 9 12 15 6" />
+                            </svg>
+                        </button>
+
+                        <button
+                            type="button"
+                            className="gal-navBtn gal-navBtn--next"
+                            onClick={showNextImg}
+                            aria-label={t("next")}
+                        >
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                <polyline points="9 18 15 12 9 6" />
+                            </svg>
+                        </button>
+
+                        <img
+                            key={activeImg.src}
+                            className="gal-modalImg"
+                            src={activeImg.src}
+                            alt={t(activeImg.altKey)}
+                        />
                     </div>
                 </div>
             )}
 
             {vidOpen && activeVid && (
-                <div className="gal-overlay gal-overlay--center" onClick={closeVidModal}>
-                    <div className="gal-modal gal-modal--video" onClick={(e) => e.stopPropagation()}>
-                        <button className="gal-close" onClick={closeVidModal} aria-label={t("close")}>
-                            ×
+                <div
+                    className="gal-overlay gal-overlay--center"
+                    onClick={closeVidModal}
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label={t("videos")}
+                >
+                    <div
+                        className="gal-modal gal-modal--video"
+                        onClick={(e) => e.stopPropagation()}
+                        onTouchStart={handleTouchStart}
+                        onTouchEnd={(e) => handleTouchEnd(e, showNextVid, showPrevVid)}
+                    >
+                        <div className="gal-counter" aria-live="polite">
+                            {activeVidIndex + 1} / {VIDEOS.length}
+                        </div>
+
+                        <button
+                            type="button"
+                            className="gal-close"
+                            onClick={closeVidModal}
+                            aria-label={t("close")}
+                        >
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                <line x1="18" y1="6" x2="6" y2="18" />
+                                <line x1="6" y1="6" x2="18" y2="18" />
+                            </svg>
                         </button>
+
+                        <button
+                            type="button"
+                            className="gal-navBtn gal-navBtn--prev"
+                            onClick={showPrevVid}
+                            aria-label={t("prev")}
+                        >
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                <polyline points="15 18 9 12 15 6" />
+                            </svg>
+                        </button>
+
+                        <button
+                            type="button"
+                            className="gal-navBtn gal-navBtn--next"
+                            onClick={showNextVid}
+                            aria-label={t("next")}
+                        >
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                <polyline points="9 18 15 12 9 6" />
+                            </svg>
+                        </button>
+
                         <div className="gal-videoFrameWrap">
                             <iframe
+                                key={activeVid.id}
                                 className="gal-videoFrame"
                                 src={`https://www.youtube-nocookie.com/embed/${activeVid.id}?autoplay=1&rel=0`}
                                 title={t("youtube_player")}
