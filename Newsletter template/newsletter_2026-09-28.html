@@ -1,0 +1,776 @@
+<!doctype html>
+<html lang="ro">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <!-- "light dark" = nous gérons nous-mêmes le mode sombre.
+         Avec "light" seul, Outlook/Apple Mail inversent les couleurs eux-mêmes. -->
+    <meta name="color-scheme" content="light dark" />
+    <meta name="supported-color-schemes" content="light dark" />
+    <meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no" />
+    <title>Programul Săptămânii : Bethel Dworp (28 Septembrie – 4 Octombrie 2026)</title>
+    <style>
+        :root {
+            color-scheme: light dark;
+            supported-color-schemes: light dark;
+        }
+
+        /* Annuler les liens bleus automatiques d'Apple Mail et Outlook */
+        a[x-apple-data-detectors],
+        a[href^="x-apple-data-detectors"],
+        [x-apple-data-detectors],
+        .x-apple-data-detectors,
+        .x-apple-data-detectors *,
+        span.MsoHyperlink,
+        span.MsoHyperlinkFollowed {
+            color: inherit !important;
+            text-decoration: none !important;
+            font-size: inherit !important;
+            font-family: inherit !important;
+            font-weight: inherit !important;
+            line-height: inherit !important;
+        }
+
+        .no-detect,
+        .no-detect a,
+        .no-detect span {
+            color: inherit !important;
+            text-decoration: none !important;
+        }
+
+        .t-head .no-detect,
+        .t-head a {
+            color: inherit !important;
+            text-decoration: none !important;
+        }
+
+        .t-accent,
+        .t-accent .no-detect,
+        .t-accent a,
+        .t-accent a:link,
+        .t-accent a:visited {
+            color: #16a34a !important;
+            text-decoration: none !important;
+        }
+
+        .t-muted a,
+        .t-muted a:link,
+        .t-muted a:visited {
+            color: #64748b !important;
+            text-decoration: none !important;
+        }
+
+        .t-cancel,
+        .t-cancel .no-detect,
+        .t-cancel a,
+        .t-cancel a:link,
+        .t-cancel a:visited {
+            color: #dc2626 !important;
+            text-decoration: none !important;
+        }
+
+        /* ==================================================================
+           MOBILE D'ABORD : les tailles de base sont celles du téléphone.
+           La media query ne réduit jamais le texte, elle resserre les marges.
+           ================================================================== */
+        @media only screen and (max-width:600px) {
+            .px {
+                padding-left: 16px !important;
+                padding-right: 16px !important;
+            }
+
+            .hdr-pad {
+                padding: 16px !important;
+            }
+
+            .logo-img {
+                width: 48px !important;
+                height: 48px !important;
+            }
+
+            .logo-cell {
+                width: 64px !important;
+            }
+
+            .h1 {
+                font-size: 22px !important;
+            }
+
+            .h2 {
+                font-size: 19px !important;
+            }
+
+            .cta {
+                display: block !important;
+                padding: 15px 18px !important;
+            }
+        }
+
+        /* ==================================================================
+           MODE SOMBRE : palette fournie explicitement, sinon le client
+           inverse les couleurs à sa façon (fond blanc -> noir, etc.).
+           ================================================================== */
+        @media (prefers-color-scheme: dark) {
+
+            .bg-page,
+            .bg-card {
+                background-color: #141414 !important;
+            }
+
+            /* L'en-tête s'adapte au fond de la carte */
+            .bg-header {
+                background-color: #141414 !important;
+            }
+
+            .bg-banner {
+                background-color: #15803d !important;
+            }
+
+            .t-head,
+            .t-head .no-detect,
+            .t-head a {
+                color: #f1f5f9 !important;
+            }
+
+            .t-body {
+                color: #b6c2d4 !important;
+            }
+
+            .t-muted {
+                color: #8a97a8 !important;
+            }
+
+            .t-accent,
+            .t-accent .no-detect,
+            .t-accent a,
+            .t-accent a:link,
+            .t-accent a:visited {
+                color: #4ade80 !important;
+            }
+
+            .t-cancel,
+            .t-cancel .no-detect,
+            .t-cancel a,
+            .t-cancel a:link,
+            .t-cancel a:visited {
+                color: #f87171 !important;
+            }
+
+            .rule {
+                border-color: #2e2e2e !important;
+            }
+
+            .chip-n {
+                background-color: #2a2a2a !important;
+                border-color: transparent !important;
+            }
+
+            .chip-n-lbl {
+                color: #94a3b8 !important;
+            }
+
+            .chip-n-num {
+                color: #f1f5f9 !important;
+            }
+
+            .chip-s {
+                background-color: #0f2918 !important;
+                border: 1px solid #4ade80 !important;
+            }
+
+            .chip-s-lbl {
+                color: #4ade80 !important;
+            }
+
+            .chip-s-num {
+                color: #4ade80 !important;
+            }
+
+            .chip-c {
+                background-color: #361010 !important;
+                border: 1px solid #f87171 !important;
+            }
+
+            .chip-c-lbl {
+                color: #f87171 !important;
+            }
+
+            .chip-c-num {
+                color: #f87171 !important;
+            }
+
+            .badge {
+                background-color: #22c55e !important;
+                color: #052e16 !important;
+            }
+
+            .box-verse {
+                background-color: #0d2818 !important;
+                border-color: #166534 !important;
+            }
+
+            .t-verse {
+                color: #b7e4c7 !important;
+            }
+
+            .t-verse-ref {
+                color: #4ade80 !important;
+            }
+
+            .box-info {
+                background-color: #1e293b !important;
+                border-color: #334155 !important;
+            }
+
+            .t-info-title {
+                color: #f8fafc !important;
+            }
+
+            .t-info-desc {
+                color: #94a3b8 !important;
+            }
+
+            .cta {
+                background-color: #4ade80 !important;
+                color: #052e16 !important;
+            }
+
+            .img-round {
+                border: 1px solid #2e2e2e !important;
+            }
+
+            .logo-box,
+            .logo-box td,
+            .logo-img,
+            .logo-bg {
+                background-color: #ffffff !important;
+                background: #ffffff !important;
+                background-image: linear-gradient(#ffffff, #ffffff) !important;
+            }
+
+            .t-accent a,
+            .t-accent a:link,
+            .t-accent a:visited {
+                color: #4ade80 !important;
+            }
+
+            .t-muted a,
+            .t-muted a:link,
+            .t-muted a:visited {
+                color: #8a97a8 !important;
+            }
+
+            .t-cancel a,
+            .t-cancel a:link,
+            .t-cancel a:visited {
+                color: #f87171 !important;
+            }
+        }
+
+        /* Support Dark Mode Outlook App & Web */
+        [data-ogsc] .logo-box,
+        [data-ogsc] .logo-box td,
+        [data-ogsc] .logo-img,
+        [data-ogsc] .logo-bg,
+        [data-ogsb] .logo-box,
+        [data-ogsb] .logo-box td,
+        [data-ogsb] .logo-img,
+        [data-ogsb] .logo-bg {
+            background-color: #ffffff !important;
+            background: #ffffff !important;
+            background-image: linear-gradient(#ffffff, #ffffff) !important;
+        }
+
+        [data-ogsc] .t-head,
+        [data-ogsc] .t-head .no-detect,
+        [data-ogsb] .t-head,
+        [data-ogsb] .t-head .no-detect {
+            color: #f1f5f9 !important;
+        }
+
+        [data-ogsc] .t-accent,
+        [data-ogsc] .t-accent a,
+        [data-ogsc] .t-accent .no-detect,
+        [data-ogsb] .t-accent,
+        [data-ogsb] .t-accent a,
+        [data-ogsb] .t-accent .no-detect {
+            color: #4ade80 !important;
+        }
+
+        [data-ogsc] .t-cancel,
+        [data-ogsc] .t-cancel a,
+        [data-ogsc] .t-cancel .no-detect,
+        [data-ogsb] .t-cancel,
+        [data-ogsb] .t-cancel a,
+        [data-ogsb] .t-cancel .no-detect {
+            color: #f87171 !important;
+        }
+
+        [data-ogsc] .chip-n,
+        [data-ogsb] .chip-n {
+            background-color: #2a2a2a !important;
+            border-color: transparent !important;
+        }
+
+        [data-ogsc] .chip-n-lbl,
+        [data-ogsb] .chip-n-lbl {
+            color: #94a3b8 !important;
+        }
+
+        [data-ogsc] .chip-n-num,
+        [data-ogsb] .chip-n-num {
+            color: #f1f5f9 !important;
+        }
+
+        [data-ogsc] .chip-s,
+        [data-ogsb] .chip-s {
+            background-color: #0f2918 !important;
+            border: 1px solid #4ade80 !important;
+        }
+
+        [data-ogsc] .chip-s-lbl,
+        [data-ogsc] .chip-s-num,
+        [data-ogsb] .chip-s-lbl,
+        [data-ogsb] .chip-s-num {
+            color: #4ade80 !important;
+        }
+
+        [data-ogsc] .chip-c,
+        [data-ogsb] .chip-c {
+            background-color: #361010 !important;
+            border: 1px solid #f87171 !important;
+        }
+
+        [data-ogsc] .chip-c-lbl,
+        [data-ogsc] .chip-c-num,
+        [data-ogsb] .chip-c-lbl,
+        [data-ogsb] .chip-c-num {
+            color: #f87171 !important;
+        }
+    </style>
+</head>
+
+<body class="bg-page" style="margin:0;padding:0;background-color:#ffffff;">
+    <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;mso-hide:all;">
+        Programul Săptămânii la Bethel Dworp (28 septembrie – 4 octombrie) · Motivul de rugăciune al lunii pentru copii, adolescenți și tineri (Neemia 4:14).
+    </div>
+
+    <table role="presentation" class="bg-page" width="100%" cellpadding="0" cellspacing="0"
+        style="border-collapse:collapse;background-color:#ffffff;">
+        <tr>
+            <td class="card-wrap" align="center" style="padding:0;">
+
+                <table role="presentation" class="bg-card" width="640" cellpadding="0" cellspacing="0"
+                    style="border-collapse:collapse;width:100%;max-width:640px;background-color:#ffffff;">
+
+                    <!-- ═══════════ 1. EN-TÊTE ═══════════ -->
+                    <tr>
+                        <td class="hdr-pad bg-header" style="background-color:#ffffff;padding:20px 24px;">
+                            <table role="presentation" cellpadding="0" cellspacing="0" align="left">
+                                <tr>
+                                    <td class="logo-cell" style="width:64px;" valign="middle">
+                                        <a href="https://www.betheldworp.be/"
+                                            style="text-decoration:none;display:inline-block;">
+                                            <table role="presentation" cellpadding="0" cellspacing="0" border="0" class="logo-box"
+                                                style="border-collapse:separate;border-radius:12px;border:1px solid #e2e8f0;">
+                                                <tr>
+                                                    <td style="padding:0;line-height:0;font-size:0;border-radius:12px;">
+                                                        <img class="logo-img"
+                                                            src="https://www.betheldworp.be/apple-icon.png" width="48"
+                                                            height="48" alt="Bethel Dworp"
+                                                            style="display:block;width:48px;height:48px;border-radius:11px;border:0;" />
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </a>
+                                    </td>
+                                    <td style="padding-left:12px;font-family:Arial,Helvetica,sans-serif;">
+                                        <div class="t-head"
+                                            style="color:#0f172a;font-size:16px;font-weight:800;line-height:1.25;">
+                                            Bethel Dworp
+                                        </div>
+                                        <div class="t-muted"
+                                            style="color:#64748b;font-size:12px;line-height:1.25;padding-top:3px;">
+                                            Programul Săptămânii
+                                        </div>
+                                        <div style="line-height:1.25;padding-top:3px;">
+                                            <a class="t-accent" href="https://www.betheldworp.be/"
+                                                style="color:#16a34a;font-size:12px;font-weight:800;text-decoration:none;font-family:Arial,Helvetica,sans-serif;white-space:nowrap;">
+                                                www.betheldworp.be
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- ═══════════ 2. SEMAINE CONCERNÉE ═══════════ -->
+                    <tr>
+                        <td class="bg-banner"
+                            style="background-color:#16a34a;padding:11px 20px;font-family:Arial,Helvetica,sans-serif;text-align:center;">
+                            <div style="color:#ffffff;font-size:13px;font-weight:800;letter-spacing:0.5px;">
+                                28 Septembrie – 4 Octombrie 2026
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- ═══════════ 3. IMAGE PRINCIPALE ═══════════ -->
+                    <tr>
+                        <td style="padding:0;">
+                            <img src="https://www.betheldworp.be/images/landing_page/drone.jpg" width="640"
+                                alt="Biserica Bethel Dworp"
+                                style="display:block;width:100%;max-width:640px;height:auto;" />
+                        </td>
+                    </tr>
+
+                    <!-- ═══════════ 4. INTRODUCTION ═══════════ -->
+                    <tr>
+                        <td class="px" style="padding:30px 32px 0;font-family:Arial,Helvetica,sans-serif;">
+                            <div class="h1 t-head"
+                                style="font-size:24px;font-weight:900;color:#0f172a;line-height:1.3;padding-bottom:14px;">
+                                Pace, dragi frați și surori,
+                            </div>
+                            <div class="t-body" style="font-size:15px;line-height:1.7;color:#475569;">
+                                Vă salutăm cu drag în Numele Domnului Isus Hristos! Vă transmitem programul complet al acestei săptămâni.
+                                În urma zilei binecuvântate de post și rugăciune pe care am avut-o duminică, continuăm să stăm uniți înaintea lui Dumnezeu,
+                                având ca motiv special de mijlocire pe parcursul acestei luni <b class="t-head" style="color:#0f172a;">copiii, adolescenții și tinerii</b> bisericii noastre.
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- ═══════════ 5. CALENDRIER ═══════════ -->
+                    <tr>
+                        <td class="px" style="padding:34px 32px 0;font-family:Arial,Helvetica,sans-serif;">
+                            <div class="t-accent"
+                                style="font-size:11px;font-weight:900;color:#16a34a;letter-spacing:1.5px;text-transform:uppercase;">
+                                Calendar
+                            </div>
+                            <div class="h2 t-head"
+                                style="font-size:21px;font-weight:900;color:#0f172a;padding-top:5px;line-height:1.3;">
+                                Programul Săptămânii
+                            </div>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td class="px" style="padding:18px 32px 0;font-family:Arial,Helvetica,sans-serif;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                                style="border-collapse:collapse;">
+
+                                <!-- LUNI -->
+                                <tr>
+                                    <td class="rule" width="62" valign="top"
+                                        style="padding:14px 0;border-bottom:1px solid #eef2f6;">
+                                        <div class="chip-n"
+                                            style="width:50px;background-color:#f1f5f9;border:1px solid transparent;border-radius:10px;padding:6px 0;text-align:center;">
+                                            <div class="chip-n-lbl"
+                                                style="font-size:10px;font-weight:900;color:#64748b;letter-spacing:1px;line-height:1.2;">
+                                                LUN</div>
+                                            <div class="chip-n-num"
+                                                style="font-size:18px;font-weight:900;color:#0f172a;line-height:1.2;">
+                                                28</div>
+                                        </div>
+                                    </td>
+                                    <td class="rule" valign="top"
+                                        style="padding:14px 0 14px 14px;border-bottom:1px solid #eef2f6;">
+                                        <div class="t-head" style="font-size:13px;font-weight:800;color:#0f172a;">
+                                            <span class="no-detect" style="color:inherit !important;text-decoration:none !important;">20&zwnj;:00 – 21&zwnj;:30</span></div>
+                                        <div class="t-head"
+                                            style="font-size:15px;color:#0f172a;font-weight:600;line-height:1.45;padding-top:3px;">
+                                            Seară de Tineret și Adolescenți</div>
+                                    </td>
+                                </tr>
+
+                                <!-- MARȚI - dimineață (post) -->
+                                <tr>
+                                    <td class="rule" width="62" valign="top"
+                                        style="padding:14px 0;border-bottom:1px solid #eef2f6;">
+                                        <div class="chip-n"
+                                            style="width:50px;background-color:#f1f5f9;border:1px solid transparent;border-radius:10px;padding:6px 0;text-align:center;">
+                                            <div class="chip-n-lbl"
+                                                style="font-size:10px;font-weight:900;color:#64748b;letter-spacing:1px;line-height:1.2;">
+                                                MAR</div>
+                                            <div class="chip-n-num"
+                                                style="font-size:18px;font-weight:900;color:#0f172a;line-height:1.2;">
+                                                29</div>
+                                        </div>
+                                    </td>
+                                    <td class="rule" valign="top"
+                                        style="padding:14px 0 14px 14px;border-bottom:1px solid #eef2f6;">
+                                        <div class="t-head" style="font-size:13px;font-weight:800;color:#0f172a;">
+                                            <span class="no-detect" style="color:inherit !important;text-decoration:none !important;">10&zwnj;:00 – 14&zwnj;:00</span></div>
+                                        <div class="t-head"
+                                            style="font-size:15px;color:#0f172a;font-weight:600;line-height:1.45;padding-top:3px;">
+                                            Zi de post și mijlocire</div>
+                                    </td>
+                                </tr>
+
+                                <!-- MARȚI - seară -->
+                                <tr>
+                                    <td class="rule" width="62" valign="top"
+                                        style="padding:14px 0;border-bottom:1px solid #eef2f6;">
+                                        <div class="chip-n"
+                                            style="width:50px;background-color:#f1f5f9;border:1px solid transparent;border-radius:10px;padding:6px 0;text-align:center;">
+                                            <div class="chip-n-lbl"
+                                                style="font-size:10px;font-weight:900;color:#64748b;letter-spacing:1px;line-height:1.2;">
+                                                MAR</div>
+                                            <div class="chip-n-num"
+                                                style="font-size:18px;font-weight:900;color:#0f172a;line-height:1.2;">
+                                                29</div>
+                                        </div>
+                                    </td>
+                                    <td class="rule" valign="top"
+                                        style="padding:14px 0 14px 14px;border-bottom:1px solid #eef2f6;">
+                                        <div class="t-head" style="font-size:13px;font-weight:800;color:#0f172a;">
+                                            <span class="no-detect" style="color:inherit !important;text-decoration:none !important;">20&zwnj;:00 – 21&zwnj;:30</span></div>
+                                        <div class="t-head"
+                                            style="font-size:15px;color:#0f172a;font-weight:600;line-height:1.45;padding-top:3px;">
+                                            Seară de rugăciune</div>
+                                    </td>
+                                </tr>
+
+                                <!-- MIERCURI -->
+                                <tr>
+                                    <td class="rule" width="62" valign="top"
+                                        style="padding:14px 0;border-bottom:1px solid #eef2f6;">
+                                        <div class="chip-n"
+                                            style="width:50px;background-color:#f1f5f9;border:1px solid transparent;border-radius:10px;padding:6px 0;text-align:center;">
+                                            <div class="chip-n-lbl"
+                                                style="font-size:10px;font-weight:900;color:#64748b;letter-spacing:1px;line-height:1.2;">
+                                                MIE</div>
+                                            <div class="chip-n-num"
+                                                style="font-size:18px;font-weight:900;color:#0f172a;line-height:1.2;">
+                                                30</div>
+                                        </div>
+                                    </td>
+                                    <td class="rule" valign="top"
+                                        style="padding:14px 0 14px 14px;border-bottom:1px solid #eef2f6;">
+                                        <div class="t-head" style="font-size:13px;font-weight:800;color:#0f172a;">
+                                            <span class="no-detect" style="color:inherit !important;text-decoration:none !important;">20&zwnj;:00 – 21&zwnj;:30</span></div>
+                                        <div class="t-head"
+                                            style="font-size:15px;color:#0f172a;font-weight:600;line-height:1.45;padding-top:3px;">
+                                            Repetiția corului mixt</div>
+                                    </td>
+                                </tr>
+
+                                <!-- JOI -->
+                                <tr>
+                                    <td class="rule" width="62" valign="top"
+                                        style="padding:14px 0;border-bottom:1px solid #eef2f6;">
+                                        <div class="chip-n"
+                                            style="width:50px;background-color:#f1f5f9;border:1px solid transparent;border-radius:10px;padding:6px 0;text-align:center;">
+                                            <div class="chip-n-lbl"
+                                                style="font-size:10px;font-weight:900;color:#64748b;letter-spacing:1px;line-height:1.2;">
+                                                JOI</div>
+                                            <div class="chip-n-num"
+                                                style="font-size:18px;font-weight:900;color:#0f172a;line-height:1.2;">
+                                                1</div>
+                                        </div>
+                                    </td>
+                                    <td class="rule" valign="top"
+                                        style="padding:14px 0 14px 14px;border-bottom:1px solid #eef2f6;">
+                                        <div class="t-head" style="font-size:13px;font-weight:800;color:#0f172a;">
+                                            <span class="no-detect" style="color:inherit !important;text-decoration:none !important;">20&zwnj;:00 – 21&zwnj;:30</span></div>
+                                        <div class="t-head"
+                                            style="font-size:15px;color:#0f172a;font-weight:600;line-height:1.45;padding-top:3px;">
+                                            Repetiția corului bărbătesc</div>
+                                    </td>
+                                </tr>
+
+                                <!-- VINERI -->
+                                <tr>
+                                    <td class="rule" width="62" valign="top"
+                                        style="padding:14px 0;border-bottom:1px solid #eef2f6;">
+                                        <div class="chip-n"
+                                            style="width:50px;background-color:#f1f5f9;border:1px solid transparent;border-radius:10px;padding:6px 0;text-align:center;">
+                                            <div class="chip-n-lbl"
+                                                style="font-size:10px;font-weight:900;color:#64748b;letter-spacing:1px;line-height:1.2;">
+                                                VIN</div>
+                                            <div class="chip-n-num"
+                                                style="font-size:18px;font-weight:900;color:#0f172a;line-height:1.2;">
+                                                2</div>
+                                        </div>
+                                    </td>
+                                    <td class="rule" valign="top"
+                                        style="padding:14px 0 14px 14px;border-bottom:1px solid #eef2f6;">
+                                        <div class="t-head" style="font-size:13px;font-weight:800;color:#0f172a;">
+                                            <span class="no-detect" style="color:inherit !important;text-decoration:none !important;">20&zwnj;:00 – 21&zwnj;:30</span></div>
+                                        <div class="t-head"
+                                            style="font-size:15px;color:#0f172a;font-weight:600;line-height:1.45;padding-top:3px;">
+                                            Seară de rugăciune</div>
+                                    </td>
+                                </tr>
+
+                                <!-- SÂMBĂTĂ -->
+                                <tr>
+                                    <td class="rule" width="62" valign="top"
+                                        style="padding:14px 0;border-bottom:1px solid #eef2f6;">
+                                        <div class="chip-n"
+                                            style="width:50px;background-color:#f1f5f9;border:1px solid transparent;border-radius:10px;padding:6px 0;text-align:center;">
+                                            <div class="chip-n-lbl"
+                                                style="font-size:10px;font-weight:900;color:#64748b;letter-spacing:1px;line-height:1.2;">
+                                                SÂM</div>
+                                            <div class="chip-n-num"
+                                                style="font-size:18px;font-weight:900;color:#0f172a;line-height:1.2;">
+                                                3</div>
+                                        </div>
+                                    </td>
+                                    <td class="rule" valign="top"
+                                        style="padding:14px 0 14px 14px;border-bottom:1px solid #eef2f6;">
+                                        <div class="t-head" style="font-size:13px;font-weight:800;color:#0f172a;">
+                                            <span class="no-detect" style="color:inherit !important;text-decoration:none !important;">11&zwnj;:00 – 13&zwnj;:30</span></div>
+                                        <div class="t-head"
+                                            style="font-size:15px;color:#0f172a;font-weight:600;line-height:1.45;padding-top:3px;">
+                                            Program cu copiii</div>
+                                    </td>
+                                </tr>
+
+                                <!-- DUMINICĂ -->
+                                <tr>
+                                    <td width="62" valign="top" style="padding:14px 0 6px;">
+                                        <div class="chip-n"
+                                            style="width:50px;background-color:#f1f5f9;border:1px solid transparent;border-radius:10px;padding:6px 0;text-align:center;">
+                                            <div class="chip-n-lbl"
+                                                style="font-size:10px;font-weight:900;color:#64748b;letter-spacing:1px;line-height:1.2;">
+                                                DUM</div>
+                                            <div class="chip-n-num"
+                                                style="font-size:18px;font-weight:900;color:#0f172a;line-height:1.2;">
+                                                4</div>
+                                        </div>
+                                    </td>
+                                    <td valign="top" style="padding:14px 0 6px 14px;">
+                                        <div class="t-head" style="font-size:13px;font-weight:800;color:#0f172a;">
+                                            <span class="no-detect" style="color:inherit !important;text-decoration:none !important;">10&zwnj;:00 – 12&zwnj;:00</span></div>
+                                        <div class="t-head"
+                                            style="font-size:15px;color:#0f172a;font-weight:600;line-height:1.45;padding-top:3px;">
+                                            Serviciu Divin de dimineață</div>
+                                        <div class="t-head"
+                                            style="font-size:13px;font-weight:800;color:#0f172a;padding-top:14px;">
+                                            <span class="no-detect" style="color:inherit !important;text-decoration:none !important;">18&zwnj;:00 – 20&zwnj;:00</span></div>
+                                        <div class="t-head"
+                                            style="font-size:15px;color:#0f172a;font-weight:600;line-height:1.45;padding-top:3px;">
+                                            Serviciu Divin de seară</div>
+                                    </td>
+                                </tr>
+
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- ═══════════ 6. SECȚIUNEA : MOTIVUL DE RUGĂCIUNE & VERSETUL LUNII ═══════════ -->
+                    <tr>
+                        <td class="px" style="padding:16px 32px 0;font-family:Arial,Helvetica,sans-serif;">
+                            <div class="rule" style="border-top:1px solid #e2e8f0;padding-top:28px;">
+                                <div class="t-accent"
+                                    style="font-size:11px;font-weight:900;color:#16a34a;letter-spacing:1.5px;text-transform:uppercase;">
+                                    Motivul de Rugăciune al Lunii
+                                </div>
+                                <div class="h2 t-head"
+                                    style="font-size:21px;font-weight:900;color:#0f172a;padding-top:5px;line-height:1.3;">
+                                    Mijlocire pentru copii, adolescenți și tineri
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td class="px" style="padding:16px 32px 0;font-family:Arial,Helvetica,sans-serif;">
+                            <div class="t-body" style="font-size:15px;line-height:1.7;color:#475569;">
+                                În urma <b class="t-head" style="color:#0f172a;">zilei de post și rugăciune</b> pe care am avut-o duminică, continuăm să stăruim înaintea Domnului pentru motivul special al acestei luni: <b class="t-head" style="color:#0f172a;">copiii, adolescenții și tinerii bisericii noastre</b>.
+                            </div>
+                            <div class="t-body" style="font-size:15px;line-height:1.7;color:#475569;padding-top:14px;">
+                                Vă îndemnăm ca în rugăciunile voastre personale, în familie și la întâlnirile bisericii să mijlocim pentru noua generație — ca Dumnezeu să le ocrotească inimile, să le călăuzească pașii și să le descopere dragostea și puterea Sa. Ca părinți, frați și surori, suntem chemați să luptăm în rugăciune pentru familiile și copiii noștri.
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Verset Neemia 4:14 -->
+                    <tr>
+                        <td class="px" style="padding:22px 32px 0;font-family:Arial,Helvetica,sans-serif;">
+                            <div class="box-verse"
+                                style="background-color:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:18px 20px;">
+                                <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                                    style="border-collapse:collapse;">
+                                    <tr>
+                                        <td style="font-family:Arial,Helvetica,sans-serif;">
+                                            <div class="t-accent"
+                                                style="font-size:11px;font-weight:900;color:#16a34a;letter-spacing:1px;text-transform:uppercase;padding-bottom:6px;">
+                                                Versetul lunii
+                                            </div>
+                                            <div class="t-verse"
+                                                style="font-size:16px;font-style:italic;color:#166534;line-height:1.6;">
+                                                „Luptaţi pentru fraţii voştri, pentru fiii voştri şi fetele voastre, pentru nevestele voastre şi pentru casele voastre!”
+                                            </div>
+                                            <div class="t-verse-ref"
+                                                style="font-size:12px;font-weight:900;color:#15803d;padding-top:8px;letter-spacing:0.5px;">
+                                                NEEMIA 4:14
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- ═══════════ 7. BOUTON CTA ═══════════ -->
+                    <tr>
+                        <td class="px" style="padding:36px 32px 0;font-family:Arial,Helvetica,sans-serif;"
+                            align="center">
+                            <a class="cta" href="https://www.betheldworp.be/"
+                                style="display:inline-block;background-color:#0f172a;color:#ffffff;text-decoration:none;font-weight:800;font-size:15px;padding:14px 28px;border-radius:12px;font-family:Arial,Helvetica,sans-serif;text-align:center;">
+                                Vizitează site-ul bisericii
+                            </a>
+                        </td>
+                    </tr>
+
+                    <!-- ═══════════ 8. SALUT FINAL ═══════════ -->
+                    <tr>
+                        <td class="px" style="padding:32px 32px 30px;font-family:Arial,Helvetica,sans-serif;">
+                            <div class="rule t-body"
+                                style="border-top:1px solid #e2e8f0;padding-top:26px;font-size:15px;line-height:1.7;color:#475569;">
+                                Vă dorim o săptămână binecuvântată și vă așteptăm cu drag la toate programele bisericii!
+                            </div>
+                            <div class="t-head" style="font-size:15px;font-weight:900;color:#0f172a;padding-top:14px;">
+                                Echipa Bethel Dworp
+                            </div>
+                            <div style="padding-top:4px;">
+                                <a class="t-accent" href="https://www.betheldworp.be/"
+                                    style="color:#16a34a;text-decoration:none;font-weight:700;font-size:14px;">
+                                    www.betheldworp.be
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+
+                </table>
+
+                <!-- ═══════════ 9. MENTIONS LÉGALES & DÉSABONNEMENT ═══════════ -->
+                <table role="presentation" class="bg-card" width="640" cellpadding="0" cellspacing="0"
+                    style="border-collapse:collapse;width:100%;max-width:640px;background-color:#ffffff;">
+                    <tr>
+                        <td class="px"
+                            style="padding:22px 24px 28px;font-family:Arial,Helvetica,sans-serif;text-align:center;">
+                            <div class="t-muted" style="font-size:13px;color:#64748b;line-height:1.7;">
+                                Primiți acest email deoarece faceți parte din Newsletter-ul Bisericii Bethel Dworp.
+                            </div>
+                            <div style="padding-top:8px;">
+                                <a class="t-muted" href="{{ unsubscribe }}"
+                                    style="display:inline-block;padding:10px 16px;font-size:13px;color:#64748b;text-decoration:underline;font-family:Arial,Helvetica,sans-serif;">
+                                    Dezabonare
+                                </a>
+                            </div>
+                            <div class="t-muted" style="font-size:11px;color:#94a3b8;padding-top:8px;">
+                                © 2026 Bethel Dworp
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>
