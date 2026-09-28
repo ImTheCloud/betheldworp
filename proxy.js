@@ -21,6 +21,13 @@ function getLocale(request) {
   return defaultLocale;
 }
 
+const CRAWLER_USER_AGENTS = /facebookexternalhit|Facebot|WhatsApp|Twitterbot|LinkedInBot|TelegramBot|Discordbot|Slackbot/i;
+
+function isCrawler(request) {
+  const ua = request.headers.get('user-agent') || '';
+  return CRAWLER_USER_AGENTS.test(ua);
+}
+
 export function proxy(request) {
   const { pathname } = request.nextUrl;
 
@@ -35,8 +42,28 @@ export function proxy(request) {
     return;
   }
 
-  // Handle case-insensitivity: redirect uppercase URLs (e.g. /Ro, /RO) to lowercase (/ro)
   const lowerPath = pathname.toLowerCase();
+
+  // Social crawlers (WhatsApp, Facebook, Twitter) often don't follow redirects or
+  // cache redirects poorly. Rewrite directly so they receive 200 OK with full OG tags.
+  if (isCrawler(request)) {
+    const url = request.nextUrl.clone();
+    if (lowerPath === '' || lowerPath === '/' || lowerPath === '/ro') {
+      url.pathname = '/ro';
+      return NextResponse.rewrite(url);
+    }
+    const hasLocale = locales.some(
+      (locale) => lowerPath.startsWith(`/${locale}/`) || lowerPath === `/${locale}`
+    );
+    if (hasLocale) {
+      url.pathname = lowerPath;
+      return NextResponse.rewrite(url);
+    }
+    url.pathname = `/ro${lowerPath}`;
+    return NextResponse.rewrite(url);
+  }
+
+  // Handle case-insensitivity: redirect uppercase URLs (e.g. /Ro, /RO) to lowercase (/ro)
   if (pathname !== lowerPath) {
     const url = request.nextUrl.clone();
     url.pathname = lowerPath;
