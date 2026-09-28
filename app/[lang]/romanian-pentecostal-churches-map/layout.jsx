@@ -38,13 +38,13 @@ export async function generateMetadata({ params }) {
             description: DESCRIPTIONS.ro,
             url: `${SITE_URL}/${l}${PATH}`,
             locale: "ro_RO",
-            images: [{ url: "/images/og-v9.jpg", width: 1200, height: 630, alt: `${TITLES.ro} | Bethel Dworp` }],
+            images: [{ url: "/images/og-v10.jpg", width: 1200, height: 630, alt: `${TITLES.ro} | Bethel Dworp` }],
         },
         twitter: {
             card: "summary_large_image",
             title: `${TITLES.ro} | Bethel Dworp`,
             description: DESCRIPTIONS.ro,
-            images: ["/images/og-v9.jpg"],
+            images: ["/images/og-v10.jpg"],
         },
     };
 }

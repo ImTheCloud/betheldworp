@@ -87,18 +87,26 @@
             white-space: nowrap;
         }
 
-        /* --- GRILLE 2 COLONNES × 4 LIGNES --- */
-        .sched-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            grid-template-rows: repeat(4, 1fr);
-            gap: 10px 16px;
+        /* --- 2 COLONNES DE 4 LIGNES CHACUNE --- */
+        .sched-columns {
+            display: flex;
+            flex-direction: row;
+            gap: 16px;
             flex: 1;
             margin-top: 12px;
         }
 
+        .sched-col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            justify-content: space-between;
+        }
+
         /* CARTE SERVICE */
         .sched-card {
+            flex: 1;
             display: flex;
             flex-direction: row;
             align-items: stretch;
@@ -191,12 +199,12 @@
 
         /* Carte Marți (2 lignes) */
         .sched-card--double .sched-time-badge {
-            padding: 2px 7px;
-            font-size: 16.5px;
+            padding: 3px 8px;
+            font-size: 17px;
         }
 
         .sched-card--double .sched-text {
-            font-size: 17px;
+            font-size: 17.5px;
         }
     </style>
 </head>
@@ -212,114 +220,120 @@
         </div>
     </header>
 
-    <!-- GRILLE 2 COLONNES × 4 LIGNES (8 CASES) -->
-    <main class="sched-grid">
-        <!-- COLONNE 1, LIGNE 1 : LUNI -->
-        <div class="sched-card sched-card--single">
-            <div class="sched-day-tag">
-                LUNI
+    <!-- 2 COLONNES : COLONNE 1 (LUN-JEU) & COLONNE 2 (VIN-DUM) -->
+    <main class="sched-columns">
+        <!-- COLONNE 1 : LUNI, MARȚI, MIERCURI, JOI -->
+        <div class="sched-col">
+            <!-- 1. LUNI -->
+            <div class="sched-card sched-card--single">
+                <div class="sched-day-tag">
+                    LUNI
+                </div>
+                <div class="sched-body">
+                    <div class="sched-item">
+                        <span class="sched-time-badge">20:00 - 21:30</span>
+                        <span class="sched-text">Tineret &amp; Adolescenți</span>
+                    </div>
+                </div>
             </div>
-            <div class="sched-body">
-                <div class="sched-item">
-                    <span class="sched-time-badge">20:00 - 21:30</span>
-                    <span class="sched-text">Tineret &amp; Adolescenți</span>
+
+            <!-- 2. MARȚI (2 SERVICES) -->
+            <div class="sched-card sched-card--double">
+                <div class="sched-day-tag">
+                    MARȚI
+                </div>
+                <div class="sched-body">
+                    <div class="sched-item">
+                        <span class="sched-time-badge">10:00 - 12:00</span>
+                        <span class="sched-text">Post și Mijlocire</span>
+                    </div>
+                    <div class="sched-item">
+                        <span class="sched-time-badge">20:00 - 21:30</span>
+                        <span class="sched-text">Seară de Rugăciune</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. MIERCURI -->
+            <div class="sched-card sched-card--single">
+                <div class="sched-day-tag">
+                    MIERCURI
+                </div>
+                <div class="sched-body">
+                    <div class="sched-item">
+                        <span class="sched-time-badge">20:00 - 21:30</span>
+                        <span class="sched-text">Repetiție Cor Mixt</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. JOI -->
+            <div class="sched-card sched-card--single">
+                <div class="sched-day-tag">
+                    JOI
+                </div>
+                <div class="sched-body">
+                    <div class="sched-item">
+                        <span class="sched-time-badge">20:00 - 21:30</span>
+                        <span class="sched-text">Repetiție Cor Bărbătesc</span>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- COLONNE 2, LIGNE 1 : JOI -->
-        <div class="sched-card sched-card--single">
-            <div class="sched-day-tag">
-                JOI
-            </div>
-            <div class="sched-body">
-                <div class="sched-item">
-                    <span class="sched-time-badge">20:00 - 21:30</span>
-                    <span class="sched-text">Repetiție Cor Bărbătesc</span>
+        <!-- COLONNE 2 : VINERI, SÂMBĂTĂ, DUMINICĂ DIMINEAȚĂ, DUMINICĂ SEARĂ -->
+        <div class="sched-col">
+            <!-- 5. VINERI -->
+            <div class="sched-card sched-card--single">
+                <div class="sched-day-tag">
+                    VINERI
+                </div>
+                <div class="sched-body">
+                    <div class="sched-item">
+                        <span class="sched-time-badge">20:00 - 21:30</span>
+                        <span class="sched-text">Rugăciune &amp; Părtășie</span>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- COLONNE 1, LIGNE 2 : MARȚI (2 SERVICES) -->
-        <div class="sched-card sched-card--double">
-            <div class="sched-day-tag">
-                MARȚI
-            </div>
-            <div class="sched-body">
-                <div class="sched-item">
-                    <span class="sched-time-badge">10:00 - 12:00</span>
-                    <span class="sched-text">Post și Mijlocire</span>
+            <!-- 6. SÂMBĂTĂ -->
+            <div class="sched-card sched-card--single">
+                <div class="sched-day-tag">
+                    SÂMBĂTĂ
                 </div>
-                <div class="sched-item">
-                    <span class="sched-time-badge">20:00 - 21:30</span>
-                    <span class="sched-text">Seară de Rugăciune</span>
+                <div class="sched-body">
+                    <div class="sched-item">
+                        <span class="sched-time-badge">11:00 - 13:00</span>
+                        <span class="sched-text">Program cu Copiii</span>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- COLONNE 2, LIGNE 2 : VINERI -->
-        <div class="sched-card sched-card--single">
-            <div class="sched-day-tag">
-                VINERI
-            </div>
-            <div class="sched-body">
-                <div class="sched-item">
-                    <span class="sched-time-badge">20:00 - 21:30</span>
-                    <span class="sched-text">Rugăciune &amp; Părtășie</span>
+            <!-- 7. DUMINICĂ DIMINEAȚĂ -->
+            <div class="sched-card sched-card--single">
+                <div class="sched-day-tag">
+                    DUMINICĂ
+                    <span class="sched-day-sub">DIMINEAȚĂ</span>
+                </div>
+                <div class="sched-body">
+                    <div class="sched-item">
+                        <span class="sched-time-badge">10:00 - 12:00</span>
+                        <span class="sched-text">Serviciu Divin</span>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- COLONNE 1, LIGNE 3 : MIERCURI -->
-        <div class="sched-card sched-card--single">
-            <div class="sched-day-tag">
-                MIERCURI
-            </div>
-            <div class="sched-body">
-                <div class="sched-item">
-                    <span class="sched-time-badge">20:00 - 21:30</span>
-                    <span class="sched-text">Repetiție Cor Mixt</span>
+            <!-- 8. DUMINICĂ SEARĂ -->
+            <div class="sched-card sched-card--single">
+                <div class="sched-day-tag">
+                    DUMINICĂ
+                    <span class="sched-day-sub">SEARĂ</span>
                 </div>
-            </div>
-        </div>
-
-        <!-- COLONNE 2, LIGNE 3 : SÂMBĂTĂ -->
-        <div class="sched-card sched-card--single">
-            <div class="sched-day-tag">
-                SÂMBĂTĂ
-            </div>
-            <div class="sched-body">
-                <div class="sched-item">
-                    <span class="sched-time-badge">11:00 - 13:00</span>
-                    <span class="sched-text">Program cu Copiii</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- COLONNE 1, LIGNE 4 : DUMINICĂ DIMINEAȚĂ -->
-        <div class="sched-card sched-card--single">
-            <div class="sched-day-tag">
-                DUMINICĂ
-                <span class="sched-day-sub">DIMINEAȚĂ</span>
-            </div>
-            <div class="sched-body">
-                <div class="sched-item">
-                    <span class="sched-time-badge">10:00 - 12:00</span>
-                    <span class="sched-text">Serviciu Divin</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- COLONNE 2, LIGNE 4 : DUMINICĂ SEARĂ -->
-        <div class="sched-card sched-card--single">
-            <div class="sched-day-tag">
-                DUMINICĂ
-                <span class="sched-day-sub">SEARĂ</span>
-            </div>
-            <div class="sched-body">
-                <div class="sched-item">
-                    <span class="sched-time-badge">18:00 - 20:00</span>
-                    <span class="sched-text">Serviciu Divin</span>
+                <div class="sched-body">
+                    <div class="sched-item">
+                        <span class="sched-time-badge">18:00 - 20:00</span>
+                        <span class="sched-text">Serviciu Divin</span>
+                    </div>
                 </div>
             </div>
         </div>
