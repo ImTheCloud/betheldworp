@@ -8,17 +8,17 @@ const SITE_URL = "https://www.betheldworp.be";
 const LANGS = ["ro", "fr", "nl", "en"];
 
 const TITLES = {
-    ro: "Bethel Dworp — Biserica Penticostală",
-    fr: "Bethel Dworp — Église Pentecôtiste",
-    nl: "Bethel Dworp — Pinksterkerk",
-    en: "Bethel Dworp — Pentecostal Church",
+    ro: "Bethel Dworp Biserica Penticostală",
+    fr: "Bethel Dworp Église Pentecôtiste",
+    nl: "Bethel Dworp Pinksterkerk",
+    en: "Bethel Dworp Pentecostal Church",
 };
 
 const DESCRIPTIONS = {
-    ro: "Biserica Penticostală Bethel din Dworp (Beersel, Belgia). O comunitate a credinței, rugăciunii și închinării. Descoperă programul serviciilor divine, evenimentele și harta bisericilor penticostale române.",
-    fr: "Église pentecôtiste Bethel à Dworp (Beersel, Belgique). Une communauté de foi, de prière et de louange. Découvrez les horaires des cultes, les événements et la carte des églises.",
-    nl: "Pinksterkerk Bethel in Dworp (Beersel, België). Een gemeenschap van geloof, gebed en aanbidding. Bekijk onze dienstentijden, activiteiten en de wereldkaart van pinksterkerken.",
-    en: "Bethel Pentecostal Church in Dworp (Beersel, Belgium). A community of faith, prayer, and worship. Explore our service times, events, and world map of Pentecostal churches.",
+    ro: "Biserica Penticostală Bethel din Dworp. Programul serviciilor divine și evenimente.",
+    fr: "Église pentecôtiste Bethel à Dworp. Horaires des cultes et événements.",
+    nl: "Pinksterkerk Bethel in Dworp. Dienstentijden en activiteiten.",
+    en: "Bethel Pentecostal Church in Dworp. Service times and events.",
 };
 
 // Pré-génère les quatre langues au build plutôt qu'à chaque visite.
@@ -91,7 +91,7 @@ export const viewport = {
 
 export default async function RootLayout({ children, params }) {
     const { lang } = await params;
-    
+
 
     return (
         <html lang={lang} suppressHydrationWarning>
