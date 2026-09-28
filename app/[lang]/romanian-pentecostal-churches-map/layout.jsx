@@ -38,6 +38,13 @@ export async function generateMetadata({ params }) {
             description: DESCRIPTIONS[l],
             url: `${SITE_URL}/${l}${PATH}`,
             locale: l,
+            images: [{ url: "/images/og-v4.jpg", width: 1200, height: 630, alt: `${TITLES[l]} | Bethel Dworp` }],
+        },
+        twitter: {
+            card: "summary_large_image",
+            title: `${TITLES[l]} | Bethel Dworp`,
+            description: DESCRIPTIONS[l],
+            images: ["/images/og-v4.jpg"],
         },
     };
 }

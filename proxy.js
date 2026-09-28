@@ -35,6 +35,14 @@ export function proxy(request) {
     return;
   }
 
+  // Handle case-insensitivity: redirect uppercase URLs (e.g. /Ro, /RO) to lowercase (/ro)
+  const lowerPath = pathname.toLowerCase();
+  if (pathname !== lowerPath) {
+    const url = request.nextUrl.clone();
+    url.pathname = lowerPath;
+    return NextResponse.redirect(url, 301);
+  }
+
   // Check if the pathname already has a supported locale
   const pathnameHasLocale = locales.some(
     (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
