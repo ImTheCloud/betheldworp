@@ -25,9 +25,9 @@
             height: 630px;
         }
 
-        /* --- COLOANA STÂNGA : IDENTITATE ȘI LOGO MARE (460px) --- */
+        /* --- COLOANA STÂNGA : IDENTITATE ȘI LOGO MARE (450px) --- */
         .brand-col {
-            width: 460px;
+            width: 450px;
             height: 630px;
             background: linear-gradient(165deg, #f9fbfe 0%, #edf3f9 100%);
             border-right: 2px solid rgba(10, 42, 67, 0.10);
@@ -36,7 +36,7 @@
             justify-content: center;
             align-items: center;
             text-align: center;
-            padding: 40px 32px;
+            padding: 40px 30px;
             position: relative;
         }
 
@@ -50,15 +50,15 @@
         }
 
         .logo-wrap {
-            width: 210px;
-            height: 210px;
+            width: 205px;
+            height: 205px;
             display: flex;
             align-items: center;
             justify-content: center;
             background: #ffffff;
             border-radius: 46px;
             box-shadow: 0 20px 45px -10px rgba(10, 42, 67, 0.20), 0 0 0 2px rgba(10, 42, 67, 0.08);
-            margin-bottom: 28px;
+            margin-bottom: 26px;
             padding: 10px;
             position: relative;
             z-index: 1;
@@ -95,11 +95,11 @@
             z-index: 1;
         }
 
-        /* --- COLOANA DREAPTA : PROGRAMUL MARE ȘI LISIBIL (740px) --- */
+        /* --- COLOANA DREAPTA : PROGRAMUL MARE DE LUNI PÂNĂ DUMINICĂ (750px) --- */
         .sched-col {
             flex: 1;
             height: 630px;
-            padding: 32px 38px 30px;
+            padding: 24px 34px 22px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -109,13 +109,13 @@
         .sched-header {
             display: flex;
             align-items: center;
-            padding-bottom: 12px;
+            padding-bottom: 8px;
             border-bottom: 2px solid rgba(10, 42, 67, 0.10);
-            margin-bottom: 14px;
+            margin-bottom: 10px;
         }
 
         .sched-header-title {
-            font-size: 28px;
+            font-size: 26px;
             font-weight: 900;
             letter-spacing: 0.02em;
             color: #0a2a43;
@@ -125,7 +125,7 @@
         .sched-list {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 9px;
             flex: 1;
             justify-content: space-between;
         }
@@ -135,34 +135,28 @@
             display: flex;
             flex-direction: row;
             align-items: stretch;
-            height: 104px;
-            border-radius: 18px;
+            flex: 1;
+            min-height: 0;
+            border-radius: 15px;
             overflow: hidden;
-            box-shadow: 0 4px 14px rgba(10, 42, 67, 0.06);
+            box-shadow: 0 3px 10px rgba(10, 42, 67, 0.05);
         }
 
         /* Tag Zi (stânga rândului) */
         .sched-day-tag {
-            width: 180px;
+            width: 165px;
             background: #0a2a43;
             color: #ffffff;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 23px;
             font-weight: 900;
             letter-spacing: 0.06em;
             text-transform: uppercase;
-            padding: 6px 12px;
+            padding: 4px 10px;
             text-align: center;
             flex-shrink: 0;
-            line-height: 1.15;
-        }
-
-        .sched-day-tag--compact {
-            font-size: 20px;
-            letter-spacing: 0.04em;
         }
 
         /* Duminica evidențiată */
@@ -176,12 +170,12 @@
             background: #f4f7fb;
             border: 2px solid rgba(10, 42, 67, 0.12);
             border-left: none;
-            border-radius: 0 18px 18px 0;
-            padding: 10px 22px;
+            border-radius: 0 15px 15px 0;
+            padding: 6px 18px;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            gap: 8px;
+            gap: 6px;
         }
 
         .sched-row--sunday .sched-body {
@@ -192,20 +186,20 @@
         .sched-item {
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 12px;
         }
 
         .sched-time-badge {
             background: #ffffff;
             color: #0a2a43;
             border: 2px solid rgba(10, 42, 67, 0.18);
-            border-radius: 10px;
-            padding: 4px 14px;
-            font-size: 23px;
+            border-radius: 8px;
+            padding: 3px 12px;
+            font-size: 21px;
             font-weight: 900;
             letter-spacing: -0.01em;
             white-space: nowrap;
-            box-shadow: 0 2px 5px rgba(10, 42, 67, 0.05);
+            box-shadow: 0 1.5px 4px rgba(10, 42, 67, 0.04);
         }
 
         .sched-row--sunday .sched-time-badge {
@@ -214,7 +208,7 @@
         }
 
         .sched-text {
-            font-size: 23px;
+            font-size: 21.5px;
             font-weight: 800;
             color: #0a2a43;
             letter-spacing: -0.01em;
@@ -224,21 +218,17 @@
         .sched-text-desc {
             font-weight: 700;
             color: #3b5771;
-            font-size: 20px;
+            font-size: 19px;
         }
 
-        /* Pentru rândul cu 1 singur serviciu mare (Vineri) */
-        .sched-item--single {
-            gap: 18px;
+        /* Pentru rândurile cu 1 singur serviciu */
+        .sched-row--single .sched-time-badge {
+            padding: 5px 14px;
+            font-size: 22.5px;
         }
 
-        .sched-item--single .sched-time-badge {
-            padding: 7px 18px;
-            font-size: 26px;
-        }
-
-        .sched-item--single .sched-text {
-            font-size: 25px;
+        .sched-row--single .sched-text {
+            font-size: 23px;
         }
     </style>
 </head>
@@ -252,26 +242,22 @@
         <div class="brand-sub">BISERICA PENTICOSTALĂ</div>
     </aside>
 
-    <!-- DROITE : PROGRAMUL DETALIAT ȘI MARE -->
+    <!-- DROITE : PROGRAMUL DE LUNI PÂNĂ DUMINICĂ -->
     <main class="sched-col">
         <div class="sched-header">
             <div class="sched-header-title">PROGRAMUL SERVICIILOR</div>
         </div>
 
         <div class="sched-list">
-            <!-- 1. DUMINICĂ -->
-            <div class="sched-row sched-row--sunday">
+            <!-- 1. LUNI -->
+            <div class="sched-row sched-row--single">
                 <div class="sched-day-tag">
-                    DUMINICĂ
+                    LUNI
                 </div>
                 <div class="sched-body">
                     <div class="sched-item">
-                        <span class="sched-time-badge">10:00 - 12:00</span>
-                        <span class="sched-text">Serviciu Divin <span class="sched-text-desc">(dimineață)</span></span>
-                    </div>
-                    <div class="sched-item">
-                        <span class="sched-time-badge">18:00 - 20:00</span>
-                        <span class="sched-text">Serviciu Divin <span class="sched-text-desc">(seară)</span></span>
+                        <span class="sched-time-badge">20:00 - 21:30</span>
+                        <span class="sched-text">Tineret și Adolescenți</span>
                     </div>
                 </div>
             </div>
@@ -294,31 +280,44 @@
             </div>
 
             <!-- 3. VINERI -->
-            <div class="sched-row">
+            <div class="sched-row sched-row--single">
                 <div class="sched-day-tag">
                     VINERI
                 </div>
                 <div class="sched-body">
-                    <div class="sched-item sched-item--single">
+                    <div class="sched-item">
                         <span class="sched-time-badge">20:00 - 21:30</span>
                         <span class="sched-text">Seară de Rugăciune și Părtășie</span>
                     </div>
                 </div>
             </div>
 
-            <!-- 4. LUNI & SÂMBĂTĂ (Tineret & Copii) -->
-            <div class="sched-row">
-                <div class="sched-day-tag sched-day-tag--compact">
-                    TINERET &amp; COPII
+            <!-- 4. SÂMBĂTĂ -->
+            <div class="sched-row sched-row--single">
+                <div class="sched-day-tag">
+                    SÂMBĂTĂ
                 </div>
                 <div class="sched-body">
                     <div class="sched-item">
-                        <span class="sched-time-badge">Luni 20:00</span>
-                        <span class="sched-text">Tineret și Adolescenți</span>
+                        <span class="sched-time-badge">11:00 - 13:00</span>
+                        <span class="sched-text">Program cu Copiii</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. DUMINICĂ -->
+            <div class="sched-row sched-row--sunday">
+                <div class="sched-day-tag">
+                    DUMINICĂ
+                </div>
+                <div class="sched-body">
+                    <div class="sched-item">
+                        <span class="sched-time-badge">10:00 - 12:00</span>
+                        <span class="sched-text">Serviciu Divin <span class="sched-text-desc">(dimineață)</span></span>
                     </div>
                     <div class="sched-item">
-                        <span class="sched-time-badge">Sâmbătă 11:00</span>
-                        <span class="sched-text">Program cu Copiii</span>
+                        <span class="sched-time-badge">18:00 - 20:00</span>
+                        <span class="sched-text">Serviciu Divin <span class="sched-text-desc">(seară)</span></span>
                     </div>
                 </div>
             </div>
