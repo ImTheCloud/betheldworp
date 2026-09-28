@@ -60,17 +60,17 @@ export async function generateMetadata({ params }) {
         openGraph: {
             type: "website",
             siteName: SITE_TITLE,
-            title: pageTitle,
-            description: pageDesc,
+            title: TITLES.ro,
+            description: DESCRIPTIONS.ro,
             url: `${SITE_URL}/${l}`,
-            locale: l,
-            images: [{ url: "/images/og-v4.jpg", width: 1200, height: 630, alt: pageTitle }],
+            locale: "ro_RO",
+            images: [{ url: "/images/og-v5.jpg", width: 1200, height: 630, alt: TITLES.ro }],
         },
         twitter: {
             card: "summary_large_image",
-            title: pageTitle,
-            description: pageDesc,
-            images: ["/images/og-v4.jpg"],
+            title: TITLES.ro,
+            description: DESCRIPTIONS.ro,
+            images: ["/images/og-v5.jpg"],
         },
     };
 }

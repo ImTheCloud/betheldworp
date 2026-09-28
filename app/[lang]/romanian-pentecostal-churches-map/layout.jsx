@@ -34,17 +34,17 @@ export async function generateMetadata({ params }) {
         },
         openGraph: {
             type: "website",
-            title: `${TITLES[l]} | Bethel Dworp`,
-            description: DESCRIPTIONS[l],
+            title: `${TITLES.ro} | Bethel Dworp`,
+            description: DESCRIPTIONS.ro,
             url: `${SITE_URL}/${l}${PATH}`,
-            locale: l,
-            images: [{ url: "/images/og-v4.jpg", width: 1200, height: 630, alt: `${TITLES[l]} | Bethel Dworp` }],
+            locale: "ro_RO",
+            images: [{ url: "/images/og-v5.jpg", width: 1200, height: 630, alt: `${TITLES.ro} | Bethel Dworp` }],
         },
         twitter: {
             card: "summary_large_image",
-            title: `${TITLES[l]} | Bethel Dworp`,
-            description: DESCRIPTIONS[l],
-            images: ["/images/og-v4.jpg"],
+            title: `${TITLES.ro} | Bethel Dworp`,
+            description: DESCRIPTIONS.ro,
+            images: ["/images/og-v5.jpg"],
         },
     };
 }
