@@ -193,21 +193,25 @@ export default function EventsCalendar() {
             return;
         }
         const src = selectedEventImages[0];
-        if (!src) {
+        if (!src || typeof window === "undefined" || !window.Image) {
             setIsPortrait(false);
             return;
         }
-        const img = new Image();
-        img.src = src;
-        if (img.complete && img.naturalWidth > 0) {
-            setIsPortrait(img.naturalHeight > img.naturalWidth * 1.05);
-        } else {
-            img.onload = () => {
+        try {
+            const img = new window.Image();
+            img.src = src;
+            if (img.complete && img.naturalWidth > 0) {
                 setIsPortrait(img.naturalHeight > img.naturalWidth * 1.05);
-            };
-            img.onerror = () => {
-                setIsPortrait(false);
-            };
+            } else {
+                img.onload = () => {
+                    setIsPortrait(img.naturalHeight > img.naturalWidth * 1.05);
+                };
+                img.onerror = () => {
+                    setIsPortrait(false);
+                };
+            }
+        } catch {
+            setIsPortrait(false);
         }
     }, [selectedEvent, selectedEventImages]);
 
