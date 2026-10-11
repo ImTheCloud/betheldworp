@@ -185,6 +185,32 @@ export default function EventsCalendar() {
         return [];
     }, [selectedEvent]);
 
+    const [isPortrait, setIsPortrait] = useState(false);
+
+    useEffect(() => {
+        if (!selectedEvent || selectedEventImages.length !== 1) {
+            setIsPortrait(false);
+            return;
+        }
+        const src = selectedEventImages[0];
+        if (!src) {
+            setIsPortrait(false);
+            return;
+        }
+        const img = new Image();
+        img.src = src;
+        if (img.complete && img.naturalWidth > 0) {
+            setIsPortrait(img.naturalHeight > img.naturalWidth * 1.05);
+        } else {
+            img.onload = () => {
+                setIsPortrait(img.naturalHeight > img.naturalWidth * 1.05);
+            };
+            img.onerror = () => {
+                setIsPortrait(false);
+            };
+        }
+    }, [selectedEvent, selectedEventImages]);
+
     useEffect(() => {
         if (!eventsSorted.length) return;
         if (selectedDate && eventsByDate.has(selectedDate)) return;
@@ -545,7 +571,7 @@ export default function EventsCalendar() {
             {eventOpen && selectedEvent && (
                 <div className={`ev-overlay ${eventClosing ? "is-closing" : ""}`} onClick={closeEvent}>
                     <div
-                        className={`ev-modal ${eventClosing ? "is-closing" : ""}`}
+                        className={`ev-modal ${eventClosing ? "is-closing" : ""} ${isPortrait ? "ev-modal--portrait" : ""}`}
                         onClick={(e) => e.stopPropagation()}
                         onTouchStart={handleTouchStart}
                         onTouchEnd={handleTouchEnd}
@@ -592,7 +618,7 @@ export default function EventsCalendar() {
                                         </div>
                                     ) : selectedEventImages.length === 1 ? (
                                         <div className="ev-heroImgWrap">
-                                            <img className="ev-heroImg" src={selectedEventImages[0]} alt={selectedEvent.title || t("event")} />
+                                            <img className="ev-heroImg" src={selectedEventImages[0]} alt={selectedEvent.title || t("event")} onLoad={(e) => { const el = e.currentTarget; if (el && el.naturalWidth > 0) { setIsPortrait(el.naturalHeight > el.naturalWidth * 1.05); } }} />
                                         </div>
                                     ) : null}
                                 </div>

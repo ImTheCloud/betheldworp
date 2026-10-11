@@ -270,6 +270,7 @@
 
 .ev-modal {
     width: min(980px, 92vw);
+    transition: width 0.3s cubic-bezier(.2, .8, .2, 1);
     background: #ffffff;
     border-radius: 28px;
     border: 1px solid rgba(10, 42, 67, 0.12);
@@ -359,6 +360,7 @@
 }
 
 .ev-desc {
+    white-space: pre-line;
     margin: 0;
     font-size: 14px;
     font-weight: 650;
@@ -623,6 +625,26 @@
     .ev-map {
         height: 100% !important;
         min-height: 180px;
+    }
+
+    /* ── Portrait poster adaptation on PC ── */
+    .ev-modal.ev-modal--portrait {
+        width: min(580px, 92vw);
+    }
+
+    .ev-modal.ev-modal--portrait .ev-heroImg {
+        max-height: none;
+        height: auto;
+        object-fit: contain;
+    }
+
+    .ev-modal.ev-modal--portrait .ev-details {
+        flex-direction: column;
+    }
+
+    .ev-modal.ev-modal--portrait .ev-map {
+        height: 200px !important;
+        min-height: 200px;
     }
 }
 
