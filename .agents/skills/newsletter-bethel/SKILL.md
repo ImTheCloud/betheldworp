@@ -205,3 +205,26 @@ Avant d'envoyer, vérifier :
 | Enfants | `https://www.betheldworp.be/images/events/children.jpg` | Binecuvântare de copii |
 | Protest Samson | `https://www.betheldworp.be/images/events/ProtestSamson.jpeg` | Protest Familia Samson |
 | Simion Buzduga | `https://www.betheldworp.be/images/events/SimionBuzduga.png` | Visite fr. Simion |
+
+---
+
+## 11. Commit & Push
+
+Après avoir créé la newsletter, **toujours commit et push uniquement les fichiers créés**, sans toucher aux autres modifications locales.
+
+```bash
+# Ajouter UNIQUEMENT le fichier newsletter créé
+git add "Newsletter template/newsletter_YYYY-MM-DD.html"
+
+# Commit avec un message descriptif
+git commit -m "Newsletter DD-DD mois YYYY (événements spéciaux)"
+
+# Push
+git push
+```
+
+### ⚠️ Important :
+- **NE PAS** faire `git add .` ou `git add -A` — cela ajouterait d'autres modifications locales non liées
+- Ajouter uniquement le(s) fichier(s) newsletter créé(s) avec `git add` ciblé
+- Le message de commit doit mentionner la plage de dates et les événements spéciaux (ex: `"Newsletter 19-25 oct 2026 (Cina Domnului)"`)
+- Si le SKILL.md a été modifié, l'ajouter aussi au commit
