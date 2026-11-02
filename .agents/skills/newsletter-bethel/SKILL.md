@@ -95,13 +95,25 @@ Pour un événement **annulé**, utiliser la classe `t-cancel` pour le texte :
 
 ## 5. Structure du fichier HTML & Règles de contenu
 
-### ⚠️ RÈGLE FONDAMENTALE : Zéro répétition d'informations
-1. **Mettre les informations importantes dès le début** : Quand la semaine comporte un événement phare (invité, orchestre, concert, etc.), le mettre **directement au début** (hero image + salutation + présentation détaillée de l'événement + verset biblique associé), **avant le calendrier**. Le lecteur doit voir immédiatement l'événement dès l'ouverture de l'email sans scroller.
-2. **Ne JAMAIS dupliquer l'information** :
+### ⚠️ RÈGLES FONDAMENTALES :
+
+1. **Hiérarchie de l'événement en tête (avant le calendrier)** :
+   Quand la semaine comporte un événement phare (invité, orchestre, concert, etc.), il est placé **directement au début**, avant le calendrier, dans cet ordre strict :
+   - **Titre de l'événement** en grand (`.h1`, ex: `Orchestra Bisericii Elim Bruxelles în mijlocul nostru`)
+   - **Date & Heure** juste en-dessous en sous-titre vert sobre (`.t-accent`, ex: `Duminică, 8 Noiembrie · 18:00 – 20:00`). **Ne JAMAIS mettre** de mention superflue comme *"Evenimentul săptămânii"* ni de parenthèses encombrantes autour des heures.
+   - **Salutation** ensuite : `Pace, dragi frați și surori,` placée **au-dessus du texte de présentation** (donc en-dessous du titre de l'événement).
+   - **Texte de présentation** chaleureux et fraternel.
+
+2. **Aucun verset sans demande expresse** :
+   - Ne **JAMAIS** ajouter de verset biblique dans la newsletter **sauf si l'utilisateur le demande explicitement**.
+   - Ne pas ajouter de verset par défaut, ni inventer un verset pour meubler.
+
+3. **Zéro répétition d'informations** :
    - L'image de l'événement phare s'affiche **une seule fois** (en grand comme image principale sous le bandeau date). Ne **JAMAIS** réafficher la même image plus bas.
    - Le texte explicatif est donné une seule fois au début. Le calendrier se contente ensuite de mentionner le nom de l'événement sur le jour J avec le badge vert (`chip-s`).
-   - Ne **PAS** créer de section dupliquée après le calendrier qui répète l'image, le texte ou le verset. Le calendrier enchaîne directement vers le bouton CTA et la conclusion (sauf s'il y a un 2e événement distinct, ex: protestation le samedi ET culte spécial le dimanche).
-3. **Pas de retour sur les anciens événements ou verset du mois déjà annoncé** :
+   - Ne **PAS** créer de section dupliquée après le calendrier qui répète l'image ou le texte. Le calendrier enchaîne directement vers le bouton CTA et la conclusion (sauf s'il y a un 2e événement distinct, ex: protestation le samedi ET culte spécial le dimanche).
+
+4. **Pas de retour sur les anciens événements ou verset du mois déjà annoncé** :
    - Ne **PAS** répéter le "Versetul lunii" ou des annonces passées si elles ont déjà été communiquées dans une newsletter précédente.
    - Chaque newsletter doit être fraîche, épurée et concentrée à 100% sur les nouveautés de la semaine en cours.
 
@@ -112,7 +124,11 @@ Pour un événement **annulé**, utiliser la classe `t-cancel` pour le texte :
 3. **Section 1 : En-tête** — Logo Bethel Dworp + lien site
 4. **Section 2 : Bandeau date** — Fond vert `#16a34a` avec la plage de dates
 5. **Section 3 : Image principale** — Image de l'événement phare de la semaine (ou drone par défaut si semaine standard)
-6. **Section 4 : Événement phare en tête** — Salutation + Événement de la semaine mis en valeur + Texte chaleureux + Verset biblique lié à l'événement
+6. **Section 4 : Événement phare en tête** :
+   - Titre de l'événement (`.h1`)
+   - Date & Heure sobre (`.t-accent`)
+   - `Pace, dragi frați și surori,`
+   - Texte de présentation de l'événement
 7. **Section 5 : Calendrier** — Tableau avec tous les jours de la semaine (badge vert `chip-s` pour l'événement spécial)
 8. **Section 6 : Événement secondaire éventuel** *(uniquement s'il y a un 2e événement distinct non couvert au début)*
 9. **Section 7 : Bouton CTA** — "Vezi toate evenimentele pe site"
@@ -194,8 +210,9 @@ Où `YYYY-MM-DD` est le **lundi** de la semaine concernée (premier jour de la s
 
 Avant d'envoyer, vérifier :
 
+- [ ] **Hiérarchie respectée** : Titre de l'événement en premier, date/heure sobre en-dessous, puis `Pace, dragi frați și surori,` au-dessus du texte
+- [ ] **Aucun verset non demandé** : Ne pas afficher de verset sauf demande expresse de l'utilisateur
 - [ ] **Zéro répétition** : Aucune image ou texte n'est dupliqué dans la newsletter
-- [ ] **Événement phare en tête** : L'événement important de la semaine est présenté directement au début (avant le calendrier)
 - [ ] **Pas d'anciens événements** : Pas de verset du mois ou d'événement passé déjà annoncé dans les newsletters précédentes
 - [ ] Les **dates** sont correctes partout (title, bandeau, calendrier, sections)
 - [ ] Les **numéros de jour** correspondent au bon jour de la semaine
@@ -203,7 +220,6 @@ Avant d'envoyer, vérifier :
 - [ ] Les **programmes annulés** sont bien en rouge (`chip-c`) avec mention "ANULAT"
 - [ ] L'**image principale** correspond à l'événement phare (ou drone si semaine standard)
 - [ ] Le **preheader** résume bien la semaine
-- [ ] Le **verset biblique** est pertinent pour l'événement
 - [ ] L'**objet Brevo** est clair et résume les points forts
 - [ ] Un **envoi test** a été fait
 
