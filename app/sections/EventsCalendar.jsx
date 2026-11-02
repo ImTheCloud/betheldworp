@@ -470,6 +470,7 @@ export default function EventsCalendar() {
         touchStartRef.current = {
             x: e.touches[0].clientX,
             y: e.touches[0].clientY,
+            target: e.target,
         };
     };
 
@@ -482,7 +483,15 @@ export default function EventsCalendar() {
 
         const dx = touchEnd.x - touchStartRef.current.x;
         const dy = touchEnd.y - touchStartRef.current.y;
+        const startTarget = touchStartRef.current.target;
         touchStartRef.current = null;
+
+        // Swipe down to close (dragged down from header/drag-handle or dragged down when at the top)
+        const isHeaderTouch = startTarget && (startTarget.closest?.(".ev-header") || startTarget.closest?.(".ev-drag-handle"));
+        if (isHeaderTouch && dy > 50 && Math.abs(dy) > Math.abs(dx)) {
+            closeEvent();
+            return;
+        }
 
         // Threshold of 50px for horizontal swipe
         // Must be primarily horizontal (dx > dy)
@@ -580,6 +589,7 @@ export default function EventsCalendar() {
                         onTouchStart={handleTouchStart}
                         onTouchEnd={handleTouchEnd}
                     >
+                        <div className="ev-drag-handle" aria-hidden="true" />
                         <header className="ev-header">
                             <div className="ev-headText">
                                 <h2 className="ev-title">{selectedEvent.title || t("event")}</h2>
