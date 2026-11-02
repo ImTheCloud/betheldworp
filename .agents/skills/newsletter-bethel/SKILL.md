@@ -93,18 +93,28 @@ Pour un événement **annulé**, utiliser la classe `t-cancel` pour le texte :
 
 ---
 
-## 5. Structure du fichier HTML
+## 5. Structure du fichier HTML & Règles de contenu
 
-Le fichier newsletter suit TOUJOURS cette structure :
+### ⚠️ RÈGLE FONDAMENTALE : Zéro répétition d'informations
+1. **Mettre les informations importantes dès le début** : Quand la semaine comporte un événement phare (invité, orchestre, concert, etc.), le mettre **directement au début** (hero image + salutation + présentation détaillée de l'événement + verset biblique associé), **avant le calendrier**. Le lecteur doit voir immédiatement l'événement dès l'ouverture de l'email sans scroller.
+2. **Ne JAMAIS dupliquer l'information** :
+   - L'image de l'événement phare s'affiche **une seule fois** (en grand comme image principale sous le bandeau date). Ne **JAMAIS** réafficher la même image plus bas.
+   - Le texte explicatif est donné une seule fois au début. Le calendrier se contente ensuite de mentionner le nom de l'événement sur le jour J avec le badge vert (`chip-s`).
+   - Ne **PAS** créer de section dupliquée après le calendrier qui répète l'image, le texte ou le verset. Le calendrier enchaîne directement vers le bouton CTA et la conclusion (sauf s'il y a un 2e événement distinct, ex: protestation le samedi ET culte spécial le dimanche).
+3. **Pas de retour sur les anciens événements ou verset du mois déjà annoncé** :
+   - Ne **PAS** répéter le "Versetul lunii" ou des annonces passées si elles ont déjà été communiquées dans une newsletter précédente.
+   - Chaque newsletter doit être fraîche, épurée et concentrée à 100% sur les nouveautés de la semaine en cours.
+
+### Ordre des sections du fichier :
 
 1. **`<head>`** — CSS identique à chaque fois (light/dark mode, responsive, Outlook fixes)
 2. **Preheader** — Texte caché résumant les événements de la semaine
 3. **Section 1 : En-tête** — Logo Bethel Dworp + lien site
 4. **Section 2 : Bandeau date** — Fond vert `#16a34a` avec la plage de dates
-5. **Section 3 : Image principale** — Image représentative (drone par défaut, ou supper.jpg pour Cina Domnului)
-6. **Section 4 : Introduction** — Salutation + résumé des événements spéciaux
-7. **Section 5 : Calendrier** — Tableau avec tous les jours de la semaine
-8. **Section 6 : Sections détaillées** — Une section par événement spécial (6a, 6b, etc.)
+5. **Section 3 : Image principale** — Image de l'événement phare de la semaine (ou drone par défaut si semaine standard)
+6. **Section 4 : Événement phare en tête** — Salutation + Événement de la semaine mis en valeur + Texte chaleureux + Verset biblique lié à l'événement
+7. **Section 5 : Calendrier** — Tableau avec tous les jours de la semaine (badge vert `chip-s` pour l'événement spécial)
+8. **Section 6 : Événement secondaire éventuel** *(uniquement s'il y a un 2e événement distinct non couvert au début)*
 9. **Section 7 : Bouton CTA** — "Vezi toate evenimentele pe site"
 10. **Section 8 : Salut final** — "Echipa Bethel Dworp"
 11. **Section 9 : Footer** — Mentions légales + lien désabonnement `{{ unsubscribe }}`
@@ -184,11 +194,14 @@ Où `YYYY-MM-DD` est le **lundi** de la semaine concernée (premier jour de la s
 
 Avant d'envoyer, vérifier :
 
+- [ ] **Zéro répétition** : Aucune image ou texte n'est dupliqué dans la newsletter
+- [ ] **Événement phare en tête** : L'événement important de la semaine est présenté directement au début (avant le calendrier)
+- [ ] **Pas d'anciens événements** : Pas de verset du mois ou d'événement passé déjà annoncé dans les newsletters précédentes
 - [ ] Les **dates** sont correctes partout (title, bandeau, calendrier, sections)
 - [ ] Les **numéros de jour** correspondent au bon jour de la semaine
 - [ ] Les **événements spéciaux** sont bien marqués en vert (`chip-s`)
 - [ ] Les **programmes annulés** sont bien en rouge (`chip-c`) avec mention "ANULAT"
-- [ ] L'**image principale** correspond à l'événement phare
+- [ ] L'**image principale** correspond à l'événement phare (ou drone si semaine standard)
 - [ ] Le **preheader** résume bien la semaine
 - [ ] Le **verset biblique** est pertinent pour l'événement
 - [ ] L'**objet Brevo** est clair et résume les points forts
