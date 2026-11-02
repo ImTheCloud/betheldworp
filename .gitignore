@@ -48,3 +48,7 @@ firestore-debug.log*
 
 # éditeur JetBrains
 .idea/
+
+# claude
+.claude/
+
