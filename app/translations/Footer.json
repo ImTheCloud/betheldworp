@@ -21,6 +21,7 @@
         "visits_label": "Vizite",
         "visits_since": "din decembrie 2025",
         "visits_month": "luna aceasta",
+        "visits_month_prev": "luna trecută",
         "visits_year": "anul acesta"
     },
     "fr": {
@@ -45,6 +46,7 @@
         "visits_label": "Visites",
         "visits_since": "depuis décembre 2025",
         "visits_month": "mois en cours",
+        "visits_month_prev": "mois passé",
         "visits_year": "année en cours"
     },
     "nl": {
@@ -69,6 +71,7 @@
         "visits_label": "Bezoeken",
         "visits_since": "sinds december 2025",
         "visits_month": "deze maand",
+        "visits_month_prev": "vorige maand",
         "visits_year": "dit jaar"
     },
     "en": {
@@ -93,6 +96,7 @@
         "visits_label": "Visits",
         "visits_since": "since December 2025",
         "visits_month": "this month",
+        "visits_month_prev": "last month",
         "visits_year": "this year"
     }
 }

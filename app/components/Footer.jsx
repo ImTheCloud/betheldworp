@@ -29,16 +29,20 @@ export default function Footer() {
     // et un écouteur de plus sur chaque page coûterait plus qu'il ne sert.
     const [compteurs, setCompteurs] = useState(null);
 
-    // L'annee et le mois en cours completent leur libelle : « anul acesta
-    // 2026 », « luna aceasta septembrie », pour que le visiteur n'ait pas a
+    // L'annee, le mois en cours et le mois passe completent leur libelle : « anul acesta
+    // 2026 », « luna trecuta octombrie », « luna aceasta noiembrie », pour que le visiteur n'ait pas a
     // deviner de quelle annee ni de quel mois il s'agit.
-    const [libelleAn, libelleMois] = useMemo(() => {
+    const [libelleAn, libelleMois, libelleMoisPasse] = useMemo(() => {
         const [an, mois, quantieme] = brusselsDayKey().split("-").map(Number);
         const nomMois = new Intl.DateTimeFormat(lang, {
             month: "long",
             timeZone: "UTC",
         }).format(new Date(Date.UTC(an, mois - 1, quantieme)));
-        return [String(an), nomMois];
+        const nomMoisPasse = new Intl.DateTimeFormat(lang, {
+            month: "long",
+            timeZone: "UTC",
+        }).format(new Date(Date.UTC(an, mois - 2, 1)));
+        return [String(an), nomMois, nomMoisPasse];
     }, [lang]);
 
     useEffect(() => {
@@ -47,7 +51,7 @@ export default function Footer() {
         const lire = async () => {
             try {
                 const paliers = paliersDuJour(brusselsDayKey());
-                const montres = ["anCourant", "moisCourant", "aujourdhui"];
+                const montres = ["anCourant", "moisPasse", "moisCourant", "aujourdhui"];
                 const lus = await Promise.all(
                     montres.map((cle) => getDoc(doc(db, "stats_public", paliers[cle])))
                 );
@@ -259,13 +263,14 @@ export default function Footer() {
                     </div>
                 </div>
 
-                {compteurs && (compteurs.anCourant > 0 || compteurs.moisCourant > 0 || compteurs.aujourdhui > 0) && (
+                {compteurs && (compteurs.anCourant > 0 || compteurs.moisPasse > 0 || compteurs.moisCourant > 0 || compteurs.aujourdhui > 0) && (
                     <div className="footer-stats">
                         <span className="footer-label">{t("visits_label")}:</span>
                         <div className="footer-stats-row">
                             {[
-                                // Chaque compteur dit sa periode : l'annee et le mois lesquels.
+                                // Chaque compteur dit sa periode : l'annee et les mois lesquels.
                                 [t("visits_year"), compteurs.anCourant, libelleAn],
+                                [t("visits_month_prev"), compteurs.moisPasse, libelleMoisPasse],
                                 [t("visits_month"), compteurs.moisCourant, libelleMois],
                                 [t("visits_today"), compteurs.aujourdhui],
                             ].map(([libelle, valeur, depuis]) => (
