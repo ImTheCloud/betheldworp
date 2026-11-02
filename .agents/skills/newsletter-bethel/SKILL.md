@@ -205,6 +205,7 @@ Avant d'envoyer, vérifier :
 | Enfants | `https://www.betheldworp.be/images/events/children.jpg` | Binecuvântare de copii |
 | Protest Samson | `https://www.betheldworp.be/images/events/ProtestSamson.jpeg` | Protest Familia Samson |
 | Simion Buzduga | `https://www.betheldworp.be/images/events/SimionBuzduga.png` | Visite fr. Simion |
+| Orchestra Elim Bruxelles | `https://www.betheldworp.be/images/events/OrchestraElimBruxelles.jpg` | Visite / concert Orchestra Elim Bruxelles |
 
 ---
 
