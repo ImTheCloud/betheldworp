@@ -1,5 +1,13 @@
 /* Admin.css - Full Screen Refactor */
 
+/* Ensure edit icons are visible in overrides */
+.overrideSlotLabel svg {
+  display: inline-block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+
 .adminPage {
     /* Full screen container */
     min-height: 100vh;
