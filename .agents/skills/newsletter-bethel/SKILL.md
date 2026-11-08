@@ -124,15 +124,19 @@ Pour un événement **annulé**, respecter la structure normale (ne JAMAIS tout 
    - Le texte explicatif est donné une seule fois au début. Le calendrier se contente ensuite de mentionner le nom de l'événement sur le jour J avec le badge vert (`chip-s`).
    - Ne **PAS** créer de section dupliquée après le calendrier qui répète l'image ou le texte. Le calendrier enchaîne directement vers le bouton CTA et la conclusion (sauf s'il y a un 2e événement distinct, ex: protestation le samedi ET culte spécial le dimanche).
 
-4. **Pas de tirets `-` ni de points médians `·` superflus** :
-   - Ne **JAMAIS** insérer de `·` ou de tirets `-` / `–` superflus pour séparer titres, sous-titres, dates, lieux ou tags (ex: éviter `15 Noiembrie · 10:00`, `20:00 · Program Extra`, `Serviciu – Invitat`).
-   - Préférer une structure sur plusieurs lignes avec la hiérarchie typographique appropriée, ou une virgule naturelle.
+4. **Zéro caractère séparateur (AUCUN tiret `-`, AUCUN point médian `·`, AUCUNE puce `•`, RIEN)** :
+   - Ne **JAMAIS** insérer de point médian `·`, de puce `•` ou de tiret `-` / `–` pour séparer des fragments de texte, titres, sous-titres, dates, lieux, tags ou notes (ex: INTERDIT `(Mutată din ziua de marți · Zi de sărbătoare legală)`, `15 Noiembrie · 10:00`, `20:00 · Program Extra`, `Serviciu – Invitat`).
+   - L'utilisateur préfère **ne rien avoir** plutôt que ce genre d'éléments. Trouver une autre variante sans aucun caractère séparateur : retour à la ligne (`<br/>` ou `<div>`), virgule naturelle, ou phrase simple sans juxtaposer des mentions superflues.
 
 5. **Style d'écriture propre, naturel et sans clichés ("cu căldură", etc.)** :
    - Ne **JAMAIS** utiliser des expressions lourdes ou clichées comme *"cu căldură"* (*"vă invităm cu căldură"*, *"invitați cu căldură"*).
    - Utiliser des formulations simples et directes : *"vă invităm să participați"*, *"vă așteptăm cu drag"*, *"toți cei care cântă la un instrument sunt invitați să participe"*.
 
-6. **Pas de retour sur les anciens événements ou verset du mois déjà annoncé** :
+6. **Activités se déroulant pendant le culte / la soirée de prière habituelle** :
+   - Si une activité spéciale (ex: repetiție de orchestră, adunare administrativă) a lieu pendant le programme du soir habituel, ce n'est **PAS** un "Program Extra" distinct.
+   - Ne pas dupliquer le bloc horaire : présenter le créneau unique (ex: `Seară de rugăciune și repetiție de orchestră`) en précisant que la répétition a lieu dans le cadre de la soirée de l'église.
+
+7. **Pas de retour sur les anciens événements ou verset du mois déjà annoncé** :
    - Ne **PAS** répéter le "Versetul lunii" ou des annonces passées si elles ont déjà été communiquées dans une newsletter précédente.
    - Chaque newsletter doit être fraîche, épurée et concentrée à 100% sur les nouveautés de la semaine en cours.
 
