@@ -76,6 +76,11 @@ Programul de seară (18:00) nu va avea loc datorită zilei de post.
 
 ## 4. Styles visuels des chips (badges jour)
 
+### Noms des jours en entier :
+Toujours écrire le nom du jour **en entier** dans le chip (`LUNI`, `MARȚI`, `MIERCURI`, `JOI`, `VINERI`, `SÂMBĂTĂ`, `DUMINICĂ`) et **JAMAIS** en abrégé (`LUN`, `MAR`, `MIE`, `VIN`, `SÂM`, `DUM`).
+- Largeur de chip : `width:64px;` (avec cellule `<td width="76">`)
+- Style du libellé : `font-size:9px;font-weight:900;letter-spacing:0.5px;line-height:1.2;white-space:nowrap;`
+
 Il y a 3 types de chips dans le calendrier :
 
 | Type | Classe CSS | Couleur | Utilisation |
