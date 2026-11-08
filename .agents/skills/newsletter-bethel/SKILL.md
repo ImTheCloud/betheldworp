@@ -84,10 +84,21 @@ Il y a 3 types de chips dans le calendrier :
 | **Spécial** | `chip-s` / `chip-s-lbl` / `chip-s-num` | Vert `#16a34a` sur fond `#dcfce7`, bordure `#86efac` | Événement spécial (Cina Domnului, invité, etc.) |
 | **Annulé** | `chip-c` / `chip-c-lbl` / `chip-c-num` | Rouge `#dc2626` sur fond `#fee2e2`, bordure `#fca5a5` | Programme annulé |
 
-Pour un événement **annulé**, utiliser la classe `t-cancel` pour le texte :
+Pour un événement **annulé**, respecter la structure normale (ne JAMAIS tout compacter sur une seule ligne comme `Program cu copiii (11:00) : ANULAT`) :
+- **L'heure au-dessus** (en rouge `t-cancel`)
+- **Le titre de l'activité en-dessous** (en rouge `t-cancel`)
+- **La mention ANULAT en-dessous** (en rouge `t-cancel`)
+- *(Optionnel)* La note d'explication si le programme est déplacé (ex: `(Mutată miercuri, 11 noiembrie)`)
+
 ```html
-<div class="t-cancel" style="font-size:15px;color:#dc2626;font-weight:700;line-height:1.45;">
-    Program cu copiii (<span class="no-detect">11&zwnj;:00</span>) : ANULAT
+<div class="t-cancel" style="font-size:13px;font-weight:800;color:#dc2626;">
+    <span class="no-detect">11&zwnj;:00 – 13&zwnj;:30</span>
+</div>
+<div class="t-cancel" style="font-size:15px;color:#dc2626;font-weight:700;line-height:1.45;padding-top:3px;">
+    Program cu copiii
+</div>
+<div class="t-cancel" style="font-size:13px;color:#dc2626;font-weight:800;letter-spacing:0.5px;padding-top:2px;">
+    ANULAT
 </div>
 ```
 
@@ -100,9 +111,9 @@ Pour un événement **annulé**, utiliser la classe `t-cancel` pour le texte :
 1. **Hiérarchie de l'événement en tête (avant le calendrier)** :
    Quand la semaine comporte un événement phare (invité, orchestre, concert, etc.), il est placé **directement au début**, avant le calendrier, dans cet ordre strict :
    - **Titre de l'événement** en grand (`.h1`, ex: `Orchestra Bisericii Elim Bruxelles în mijlocul nostru`)
-   - **Date & Heure** juste en-dessous en sous-titre vert sobre (`.t-accent`, ex: `Duminică, 8 Noiembrie · 18:00 – 20:00`). **Ne JAMAIS mettre** de mention superflue comme *"Evenimentul săptămânii"* ni de parenthèses encombrantes autour des heures.
+   - **Date & Heure** juste en-dessous en sous-titre vert sobre (`.t-accent`, ex: `Duminică, 8 Noiembrie, 18:00 – 20:00`). **Ne JAMAIS mettre** de mention superflue comme *"Evenimentul săptămânii"* ni de parenthèses encombrantes autour des heures.
    - **Salutation** ensuite : `Pace, dragi frați și surori,` placée **au-dessus du texte de présentation** (donc en-dessous du titre de l'événement).
-   - **Texte de présentation** chaleureux et fraternel.
+   - **Texte de présentation** fraternel et naturel.
 
 2. **Aucun verset sans demande expresse** :
    - Ne **JAMAIS** ajouter de verset biblique dans la newsletter **sauf si l'utilisateur le demande explicitement**.
@@ -113,7 +124,15 @@ Pour un événement **annulé**, utiliser la classe `t-cancel` pour le texte :
    - Le texte explicatif est donné une seule fois au début. Le calendrier se contente ensuite de mentionner le nom de l'événement sur le jour J avec le badge vert (`chip-s`).
    - Ne **PAS** créer de section dupliquée après le calendrier qui répète l'image ou le texte. Le calendrier enchaîne directement vers le bouton CTA et la conclusion (sauf s'il y a un 2e événement distinct, ex: protestation le samedi ET culte spécial le dimanche).
 
-4. **Pas de retour sur les anciens événements ou verset du mois déjà annoncé** :
+4. **Pas de tirets `-` ni de points médians `·` superflus** :
+   - Ne **JAMAIS** insérer de `·` ou de tirets `-` / `–` superflus pour séparer titres, sous-titres, dates, lieux ou tags (ex: éviter `15 Noiembrie · 10:00`, `20:00 · Program Extra`, `Serviciu – Invitat`).
+   - Préférer une structure sur plusieurs lignes avec la hiérarchie typographique appropriée, ou une virgule naturelle.
+
+5. **Style d'écriture propre, naturel et sans clichés ("cu căldură", etc.)** :
+   - Ne **JAMAIS** utiliser des expressions lourdes ou clichées comme *"cu căldură"* (*"vă invităm cu căldură"*, *"invitați cu căldură"*).
+   - Utiliser des formulations simples et directes : *"vă invităm să participați"*, *"vă așteptăm cu drag"*, *"toți cei care cântă la un instrument sunt invitați să participe"*.
+
+6. **Pas de retour sur les anciens événements ou verset du mois déjà annoncé** :
    - Ne **PAS** répéter le "Versetul lunii" ou des annonces passées si elles ont déjà été communiquées dans une newsletter précédente.
    - Chaque newsletter doit être fraîche, épurée et concentrée à 100% sur les nouveautés de la semaine en cours.
 
