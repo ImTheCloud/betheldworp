@@ -30,6 +30,103 @@ const safeArr = (v) => (Array.isArray(v) ? v : []);
 const safeStr = (v) => String(v ?? "");
 const safeObj = (v) => (v && typeof v === "object" && !Array.isArray(v) ? v : {});
 
+function normalizeActivityTitle(str) {
+    return safeStr(str)
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
+function resolveFaqIndexForTitle(title) {
+    if (!title) return null;
+    const norm = normalizeActivityTitle(title);
+    if (!norm) return null;
+
+    // Cor bărbătesc -> FAQ index 4 (thu)
+    if (
+        norm.includes("cor barbatesc") ||
+        norm.includes("corului barbatesc") ||
+        norm.includes("mannenkoor") ||
+        norm.includes("men s choir") ||
+        norm.includes("mens choir") ||
+        norm.includes("chorale des hommes") ||
+        norm.includes("chorale d hommes")
+    ) {
+        return 4;
+    }
+
+    // Cor mixt -> FAQ index 3 (wed)
+    if (
+        norm.includes("cor mixt") ||
+        norm.includes("corului mixt") ||
+        norm.includes("gemengd koor") ||
+        norm.includes("mixed choir") ||
+        norm.includes("chorale mixte")
+    ) {
+        return 3;
+    }
+
+    // Zi de post și mijlocire -> FAQ index 1 (tue_fast)
+    if (
+        norm.includes("post si mijlocire") ||
+        norm.includes("post") ||
+        norm.includes("vasten") ||
+        norm.includes("fasting") ||
+        norm.includes("jeune")
+    ) {
+        return 1;
+    }
+
+    // Tineret & Adolescenți -> FAQ index 0 (mon)
+    if (
+        norm.includes("tineret") ||
+        norm.includes("adolescent") ||
+        norm.includes("jongeren") ||
+        norm.includes("tieners") ||
+        norm.includes("youth") ||
+        norm.includes("teens") ||
+        norm.includes("jeunes")
+    ) {
+        return 0;
+    }
+
+    // Copii -> FAQ index 6 (sat)
+    if (
+        norm.includes("copii") ||
+        norm.includes("kinder") ||
+        norm.includes("kids") ||
+        norm.includes("enfants")
+    ) {
+        return 6;
+    }
+
+    // Rugăciune -> FAQ index 2 (tue/fri)
+    if (
+        norm.includes("rugaciune") ||
+        norm.includes("gebed") ||
+        norm.includes("prayer") ||
+        norm.includes("priere")
+    ) {
+        return 2;
+    }
+
+    // Serviciu Divin -> FAQ index 7 (sun)
+    if (
+        norm.includes("serviciu divin") ||
+        norm.includes("cina domnului") ||
+        norm.includes("eredienst") ||
+        norm.includes("culte") ||
+        norm.includes("service")
+    ) {
+        return 7;
+    }
+
+    return null;
+}
+
 function ChevronIcon({ open }) {
     return (
         <svg
@@ -304,15 +401,15 @@ export default function Program() {
     }, [dayModal, closeDayModal]);
 
     const LOCAL_PROGRAM_ITEMS = useMemo(() => [
-        { day: t("day_mon"), period: t("period_evening"), id: "mon", times: ["20:00-21:30"], title: t("act_mon") },
-        { day: t("day_tue"), period: t("period_morning"), id: "tue_fast", times: ["10:00-14:00"], title: t("act_tue_fast") },
-        { day: t("day_tue"), period: t("period_evening"), id: "tue", times: ["20:00-21:30"], title: t("act_tue") },
-        { day: t("day_wed"), period: t("period_evening"), id: "wed", times: ["20:00-21:30"], title: t("act_wed") },
-        { day: t("day_thu"), period: t("period_evening"), id: "thu", times: ["20:00-21:30"], title: t("act_thu") },
-        { day: t("day_fri"), period: t("period_evening"), id: "fri", times: ["20:00-21:30"], title: t("act_fri") },
-        { day: t("day_sat"), period: t("period_morning"), id: "sat", times: ["11:00-13:30"], title: t("act_sat") },
-        { day: t("day_sun"), period: t("period_morning"), id: "sun_am", times: ["10:00-12:00"], title: t("act_sun_am") },
-        { day: t("day_sun"), period: t("period_evening"), id: "sun_pm", times: ["18:00-20:00"], title: t("act_sun_pm") },
+        { day: t("day_mon"), id: "mon", times: ["20:00-21:30"], title: t("act_mon") },
+        { day: t("day_tue"), id: "tue_fast", times: ["10:00-14:00"], title: t("act_tue_fast") },
+        { day: t("day_tue"), id: "tue", times: ["20:00-21:30"], title: t("act_tue") },
+        { day: t("day_wed"), id: "wed", times: ["20:00-21:30"], title: t("act_wed") },
+        { day: t("day_thu"), id: "thu", times: ["20:00-21:30"], title: t("act_thu") },
+        { day: t("day_fri"), id: "fri", times: ["20:00-21:30"], title: t("act_fri") },
+        { day: t("day_sat"), id: "sat", times: ["11:00-13:30"], title: t("act_sat") },
+        { day: t("day_sun_am"), id: "sun_am", times: ["10:00-12:00"], title: t("act_sun_am") },
+        { day: t("day_sun_pm"), id: "sun_pm", times: ["18:00-20:00"], title: t("act_sun_pm") },
     ], [t]);
 
     const [weekOffset, setWeekOffset] = useState(0);
@@ -482,7 +579,7 @@ export default function Program() {
                         const isBrokenOverride = replacementEventId && !replacementEvent;
                         const isSummerBreak = !!dateMetaById?.[id]?.summerBreak;
                         const isCancelled = (cancelledSet.has(id) && !isBrokenOverride) || isSummerBreak;
-                        const isReplaced = isCancelled && !!replacementEvent;
+                        const isReplaced = !!replacementEvent;
 
                         const customTitle = pickByLang(customTitles?.[id], lang);
                         const customTime = safeStr(customTimes?.[id]).trim();
@@ -511,14 +608,23 @@ export default function Program() {
                         // Une carte remplacée par un événement garde son geste : elle ouvre
                         // l'événement. Les autres ouvrent la réponse de la FAQ qui décrit ce
                         // jour, dans la même fenêtre.
-                        const faqEntry = faqQuestions[FAQ_INDEX_BY_DAY[id]] || null;
+                        // Si le titre a été modifié manuellement, on recherche la FAQ qui correspond
+                        // à la nouvelle activité (ex: répétition du cor bărbătesc déplacée au lundi).
+                        // Si le titre ne correspond à aucune FAQ connue, on n'affiche surtout pas
+                        // l'ancienne FAQ du créneau habituel qui ne correspond plus.
+                        const faqIndex = isManual
+                            ? resolveFaqIndexForTitle(displayTitle)
+                            : (resolveFaqIndexForTitle(displayTitle) ?? FAQ_INDEX_BY_DAY[id] ?? null);
+
+                        const faqEntry = faqIndex != null ? faqQuestions[faqIndex] : null;
+
                         const activerCarte = isReplaced
                             ? () => window.dispatchEvent(new CustomEvent("open-event", { detail: { eventId: replacementEventId } }))
                             : faqEntry
                                 ? () => openDayModal({
                                     question: faqEntry.q.split(" · ").pop(),
                                     answer: faqEntry.a,
-                                    day: `${item?.day || ""}${item?.period ? ` ${item.period}` : ""}`.trim(),
+                                    day: safeStr(item?.day).trim(),
                                     title: displayTitle,
                                     dateLong: full,
                                     timeLabels,
@@ -554,7 +660,7 @@ export default function Program() {
                                     <div className="program-cardInnerFlat">
                                         <div className="program-cardTop">
                                             <div className="program-day">
-                                                {item?.day}{item?.period ? ` ${item?.period}` : ""}
+                                                {item?.day}
                                             </div>
                                         </div>
                                         <div className="program-activity">{displayTitle}</div>
@@ -584,7 +690,7 @@ export default function Program() {
                                         <div className="program-cardInnerFlat">
                                             <div className="program-cardTop">
                                                 <div className="program-day">
-                                                    {item?.day}{item?.period ? ` ${item?.period}` : ""}
+                                                    {item?.day}
                                                 </div>
                                             </div>
                                             <div className="program-activity">{additionEvent.title}</div>

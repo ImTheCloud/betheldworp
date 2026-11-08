@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import Image from "next/image";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../lib/Firebase";
 import "./EventsCalendar.css";
@@ -18,8 +17,13 @@ function pad2(n) {
     return String(n).padStart(2, "0");
 }
 
+function safeStr(v) {
+    return typeof v === "string" ? v : (v == null ? "" : String(v));
+}
+
 function normalizeDateToIso(input) {
     const v = String(input || "").trim();
+    if (!v) return "";
     if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
 
     const m = v.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
@@ -35,6 +39,27 @@ function normalizeDateToIso(input) {
         return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
     }
     return v;
+}
+
+function getDatesInRange(startIso, endIso) {
+    if (!startIso) return [];
+    if (!endIso || endIso <= startIso) return [startIso];
+
+    const dates = [];
+    const current = new Date(`${startIso}T12:00:00Z`);
+    const end = new Date(`${endIso}T12:00:00Z`);
+
+    if (Number.isNaN(current.getTime()) || Number.isNaN(end.getTime())) {
+        return [startIso];
+    }
+
+    let count = 0;
+    while (current <= end && count < 366) {
+        dates.push(current.toISOString().slice(0, 10));
+        current.setUTCDate(current.getUTCDate() + 1);
+        count++;
+    }
+    return dates.length > 0 ? dates : [startIso];
 }
 
 function isSameMonth(d1, d2) {
@@ -55,10 +80,6 @@ export default function EventsCalendar() {
     const { lang } = useLang();
     const t = useMemo(() => makeT(tr, lang), [lang]);
     const locale = useMemo(() => getLocale(lang), [lang]);
-
-    const searchParams = useSearchParams();
-    const router = useRouter();
-    const pathname = usePathname();
 
     const weekdayLabels = useMemo(() => {
         const map = tr?.[lang]?.weekday_labels || tr?.ro?.weekday_labels;
@@ -95,10 +116,13 @@ export default function EventsCalendar() {
                     .map((d) => {
                         const data = d.data() || {};
                         const dateEvent = normalizeDateToIso(data.dateEvent);
+                        const endDate = normalizeDateToIso(data.endDate);
                         return {
                             ...data,
                             id: d.id,
                             dateEvent,
+                            endDate: endDate && endDate > dateEvent ? endDate : "",
+                            time: String(data?.time ?? "").trim(),
                             title: pickByLang(data.title, lang),
                             description: pickByLang(data.description, lang),
                         };
@@ -127,11 +151,15 @@ export default function EventsCalendar() {
     const eventsByDate = useMemo(() => {
         const map = new Map();
         for (const ev of eventsSorted) {
-            const date = String(ev.dateEvent || "");
-            if (!map.has(date)) {
-                map.set(date, []);
+            const startIso = String(ev.dateEvent || "").trim();
+            const endIso = String(ev.endDate || "").trim();
+            const dates = getDatesInRange(startIso, endIso);
+            for (const date of dates) {
+                if (!map.has(date)) {
+                    map.set(date, []);
+                }
+                map.get(date).push(ev);
             }
-            map.get(date).push(ev);
         }
         return map;
     }, [eventsSorted]);
@@ -144,8 +172,9 @@ export default function EventsCalendar() {
         if (!eventsSorted.length) return;
 
         const hasInCurrentMonth = eventsSorted.some((ev) => {
-            const d = new Date(`${ev.dateEvent}T00:00:00`);
-            return isSameMonth(d, startOfCurrentMonth);
+            const dStart = new Date(`${ev.dateEvent}T00:00:00`);
+            const dEnd = ev.endDate ? new Date(`${ev.endDate}T00:00:00`) : dStart;
+            return isSameMonth(dStart, startOfCurrentMonth) || isSameMonth(dEnd, startOfCurrentMonth);
         });
 
         if (hasInCurrentMonth) {
@@ -154,7 +183,7 @@ export default function EventsCalendar() {
             return;
         }
 
-        const next = eventsSorted.find((ev) => ev.dateEvent >= todayIso) || eventsSorted[0];
+        const next = eventsSorted.find((ev) => (ev.endDate || ev.dateEvent) >= todayIso) || eventsSorted[0];
         const nextDate = new Date(`${next.dateEvent}T00:00:00`);
         setMonth(new Date(nextDate.getFullYear(), nextDate.getMonth(), 1));
         setDidPickMonth(true);
@@ -163,6 +192,7 @@ export default function EventsCalendar() {
     const [selectedDate, setSelectedDate] = useState(null);
     const [eventIndex, setEventIndex] = useState(0);
     const preventNextScrollRef = useRef(false);
+    const internalNavRef = useRef(false);
     const touchStartRef = useRef(null);
 
     const eventsForSelectedDate = useMemo(() => {
@@ -219,7 +249,7 @@ export default function EventsCalendar() {
         if (!eventsSorted.length) return;
         if (selectedDate && eventsByDate.has(selectedDate)) return;
 
-        const nextEvent = eventsSorted.find((ev) => ev.dateEvent >= todayIso) || eventsSorted[0];
+        const nextEvent = eventsSorted.find((ev) => (ev.endDate || ev.dateEvent) >= todayIso) || eventsSorted[0];
         setSelectedDate(nextEvent.dateEvent);
         setEventIndex(0);
     }, [eventsSorted, eventsByDate, todayIso, selectedDate]);
@@ -242,17 +272,21 @@ export default function EventsCalendar() {
         const dateEvents = eventsByDate.get(date) || [];
         const ev = eventIdOverride ? { id: eventIdOverride } : dateEvents[index];
 
-        if (ev?.id) {
-            const params = new URLSearchParams(searchParams.toString());
+        if (ev?.id && typeof window !== "undefined") {
+            const params = new URLSearchParams(window.location.search);
             params.set("event", ev.id);
-            router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+            window.history.replaceState(null, "", `${window.location.pathname}?${params.toString()}`);
         }
-    }, [eventsByDate, searchParams, router, pathname]);
+    }, [eventsByDate]);
 
-    // Handle deep-linking on load
+    // Handle deep-linking on initial load
     useEffect(() => {
         if (eventsLoading || !eventsSorted.length) return;
-        const eventId = searchParams.get("event");
+        if (eventOpen) return;
+
+        if (typeof window === "undefined") return;
+        const params = new URLSearchParams(window.location.search);
+        const eventId = params.get("event");
         if (!eventId) return;
 
         const ev = eventsSorted.find((x) => x.id === eventId);
@@ -268,8 +302,7 @@ export default function EventsCalendar() {
             setEventIndex(idx >= 0 ? idx : 0);
             setEventOpen(true);
 
-            // Scroll to the events section (only if not prevented and modal not already open)
-            if (!preventNextScrollRef.current && !eventOpen) {
+            if (!preventNextScrollRef.current) {
                 setTimeout(() => {
                     const section = document.getElementById("evenimente");
                     if (section) section.scrollIntoView({ behavior: "smooth" });
@@ -277,7 +310,7 @@ export default function EventsCalendar() {
             }
             preventNextScrollRef.current = false;
         }
-    }, [eventsLoading, eventsSorted, eventsByDate, searchParams, eventOpen]);
+    }, [eventsLoading, eventsSorted, eventsByDate, eventOpen]);
 
     // Listen for "open-event" dispatched from WeeklyProgram
     useEffect(() => {
@@ -322,6 +355,34 @@ export default function EventsCalendar() {
         }).format(d);
     };
 
+    const formatEventDateRange = (startIso, endIso) => {
+        if (!startIso) return "";
+        if (!endIso || endIso <= startIso) {
+            return formatDate(startIso);
+        }
+        const dStart = new Date(`${startIso}T00:00:00`);
+        const dEnd = new Date(`${endIso}T00:00:00`);
+        if (Number.isNaN(dStart.getTime()) || Number.isNaN(dEnd.getTime())) {
+            return formatDate(startIso);
+        }
+
+        const sameYear = dStart.getFullYear() === dEnd.getFullYear();
+        const sameMonth = sameYear && dStart.getMonth() === dEnd.getMonth();
+
+        if (sameMonth) {
+            const endFormatted = formatDate(endIso);
+            return `${dStart.getDate()} – ${endFormatted}`;
+        }
+
+        if (sameYear) {
+            const startStr = dStart.toLocaleDateString(locale, { day: "numeric", month: "long" });
+            const endStr = dEnd.toLocaleDateString(locale, { day: "numeric", month: "long", year: "numeric" });
+            return `${startStr} – ${endStr}`;
+        }
+
+        return `${formatDate(startIso)} – ${formatDate(endIso)}`;
+    };
+
     const formatMonth = (firstOfMonth) => {
         return firstOfMonth.toLocaleDateString(locale, { month: "long", year: "numeric" });
     };
@@ -332,7 +393,8 @@ export default function EventsCalendar() {
         const ev = evs[0];
         const parts = [ev.title || t("event")];
         if (ev.description) parts.push(ev.description);
-        if (ev.dateEvent) parts.push(formatDate(ev.dateEvent));
+        if (ev.dateEvent) parts.push(formatEventDateRange(ev.dateEvent, ev.endDate));
+        if (ev.time) parts.push(ev.time);
         return parts.join(" · ");
     };
 
@@ -388,10 +450,10 @@ export default function EventsCalendar() {
         setEventIndex(nextIdx);
 
         const ev = eventsForSelectedDate[nextIdx];
-        if (ev?.id) {
-            const params = new URLSearchParams(searchParams.toString());
+        if (ev?.id && typeof window !== "undefined") {
+            const params = new URLSearchParams(window.location.search);
             params.set("event", ev.id);
-            router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+            window.history.replaceState(null, "", `${window.location.pathname}?${params.toString()}`);
         }
     };
 
@@ -401,10 +463,10 @@ export default function EventsCalendar() {
         setEventIndex(nextIdx);
 
         const ev = eventsForSelectedDate[nextIdx];
-        if (ev?.id) {
-            const params = new URLSearchParams(searchParams.toString());
+        if (ev?.id && typeof window !== "undefined") {
+            const params = new URLSearchParams(window.location.search);
             params.set("event", ev.id);
-            router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+            window.history.replaceState(null, "", `${window.location.pathname}?${params.toString()}`);
         }
     };
 
@@ -423,9 +485,12 @@ export default function EventsCalendar() {
             closeTimerRef.current = null;
         }, 460);
 
-        const params = new URLSearchParams(searchParams.toString());
-        params.delete("event");
-        router.replace(`${pathname}${params.toString() ? "?" + params.toString() : ""}`, { scroll: false });
+        if (typeof window !== "undefined") {
+            const params = new URLSearchParams(window.location.search);
+            params.delete("event");
+            const qs = params.toString();
+            window.history.replaceState(null, "", `${window.location.pathname}${qs ? "?" + qs : ""}`);
+        }
     };
 
     useEffect(() => {
@@ -439,8 +504,8 @@ export default function EventsCalendar() {
 
     const [copied, setCopied] = useState(false);
     const handleShare = async () => {
-        if (!selectedEvent) return;
-        const url = `${window.location.origin}${pathname}?event=${selectedEvent.id}`;
+        if (!selectedEvent || typeof window === "undefined") return;
+        const url = `${window.location.origin}${window.location.pathname}?event=${selectedEvent.id}`;
 
         if (navigator.share) {
             try {
@@ -639,14 +704,18 @@ export default function EventsCalendar() {
 
                                 <div className="ev-details">
                                     <div className="ev-infoGrid">
-                                        <div className="ev-infoCard">
-                                            <div className="ev-infoLabel">{t("time")}</div>
-                                            <div className="ev-infoValue">{selectedEvent.time}</div>
-                                        </div>
+                                        {selectedEvent.time ? (
+                                            <div className="ev-infoCard">
+                                                <div className="ev-infoLabel">{t("time")}</div>
+                                                <div className="ev-infoValue">{selectedEvent.time}</div>
+                                            </div>
+                                        ) : null}
 
-                                        <div className="ev-infoCard">
+                                        <div className={`ev-infoCard${!selectedEvent.time ? " ev-infoCard--wide" : ""}`}>
                                             <div className="ev-infoLabel">{t("date")}</div>
-                                            <div className="ev-infoValue">{formatDate(selectedEvent.dateEvent)}</div>
+                                            <div className="ev-infoValue">
+                                                {formatEventDateRange(selectedEvent.dateEvent, selectedEvent.endDate)}
+                                            </div>
                                         </div>
 
                                         <div className="ev-infoCard ev-infoCard--wide">

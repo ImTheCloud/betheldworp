@@ -80,8 +80,14 @@ function normalizeImages(d) {
 
 function cleanEvent(draft) {
     const imgs = normalizeImages(draft);
+    const dateEvent = safeStr(draft?.dateEvent).trim();
+    let endDate = safeStr(draft?.endDate).trim();
+    if (endDate && endDate <= dateEvent) {
+        endDate = "";
+    }
     return {
-        dateEvent: safeStr(draft?.dateEvent).trim(),
+        dateEvent,
+        endDate,
         time: safeStr(draft?.time).trim(),
         slotTimes: normalizeSlotTimes(draft?.slotTimes),
         image: imgs[0] || "",
@@ -101,8 +107,14 @@ function pickFallback(map) {
 function normalizeEvent(data) {
     const d = data || {};
     const imgs = normalizeImages(d);
+    const dateEvent = safeStr(d.dateEvent).trim();
+    let endDate = safeStr(d.endDate).trim();
+    if (endDate && endDate <= dateEvent) {
+        endDate = "";
+    }
     return {
-        dateEvent: safeStr(d.dateEvent).trim(),
+        dateEvent,
+        endDate,
         time: safeStr(d.time).trim(),
         slotTimes: normalizeSlotTimes(d.slotTimes),
         image: imgs[0] || "",
@@ -218,7 +230,11 @@ function EventCard({ item, expanded, draft, saveState, activeLang, onToggle, onL
         <div className={`adminAnnCard${item?.upcoming ? " is-active" : ""}`}>
             <div className="adminAnnHeader" style={{ cursor: "pointer", justifyContent: "space-between" }} onClick={() => onToggle(id)}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
-                    <div className="adminAnnIdChip">{date || "No date"}</div>
+                    <div className="adminAnnIdChip">
+                        {draft?.endDate && draft.endDate > draft.dateEvent
+                            ? `${date} → ${draft.endDate}`
+                            : (date || "No date")}
+                    </div>
                     <div className="adminSummary">{title || "No title"}</div>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -239,9 +255,9 @@ function EventCard({ item, expanded, draft, saveState, activeLang, onToggle, onL
 
             {expanded ? (
                 <div className="adminAnnBody">
-                    <div className="adminGrid2">
+                    <div className="adminGrid3">
                         <label className="adminLabel">
-                            Date
+                            <span className="adminLabelRow">Start Date</span>
                             <input
                                 type="date"
                                 className="adminInput"
@@ -266,11 +282,26 @@ function EventCard({ item, expanded, draft, saveState, activeLang, onToggle, onL
                             />
                         </label>
                         <label className="adminLabel">
-                            Time
+                            <span className="adminLabelRow">
+                                End Date <span className="adminLabelOpt">(Optional)</span>
+                            </span>
+                            <input
+                                type="date"
+                                className="adminInput"
+                                min={safeStr(draft?.dateEvent) || undefined}
+                                value={safeStr(draft?.endDate)}
+                                onChange={(e) => onChangeField(id, "endDate", null, e.target.value)}
+                            />
+                        </label>
+                        <label className="adminLabel">
+                            <span className="adminLabelRow">
+                                Time <span className="adminLabelOpt">(Optional)</span>
+                            </span>
                             <input
                                 className={`adminInput${hasMultipleSlots ? " is-disabled" : ""}`}
                                 value={safeStr(draft?.time)}
                                 disabled={hasMultipleSlots}
+                                placeholder="e.g. 10:00 - 12:00"
                                 title={hasMultipleSlots ? "Calculated automatically from the schedule per slot below" : undefined}
                                 onChange={(e) => onChangeField(id, "time", null, e.target.value)}
                             />
@@ -553,15 +584,15 @@ function NewEventCard({ draft, saveState, activeLang, onLangChange, onChangeFiel
                         <option value="" disabled>-- Select an existing event --</option>
                         {templates.map((t) => (
                             <option key={t.id} value={t.id}>
-                                {pickFallback(t.title)} ({t.dateEvent})
+                                {pickFallback(t.title)} ({t.endDate && t.endDate > t.dateEvent ? `${t.dateEvent} → ${t.endDate}` : t.dateEvent})
                             </option>
                         ))}
                     </select>
                 </div>
 
-                <div className="adminGrid2">
+                <div className="adminGrid3">
                     <label className="adminLabel">
-                        Date
+                        <span className="adminLabelRow">Start Date</span>
                         <input
                             type="date"
                             className="adminInput"
@@ -585,11 +616,26 @@ function NewEventCard({ draft, saveState, activeLang, onLangChange, onChangeFiel
                         />
                     </label>
                     <label className="adminLabel">
-                        Time
+                        <span className="adminLabelRow">
+                            End Date <span className="adminLabelOpt">(Optional)</span>
+                        </span>
+                        <input
+                            type="date"
+                            className="adminInput"
+                            min={safeStr(draft?.dateEvent) || undefined}
+                            value={safeStr(draft?.endDate)}
+                            onChange={(e) => onChangeField("endDate", null, e.target.value)}
+                        />
+                    </label>
+                    <label className="adminLabel">
+                        <span className="adminLabelRow">
+                            Time <span className="adminLabelOpt">(Optional)</span>
+                        </span>
                         <input
                             className={`adminInput${hasMultipleSlots ? " is-disabled" : ""}`}
                             value={safeStr(draft?.time)}
                             disabled={hasMultipleSlots}
+                            placeholder="e.g. 10:00 - 12:00"
                             title={hasMultipleSlots ? "Calculated automatically from the schedule per slot below" : undefined}
                             onChange={(e) => onChangeField("time", null, e.target.value)}
                         />
@@ -935,7 +981,7 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
         });
 
         // "New" form is dirty if it has any meaningful content or is just open
-        const isNewDirty = showNew && (newDraft.dateEvent || pickFallback(newDraft.title));
+        const isNewDirty = showNew && (newDraft.dateEvent || newDraft.endDate || pickFallback(newDraft.title));
         
         onDirtyChange(isNewDirty || anyExpandedDirty);
     }, [showNew, newDraft, expandedIds, draftsById, items, onDirtyChange, isEventItemDirty]);
@@ -971,7 +1017,7 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
                     return {
                         id: d.id,
                         ...data,
-                        upcoming: data.dateEvent >= todayISO,
+                        upcoming: (data.endDate || data.dateEvent) >= todayISO,
                     };
                 });
 
@@ -1100,6 +1146,7 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
         setNewDraft((prev) => ({
             ...d,
             dateEvent: prev.dateEvent,
+            endDate: prev.endDate,
         }));
     };
 
@@ -1268,7 +1315,7 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
         const original = items.find((x) => x.id === key);
         if (!original) return;
 
-        const dateChanged = original.dateEvent !== d.dateEvent;
+        const dateChanged = original.dateEvent !== d.dateEvent || (original.endDate || "") !== (d.endDate || "");
 
         if (dateChanged) {
             setModal({

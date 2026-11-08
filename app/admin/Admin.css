@@ -267,6 +267,19 @@
     letter-spacing: 0.02em;
 }
 
+.adminLabelRow {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.adminLabelRow .adminLabelOpt {
+    font-weight: 400;
+    opacity: 0.65;
+}
+
 .adminInput,
 .adminTextarea {
     width: 100%;
@@ -970,6 +983,14 @@ input:checked + .adminSlider:before {
     min-width: 0;
 }
 
+.adminGrid3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    width: 100%;
+    min-width: 0;
+}
+
 .adminPagination {
     display: flex;
     justify-content: center;
@@ -1414,7 +1435,8 @@ input:checked + .adminSlider:before {
         z-index: 1;
     }
 
-    .adminGrid2 {
+    .adminGrid2,
+    .adminGrid3 {
         grid-template-columns: 1fr;
     }
 

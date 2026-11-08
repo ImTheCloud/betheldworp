@@ -604,13 +604,15 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed, onD
                     const data = d.data() || {};
                     const title = pickByLang(data.title);
                     const dateRaw = safeStr(data.dateEvent).trim();
+                    const endRaw = safeStr(data.endDate).trim();
                     const time = safeStr(data.time).trim();
+                    const dateStr = endRaw && endRaw > dateRaw ? `${dateRaw} – ${endRaw}` : dateRaw;
                     // Normalize dateEvent to ISO for filtering
                     const dateISO = normalizeDateStr(dateRaw);
                     return {
                         id: d.id,
                         dateISO,
-                        label: `${title}${dateRaw ? " (" + dateRaw + ")" : ""}${time ? " · " + time : ""}`,
+                        label: `${title}${dateStr ? " (" + dateStr + ")" : ""}${time ? " · " + time : ""}`,
                     };
                 });
                 list.sort((a, b) => a.label.localeCompare(b.label));
