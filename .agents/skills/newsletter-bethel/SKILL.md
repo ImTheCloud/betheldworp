@@ -74,20 +74,24 @@ Programul de seară (18:00) nu va avea loc datorită zilei de post.
 
 ---
 
-## 4. Styles visuels des chips (badges jour)
+## 4. Disposition et styles visuels du calendrier (Badges jour horizontaux)
+
+### Disposition pleine largeur (Mobile-first) :
+Pour éviter de comprimer le texte sur smartphone avec une colonne latérale trop large, **chaque jour est disposé sur toute la largeur (1 seule colonne principale)** :
+1. **Ligne d'en-tête** : Badge horizontal compact avec le nom complet du jour et le chiffre (ex: `LUNI 9`), suivi immédiatement de l'heure à côté.
+2. **Ligne(s) de contenu** : Titre de l'événement et détails en pleine largeur (100% de l'espace pour une lecture aérée).
 
 ### Noms des jours en entier :
-Toujours écrire le nom du jour **en entier** dans le chip (`LUNI`, `MARȚI`, `MIERCURI`, `JOI`, `VINERI`, `SÂMBĂTĂ`, `DUMINICĂ`) et **JAMAIS** en abrégé (`LUN`, `MAR`, `MIE`, `VIN`, `SÂM`, `DUM`).
-- Largeur de chip : `width:64px;` (avec cellule `<td width="76">`)
-- Style du libellé : `font-size:9px;font-weight:900;letter-spacing:0.5px;line-height:1.2;white-space:nowrap;`
+Toujours écrire le nom du jour **en entier** dans le badge (`LUNI 9`, `MARȚI 10`, `MIERCURI 11`, `JOI 12`, `VINERI 13`, `SÂMBĂTĂ 14`, `DUMINICĂ 15`) et **JAMAIS** en abrégé (`LUN`, `MAR`, `MIE`, `VIN`, `SÂM`, `DUM`).
+- Style du badge horizontal : `padding:3px 9px;border-radius:6px;font-size:11px;font-weight:900;letter-spacing:0.5px;display:inline-block;white-space:nowrap;`
 
-Il y a 3 types de chips dans le calendrier :
+Il y a 3 types de badges dans le calendrier :
 
 | Type | Classe CSS | Couleur | Utilisation |
 |------|-----------|---------|-------------|
-| **Normal** | `chip-n` / `chip-n-lbl` / `chip-n-num` | Gris sur fond `#f1f5f9` | Programme standard |
-| **Spécial** | `chip-s` / `chip-s-lbl` / `chip-s-num` | Vert `#16a34a` sur fond `#dcfce7`, bordure `#86efac` | Événement spécial (Cina Domnului, invité, etc.) |
-| **Annulé** | `chip-c` / `chip-c-lbl` / `chip-c-num` | Rouge `#dc2626` sur fond `#fee2e2`, bordure `#fca5a5` | Programme annulé |
+| **Normal** | `chip-n` | Gris sur fond `#f1f5f9`, bordure `#e2e8f0`, texte `#64748b` | Programme standard |
+| **Spécial** | `chip-s` | Vert `#16a34a` sur fond `#dcfce7`, bordure `#86efac` | Événement spécial (Cina Domnului, invité, etc.) |
+| **Annulé** | `chip-c` | Rouge `#dc2626` sur fond `#fee2e2`, bordure `#fca5a5` | Programme annulé |
 
 Pour un événement **annulé**, respecter la structure normale (ne JAMAIS tout compacter sur une seule ligne comme `Program cu copiii (11:00) : ANULAT`) :
 - **L'heure au-dessus** (en rouge `t-cancel`)
