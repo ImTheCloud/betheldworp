@@ -74,18 +74,23 @@ Programul de seară (18:00) nu va avea loc datorită zilei de post.
 
 ---
 
-## 4. Disposition et styles visuels du calendrier (Badges jour horizontaux)
+## 4. Disposition et styles visuels du calendrier (Boîtes jour compactes à gauche)
 
-### Disposition pleine largeur (Mobile-first) :
-Pour éviter de comprimer le texte sur smartphone avec une colonne latérale trop large, **chaque jour est disposé sur toute la largeur (1 seule colonne principale)** :
-1. **Ligne d'en-tête** : Badge horizontal compact avec le nom complet du jour et le chiffre (ex: `LUNI 9`), suivi immédiatement de l'heure à côté.
-2. **Ligne(s) de contenu** : Titre de l'événement et détails en pleine largeur (100% de l'espace pour une lecture aérée).
+### Disposition en 2 colonnes avec boîte compacte :
+Pour concilier l'esthétique appréciée des boîtes de calendrier à gauche et laisser un maximum d'espace pour le texte descriptif sur mobile :
+- **Colonne de gauche** : `<td width="56" valign="top" style="padding:14px 0;border-bottom:1px solid #eef2f6;">`
+- **Boîte jour (`chip-s`, `chip-c`, `chip-n`)** :
+  - Dimensions compactes et équilibrées : `width:52px;border-radius:10px;padding:6px 0 5px;text-align:center;`
+  - Nom complet du jour en micro-typographie ultra-nette : `font-size:8px;font-weight:900;letter-spacing:0.2px;line-height:1.1;white-space:nowrap;text-transform:uppercase;`
+  - Chiffre de la date bien visible : `font-size:19px;font-weight:900;line-height:1.15;padding-top:1px;`
+- **Colonne de droite (contenu de l'événement)** :
+  - Gouttière resserrée : `<td valign="top" style="padding:14px 0 14px 12px;border-bottom:1px solid #eef2f6;">`
+  - Cela libère plus de 22px de largeur supplémentaire pour le texte par rapport à une boîte large, évitant les retours à la ligne intempestifs sur mobile tout en conservant le style visuel emblématique en carte.
 
 ### Noms des jours en entier :
-Toujours écrire le nom du jour **en entier** dans le badge (`LUNI 9`, `MARȚI 10`, `MIERCURI 11`, `JOI 12`, `VINERI 13`, `SÂMBĂTĂ 14`, `DUMINICĂ 15`) et **JAMAIS** en abrégé (`LUN`, `MAR`, `MIE`, `VIN`, `SÂM`, `DUM`).
-- Style du badge horizontal : `padding:3px 9px;border-radius:6px;font-size:11px;font-weight:900;letter-spacing:0.5px;display:inline-block;white-space:nowrap;`
+Toujours écrire le nom du jour **en entier** dans le haut de la boîte (`LUNI`, `MARȚI`, `MIERCURI`, `JOI`, `VINERI`, `SÂMBĂTĂ`, `DUMINICĂ`) et **JAMAIS** en abrégé (`LUN`, `MAR`, `MIE`, `VIN`, `SÂM`, `DUM`).
 
-Il y a 3 types de badges dans le calendrier :
+Il y a 3 types de boîtes (chips) dans le calendrier :
 
 | Type | Classe CSS | Couleur | Utilisation |
 |------|-----------|---------|-------------|
