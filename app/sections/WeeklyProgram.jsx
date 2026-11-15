@@ -718,12 +718,6 @@ export default function Program() {
     const hasNoEvents = programChanges.every((c) => c.status !== "event" && c.status !== "extra");
     const changesTitle = hasEventsOnly ? t("events_title") : hasNoEvents ? t("changes_title") : t("changes_events_title");
 
-    // Sur téléphone la grille devient une liste : le jour n'est écrit que sur la
-    // première ligne de chaque jour (mardi a trois créneaux).
-    programCards.forEach((card, i) => {
-        card.sameDayAsPrevious = i > 0 && programCards[i - 1].day === card.day;
-    });
-
     return (
         <>
         <section className="program-section">
@@ -786,7 +780,7 @@ export default function Program() {
                     {programCards.map((card) => (
                         <article
                             key={card.key}
-                            className={`program-card program-card--${card.status}${card.onActivate ? " program-card--info" : ""}${card.sameDayAsPrevious ? " program-card--sameDay" : ""}`}
+                            className={`program-card program-card--${card.status}${card.onActivate ? " program-card--info" : ""}`}
                             onClick={card.onActivate || undefined}
                             role={card.onActivate ? "button" : undefined}
                             tabIndex={card.onActivate ? 0 : undefined}
@@ -806,16 +800,7 @@ export default function Program() {
                                     <div className="program-day">{card.day}</div>
                                 </div>
                                 <div className="program-activity">{card.title}</div>
-                                {(card.note || card.statusLabel) && (
-                                    <div className="program-meta">
-                                        {/* Étiquette dans la ligne : seulement sur téléphone, où la
-                                            languette du haut n'a pas sa place dans la liste. */}
-                                        {card.statusLabel && (
-                                            <span className={`program-status program-status--inline program-status--${card.status}`}>{card.statusLabel}</span>
-                                        )}
-                                        {card.note && <span className="program-note">{card.note}</span>}
-                                    </div>
-                                )}
+                                {card.note && <div className="program-note">{card.note}</div>}
                                 <div className="program-bottomRow">
                                     {card.timeLabels.map((label) => (
                                         <div key={label} className="program-timeLine">{label}</div>
