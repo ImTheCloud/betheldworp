@@ -117,6 +117,36 @@ Pour un événement **annulé**, respecter la structure normale (ne JAMAIS tout 
 </div>
 ```
 
+### Statuts : même vocabulaire que le site
+
+Depuis novembre 2026, le programme hebdomadaire du site affiche un statut sur chaque créneau qui sort de l'ordinaire, et un résumé « Schimbări în această săptămână » au-dessus de la grille. La newsletter reprend **les mêmes mots**, pour que les gens retrouvent la même information partout.
+
+| Statut | Quand | Rendu dans la newsletter |
+|--------|-------|--------------------------|
+| **ANULAT** | Créneau annulé, rien ne le remplace | `chip-c` rouge, heure + titre + `ANULAT` en rouge (voir plus haut) |
+| **MUTAT** | Activité déplacée d'un jour à l'autre (ex. post de marți à miercuri) | Jour de départ : `chip-c` rouge, heure + titre en rouge, `MUTAT` à la place de `ANULAT`, puis la note `Mutat miercuri, 11 noiembrie`. Jour d'arrivée : `chip-s` vert, pastille `MUTAT` à côté de l'heure, note `Mutat de marți` |
+| **EVENIMENT** | Créneau remplacé par un événement (invité, concert, baptême) | `chip-s` vert, titre de l'événement, ligne verte `Invitat special: …` si besoin |
+| **MODIFICAT** | Titre ou heure changés pour une autre raison | `chip-s` vert, note courte qui dit ce qui change (ex. `În locul serii de tineret`) |
+| **EXTRA** | Événement en plus du programme, sans rien annuler | `chip-s` vert, pastille `EXTRA` à côté de l'heure |
+| **NOU** | Activité qui entre dans le programme régulier (ex. orchestre, novembre 2026) | `chip-s` vert, pastille `NOU` à côté de l'heure, **uniquement la première semaine** |
+
+**Pastille à côté de l'heure** (même ligne que l'heure, donc aucune hauteur en plus sur mobile). Exemple pour `NOU`, voir `newsletter_2026-11-16.html` :
+
+```html
+<span class="badge-nou"
+    style="display:inline-block;margin-left:6px;padding:2px 8px;border-radius:999px;background-color:#dcfce7;border:1px solid #86efac;color:#15803d;font-size:10px;font-weight:900;letter-spacing:0.6px;line-height:1.4;vertical-align:1px;">NOU</span>
+```
+
+Couleurs des pastilles, identiques au site : `NOU` / `EXTRA` vert (`#dcfce7`, `#86efac`, `#15803d`), `MUTAT` violet (`#efe9fb`, `#c9b6f2`, `#5b21b6`). Toujours ajouter la règle du mode sombre de la classe (`@media (prefers-color-scheme: dark)` et `[data-ogsc]` / `[data-ogsb]`), comme pour `.badge-nou`.
+
+**Comment le site décide du statut** (à connaître pour vérifier que site et newsletter disent la même chose). Tout vient de l'admin, section Program overrides :
+- `Main Program` sur `Cancelled` : **Anulat**.
+- `Main Program` sur un événement : **Eveniment**.
+- `Manual Text Override` (titre ou heure) : **Modificat**.
+- `Extra Event` : **Extra**, carte en plus.
+- **Mutat est détecté tout seul** : un créneau annulé dont le titre habituel est écrit à la main sur un autre créneau de la même semaine. Il suffit d'annuler mardi matin et d'écrire « Zi de post și mijlocire » sur le créneau de mercredi.
+- `Note for visitors` (RO, FR, NL, EN) : texte court affiché sous le titre de la carte et dans le résumé. Il remplace la note automatique (`Mutat miercuri`, `Mutat de marți`).
+
 ---
 
 ## 5. Structure du fichier HTML & Règles de contenu
@@ -257,6 +287,7 @@ Avant d'envoyer, vérifier :
 - [ ] Les **numéros de jour** correspondent au bon jour de la semaine
 - [ ] Les **événements spéciaux** sont bien marqués en vert (`chip-s`)
 - [ ] Les **programmes annulés** sont bien en rouge (`chip-c`) avec mention "ANULAT"
+- [ ] Les **statuts** (ANULAT, MUTAT, EVENIMENT, MODIFICAT, EXTRA, NOU) correspondent à ce qu'affiche le site pour la même semaine
 - [ ] L'**image principale** correspond à l'événement phare (ou drone si semaine standard)
 - [ ] Le **preheader** résume bien la semaine
 - [ ] L'**objet Brevo** est clair et résume les points forts
