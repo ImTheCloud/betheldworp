@@ -299,17 +299,9 @@
     border: 1px solid rgba(10, 42, 67, 0.12);
 }
 
-.program-card--changed {
-    border-color: rgba(217, 155, 25, 0.38);
-}
-
 .program-card--changed .program-timeLine {
     color: #92600a;
     background: rgba(217, 155, 25, 0.14);
-}
-
-.program-card--moved {
-    border-color: rgba(217, 155, 25, 0.38);
 }
 
 .program-card--moved .program-timeLine {
@@ -317,17 +309,9 @@
     background: rgba(217, 155, 25, 0.14);
 }
 
-.program-card--event {
-    border-color: rgba(37, 99, 235, 0.34);
-}
-
 .program-card--event .program-timeLine {
     color: #0f4c8a;
     background: rgba(37, 99, 235, 0.1);
-}
-
-.program-card--extra {
-    border-color: rgba(22, 163, 74, 0.32);
 }
 
 .program-card--extra .program-timeLine {
@@ -440,6 +424,73 @@
     color: rgba(10, 42, 67, 0.6);
     pointer-events: none;
     z-index: 3;
+}
+
+/* ── Bordure et coin « ↗ » aux couleurs du statut ──
+   Toute carte qui porte une languette a une bordure franche de la même
+   couleur, et le petit coin cliquable en haut à droite prend cette couleur
+   aussi, au lieu du bleu nuit des cartes ordinaires. */
+.program-card--cancelled,
+.program-card--movedFrom,
+.program-card--changed,
+.program-card--moved,
+.program-card--event,
+.program-card--extra {
+    border-width: 1.5px;
+}
+
+.program-card--cancelled,
+.program-card--movedFrom {
+    border-color: rgba(220, 38, 38, 0.55);
+}
+
+.program-card--changed,
+.program-card--moved {
+    border-color: rgba(217, 155, 25, 0.8);
+}
+
+.program-card--event {
+    border-color: rgba(37, 99, 235, 0.6);
+}
+
+.program-card--extra {
+    border-color: rgba(22, 163, 74, 0.6);
+}
+
+.program-card--cancelled.program-card--info::before,
+.program-card--movedFrom.program-card--info::before {
+    background: linear-gradient(225deg, rgba(220, 38, 38, 0.3) 50%, transparent 50%);
+}
+
+.program-card--cancelled.program-card--info::after,
+.program-card--movedFrom.program-card--info::after {
+    color: #b91c1c;
+}
+
+.program-card--changed.program-card--info::before,
+.program-card--moved.program-card--info::before {
+    background: linear-gradient(225deg, rgba(217, 155, 25, 0.4) 50%, transparent 50%);
+}
+
+.program-card--changed.program-card--info::after,
+.program-card--moved.program-card--info::after {
+    color: #92600a;
+}
+
+.program-card--event.program-card--info::before {
+    background: linear-gradient(225deg, rgba(37, 99, 235, 0.3) 50%, transparent 50%);
+}
+
+.program-card--event.program-card--info::after {
+    color: #0f4c8a;
+}
+
+.program-card--extra.program-card--info::before {
+    background: linear-gradient(225deg, rgba(22, 163, 74, 0.3) 50%, transparent 50%);
+}
+
+.program-card--extra.program-card--info::after {
+    color: #15803d;
 }
 
 .program-card--clickable:hover::after,
