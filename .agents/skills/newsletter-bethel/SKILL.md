@@ -137,7 +137,7 @@ Depuis novembre 2026, le programme hebdomadaire du site affiche un statut sur ch
     style="display:inline-block;margin-left:6px;padding:2px 8px;border-radius:999px;background-color:#dcfce7;border:1px solid #86efac;color:#15803d;font-size:10px;font-weight:900;letter-spacing:0.6px;line-height:1.4;vertical-align:1px;">NOU</span>
 ```
 
-Couleurs des pastilles, identiques au site : `NOU` / `EXTRA` vert (`#dcfce7`, `#86efac`, `#15803d`), `MUTAT` violet (`#efe9fb`, `#c9b6f2`, `#5b21b6`). Toujours ajouter la règle du mode sombre de la classe (`@media (prefers-color-scheme: dark)` et `[data-ogsc]` / `[data-ogsb]`), comme pour `.badge-nou`.
+Couleurs des pastilles, identiques au site : `ANULAT` rouge, `MUTAT` / `MODIFICAT` jaune (`#fcf1da`, `#f0c76a`, `#92600a`), `NOU` / `EXTRA` vert (`#dcfce7`, `#86efac`, `#15803d`), `EVENIMENT` bleu (`#dde9fb`, `#93b4ef`, `#0f4c8a`). Toujours ajouter la règle du mode sombre de la classe (`@media (prefers-color-scheme: dark)` et `[data-ogsc]` / `[data-ogsb]`), comme pour `.badge-nou`.
 
 **Comment le site décide du statut** (à connaître pour vérifier que site et newsletter disent la même chose). Tout vient de l'admin, section Program overrides :
 - `Main Program` sur `Cancelled` : **Anulat**.
