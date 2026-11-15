@@ -545,7 +545,8 @@ export default function Program() {
 
     // Toutes les cartes de la semaine, calculées une fois : la grille et le
     // résumé des changements en haut lisent la même liste.
-    //   status : "normal", "cancelled" (anulat), "changed" (modificat), "extra".
+    //   status : "normal", "cancelled" (anulat), "changed" (modificat à la main),
+    //   "event" (remplacé par un événement), "extra" (événement en plus).
     // Les créneaux coupés par la pause d'été n'entrent pas dans le résumé :
     // l'avis d'été au-dessus de la grille l'explique déjà.
     const programCards = [];
@@ -567,8 +568,15 @@ export default function Program() {
         const isChanged = isReplaced || isManual;
         const isCancelled = !isChanged && (isOverrideCancelled || isSummerBreak);
 
-        const status = isChanged ? "changed" : isCancelled ? "cancelled" : "normal";
-        const statusLabel = status === "changed" ? t("status_replaced") : status === "cancelled" ? t("status_cancelled") : "";
+        // Un créneau remplacé par un événement (un invité, par exemple) n'est pas
+        // « modifié » : c'est un événement. « Modificat » ne sert que lorsque le
+        // titre ou l'heure ont été changés à la main dans l'admin.
+        const status = isManual ? "changed" : isReplaced ? "event" : isCancelled ? "cancelled" : "normal";
+        const statusLabel = {
+            changed: t("status_replaced"),
+            event: t("status_event"),
+            cancelled: t("status_cancelled"),
+        }[status] || "";
         const note = pickByLang(notes?.[id], lang);
 
         const dm = safeStr(dateMetaById?.[id]?.dm || "");
@@ -606,7 +614,7 @@ export default function Program() {
 
         programCards.push({
             key: id, day, title, note, status, statusLabel, timeLabels, dm, full, onActivate,
-            inSummary: status === "changed" || (status === "cancelled" && isOverrideCancelled),
+            inSummary: status === "changed" || status === "event" || (status === "cancelled" && isOverrideCancelled),
         });
 
         const additionEventId = safeStr(additions[id]).trim();
@@ -702,12 +710,14 @@ export default function Program() {
                                 card.onActivate();
                             } : undefined}
                         >
+                            {/* L'étiquette est posée à cheval sur le bord du haut : lisible,
+                                horizontale, et sans agrandir la carte sur téléphone. */}
+                            {card.statusLabel && (
+                                <span className={`program-status program-status--tag program-status--${card.status}`}>{card.statusLabel}</span>
+                            )}
                             <div className="program-cardInnerFlat">
                                 <div className="program-cardTop">
                                     <div className="program-day">{card.day}</div>
-                                    {card.statusLabel && (
-                                        <span className={`program-status program-status--${card.status}`}>{card.statusLabel}</span>
-                                    )}
                                 </div>
                                 <div className="program-activity">{card.title}</div>
                                 {card.note && <div className="program-note">{card.note}</div>}
