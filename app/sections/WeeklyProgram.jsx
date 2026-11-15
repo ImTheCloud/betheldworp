@@ -548,7 +548,8 @@ export default function Program() {
     //
     // Statuts, déduits de ce qui est rempli dans l'admin pour la semaine :
     //   "cancelled"  Anulat     créneau annulé, rien ne le remplace ailleurs
-    //   "movedFrom"  Mutat      créneau annulé dont l'activité a lieu un autre jour
+    //   "movedFrom"  Anulat     créneau annulé dont l'activité a lieu un autre jour
+    //                           (note « Mutat miercuri »)
     //   "moved"      Mutat      titre manuel qui reprend l'activité d'un créneau annulé
     //   "changed"    Modificat  titre ou heure changés à la main, sans déplacement
     //   "event"      Eveniment  créneau remplacé par un événement
@@ -618,7 +619,8 @@ export default function Program() {
             event: t("status_event"),
             cancelled: t("status_cancelled"),
             moved: t("status_moved"),
-            movedFrom: t("status_moved"),
+            // Le jour de départ est d'abord annulé : la note dit où l'activité part.
+            movedFrom: t("status_cancelled"),
         }[status] || "";
         const isCancelled = status === "cancelled" || status === "movedFrom";
 

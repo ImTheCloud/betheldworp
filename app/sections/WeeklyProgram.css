@@ -209,7 +209,8 @@
     white-space: nowrap;
 }
 
-.program-status--cancelled {
+.program-status--cancelled,
+.program-status--movedFrom {
     color: #b91c1c;
     background: rgba(220, 38, 38, 0.1);
 }
@@ -224,8 +225,7 @@
     background: rgba(37, 99, 235, 0.14);
 }
 
-.program-status--moved,
-.program-status--movedFrom {
+.program-status--moved {
     color: #92600a;
     background: rgba(217, 155, 25, 0.16);
 }
@@ -245,7 +245,8 @@
     border: 1px solid transparent;
 }
 
-.program-status--tag.program-status--cancelled {
+.program-status--tag.program-status--cancelled,
+.program-status--tag.program-status--movedFrom {
     background: #fdecec;
     border-color: rgba(220, 38, 38, 0.28);
 }
@@ -260,8 +261,7 @@
     border-color: rgba(37, 99, 235, 0.38);
 }
 
-.program-status--tag.program-status--moved,
-.program-status--tag.program-status--movedFrom {
+.program-status--tag.program-status--moved {
     background: #fcf1da;
     border-color: rgba(217, 155, 25, 0.4);
 }

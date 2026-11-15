@@ -124,7 +124,7 @@ Depuis novembre 2026, le programme hebdomadaire du site affiche un statut sur ch
 | Statut | Quand | Rendu dans la newsletter |
 |--------|-------|--------------------------|
 | **ANULAT** | Créneau annulé, rien ne le remplace | `chip-c` rouge, heure + titre + `ANULAT` en rouge (voir plus haut) |
-| **MUTAT** | Activité déplacée d'un jour à l'autre (ex. post de marți à miercuri) | Jour de départ : `chip-c` rouge, heure + titre en rouge, `MUTAT` à la place de `ANULAT`, puis la note `Mutat miercuri, 11 noiembrie`. Jour d'arrivée : `chip-s` vert, pastille `MUTAT` à côté de l'heure, note `Mutat de marți` |
+| **MUTAT** | Activité déplacée d'un jour à l'autre (ex. post de marți à miercuri) | Jour de départ : c'est d'abord une annulation, donc `chip-c` rouge, heure + titre + `ANULAT` en rouge, puis la note `Mutat miercuri, 11 noiembrie`. Jour d'arrivée : `chip-s` vert, pastille `MUTAT` à côté de l'heure, note `Mutat de marți` |
 | **EVENIMENT** | Créneau remplacé par un événement (invité, concert, baptême) | `chip-s` vert, titre de l'événement, ligne verte `Invitat special: …` si besoin |
 | **MODIFICAT** | Titre ou heure changés pour une autre raison | `chip-s` vert, note courte qui dit ce qui change (ex. `În locul serii de tineret`) |
 | **EXTRA** | Événement en plus du programme, sans rien annuler | `chip-s` vert, pastille `EXTRA` à côté de l'heure |
@@ -144,7 +144,7 @@ Couleurs des pastilles, identiques au site : `ANULAT` rouge, `MUTAT` / `MODIFICA
 - `Main Program` sur un événement : **Eveniment**.
 - `Manual Text Override` (titre ou heure) : **Modificat**.
 - `Extra Event` : **Extra**, carte en plus.
-- **Mutat est détecté tout seul** : un créneau annulé dont le titre habituel est écrit à la main sur un autre créneau de la même semaine. Il suffit d'annuler mardi matin et d'écrire « Zi de post și mijlocire » sur le créneau de mercredi.
+- **Mutat est détecté tout seul** : un créneau annulé dont le titre habituel est écrit à la main sur un autre créneau de la même semaine. Le jour de départ affiche **Anulat** (note `Mutat miercuri`), le jour d'arrivée **Mutat** (note `Mutat de marți`). Il suffit d'annuler mardi matin et d'écrire « Zi de post și mijlocire » sur le créneau de mercredi.
 - `Note for visitors` (RO, FR, NL, EN) : texte court affiché sous le titre de la carte et dans le résumé. Il remplace la note automatique (`Mutat miercuri`, `Mutat de marți`).
 
 ---
