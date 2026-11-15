@@ -1,7 +1,7 @@
 "use client";
 
 import "./WeeklyProgram.css";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { collection, doc, onSnapshot } from "firebase/firestore";
 import { db } from "../lib/Firebase";
 import { useLang } from "../components/LanguageProvider";
@@ -309,7 +309,8 @@ function normalizeWeekOverride(docId, data) {
     const additions = safeObj(data?.additions);
     const customTitles = safeObj(data?.customTitles);
     const customTimes = safeObj(data?.customTimes);
-    return { weekKey, affectedProgramIds, replacements, additions, customTitles, customTimes };
+    const notes = safeObj(data?.notes);
+    return { weekKey, affectedProgramIds, replacements, additions, customTitles, customTimes, notes };
 }
 
 function pickByLang(value, lang) {
@@ -495,18 +496,19 @@ export default function Program() {
     }, [weekInfo.weekKey]);
 
     const overrideData = useMemo(() => {
-        if (!ovDoc) return { cancelledSet: new Set(), replacements: {}, additions: {}, customTitles: {}, customTimes: {} };
+        if (!ovDoc) return { cancelledSet: new Set(), replacements: {}, additions: {}, customTitles: {}, customTimes: {}, notes: {} };
         const o = normalizeWeekOverride(ovDoc.id, ovDoc.data);
         return { 
             cancelledSet: new Set(o.affectedProgramIds), 
             replacements: o.replacements, 
             additions: o.additions,
             customTitles: o.customTitles,
-            customTimes: o.customTimes
+            customTimes: o.customTimes,
+            notes: o.notes
         };
     }, [ovDoc]);
 
-    const { cancelledSet, replacements, additions, customTitles, customTimes } = overrideData;
+    const { cancelledSet, replacements, additions, customTitles, customTimes, notes } = overrideData;
 
     // ── Events data for replacement & addition display ──
     const [eventsMap, setEventsMap] = useState(new Map());
@@ -540,6 +542,93 @@ export default function Program() {
         );
         return () => unsub();
     }, [hasLinkedEvents, lang]);
+
+    // Toutes les cartes de la semaine, calculées une fois : la grille et le
+    // résumé des changements en haut lisent la même liste.
+    //   status : "normal", "cancelled" (anulat), "changed" (modificat), "extra".
+    // Les créneaux coupés par la pause d'été n'entrent pas dans le résumé :
+    // l'avis d'été au-dessus de la grille l'explique déjà.
+    const programCards = [];
+    LOCAL_PROGRAM_ITEMS.forEach((item, idx) => {
+        const id = safeStr(item?.id || `day-${idx}`).trim();
+        const day = safeStr(item?.day).trim();
+        const times = safeArr(item?.times);
+
+        const replacementEventId = safeStr(replacements[id]).trim();
+        const replacementEvent = replacementEventId ? eventsMap.get(replacementEventId) : null;
+        const isBrokenOverride = replacementEventId && !replacementEvent;
+        const isSummerBreak = !!dateMetaById?.[id]?.summerBreak;
+        const isOverrideCancelled = cancelledSet.has(id) && !isBrokenOverride;
+        const isReplaced = !!replacementEvent;
+
+        const customTitle = pickByLang(customTitles?.[id], lang);
+        const customTime = safeStr(customTimes?.[id]).trim();
+        const isManual = customTitle !== "" || customTime !== "";
+        const isChanged = isReplaced || isManual;
+        const isCancelled = !isChanged && (isOverrideCancelled || isSummerBreak);
+
+        const status = isChanged ? "changed" : isCancelled ? "cancelled" : "normal";
+        const statusLabel = status === "changed" ? t("status_replaced") : status === "cancelled" ? t("status_cancelled") : "";
+        const note = pickByLang(notes?.[id], lang);
+
+        const dm = safeStr(dateMetaById?.[id]?.dm || "");
+        const full = safeStr(dateMetaById?.[id]?.full || "");
+
+        const title = customTitle || (isReplaced ? replacementEvent.title : item?.title);
+        const displayTime = isReplaced && replacementEvent.time ? replacementEvent.time : null;
+        const cleanedTimes = times.map((x) => safeStr(x).trim()).filter(Boolean);
+        const timeLabels = customTime
+            ? [formatRange(customTime)]
+            : (isReplaced && displayTime ? [formatRange(displayTime)] : cleanedTimes.map(formatRange));
+
+        // Une carte remplacée par un événement ouvre l'événement. Les autres ouvrent
+        // la réponse de la FAQ qui décrit l'activité affichée. Un titre manuel qui ne
+        // correspond à aucune FAQ n'ouvre rien, plutôt que l'ancienne FAQ du créneau.
+        const faqKey = isManual
+            ? resolveFaqKeyForTitle(title)
+            : (resolveFaqKeyForTitle(title) ?? FAQ_KEY_BY_DAY[id] ?? null);
+        const faqEntry = faqKey ? faqQuestions.find((q) => q.key === faqKey) ?? null : null;
+
+        const onActivate = isReplaced
+            ? () => window.dispatchEvent(new CustomEvent("open-event", { detail: { eventId: replacementEventId } }))
+            : faqEntry
+                ? () => openDayModal({
+                    question: faqEntry.q.split(" · ").pop(),
+                    answer: faqEntry.a,
+                    day,
+                    title,
+                    note,
+                    dateLong: full,
+                    timeLabels,
+                    isCancelled,
+                })
+                : null;
+
+        programCards.push({
+            key: id, day, title, note, status, statusLabel, timeLabels, dm, full, onActivate,
+            inSummary: status === "changed" || (status === "cancelled" && isOverrideCancelled),
+        });
+
+        const additionEventId = safeStr(additions[id]).trim();
+        const additionEvent = additionEventId ? eventsMap.get(additionEventId) : null;
+        if (additionEvent) {
+            programCards.push({
+                key: `${id}-extra`,
+                day,
+                title: additionEvent.title,
+                note: "",
+                status: "extra",
+                statusLabel: t("status_addition"),
+                timeLabels: additionEvent.time ? [formatRange(additionEvent.time)] : [],
+                dm,
+                full,
+                onActivate: () => window.dispatchEvent(new CustomEvent("open-event", { detail: { eventId: additionEventId } })),
+                inSummary: true,
+            });
+        }
+    });
+
+    const programChanges = programCards.filter((c) => c.inSummary);
 
     return (
         <>
@@ -582,142 +671,55 @@ export default function Program() {
                     </div>
                 )}
 
+                {programChanges.length > 0 && (
+                    <div className="program-changes" role="note">
+                        <div className="program-changesTitle">{t("changes_title")}</div>
+                        <ul className="program-changesList">
+                            {programChanges.map((c) => (
+                                <li key={c.key} className="program-changesItem">
+                                    <span className={`program-status program-status--${c.status}`}>{c.statusLabel}</span>
+                                    <span className="program-changesText">
+                                        <strong>{c.day}</strong> {c.title}
+                                        {c.note && <span className="program-changesNote">{c.note}</span>}
+                                    </span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
+
                 <div className="program-grid">
-                    {LOCAL_PROGRAM_ITEMS.map((item, idx) => {
-                        const id = safeStr(item?.id || `day-${idx}`).trim();
-                        const times = safeArr(item?.times);
-
-                        const replacementEventId = safeStr(replacements[id]).trim();
-                        const replacementEvent = replacementEventId ? eventsMap.get(replacementEventId) : null;
-
-                        const isBrokenOverride = replacementEventId && !replacementEvent;
-                        const isSummerBreak = !!dateMetaById?.[id]?.summerBreak;
-                        const isCancelled = (cancelledSet.has(id) && !isBrokenOverride) || isSummerBreak;
-                        const isReplaced = !!replacementEvent;
-
-                        const customTitle = pickByLang(customTitles?.[id], lang);
-                        const customTime = safeStr(customTimes?.[id]).trim();
-                        const isManual = customTitle !== "" || customTime !== "";
-                        const finalIsReplaced = isReplaced || isManual;
-
-                        let statusClass = "program-card--normal";
-                        if (finalIsReplaced) statusClass = "program-card--replaced";
-                        else if (isCancelled) statusClass = "program-card--cancelled";
-
-                        const dm = safeStr(dateMetaById?.[id]?.dm || "");
-                        const full = safeStr(dateMetaById?.[id]?.full || "");
-
-                        const displayTitle = customTitle || (isReplaced ? replacementEvent.title : item?.title);
-                        const displayTime = isReplaced && replacementEvent.time ? replacementEvent.time : null;
-
-                        const cleanedTimes = times.map((x) => safeStr(x).trim()).filter(Boolean);
-                        // Chaque creneau a sa propre pastille horaire, plutot qu'un « + » muet.
-                        const timeLabels = customTime
-                            ? [formatRange(customTime)]
-                            : (isReplaced && displayTime ? [formatRange(displayTime)] : cleanedTimes.map(formatRange));
-
-                        const additionEventId = safeStr(additions[id]).trim();
-                        const additionEvent = additionEventId ? eventsMap.get(additionEventId) : null;
-
-                        // Une carte remplacée par un événement garde son geste : elle ouvre
-                        // l'événement. Les autres ouvrent la réponse de la FAQ qui décrit ce
-                        // jour, dans la même fenêtre.
-                        // Si le titre a été modifié manuellement, on recherche la FAQ qui correspond
-                        // à la nouvelle activité (ex: répétition du cor bărbătesc déplacée au lundi).
-                        // Si le titre ne correspond à aucune FAQ connue, on n'affiche surtout pas
-                        // l'ancienne FAQ du créneau habituel qui ne correspond plus.
-                        const faqKey = isManual
-                            ? resolveFaqKeyForTitle(displayTitle)
-                            : (resolveFaqKeyForTitle(displayTitle) ?? FAQ_KEY_BY_DAY[id] ?? null);
-
-                        const faqEntry = faqKey ? faqQuestions.find((q) => q.key === faqKey) ?? null : null;
-
-                        const activerCarte = isReplaced
-                            ? () => window.dispatchEvent(new CustomEvent("open-event", { detail: { eventId: replacementEventId } }))
-                            : faqEntry
-                                ? () => openDayModal({
-                                    question: faqEntry.q.split(" · ").pop(),
-                                    answer: faqEntry.a,
-                                    day: safeStr(item?.day).trim(),
-                                    title: displayTitle,
-                                    dateLong: full,
-                                    timeLabels,
-                                    isCancelled: isCancelled && !finalIsReplaced,
-                                })
-                                : null;
-
-                        const surToucheCarte = (e) => {
-                            if (e.key !== "Enter" && e.key !== " ") return;
-                            e.preventDefault();
-                            activerCarte();
-                        };
-
-                        return (
-                            <React.Fragment key={id}>
-                                <article
-                                    className={`program-card ${statusClass}${isReplaced ? " program-card--clickable" : activerCarte ? " program-card--info" : ""}`}
-                                    onClick={activerCarte || undefined}
-                                    role={activerCarte ? "button" : undefined}
-                                    tabIndex={activerCarte ? 0 : undefined}
-                                    onKeyDown={activerCarte ? surToucheCarte : undefined}
-                                >
-                                    {finalIsReplaced && (
-                                        <div className="program-verticalBadge program-verticalBadge--replaced">
-                                            <span>{t("status_replaced")}</span>
-                                        </div>
+                    {programCards.map((card) => (
+                        <article
+                            key={card.key}
+                            className={`program-card program-card--${card.status}${card.onActivate ? " program-card--info" : ""}`}
+                            onClick={card.onActivate || undefined}
+                            role={card.onActivate ? "button" : undefined}
+                            tabIndex={card.onActivate ? 0 : undefined}
+                            onKeyDown={card.onActivate ? (e) => {
+                                if (e.key !== "Enter" && e.key !== " ") return;
+                                e.preventDefault();
+                                card.onActivate();
+                            } : undefined}
+                        >
+                            <div className="program-cardInnerFlat">
+                                <div className="program-cardTop">
+                                    <div className="program-day">{card.day}</div>
+                                    {card.statusLabel && (
+                                        <span className={`program-status program-status--${card.status}`}>{card.statusLabel}</span>
                                     )}
-                                    {isCancelled && !finalIsReplaced && (
-                                        <div className="program-verticalBadge program-verticalBadge--cancelled">
-                                            <span>{t("status_cancelled")}</span>
-                                        </div>
-                                    )}
-                                    <div className="program-cardInnerFlat">
-                                        <div className="program-cardTop">
-                                            <div className="program-day">
-                                                {item?.day}
-                                            </div>
-                                        </div>
-                                        <div className="program-activity">{displayTitle}</div>
-                                        <div className="program-bottomRow">
-                                            {timeLabels.map((label) => (
-                                                <div
-                                                    key={label}
-                                                    className={`program-timeLine ${isCancelled && !finalIsReplaced ? "program-timeLine--cancelled" : ""} ${finalIsReplaced ? "program-timeLine--replaced" : ""}`}
-                                                >
-                                                    {label}
-                                                </div>
-                                            ))}
-                                            {dm && <div className="program-dateFixed" title={full}>{dm}</div>}
-                                        </div>
-                                    </div>
-                                </article>
-
-                                {/* Extra addition card */}
-                                {additionEvent && (
-                                    <article
-                                        className="program-card program-card--replaced program-card--clickable"
-                                        onClick={() => window.dispatchEvent(new CustomEvent("open-event", { detail: { eventId: additionEventId } }))}
-                                    >
-                                        <div className="program-verticalBadge program-verticalBadge--replaced">
-                                            <span>{t("status_addition")}</span>
-                                        </div>
-                                        <div className="program-cardInnerFlat">
-                                            <div className="program-cardTop">
-                                                <div className="program-day">
-                                                    {item?.day}
-                                                </div>
-                                            </div>
-                                            <div className="program-activity">{additionEvent.title}</div>
-                                            <div className="program-bottomRow">
-                                                {additionEvent.time && <div className="program-timeLine program-timeLine--replaced">{additionEvent.time}</div>}
-                                                {dm && <div className="program-dateFixed" title={full}>{dm}</div>}
-                                            </div>
-                                        </div>
-                                    </article>
-                                )}
-                            </React.Fragment>
-                        );
-                    })}
+                                </div>
+                                <div className="program-activity">{card.title}</div>
+                                {card.note && <div className="program-note">{card.note}</div>}
+                                <div className="program-bottomRow">
+                                    {card.timeLabels.map((label) => (
+                                        <div key={label} className="program-timeLine">{label}</div>
+                                    ))}
+                                    {card.dm && <div className="program-dateFixed" title={card.full}>{card.dm}</div>}
+                                </div>
+                            </div>
+                        </article>
+                    ))}
                 </div>
 
                 {/* FAQ Accordion Section */}
@@ -790,6 +792,9 @@ export default function Program() {
 
                         {dayModal.title && (
                             <p className="program-dayModalActivity">{dayModal.title}</p>
+                        )}
+                        {dayModal.note && (
+                            <p className="program-dayModalNote">{dayModal.note}</p>
                         )}
 
                         <div className="program-dayModalAnswer">

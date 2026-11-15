@@ -116,47 +116,12 @@
     min-width: 0;
     overflow: hidden;
     display: flex;
-    flex-direction: row;
-    align-items: stretch;
+    flex-direction: column;
 }
 
 .program-card:hover {
     transform: translateY(-4px);
     border-color: rgba(10, 42, 67, 0.25);
-}
-
-.program-verticalBadge {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    flex-shrink: 0;
-    padding: 10px 0;
-    user-select: none;
-    pointer-events: none;
-}
-
-.program-verticalBadge span {
-    writing-mode: vertical-rl;
-    text-orientation: upright;
-    font-size: 11px;
-    font-weight: 900;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    line-height: 1.15;
-    white-space: nowrap;
-}
-
-.program-verticalBadge--replaced {
-    background: linear-gradient(180deg, rgba(217, 155, 25, 0.20) 0%, rgba(217, 155, 25, 0.08) 100%);
-    border-right: 1px solid rgba(217, 155, 25, 0.28);
-    color: #92600a;
-}
-
-.program-verticalBadge--cancelled {
-    background: linear-gradient(180deg, rgba(185, 28, 28, 0.16) 0%, rgba(185, 28, 28, 0.06) 100%);
-    border-right: 1px solid rgba(185, 28, 28, 0.20);
-    color: #991b1b;
 }
 
 .program-cardInnerFlat {
@@ -168,16 +133,12 @@
     height: 100%;
 }
 
-.program-card--replaced .program-cardInnerFlat,
-.program-card--cancelled .program-cardInnerFlat {
-    padding: 20px 14px 20px 12px;
-}
-
 .program-cardTop {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
+    gap: 6px 10px;
     margin-bottom: 12px;
     min-width: 0;
 }
@@ -231,36 +192,139 @@
     font-variant-numeric: tabular-nums;
 }
 
+/* ── Statuts ──
+   Une carte modifiée ou annulée reste blanche : le statut tient dans une
+   petite étiquette lisible à côté du jour, et la note explique ce qui change.
+   Les anciennes cartes entièrement colorées, avec « MODIFICAT » écrit à la
+   verticale, étaient bruyantes et se lisaient mal sur téléphone. */
+.program-status {
+    flex-shrink: 0;
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    padding: 5px 8px;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+.program-status--cancelled {
+    color: #b91c1c;
+    background: rgba(220, 38, 38, 0.1);
+}
+
+.program-status--changed {
+    color: #92600a;
+    background: rgba(217, 155, 25, 0.16);
+}
+
+.program-status--extra {
+    color: #15803d;
+    background: rgba(22, 163, 74, 0.12);
+}
+
+/* Laisse la place au petit coin « ↗ » des cartes cliquables. */
+.program-card--info .program-cardTop {
+    padding-right: 12px;
+}
+
+.program-note {
+    margin: -10px 0 14px;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: rgba(10, 42, 67, 0.62);
+}
+
 .program-card--cancelled {
-    background: #fff6f6;
-    border-color: rgba(185, 28, 28, 0.22);
+    background: #fbfbfc;
 }
 
 .program-card--cancelled .program-activity {
-    color: rgba(10, 42, 67, 0.5);
-}
-
-.program-timeLine--cancelled {
+    color: rgba(10, 42, 67, 0.45);
     text-decoration: line-through;
-    opacity: 0.7;
+    text-decoration-thickness: 1.5px;
+}
+
+.program-card--cancelled .program-timeLine {
+    text-decoration: line-through;
     background: transparent;
-    color: rgba(10, 42, 67, 0.6);
-    border: 1px solid rgba(10, 42, 67, 0.14);
+    color: rgba(10, 42, 67, 0.45);
+    border: 1px solid rgba(10, 42, 67, 0.12);
 }
 
-.program-card--replaced {
-    background: #fffdf5;
-    border-color: rgba(217, 155, 25, 0.30);
+.program-card--changed {
+    border-color: rgba(217, 155, 25, 0.38);
 }
 
-.program-card--replaced .program-activity {
+.program-card--changed .program-timeLine {
+    color: #92600a;
+    background: rgba(217, 155, 25, 0.14);
+}
+
+.program-card--extra {
+    border-color: rgba(22, 163, 74, 0.32);
+}
+
+.program-card--extra .program-timeLine {
+    color: #15803d;
+    background: rgba(22, 163, 74, 0.1);
+}
+
+/* ── Résumé des changements de la semaine, au-dessus de la grille ── */
+.program-changes {
+    margin: 0 0 18px;
+    padding: 14px 16px;
+    border-radius: 16px;
+    background: #fffcf5;
+    border: 1px solid rgba(217, 155, 25, 0.28);
+}
+
+.program-changesTitle {
+    font-size: 15px;
+    font-weight: 800;
+    color: #0a2a43;
+    margin-bottom: 10px;
+}
+
+.program-changesList {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+.program-changesItem {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    min-width: 0;
+}
+
+.program-changesItem .program-status {
+    min-width: 72px;
+    text-align: center;
+}
+
+.program-changesText {
+    min-width: 0;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
     color: #0a2a43;
 }
 
-.program-timeLine--replaced,
-.program-card--replaced .program-timeLine {
-    color: #92600a;
-    background: rgba(217, 155, 25, 0.15);
+.program-changesText strong {
+    font-weight: 800;
+}
+
+.program-changesNote {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(10, 42, 67, 0.6);
 }
 
 .program-card--clickable,
@@ -317,22 +381,6 @@
 .program-card--clickable:hover::after,
 .program-card--info:hover::after {
     opacity: 1;
-}
-
-.program-card--replaced::before {
-    background: linear-gradient(225deg, rgba(217, 155, 25, 0.25) 50%, transparent 50%);
-}
-
-.program-card--replaced::after {
-    color: #92600a;
-}
-
-.program-card--cancelled::before {
-    background: linear-gradient(225deg, rgba(185, 28, 28, 0.22) 50%, transparent 50%);
-}
-
-.program-card--cancelled::after {
-    color: #991b1b;
 }
 
 .program-summerNotice {
@@ -405,20 +453,6 @@
         padding: 18px;
     }
 
-    .program-verticalBadge {
-        width: 26px;
-    }
-
-    .program-verticalBadge span {
-        font-size: 10px;
-        letter-spacing: 0.8px;
-    }
-
-    .program-card--replaced .program-cardInnerFlat,
-    .program-card--cancelled .program-cardInnerFlat {
-        padding: 18px 16px 18px 14px;
-    }
-
     .program-activity {
         font-size: 17px;
     }
@@ -472,36 +506,22 @@
         font-size: 12px;
     }
 
-    .program-verticalBadge {
-        width: 22px;
-        padding: 6px 0;
+    .program-status {
+        font-size: 10.5px;
+        padding: 4px 7px;
     }
 
-    .program-verticalBadge span {
-        font-size: 9px;
-        letter-spacing: 0.5px;
+    .program-note {
+        margin: -6px 0 12px;
+        font-size: 12.5px;
     }
 
-    .program-card--replaced .program-cardInnerFlat,
-    .program-card--cancelled .program-cardInnerFlat {
-        padding: 14px 10px 14px 10px;
+    .program-changes {
+        padding: 12px 14px;
     }
 
-    .program-card--replaced .program-bottomRow,
-    .program-card--cancelled .program-bottomRow {
-        gap: 6px;
-    }
-
-    .program-card--replaced .program-timeLine,
-    .program-card--cancelled .program-timeLine {
-        padding: 6px 8px;
-        font-size: 11px;
-    }
-
-    .program-card--replaced .program-dateFixed,
-    .program-card--cancelled .program-dateFixed {
-        font-size: 11px;
-        flex-shrink: 0;
+    .program-changesText {
+        font-size: 13.5px;
     }
 }
 
@@ -732,6 +752,13 @@
     font-size: 16px;
     font-weight: 700;
     color: #0a2a43;
+}
+
+.program-dayModalNote {
+    margin: -8px 0 16px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(10, 42, 67, 0.62);
 }
 
 .program-dayModalAnswer {
