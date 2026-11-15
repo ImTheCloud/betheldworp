@@ -151,6 +151,7 @@ const SLOT_DEFINITIONS = {
     mon: { id: "mon", label: "Monday · Youth & Teens (20:00 - 21:30)", shortLabel: "Monday · Youth & Teens", defaultTime: "20:00 - 21:30" },
     tue_fast: { id: "tue_fast", label: "Tuesday Morning · Fasting (10:00 - 14:00)", shortLabel: "Tuesday Morning · Fasting", defaultTime: "10:00 - 14:00" },
     tue: { id: "tue", label: "Tuesday Evening · Prayer (20:00 - 21:30)", shortLabel: "Tuesday Evening · Prayer", defaultTime: "20:00 - 21:30" },
+    tue_orch: { id: "tue_orch", label: "Tuesday Evening · Orchestra (20:00 - 21:30)", shortLabel: "Tuesday Evening · Orchestra", defaultTime: "20:00 - 21:30" },
     wed: { id: "wed", label: "Wednesday · Mixed Choir (20:00 - 21:30)", shortLabel: "Wednesday · Mixed Choir", defaultTime: "20:00 - 21:30" },
     thu: { id: "thu", label: "Thursday · Men's Choir (20:00 - 21:30)", shortLabel: "Thursday · Men's Choir", defaultTime: "20:00 - 21:30" },
     fri: { id: "fri", label: "Friday · Prayer (20:00 - 21:30)", shortLabel: "Friday · Prayer", defaultTime: "20:00 - 21:30" },
@@ -167,7 +168,7 @@ function dateToSlots(dateStr) {
     const map = {
         0: [SLOT_DEFINITIONS.sun_am, SLOT_DEFINITIONS.sun_pm],
         1: [SLOT_DEFINITIONS.mon],
-        2: [SLOT_DEFINITIONS.tue_fast, SLOT_DEFINITIONS.tue],
+        2: [SLOT_DEFINITIONS.tue_fast, SLOT_DEFINITIONS.tue, SLOT_DEFINITIONS.tue_orch],
         3: [SLOT_DEFINITIONS.wed],
         4: [SLOT_DEFINITIONS.thu],
         5: [SLOT_DEFINITIONS.fri],

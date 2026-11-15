@@ -14,6 +14,7 @@ const PROGRAM_SLOTS = [
     { id: "mon", dayOffset: 0, defaultTime: "20:00-21:30", titleKey: "act_mon" },
     { id: "tue_fast", dayOffset: 1, defaultTime: "10:00-14:00", titleKey: "act_tue_fast" },
     { id: "tue", dayOffset: 1, defaultTime: "20:00-21:30", titleKey: "act_tue" },
+    { id: "tue_orch", dayOffset: 1, defaultTime: "20:00-21:30", titleKey: "act_tue_orch" },
     { id: "wed", dayOffset: 2, defaultTime: "20:00-21:30", titleKey: "act_wed" },
     { id: "thu", dayOffset: 3, defaultTime: "20:00-21:30", titleKey: "act_thu" },
     { id: "fri", dayOffset: 4, defaultTime: "20:00-21:30", titleKey: "act_fri" },

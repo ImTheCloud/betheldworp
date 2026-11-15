@@ -17,6 +17,7 @@ const AFFECT_OPTIONS = [
     { id: "mon", label: "Monday" },
     { id: "tue_fast", label: "Tuesday (Fasting)" },
     { id: "tue", label: "Tuesday (Evening)" },
+    { id: "tue_orch", label: "Tuesday (Orchestra)" },
     { id: "wed", label: "Wednesday" },
     { id: "thu", label: "Thursday" },
     { id: "fri", label: "Friday" },
@@ -26,7 +27,7 @@ const AFFECT_OPTIONS = [
 ];
 
 // Days offset from Monday (ISO week start) for each program slot
-const DAY_OFFSET = { mon: 0, tue_fast: 1, tue: 1, wed: 2, thu: 3, fri: 4, sat: 5, sun_am: 6, sun_pm: 6 };
+const DAY_OFFSET = { mon: 0, tue_fast: 1, tue: 1, tue_orch: 1, wed: 2, thu: 3, fri: 4, sat: 5, sun_am: 6, sun_pm: 6 };
 
 function pad2(n) { return String(n).padStart(2, "0"); }
 
@@ -547,7 +548,7 @@ function dateToSlotIds(dateStr) {
     const d = new Date(`${dateStr}T12:00:00Z`);
     if (isNaN(d)) return [];
     const day = d.getUTCDay(); // 0=Sun, 1=Mon ... 6=Sat
-    const map = { 0: ["sun_am", "sun_pm"], 1: ["mon"], 2: ["tue_fast", "tue"], 3: ["wed"], 4: ["thu"], 5: ["fri"], 6: ["sat"] };
+    const map = { 0: ["sun_am", "sun_pm"], 1: ["mon"], 2: ["tue_fast", "tue", "tue_orch"], 3: ["wed"], 4: ["thu"], 5: ["fri"], 6: ["sat"] };
     return map[day] ?? [];
 }
 

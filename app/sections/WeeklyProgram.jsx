@@ -13,16 +13,19 @@ const WEEK_STORAGE_KEY = "bethel:program-week";
 
 // Quelle réponse de la FAQ décrit quel créneau du programme. Les deux services
 // du dimanche renvoient à la même réponse, qui traite la journée entière.
-const FAQ_INDEX_BY_DAY = {
-    mon: 0,
-    tue_fast: 1,
-    tue: 2,
-    wed: 3,
-    thu: 4,
-    fri: 5,
-    sat: 6,
-    sun_am: 7,
-    sun_pm: 7,
+// On passe par la clé de la question plutôt que par sa position dans la liste :
+// insérer une question (l'orchestre du mardi) ne décale ainsi aucun renvoi.
+const FAQ_KEY_BY_DAY = {
+    mon: "q1",
+    tue_fast: "q2",
+    tue: "q3",
+    tue_orch: "orch",
+    wed: "q4",
+    thu: "q5",
+    fri: "q6",
+    sat: "q7",
+    sun_am: "q8",
+    sun_pm: "q8",
 };
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -40,12 +43,21 @@ function normalizeActivityTitle(str) {
         .trim();
 }
 
-function resolveFaqIndexForTitle(title) {
+function resolveFaqKeyForTitle(title) {
     if (!title) return null;
     const norm = normalizeActivityTitle(title);
     if (!norm) return null;
 
-    // Cor bărbătesc -> FAQ index 4 (thu)
+    // Orchestră -> FAQ orchestre (tue_orch). Testé en premier : un titre comme
+    // « Seară de rugăciune și repetiție de orchestră » parle d'abord de l'orchestre.
+    if (
+        norm.includes("orchestr") ||
+        norm.includes("orkest")
+    ) {
+        return "orch";
+    }
+
+    // Cor bărbătesc -> FAQ thu
     if (
         norm.includes("cor barbatesc") ||
         norm.includes("corului barbatesc") ||
@@ -55,10 +67,10 @@ function resolveFaqIndexForTitle(title) {
         norm.includes("chorale des hommes") ||
         norm.includes("chorale d hommes")
     ) {
-        return 4;
+        return "q5";
     }
 
-    // Cor mixt -> FAQ index 3 (wed)
+    // Cor mixt -> FAQ wed
     if (
         norm.includes("cor mixt") ||
         norm.includes("corului mixt") ||
@@ -66,10 +78,10 @@ function resolveFaqIndexForTitle(title) {
         norm.includes("mixed choir") ||
         norm.includes("chorale mixte")
     ) {
-        return 3;
+        return "q4";
     }
 
-    // Zi de post și mijlocire -> FAQ index 1 (tue_fast)
+    // Zi de post și mijlocire -> FAQ tue_fast
     if (
         norm.includes("post si mijlocire") ||
         norm.includes("post") ||
@@ -77,10 +89,10 @@ function resolveFaqIndexForTitle(title) {
         norm.includes("fasting") ||
         norm.includes("jeune")
     ) {
-        return 1;
+        return "q2";
     }
 
-    // Tineret & Adolescenți -> FAQ index 0 (mon)
+    // Tineret & Adolescenți -> FAQ mon
     if (
         norm.includes("tineret") ||
         norm.includes("adolescent") ||
@@ -90,30 +102,30 @@ function resolveFaqIndexForTitle(title) {
         norm.includes("teens") ||
         norm.includes("jeunes")
     ) {
-        return 0;
+        return "q1";
     }
 
-    // Copii -> FAQ index 6 (sat)
+    // Copii -> FAQ sat
     if (
         norm.includes("copii") ||
         norm.includes("kinder") ||
         norm.includes("kids") ||
         norm.includes("enfants")
     ) {
-        return 6;
+        return "q7";
     }
 
-    // Rugăciune -> FAQ index 2 (tue/fri)
+    // Rugăciune -> FAQ tue/fri
     if (
         norm.includes("rugaciune") ||
         norm.includes("gebed") ||
         norm.includes("prayer") ||
         norm.includes("priere")
     ) {
-        return 2;
+        return "q3";
     }
 
-    // Serviciu Divin -> FAQ index 7 (sun)
+    // Serviciu Divin -> FAQ sun
     if (
         norm.includes("serviciu divin") ||
         norm.includes("cina domnului") ||
@@ -121,7 +133,7 @@ function resolveFaqIndexForTitle(title) {
         norm.includes("culte") ||
         norm.includes("service")
     ) {
-        return 7;
+        return "q8";
     }
 
     return null;
@@ -341,6 +353,7 @@ export default function Program() {
         { key: "q1", q: `${t("faq_q1_day")} · ${t("faq_q1_title")}`, a: t("faq_q1_body") },
         { key: "q2", q: `${t("faq_q2_day")} · ${t("faq_q2_title")}`, a: t("faq_q2_body") },
         { key: "q3", q: `${t("faq_q3_day")} · ${t("faq_q3_title")}`, a: t("faq_q3_body") },
+        { key: "orch", q: `${t("faq_orch_day")} · ${t("faq_orch_title")}`, a: t("faq_orch_body") },
         { key: "q4", q: `${t("faq_q4_day")} · ${t("faq_q4_title")}`, a: t("faq_q4_body") },
         { key: "q5", q: `${t("faq_q5_day")} · ${t("faq_q5_title")}`, a: t("faq_q5_body") },
         { key: "q6", q: `${t("faq_q6_day")} · ${t("faq_q6_title")}`, a: t("faq_q6_body") },
@@ -404,6 +417,7 @@ export default function Program() {
         { day: t("day_mon"), id: "mon", times: ["20:00-21:30"], title: t("act_mon") },
         { day: t("day_tue"), id: "tue_fast", times: ["10:00-14:00"], title: t("act_tue_fast") },
         { day: t("day_tue"), id: "tue", times: ["20:00-21:30"], title: t("act_tue") },
+        { day: t("day_tue"), id: "tue_orch", times: ["20:00-21:30"], title: t("act_tue_orch") },
         { day: t("day_wed"), id: "wed", times: ["20:00-21:30"], title: t("act_wed") },
         { day: t("day_thu"), id: "thu", times: ["20:00-21:30"], title: t("act_thu") },
         { day: t("day_fri"), id: "fri", times: ["20:00-21:30"], title: t("act_fri") },
@@ -454,7 +468,7 @@ export default function Program() {
     }, [weekInfo.start]);
 
 
-    const dayIdToIndex = { mon: 0, tue_fast: 1, tue: 1, wed: 2, thu: 3, fri: 4, sat: 5, sun_am: 6, sun_pm: 6 };
+    const dayIdToIndex = { mon: 0, tue_fast: 1, tue: 1, tue_orch: 1, wed: 2, thu: 3, fri: 4, sat: 5, sun_am: 6, sun_pm: 6 };
 
     const dateMetaById = useMemo(() => {
         const byId = {};
@@ -612,11 +626,11 @@ export default function Program() {
                         // à la nouvelle activité (ex: répétition du cor bărbătesc déplacée au lundi).
                         // Si le titre ne correspond à aucune FAQ connue, on n'affiche surtout pas
                         // l'ancienne FAQ du créneau habituel qui ne correspond plus.
-                        const faqIndex = isManual
-                            ? resolveFaqIndexForTitle(displayTitle)
-                            : (resolveFaqIndexForTitle(displayTitle) ?? FAQ_INDEX_BY_DAY[id] ?? null);
+                        const faqKey = isManual
+                            ? resolveFaqKeyForTitle(displayTitle)
+                            : (resolveFaqKeyForTitle(displayTitle) ?? FAQ_KEY_BY_DAY[id] ?? null);
 
-                        const faqEntry = faqIndex != null ? faqQuestions[faqIndex] : null;
+                        const faqEntry = faqKey ? faqQuestions.find((q) => q.key === faqKey) ?? null : null;
 
                         const activerCarte = isReplaced
                             ? () => window.dispatchEvent(new CustomEvent("open-event", { detail: { eventId: replacementEventId } }))

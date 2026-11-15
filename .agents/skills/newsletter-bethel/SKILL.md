@@ -33,6 +33,7 @@ Voici le programme récurrent (ne change quasi jamais) :
 | **Lundi (LUN)** | 20:00 – 21:30 | Seară de Tineret și Adolescenți |
 | **Marți (MAR)** | 10:00 – 14:00 | Zi de post și mijlocire |
 | **Marți (MAR)** | 20:00 – 21:30 | Seară de rugăciune |
+| **Marți (MAR)** | 20:00 – 21:30 | Repetiție Orchestră (la subsol, séparée de la soirée de prière) |
 | **Miercuri (MIE)** | 20:00 – 21:30 | Repetiția corului mixt |
 | **Joi (JOI)** | 20:00 – 21:30 | Repetiția corului bărbătesc |
 | **Vineri (VIN)** | 20:00 – 21:30 | Seară de rugăciune |
@@ -147,8 +148,9 @@ Pour un événement **annulé**, respecter la structure normale (ne JAMAIS tout 
    - Utiliser des formulations simples et directes : *"vă invităm să participați"*, *"vă așteptăm cu drag"*, *"toți cei care cântă la un instrument sunt invitați să participe"*.
 
 6. **Activités se déroulant pendant le culte / la soirée de prière habituelle** :
-   - Si une activité spéciale (ex: repetiție de orchestră, adunare administrativă) a lieu pendant le programme du soir habituel, ce n'est **PAS** un "Program Extra" distinct.
-   - Ne pas dupliquer le bloc horaire : présenter le créneau unique (ex: `Seară de rugăciune și repetiție de orchestră`) en précisant que la répétition a lieu dans le cadre de la soirée de l'église.
+   - Si une activité spéciale **ponctuelle** (ex: adunare administrativă) a lieu pendant le programme du soir habituel, ce n'est **PAS** un "Program Extra" distinct.
+   - Ne pas dupliquer le bloc horaire : présenter le créneau unique en précisant que l'activité a lieu dans le cadre de la soirée de l'église.
+   - **Exception : la répétition d'orchestre du mardi** fait partie du programme hebdomadaire depuis le 17 novembre 2026. Elle a sa propre ligne dans le calendrier (`Repetiție Orchestră`, `chip-n`), juste après `Seară de rugăciune` du mardi soir.
 
 7. **Pas de retour sur les anciens événements ou verset du mois déjà annoncé** :
    - Ne **PAS** répéter le "Versetul lunii" ou des annonces passées si elles ont déjà été communiquées dans une newsletter précédente.
@@ -272,6 +274,7 @@ Avant d'envoyer, vérifier :
 | Protest Samson | `https://www.betheldworp.be/images/events/ProtestSamson.jpeg` | Protest Familia Samson |
 | Simion Buzduga | `https://www.betheldworp.be/images/events/SimionBuzduga.png` | Visite fr. Simion |
 | Orchestra Elim Bruxelles | `https://www.betheldworp.be/images/events/OrchestraElimBruxelles.jpg` | Visite / concert Orchestra Elim Bruxelles |
+| Orchestre de l'église | `https://www.betheldworp.be/images/events/Orchestra.png` | Répétition d'orchestre du mardi |
 
 ---
 
