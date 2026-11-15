@@ -366,12 +366,14 @@
 }
 
 .ev-desc {
+    grid-area: desc;
     white-space: pre-line;
-    margin: 0;
-    font-size: 14px;
-    font-weight: 650;
-    color: rgba(10, 42, 67, 0.72);
-    line-height: 1.55;
+    margin: 4px 0 0;
+    max-width: 68ch;
+    font-size: 15px;
+    font-weight: 450;
+    color: rgba(10, 42, 67, 0.82);
+    line-height: 1.7;
     text-align: left;
     text-justify: auto;
     hyphens: none;
@@ -517,22 +519,47 @@
     overscroll-behavior: contain;
 }
 
+/* Ordre de lecture : image, infos pratiques, texte. Sur téléphone la carte
+   passe après le texte, pour ne pas séparer les infos de la description.
+   .ev-details s'efface (display: contents) pour que ses enfants se placent
+   directement dans cette grille. */
 .ev-layout {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 16px;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "media" "info" "desc" "map";
+    gap: 14px;
     align-items: start;
 }
 
-.ev-media,
-.ev-details {
+.ev-media {
+    grid-area: media;
     min-width: 0;
 }
 
 .ev-details {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+    display: contents;
+}
+
+.ev-infoGrid {
+    grid-area: info;
+}
+
+.ev-mapCard {
+    grid-area: map;
+}
+
+.ev-desc p {
+    margin: 0 0 12px;
+}
+
+.ev-desc p:last-child {
+    margin-bottom: 0;
+}
+
+.ev-desc .ev-descGreeting {
+    font-weight: 800;
+    color: #0a2a43;
+    margin-bottom: 8px;
 }
 
 .ev-heroImgsGrid {
@@ -606,27 +633,21 @@
 
 @media (min-width: 901px) {
     .ev-layout {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+        grid-template-areas: "media media" "info map" "desc desc";
         align-items: start;
     }
 
+    /* Une image paysage ne s'étire plus sur toute la hauteur de l'écran :
+       on la recadre en gardant le haut, là où sont les visages. */
     .ev-heroImg {
-        max-height: 50vh;
+        max-height: min(44vh, 440px);
         object-fit: cover;
-        object-position: center;
-    }
-
-    .ev-details {
-        flex-direction: row;
-        align-items: stretch;
-    }
-
-    .ev-infoGrid {
-        flex: 1.15;
+        object-position: center 25%;
     }
 
     .ev-mapCard {
-        flex: 0.85;
+        align-self: stretch;
         display: flex;
     }
 
@@ -646,8 +667,9 @@
         object-fit: contain;
     }
 
-    .ev-modal.ev-modal--portrait .ev-details {
-        flex-direction: column;
+    .ev-modal.ev-modal--portrait .ev-layout {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-areas: "media" "info" "desc" "map";
     }
 
     .ev-modal.ev-modal--portrait .ev-map {

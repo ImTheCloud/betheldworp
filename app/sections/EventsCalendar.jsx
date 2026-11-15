@@ -76,6 +76,24 @@ function pickByLang(value, lang) {
     return "";
 }
 
+// Description d'un événement : un paragraphe par bloc séparé d'une ligne vide.
+// Une première ligne courte terminée par une virgule (« Pacea Domnului, ») est
+// une salutation : elle est mise en valeur plutôt que fondue dans le texte.
+function EventDescription({ text }) {
+    const blocks = String(text ?? "").split(/\n\s*\n/).map((b) => b.trim()).filter(Boolean);
+    if (!blocks.length) return null;
+    return (
+        <div className="ev-desc">
+            {blocks.map((block, i) => {
+                const isGreeting = i === 0 && block.length <= 40 && !block.includes("\n") && /,$/.test(block);
+                return (
+                    <p key={i} className={isGreeting ? "ev-descGreeting" : undefined}>{block}</p>
+                );
+            })}
+        </div>
+    );
+}
+
 export default function EventsCalendar() {
     const { lang } = useLang();
     const t = useMemo(() => makeT(tr, lang), [lang]);
@@ -684,7 +702,6 @@ export default function EventsCalendar() {
                         </header>
 
                         <div className="ev-body">
-                            {selectedEvent.description ? <p className="ev-desc" style={{ marginBottom: 20 }}>{selectedEvent.description}</p> : null}
                             <div className="ev-layout">
                                 <div className="ev-media">
                                     {selectedEventImages.length > 1 ? (
@@ -738,6 +755,10 @@ export default function EventsCalendar() {
                                         />
                                     </div>
                                 </div>
+
+                                {/* La description vient après l'image et les informations pratiques :
+                                    on voit d'abord qui vient, quand et où, puis on lit le texte. */}
+                                {selectedEvent.description ? <EventDescription text={selectedEvent.description} /> : null}
                             </div>
                         </div>
 
