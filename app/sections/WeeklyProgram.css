@@ -224,6 +224,12 @@
     background: rgba(22, 70, 120, 0.1);
 }
 
+.program-status--moved,
+.program-status--movedFrom {
+    color: #5b21b6;
+    background: rgba(109, 40, 217, 0.1);
+}
+
 .program-status--extra {
     color: #15803d;
     background: rgba(22, 163, 74, 0.12);
@@ -254,6 +260,12 @@
     border-color: rgba(22, 70, 120, 0.28);
 }
 
+.program-status--tag.program-status--moved,
+.program-status--tag.program-status--movedFrom {
+    background: #efe9fb;
+    border-color: rgba(109, 40, 217, 0.26);
+}
+
 .program-status--tag.program-status--extra {
     background: #e3f5e9;
     border-color: rgba(22, 163, 74, 0.32);
@@ -267,17 +279,20 @@
     color: rgba(10, 42, 67, 0.62);
 }
 
-.program-card--cancelled {
+.program-card--cancelled,
+.program-card--movedFrom {
     background: #fbfbfc;
 }
 
-.program-card--cancelled .program-activity {
+.program-card--cancelled .program-activity,
+.program-card--movedFrom .program-activity {
     color: rgba(10, 42, 67, 0.45);
     text-decoration: line-through;
     text-decoration-thickness: 1.5px;
 }
 
-.program-card--cancelled .program-timeLine {
+.program-card--cancelled .program-timeLine,
+.program-card--movedFrom .program-timeLine {
     text-decoration: line-through;
     background: transparent;
     color: rgba(10, 42, 67, 0.45);
@@ -291,6 +306,15 @@
 .program-card--changed .program-timeLine {
     color: #92600a;
     background: rgba(217, 155, 25, 0.14);
+}
+
+.program-card--moved {
+    border-color: rgba(109, 40, 217, 0.28);
+}
+
+.program-card--moved .program-timeLine {
+    color: #5b21b6;
+    background: rgba(109, 40, 217, 0.08);
 }
 
 .program-card--event {
@@ -311,8 +335,8 @@
     margin: 0 0 18px;
     padding: 14px 16px;
     border-radius: 16px;
-    background: #fffcf5;
-    border: 1px solid rgba(217, 155, 25, 0.28);
+    background: linear-gradient(180deg, rgba(10, 42, 67, 0.03) 0%, rgba(10, 42, 67, 0.01) 100%);
+    border: 1px solid rgba(10, 42, 67, 0.15);
 }
 
 .program-changesTitle {

@@ -545,49 +545,107 @@ export default function Program() {
 
     // Toutes les cartes de la semaine, calculées une fois : la grille et le
     // résumé des changements en haut lisent la même liste.
-    //   status : "normal", "cancelled" (anulat), "changed" (modificat à la main),
-    //   "event" (remplacé par un événement), "extra" (événement en plus).
+    //
+    // Statuts, déduits de ce qui est rempli dans l'admin pour la semaine :
+    //   "cancelled"  Anulat     créneau annulé, rien ne le remplace ailleurs
+    //   "movedFrom"  Mutat      créneau annulé dont l'activité a lieu un autre jour
+    //   "moved"      Mutat      titre manuel qui reprend l'activité d'un créneau annulé
+    //   "changed"    Modificat  titre ou heure changés à la main, sans déplacement
+    //   "event"      Eveniment  créneau remplacé par un événement
+    //   "extra"      Extra      événement ajouté en plus du programme
     // Les créneaux coupés par la pause d'été n'entrent pas dans le résumé :
     // l'avis d'été au-dessus de la grille l'explique déjà.
-    const programCards = [];
-    LOCAL_PROGRAM_ITEMS.forEach((item, idx) => {
+    const lowerDay = (d) => (lang === "en" ? d : d.toLowerCase());
+    const baseCards = LOCAL_PROGRAM_ITEMS.map((item, idx) => {
         const id = safeStr(item?.id || `day-${idx}`).trim();
-        const day = safeStr(item?.day).trim();
-        const times = safeArr(item?.times);
-
         const replacementEventId = safeStr(replacements[id]).trim();
         const replacementEvent = replacementEventId ? eventsMap.get(replacementEventId) : null;
         const isBrokenOverride = replacementEventId && !replacementEvent;
-        const isSummerBreak = !!dateMetaById?.[id]?.summerBreak;
-        const isOverrideCancelled = cancelledSet.has(id) && !isBrokenOverride;
-        const isReplaced = !!replacementEvent;
-
         const customTitle = pickByLang(customTitles?.[id], lang);
         const customTime = safeStr(customTimes?.[id]).trim();
-        const isManual = customTitle !== "" || customTime !== "";
-        const isChanged = isReplaced || isManual;
-        const isCancelled = !isChanged && (isOverrideCancelled || isSummerBreak);
+        return {
+            item,
+            id,
+            day: safeStr(item?.day).trim(),
+            replacementEventId,
+            replacementEvent,
+            isReplaced: !!replacementEvent,
+            isSummerBreak: !!dateMetaById?.[id]?.summerBreak,
+            isOverrideCancelled: cancelledSet.has(id) && !isBrokenOverride,
+            customTitle,
+            customTime,
+            isManual: customTitle !== "" || customTime !== "",
+            // Titre habituel dans la langue affichée et en roumain : l'admin ne
+            // remplit parfois que le titre roumain.
+            defaultTitles: [item?.title, tr?.ro?.[`act_${id}`]].map(normalizeActivityTitle).filter(Boolean),
+        };
+    });
 
-        // Un créneau remplacé par un événement (un invité, par exemple) n'est pas
-        // « modifié » : c'est un événement. « Modificat » ne sert que lorsque le
-        // titre ou l'heure ont été changés à la main dans l'admin.
-        const status = isManual ? "changed" : isReplaced ? "event" : isCancelled ? "cancelled" : "normal";
+    // Déplacements : un créneau annulé (ni remplacé, ni modifié) dont l'activité
+    // habituelle réapparaît, en titre manuel, sur un autre créneau de la semaine.
+    // Ex. le post annulé mardi et écrit à la main mercredi.
+    const movedFromById = {};
+    const movedToById = {};
+    baseCards.forEach((target) => {
+        if (!target.customTitle || target.isReplaced) return;
+        const wanted = normalizeActivityTitle(target.customTitle);
+        const source = baseCards.find((c) =>
+            c.id !== target.id &&
+            c.isOverrideCancelled && !c.isReplaced && !c.isManual &&
+            !movedToById[c.id] &&
+            c.defaultTitles.includes(wanted)
+        );
+        if (!source) return;
+        movedFromById[target.id] = source;
+        movedToById[source.id] = target;
+    });
+
+    const programCards = [];
+    baseCards.forEach((c) => {
+        const { item, id, day, replacementEventId, replacementEvent, isReplaced, isSummerBreak, isOverrideCancelled, customTitle, customTime, isManual } = c;
+        const moveSource = movedFromById[id];
+        const moveTarget = movedToById[id];
+
+        let status = "normal";
+        if (moveTarget) status = "movedFrom";
+        else if (moveSource) status = "moved";
+        else if (isManual) status = "changed";
+        else if (isReplaced) status = "event";
+        else if (isOverrideCancelled || isSummerBreak) status = "cancelled";
+
         const statusLabel = {
             changed: t("status_replaced"),
             event: t("status_event"),
             cancelled: t("status_cancelled"),
+            moved: t("status_moved"),
+            movedFrom: t("status_moved"),
         }[status] || "";
-        const note = pickByLang(notes?.[id], lang);
+        const isCancelled = status === "cancelled" || status === "movedFrom";
+
+        // La note saisie dans l'admin passe avant la note automatique.
+        const adminNote = pickByLang(notes?.[id], lang);
+        const autoNote = moveTarget
+            ? t("move_to").replace("{day}", lowerDay(moveTarget.day))
+            : moveSource
+                ? t("move_from").replace("{day}", lowerDay(moveSource.day))
+                : "";
+        const note = adminNote || autoNote;
 
         const dm = safeStr(dateMetaById?.[id]?.dm || "");
         const full = safeStr(dateMetaById?.[id]?.full || "");
 
         const title = customTitle || (isReplaced ? replacementEvent.title : item?.title);
         const displayTime = isReplaced && replacementEvent.time ? replacementEvent.time : null;
-        const cleanedTimes = times.map((x) => safeStr(x).trim()).filter(Boolean);
+        const cleanedTimes = safeArr(item?.times).map((x) => safeStr(x).trim()).filter(Boolean);
         const timeLabels = customTime
             ? [formatRange(customTime)]
             : (isReplaced && displayTime ? [formatRange(displayTime)] : cleanedTimes.map(formatRange));
+
+        // Ce que la modification fait disparaître du créneau, pour le résumé :
+        // lundi, le cor bărbătesc prend la place de la soirée des jeunes.
+        const replacesNote = (status === "moved" || status === "changed" || status === "event") && title !== item?.title
+            ? t("replaces").replace("{title}", item?.title || "")
+            : "";
 
         // Une carte remplacée par un événement ouvre l'événement. Les autres ouvrent
         // la réponse de la FAQ qui décrit l'activité affichée. Un titre manuel qui ne
@@ -612,9 +670,22 @@ export default function Program() {
                 })
                 : null;
 
+        // Résumé : un déplacement tient en une seule ligne, sur le jour d'arrivée
+        // (« Zi de post și mijlocire, de marți pe miercuri »).
+        let summaryNote = "";
+        if (status === "moved") {
+            summaryNote = [
+                t("move_summary").replace("{from}", lowerDay(moveSource.day)).replace("{to}", lowerDay(day)),
+                replacesNote,
+            ].filter(Boolean).join(", ");
+        } else {
+            summaryNote = [adminNote, replacesNote].filter(Boolean).join(", ");
+        }
+
         programCards.push({
-            key: id, day, title, note, status, statusLabel, timeLabels, dm, full, onActivate,
-            inSummary: status === "changed" || status === "event" || (status === "cancelled" && isOverrideCancelled),
+            key: id, day, title, note, status, statusLabel, timeLabels, dm, full, onActivate, summaryNote,
+            inSummary: status === "changed" || status === "event" || status === "moved" ||
+                (status === "cancelled" && isOverrideCancelled),
         });
 
         const additionEventId = safeStr(additions[id]).trim();
@@ -625,6 +696,7 @@ export default function Program() {
                 day,
                 title: additionEvent.title,
                 note: "",
+                summaryNote: "",
                 status: "extra",
                 statusLabel: t("status_addition"),
                 timeLabels: additionEvent.time ? [formatRange(additionEvent.time)] : [],
@@ -688,7 +760,7 @@ export default function Program() {
                                     <span className={`program-status program-status--${c.status}`}>{c.statusLabel}</span>
                                     <span className="program-changesText">
                                         <strong>{c.day}</strong> {c.title}
-                                        {c.note && <span className="program-changesNote">{c.note}</span>}
+                                        {c.summaryNote && <span className="program-changesNote">{c.summaryNote}</span>}
                                     </span>
                                 </li>
                             ))}
