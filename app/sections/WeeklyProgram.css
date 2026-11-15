@@ -271,12 +271,20 @@
     border-color: rgba(22, 163, 74, 0.32);
 }
 
-.program-note {
+.program-meta {
     margin: -10px 0 14px;
+}
+
+.program-note {
     font-size: 13px;
     font-weight: 600;
     line-height: 1.4;
     color: rgba(10, 42, 67, 0.62);
+}
+
+/* L'étiquette dans la ligne ne sert que dans la liste du téléphone. */
+.program-status--inline {
+    display: none;
 }
 
 .program-card--cancelled,
@@ -626,8 +634,11 @@
         padding: 4px 7px;
     }
 
-    .program-note {
+    .program-meta {
         margin: -6px 0 12px;
+    }
+
+    .program-note {
         font-size: 12.5px;
     }
 
@@ -899,3 +910,199 @@ la fenêtre y occupe toute la largeur. */
     }
 }
 
+/* ── Téléphone : la grille devient une liste compacte ──
+   Une ligne par créneau (jour et date à gauche, activité au milieu, heure à
+   droite) pour voir presque toute la semaine sans défiler, même dans un
+   navigateur dont la barre d'adresse mange une partie de l'écran. Le statut
+   devient un liseré coloré à gauche et une étiquette dans la ligne. Le résumé
+   du haut est masqué : chaque ligne montre déjà son statut et sa note. */
+@media (max-width: 600px) {
+    .program-header {
+        margin-bottom: 16px;
+    }
+
+    .program-changes {
+        display: none;
+    }
+
+    .program-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0;
+        border: 1px solid rgba(10, 42, 67, 0.14);
+        border-radius: 16px;
+        overflow: hidden;
+        background: #ffffff;
+    }
+
+    .program-grid > .program-card:last-child:nth-child(odd) {
+        grid-column: auto;
+    }
+
+    .program-card,
+    .program-card--cancelled,
+    .program-card--movedFrom,
+    .program-card--changed,
+    .program-card--moved,
+    .program-card--event,
+    .program-card--extra {
+        min-height: 0;
+        border: 0;
+        border-radius: 0;
+        border-top: 1px solid rgba(10, 42, 67, 0.08);
+        border-left: 4px solid transparent;
+        background: #ffffff;
+    }
+
+    .program-card:first-child {
+        border-top: 0;
+    }
+
+    /* Un nouveau jour : séparation un peu plus marquée. */
+    .program-card:not(.program-card--sameDay):not(:first-child) {
+        border-top-color: rgba(10, 42, 67, 0.16);
+    }
+
+    .program-card--cancelled,
+    .program-card--movedFrom {
+        border-left-color: #ef4444;
+        background: #fdfafa;
+    }
+
+    .program-card--changed,
+    .program-card--moved {
+        border-left-color: #d99b19;
+    }
+
+    .program-card--event {
+        border-left-color: #2563eb;
+    }
+
+    .program-card--extra {
+        border-left-color: #16a34a;
+    }
+
+    .program-card:hover,
+    .program-card--info:hover {
+        transform: none;
+    }
+
+    .program-status--tag,
+    .program-card--info::before {
+        display: none;
+    }
+
+    /* Petit chevron à droite : la ligne s'ouvre au toucher. */
+    .program-card--info::after,
+    .program-card--cancelled.program-card--info::after,
+    .program-card--movedFrom.program-card--info::after,
+    .program-card--changed.program-card--info::after,
+    .program-card--moved.program-card--info::after,
+    .program-card--event.program-card--info::after,
+    .program-card--extra.program-card--info::after {
+        content: "›";
+        top: 50%;
+        right: 9px;
+        transform: translateY(-50%);
+        font-size: 18px;
+        font-weight: 700;
+        color: rgba(10, 42, 67, 0.3);
+    }
+
+    .program-cardInnerFlat,
+    .program-card--cancelled .program-cardInnerFlat {
+        display: grid;
+        grid-template-columns: 62px auto minmax(0, 1fr);
+        grid-template-areas:
+            "day title title"
+            "date time meta";
+        column-gap: 8px;
+        row-gap: 3px;
+        align-items: center;
+        padding: 8px 24px 8px 10px;
+        height: auto;
+    }
+
+    .program-cardTop {
+        grid-area: day;
+        margin: 0;
+        align-self: end;
+    }
+
+    .program-day {
+        font-size: 10.5px;
+        letter-spacing: 0.04em;
+        line-height: 1.2;
+        color: #0a2a43;
+    }
+
+    .program-card--sameDay .program-day,
+    .program-card--sameDay .program-dateFixed {
+        visibility: hidden;
+    }
+
+    .program-activity {
+        grid-area: title;
+        margin: 0;
+        font-size: 15px;
+        line-height: 1.3;
+        align-self: end;
+    }
+
+    .program-meta {
+        grid-area: meta;
+        margin: 0;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 4px 6px;
+        align-self: start;
+    }
+
+    .program-status--inline {
+        display: inline-block;
+        font-size: 10px;
+        padding: 3px 6px;
+    }
+
+    .program-note {
+        font-size: 12px;
+        line-height: 1.3;
+    }
+
+    .program-bottomRow {
+        display: contents;
+    }
+
+    /* L'heure passe sous le titre : le titre garde toute la largeur et tient
+       le plus souvent sur une ligne. */
+    .program-timeLine,
+    .program-card--changed .program-timeLine,
+    .program-card--moved .program-timeLine,
+    .program-card--event .program-timeLine,
+    .program-card--extra .program-timeLine,
+    .program-card--cancelled .program-timeLine,
+    .program-card--movedFrom .program-timeLine {
+        grid-area: time;
+        align-self: start;
+        font-size: 12.5px;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        color: #164678;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .program-card--cancelled .program-timeLine,
+    .program-card--movedFrom .program-timeLine {
+        color: rgba(10, 42, 67, 0.45);
+    }
+
+    .program-dateFixed {
+        grid-area: date;
+        margin: 0;
+        align-self: start;
+        font-size: 11px;
+        color: rgba(10, 42, 67, 0.45);
+    }
+}
