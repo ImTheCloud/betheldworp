@@ -2,341 +2,88 @@
 <html lang="ro">
 <head>
     <meta charset="utf-8">
-    <title>Bethel Dworp — OpenGraph</title>
+    <title>Bethel Dworp OpenGraph</title>
+    <!--
+        Modèle de l'image de partage (WhatsApp, Facebook, etc.), 1200x630.
+        Volontairement simple : le logo et le nom en grand, sans le programme,
+        pour qu'elle reste juste quoi qu'il change dans la semaine.
+        Rendu : Chrome headless, --window-size=1200,630, puis export en JPEG
+        dans public/images/og-vNN.jpg (changer le numéro force WhatsApp à
+        recharger l'image).
+    -->
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         html, body {
             width: 1200px;
             height: 630px;
             overflow: hidden;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background: linear-gradient(175deg, #f9fbfe 0%, #edf3f9 100%);
-            color: #0a2a43;
             -webkit-font-smoothing: antialiased;
         }
         body {
+            position: relative;
             display: flex;
             flex-direction: column;
-            width: 1200px;
-            height: 630px;
-            padding: 20px 26px;
-            justify-content: space-between;
-        }
-
-        /* --- EN-TÊTE CENTRÉ TOUT EN HAUT --- */
-        .brand-header {
-            display: flex;
             align-items: center;
             justify-content: center;
-            gap: 20px;
-            padding-bottom: 12px;
-            border-bottom: 2px solid rgba(10, 42, 67, 0.10);
-            flex-shrink: 0;
+            gap: 34px;
+            color: #ffffff;
+            background:
+                radial-gradient(ellipse 60% 70% at 50% 42%, rgba(120, 170, 220, 0.28) 0%, rgba(120, 170, 220, 0) 70%),
+                linear-gradient(170deg, #164678 0%, #0a2a43 100%);
         }
-
-        .logo-wrap {
-            width: 90px;
-            height: 90px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .logo {
+            width: 168px;
+            height: 168px;
+            border-radius: 40px;
             background: #ffffff;
-            border-radius: 24px;
-            box-shadow: 0 12px 28px -6px rgba(10, 42, 67, 0.18), 0 0 0 1.5px rgba(10, 42, 67, 0.08);
-            padding: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             overflow: hidden;
-            flex-shrink: 0;
+            box-shadow: 0 24px 50px -12px rgba(0, 0, 0, 0.45);
         }
-
-        .logo-img {
+        .logo img {
             width: 100%;
             height: 100%;
             object-fit: contain;
-            transform: scale(1.60);
-            filter: drop-shadow(0 4px 8px rgba(10, 42, 67, 0.12));
+            transform: scale(1.55);
         }
-
-        .brand-text {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            text-align: left;
-        }
-
-        .brand-title {
-            font-size: 44px;
-            font-weight: 900;
-            line-height: 1.05;
-            letter-spacing: -0.01em;
-            color: #0a2a43;
-            text-transform: uppercase;
-            white-space: nowrap;
-        }
-
-        .brand-sub {
-            font-size: 19px;
-            font-weight: 800;
-            letter-spacing: 0.16em;
-            color: #164678;
-            text-transform: uppercase;
-            margin-top: 3px;
-            white-space: nowrap;
-        }
-
-        /* --- 2 COLONNES DE 4 LIGNES CHACUNE --- */
-        .sched-columns {
-            display: flex;
-            flex-direction: row;
-            gap: 16px;
-            flex: 1;
-            margin-top: 12px;
-        }
-
-        .sched-col {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            justify-content: space-between;
-        }
-
-        /* CARTE SERVICE */
-        .sched-card {
-            flex: 1;
-            display: flex;
-            flex-direction: row;
-            align-items: stretch;
-            background: #ffffff;
-            border-radius: 14px;
-            overflow: hidden;
-            box-shadow: 0 3px 12px rgba(10, 42, 67, 0.06);
-            border: 2px solid rgba(10, 42, 67, 0.12);
-        }
-
-        /* Tag Jour (à gauche) */
-        .sched-day-tag {
-            width: 124px;
-            background: #0a2a43;
-            color: #ffffff;
+        .text {
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            font-size: 19px;
+            gap: 14px;
+        }
+        h1 {
+            font-size: 104px;
             font-weight: 900;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.01em;
+            line-height: 1;
+        }
+        .sub {
+            font-size: 30px;
+            font-weight: 700;
+            letter-spacing: 0.28em;
             text-transform: uppercase;
-            padding: 4px 6px;
-            text-align: center;
-            flex-shrink: 0;
-            line-height: 1.15;
+            color: rgba(255, 255, 255, 0.78);
         }
-
-        .sched-day-sub {
-            font-size: 11.5px;
-            font-weight: 800;
-            letter-spacing: 0.06em;
-            opacity: 0.85;
-            margin-top: 2px;
-        }
-
-        /* Corps détails (à droite) */
-        .sched-body {
-            flex: 1;
-            background: #f8fafc;
-            padding: 6px 14px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            gap: 4px;
-            overflow: hidden;
-        }
-
-        .sched-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            white-space: nowrap;
-        }
-
-        .sched-time-badge {
-            background: #ffffff;
-            color: #0a2a43;
-            border: 1.5px solid rgba(10, 42, 67, 0.20);
-            border-radius: 7px;
-            padding: 3px 9px;
-            font-size: 18.5px;
-            font-weight: 900;
-            letter-spacing: -0.01em;
-            white-space: nowrap;
-            box-shadow: 0 1px 3px rgba(10, 42, 67, 0.04);
-            flex-shrink: 0;
-        }
-
-        .sched-text {
-            font-size: 19px;
-            font-weight: 800;
-            color: #0a2a43;
-            letter-spacing: -0.01em;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        /* Cartes à ligne unique : police plus grande */
-        .sched-card--single .sched-time-badge {
-            padding: 5px 12px;
-            font-size: 20px;
-        }
-
-        .sched-card--single .sched-text {
-            font-size: 20.5px;
-        }
-
-        /* Carte Marți (2 lignes) */
-        .sched-card--double .sched-time-badge {
-            padding: 3px 8px;
-            font-size: 17px;
-        }
-
-        .sched-card--double .sched-text {
-            font-size: 17.5px;
+        .url {
+            position: absolute;
+            bottom: 34px;
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            color: rgba(255, 255, 255, 0.55);
         }
     </style>
 </head>
 <body>
-    <!-- EN-TÊTE CENTRÉ : LOGO + BETHEL DWORP SUR UNE LIGNE -->
-    <header class="brand-header">
-        <div class="logo-wrap">
-            <img class="logo-img" src="./icon-512.png" alt="Bethel Dworp Logo">
-        </div>
-        <div class="brand-text">
-            <h1 class="brand-title">BETHEL DWORP</h1>
-            <div class="brand-sub">BISERICA PENTICOSTALĂ</div>
-        </div>
-    </header>
-
-    <!-- 2 COLONNES : COLONNE 1 (LUN-JEU) & COLONNE 2 (VIN-DUM) -->
-    <main class="sched-columns">
-        <!-- COLONNE 1 : LUNI, MARȚI, MIERCURI, JOI -->
-        <div class="sched-col">
-            <!-- 1. LUNI -->
-            <div class="sched-card sched-card--single">
-                <div class="sched-day-tag">
-                    LUNI
-                </div>
-                <div class="sched-body">
-                    <div class="sched-item">
-                        <span class="sched-time-badge">20:00 - 21:30</span>
-                        <span class="sched-text">Tineret &amp; Adolescenți</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 2. MARȚI (2 SERVICES) -->
-            <div class="sched-card sched-card--double">
-                <div class="sched-day-tag">
-                    MARȚI
-                </div>
-                <div class="sched-body">
-                    <div class="sched-item">
-                        <span class="sched-time-badge">10:00 - 12:00</span>
-                        <span class="sched-text">Post și Mijlocire</span>
-                    </div>
-                    <div class="sched-item">
-                        <span class="sched-time-badge">20:00 - 21:30</span>
-                        <span class="sched-text">Seară de Rugăciune</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 3. MIERCURI -->
-            <div class="sched-card sched-card--single">
-                <div class="sched-day-tag">
-                    MIERCURI
-                </div>
-                <div class="sched-body">
-                    <div class="sched-item">
-                        <span class="sched-time-badge">20:00 - 21:30</span>
-                        <span class="sched-text">Repetiție Cor Mixt</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 4. JOI -->
-            <div class="sched-card sched-card--single">
-                <div class="sched-day-tag">
-                    JOI
-                </div>
-                <div class="sched-body">
-                    <div class="sched-item">
-                        <span class="sched-time-badge">20:00 - 21:30</span>
-                        <span class="sched-text">Repetiție Cor Bărbătesc</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- COLONNE 2 : VINERI, SÂMBĂTĂ, DUMINICĂ DIMINEAȚĂ, DUMINICĂ SEARĂ -->
-        <div class="sched-col">
-            <!-- 5. VINERI -->
-            <div class="sched-card sched-card--single">
-                <div class="sched-day-tag">
-                    VINERI
-                </div>
-                <div class="sched-body">
-                    <div class="sched-item">
-                        <span class="sched-time-badge">20:00 - 21:30</span>
-                        <span class="sched-text">Seară de Rugăciune</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 6. SÂMBĂTĂ -->
-            <div class="sched-card sched-card--single">
-                <div class="sched-day-tag">
-                    SÂMBĂTĂ
-                </div>
-                <div class="sched-body">
-                    <div class="sched-item">
-                        <span class="sched-time-badge">11:00 - 13:00</span>
-                        <span class="sched-text">Program cu Copiii</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 7. DUMINICĂ DIMINEAȚĂ -->
-            <div class="sched-card sched-card--single">
-                <div class="sched-day-tag">
-                    DUMINICĂ
-                    <span class="sched-day-sub">DIMINEAȚĂ</span>
-                </div>
-                <div class="sched-body">
-                    <div class="sched-item">
-                        <span class="sched-time-badge">10:00 - 12:00</span>
-                        <span class="sched-text">Serviciu Divin</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 8. DUMINICĂ SEARĂ -->
-            <div class="sched-card sched-card--single">
-                <div class="sched-day-tag">
-                    DUMINICĂ
-                    <span class="sched-day-sub">SEARĂ</span>
-                </div>
-                <div class="sched-body">
-                    <div class="sched-item">
-                        <span class="sched-time-badge">18:00 - 20:00</span>
-                        <span class="sched-text">Serviciu Divin</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
+    <div class="logo"><img src="./icon-512.png" alt="Bethel Dworp"></div>
+    <div class="text">
+        <h1>BETHEL DWORP</h1>
+        <div class="sub">Biserica Penticostală</div>
+    </div>
+    <div class="url">www.betheldworp.be</div>
 </body>
 </html>
