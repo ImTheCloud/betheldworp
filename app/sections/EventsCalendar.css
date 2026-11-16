@@ -632,16 +632,16 @@
 }
 
 @media (min-width: 901px) {
-    /* PC : deux colonnes. La photo entière à gauche ; à droite, l'heure, la
-       date, le lieu puis le texte, tout ce qu'on lit côte à côte. La carte
-       passe en bandeau fin sur toute la largeur, en bas. */
+    /* PC : deux colonnes. À gauche la photo entière puis la carte ; à droite
+       l'heure, la date, le lieu puis le texte. Un long texte descend dans sa
+       colonne sans laisser de vide sous la photo. */
     .ev-layout {
         grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
         grid-template-areas:
             "media info"
             "media desc"
-            "map map";
-        grid-template-rows: auto 1fr auto;
+            "map desc";
+        grid-template-rows: auto auto 1fr;
         column-gap: 22px;
         row-gap: 14px;
         align-items: start;
@@ -671,11 +671,12 @@
 
     .ev-mapCard {
         display: flex;
+        align-self: start;
     }
 
     .ev-map {
-        height: 150px !important;
-        min-height: 150px;
+        height: 170px !important;
+        min-height: 170px;
     }
 
     /* ── Portrait poster adaptation on PC ── */
