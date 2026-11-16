@@ -632,34 +632,50 @@
 }
 
 @media (min-width: 901px) {
+    /* PC : deux colonnes. La photo entière à gauche ; à droite, l'heure, la
+       date, le lieu puis le texte, tout ce qu'on lit côte à côte. La carte
+       passe en bandeau fin sur toute la largeur, en bas. */
     .ev-layout {
-        grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
-        grid-template-areas: "media media" "info map" "desc desc";
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+        grid-template-areas:
+            "media info"
+            "media desc"
+            "map map";
+        grid-template-rows: auto 1fr auto;
+        column-gap: 22px;
+        row-gap: 14px;
         align-items: start;
     }
 
-    /* Une image paysage ne s'étire plus sur toute la hauteur de l'écran :
-       on la recadre en gardant le haut, là où sont les visages. */
+    /* La photo n'est plus recadrée : elle garde ses proportions. */
     .ev-heroImg {
-        max-height: min(44vh, 440px);
-        object-fit: cover;
-        object-position: center 25%;
+        max-height: none;
+        height: auto;
+        object-fit: contain;
+    }
+
+    /* Infos en simple liste, sans cadre, alignées en haut de la colonne. */
+    .ev-layout .ev-infoGrid {
+        align-self: start;
+        padding: 2px 0 14px;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        border-bottom: 1px solid rgba(10, 42, 67, 0.1);
+    }
+
+    .ev-layout .ev-desc {
+        margin: 0;
+        max-width: none;
     }
 
     .ev-mapCard {
-        align-self: stretch;
         display: flex;
     }
 
-    /* Même hauteur que la carte voisine, lignes centrées verticalement. */
-    .ev-infoGrid {
-        align-self: stretch;
-        justify-content: center;
-    }
-
     .ev-map {
-        height: 100% !important;
-        min-height: 180px;
+        height: 150px !important;
+        min-height: 150px;
     }
 
     /* ── Portrait poster adaptation on PC ── */
