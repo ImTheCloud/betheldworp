@@ -610,8 +610,12 @@ export default function Program() {
         let status = "normal";
         if (moveTarget) status = "movedFrom";
         else if (moveSource) status = "moved";
+        // Un événement posé sur plusieurs créneaux du même jour (dimanche matin et
+        // soir) reçoit de l'admin une heure par créneau : ce n'est pas une
+        // modification manuelle, la carte reste un événement. Seul un titre écrit
+        // à la main en fait un « Modificat ».
+        else if (isReplaced && !customTitle) status = "event";
         else if (isManual) status = "changed";
-        else if (isReplaced) status = "event";
         else if (isOverrideCancelled || isSummerBreak) status = "cancelled";
 
         const statusLabel = {
