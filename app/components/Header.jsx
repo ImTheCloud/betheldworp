@@ -136,13 +136,63 @@ export default function Header() {
             }
         });
 
-        // Handle initial hash on load
-        const initialHash = window.location.hash.replace("#", "");
-        if (initialHash) {
-            scrollToSection(initialHash, false, "auto");
+        // Arrivée par un lien avec ancre (ex. /ro#newsletter partagé sur
+        // WhatsApp). Un seul défilement ne suffit pas : le calendrier, le
+        // programme et les images se chargent après coup, s'insèrent au-dessus
+        // de la cible et la repoussent hors de l'écran. On réaligne donc à
+        // chaque changement de hauteur de la page, jusqu'à ce qu'elle reste
+        // stable 2,5 s, et on s'arrête dès que la personne touche l'écran ou
+        // fait défiler. Le délai ne court pas tant que l'onglet est caché : un
+        // lien ouvert en arrière-plan ne s'affiche qu'une fois regardé.
+        let initialHash = "";
+        try {
+            initialHash = decodeURIComponent(window.location.hash.replace("#", ""));
+        } catch {
+            initialHash = "";
+        }
+        let stopFollowing = () => {};
+        if (initialHash && document.getElementById(initialHash)) {
+            if ("scrollRestoration" in window.history) {
+                window.history.scrollRestoration = "manual";
+            }
+            isManualScroll.current = true;
+
+            const userEvents = ["wheel", "touchstart", "keydown", "pointerdown"];
+            let idleTimer;
+            let capTimer;
+            let resizeObserver;
+
+            const restartIdle = () => {
+                clearTimeout(idleTimer);
+                if (!document.hidden) idleTimer = setTimeout(stopFollowing, 2500);
+            };
+            const align = () => {
+                scrollToSection(initialHash, false, "auto");
+                restartIdle();
+            };
+
+            stopFollowing = () => {
+                resizeObserver?.disconnect();
+                clearTimeout(idleTimer);
+                clearTimeout(capTimer);
+                userEvents.forEach((ev) => window.removeEventListener(ev, stopFollowing));
+                document.removeEventListener("visibilitychange", restartIdle);
+                isManualScroll.current = false;
+            };
+
+            resizeObserver = new ResizeObserver(align);
+            resizeObserver.observe(document.body);
+            userEvents.forEach((ev) => window.addEventListener(ev, stopFollowing, { passive: true }));
+            document.addEventListener("visibilitychange", restartIdle);
+            capTimer = setTimeout(stopFollowing, 20000);
+
+            align();
         }
 
-        return () => observer.disconnect();
+        return () => {
+            stopFollowing();
+            observer.disconnect();
+        };
     }, [NAV_ITEMS]);
 
     useEffect(() => {

@@ -75,6 +75,7 @@ export default function NewsletterSection() {
                 // fait rien si le contact est déjà joignable.
                 fetch("/api/newsletter/subscribe", {
                     method: "POST",
+                    keepalive: true,
                     headers: { "content-type": "application/json" },
                     body: JSON.stringify({ email: em, source: "website" }),
                 }).catch((e) => console.error("Brevo sync error:", e));
@@ -95,6 +96,7 @@ export default function NewsletterSection() {
             // faire échouer l'abonnement : Firestore reste la source de vérité.
             fetch("/api/newsletter/subscribe", {
                 method: "POST",
+                keepalive: true,
                 headers: { "content-type": "application/json" },
                 body: JSON.stringify({ email: em, source: "website" }),
             }).catch((e) => console.error("Brevo sync error:", e));
