@@ -645,8 +645,14 @@ export default function Program() {
 
         // Ce que la modification fait disparaître du créneau, pour le résumé :
         // lundi, le cor bărbătesc prend la place de la soirée des jeunes.
-        const replacesNote = (status === "moved" || status === "changed" || status === "event") && title !== item?.title
-            ? t("replaces").replace("{title}", item?.title || "")
+        // Un événement, lui, ne remplace rien : l'invité vient pendant le programme
+        // habituel (« în cadrul programului: Seară de rugăciune »).
+        const replacesNote = title !== item?.title
+            ? status === "event"
+                ? t("during").replace("{title}", item?.title || "")
+                : (status === "moved" || status === "changed")
+                    ? t("replaces").replace("{title}", item?.title || "")
+                    : ""
             : "";
 
         // Une carte remplacée par un événement ouvre l'événement. Les autres ouvrent
