@@ -59,6 +59,7 @@ export async function POST(request) {
 
         if (!result.ok) {
             console.error("Brevo subscribe failed:", result.status, result.body);
+            await alertBrevoFailure(result.status);
             return NextResponse.json({ error: "brevo_failed" }, { status: 502 });
         }
 
@@ -80,6 +81,19 @@ export async function POST(request) {
         return NextResponse.json({ ok: true, status: bloque ? "resubscribed" : "created" });
     } catch (err) {
         console.error("Brevo subscribe error:", err);
+        await alertBrevoFailure("eroare de rețea");
         return NextResponse.json({ error: "server_error" }, { status: 500 });
     }
+}
+
+// La personne voit « Înscriere reușită » et elle est bien enregistrée dans
+// Firestore, mais elle manque dans Brevo : sans alerte, personne ne le
+// saurait. Le bouton « Sync Brevo » de l'admin la rajoute ensuite.
+async function alertBrevoFailure(code) {
+    await notify({
+        title: "Abonat NEADĂUGAT în Brevo",
+        message: `Adresa e salvată pe site, dar Brevo a refuzat-o (${code}). Apasă „Sync Brevo” în admin.`,
+        priority: "high",
+        tags: "warning",
+    });
 }

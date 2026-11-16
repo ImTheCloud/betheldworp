@@ -46,6 +46,29 @@ export function getContact(email) {
     return brevoFetch(`/contacts/${encodeURIComponent(email)}`);
 }
 
+// Lit tous les contacts de la liste newsletter, page par page (500 au plus
+// par appel côté Brevo).
+export async function listContactsOfList() {
+    const contacts = [];
+    const limit = 500;
+    for (let offset = 0; offset < 20000; offset += limit) {
+        const res = await brevoFetch(`/contacts/lists/${getListId()}/contacts?limit=${limit}&offset=${offset}`);
+        if (!res.ok) return { ok: false, status: res.status, body: res.body, contacts };
+        const page = res.body?.contacts || [];
+        contacts.push(...page);
+        if (page.length < limit) break;
+    }
+    return { ok: true, contacts };
+}
+
+// Vrai si Brevo ne doit plus rien envoyer à ce contact : blocklist générale,
+// ou désinscription de la seule liste newsletter.
+export function isBlockedForNewsletter(contact) {
+    if (!contact) return false;
+    if (contact.emailBlacklisted === true) return true;
+    return (contact.listUnsubscribed || []).map(Number).includes(getListId());
+}
+
 // Ajoute le contact à la liste, ou le met à jour s'il existe déjà.
 export function addContactToList(email) {
     return brevoFetch("/contacts", {

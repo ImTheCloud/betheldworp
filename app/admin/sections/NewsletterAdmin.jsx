@@ -419,6 +419,42 @@ export default function NewsletterAdmin({ onDirtyChange }) {
         URL.revokeObjectURL(url);
     }, [items, openInfoModal]);
 
+    // Compare les abonnés actifs du site avec la liste Brevo et ajoute ceux qui
+    // y manquent (un envoi vers Brevo qui a échoué au moment de l'inscription).
+    // Les adresses en blocklist Brevo ne sont jamais débloquées : signalées seulement.
+    const [syncing, setSyncing] = useState(false);
+    const syncAllToBrevo = useCallback(async () => {
+        const emails = items.filter((it) => !it.unsubscribed).map((it) => it.id);
+        setSyncing(true);
+        try {
+            const res = await fetch("/api/newsletter/sync", {
+                method: "POST",
+                headers: { "content-type": "application/json", ...(await adminAuthHeaders()) },
+                body: JSON.stringify({ emails }),
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok || !data.ok) {
+                openInfoModal("Sync failed", `Brevo did not answer correctly (${data.status || data.error || res.status}). Nothing was changed. Try again later.`);
+                return;
+            }
+            const lines = [
+                `Active on the site: ${data.siteActive} — in the Brevo list: ${data.brevoInList}.`,
+                data.added.length
+                    ? `Added to Brevo (${data.added.length}): ${data.added.join(", ")}`
+                    : "Nobody was missing from Brevo ✓",
+            ];
+            if (data.failed.length) lines.push(`Could not add (${data.failed.length}): ${data.failed.join(", ")}`);
+            if (data.blocked.length) lines.push(`Unsubscribed via an email link, left untouched (${data.blocked.length}): ${data.blocked.join(", ")}`);
+            if (data.onlyInBrevo.length) lines.push(`In Brevo but not active on the site (${data.onlyInBrevo.length}): ${data.onlyInBrevo.join(", ")}`);
+            openInfoModal(data.failed.length ? "Sync partly done" : "Brevo is in sync", lines.join("\n\n"));
+        } catch (e) {
+            console.error("Brevo sync error:", e);
+            openInfoModal("Sync failed", "Network error. Nothing was changed.");
+        } finally {
+            if (mountedRef.current) setSyncing(false);
+        }
+    }, [items, openInfoModal]);
+
     const startNew = () => {
         setShowNew(true);
         setNewEmail("");
@@ -678,6 +714,13 @@ export default function NewsletterAdmin({ onDirtyChange }) {
                             <IconDownload />
                         </span>
                         Export CSV
+                    </button>
+
+                    <button className="adminBtn" type="button" onClick={syncAllToBrevo} disabled={loading || syncing || !items.length} title="Add to Brevo every active subscriber that is missing there">
+                        <span className="adminBtnIcon" aria-hidden="true">
+                            <IconUndo />
+                        </span>
+                        {syncing ? "Syncing..." : "Sync Brevo"}
                     </button>
 
                     <button className="adminBtn adminBtn--new" type="button" onClick={startNew} disabled={loading || showNew}>

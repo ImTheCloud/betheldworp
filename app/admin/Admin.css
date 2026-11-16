@@ -1641,6 +1641,8 @@ input:checked + .adminSlider:before {
     color: rgba(10, 42, 67, 0.7);
     line-height: 1.5;
     font-weight: 500;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
 }
 
 .adminModalBtn {
