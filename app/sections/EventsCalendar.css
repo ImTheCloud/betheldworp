@@ -1032,3 +1032,68 @@
         transform: none;
     }
 }
+
+
+/* Desktop: independent columns keep the description next to the image, even
+   when either the text or image is much taller than the other. */
+@media (min-width: 901px) {
+    .ev-layout,
+    .ev-modal.ev-modal--portrait .ev-layout {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        grid-template-areas: "media details" "map details";
+        grid-template-rows: auto 1fr;
+        align-items: start;
+    }
+
+    .ev-details {
+        grid-area: details;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        min-width: 0;
+    }
+
+    .ev-modal.ev-modal--portrait {
+        width: min(980px, 92vw);
+    }
+
+    .ev-heroImgWrap {
+        display: flex;
+        justify-content: center;
+        background: #f4f6f8;
+    }
+
+    .ev-heroImg,
+    .ev-modal.ev-modal--portrait .ev-heroImg {
+        width: auto;
+        max-width: 100%;
+        max-height: min(46vh, 400px);
+        height: auto;
+        object-fit: contain;
+    }
+
+    .ev-heroImgsGrid .ev-heroImgWrap {
+        align-items: center;
+    }
+
+    .ev-heroImgsGrid .ev-heroImg {
+        width: 100%;
+        height: auto;
+        max-height: 220px;
+        object-fit: contain;
+    }
+
+    .ev-modal.ev-modal--portrait .ev-map {
+        height: 170px !important;
+        min-height: 170px;
+    }
+}
+
+.ev-title, .ev-infoValue, .ev-desc {
+    overflow-wrap: anywhere;
+}
+
+.ev-header {
+    max-height: 30vh;
+    overflow-y: auto;
+}
