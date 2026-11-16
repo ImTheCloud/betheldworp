@@ -19,7 +19,9 @@
         "time": "Ora",
         "date": "Data",
         "location": "Locație",
-        "map_title": "Locația evenimentului"
+        "open_map": "Hartă",
+        "share": "Distribuie",
+        "copied": "Link copiat"
     },
     "fr": {
         "title": "Événements du mois",
@@ -41,7 +43,9 @@
         "time": "Heure",
         "date": "Date",
         "location": "Lieu",
-        "map_title": "Lieu de l’événement"
+        "open_map": "Carte",
+        "share": "Partager",
+        "copied": "Lien copié"
     },
     "nl": {
         "title": "Evenementen van de maand",
@@ -63,7 +67,9 @@
         "time": "Tijd",
         "date": "Datum",
         "location": "Locatie",
-        "map_title": "Locatie van het evenement"
+        "open_map": "Kaart",
+        "share": "Delen",
+        "copied": "Link gekopieerd"
     },
     "en": {
         "title": "Events of the month",
@@ -85,6 +91,8 @@
         "time": "Time",
         "date": "Date",
         "location": "Location",
-        "map_title": "Event location"
+        "open_map": "Map",
+        "share": "Share",
+        "copied": "Link copied"
     }
 }

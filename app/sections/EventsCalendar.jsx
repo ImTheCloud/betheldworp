@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useCallback, useRef } from "react";
+import { useEffect, useMemo, useState, useCallback, useId, useRef } from "react";
 import Image from "next/image";
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../lib/Firebase";
@@ -254,6 +254,9 @@ export default function EventsCalendar() {
     const preventNextScrollRef = useRef(false);
     const internalNavRef = useRef(false);
     const touchStartRef = useRef(null);
+    const eventScrollRef = useRef(null);
+    const closeButtonRef = useRef(null);
+    const eventTitleId = useId();
 
     const eventsForSelectedDate = useMemo(() => {
         if (!selectedDate) return [];
@@ -275,35 +278,17 @@ export default function EventsCalendar() {
         return [];
     }, [selectedEvent]);
 
-    const [isPortrait, setIsPortrait] = useState(false);
+    // Keep gallery selection scoped to the event, including when navigating dates.
+    const [gallerySelection, setGallerySelection] = useState(null);
+    const [imageFormats, setImageFormats] = useState({});
+    const imageIndex = gallerySelection && gallerySelection.eventId === selectedEvent?.id
+        ? Math.min(gallerySelection.index, Math.max(0, selectedEventImages.length - 1)) : 0;
+    const activeImage = selectedEventImages[imageIndex];
+    const imageFormat = activeImage ? (imageFormats[activeImage]?.format || "landscape") : "none";
 
     useEffect(() => {
-        if (!selectedEvent || selectedEventImages.length !== 1) {
-            setIsPortrait(false);
-            return;
-        }
-        const src = selectedEventImages[0];
-        if (!src || typeof window === "undefined" || !window.Image) {
-            setIsPortrait(false);
-            return;
-        }
-        try {
-            const img = new window.Image();
-            img.src = src;
-            if (img.complete && img.naturalWidth > 0) {
-                setIsPortrait(img.naturalHeight > img.naturalWidth * 1.05);
-            } else {
-                img.onload = () => {
-                    setIsPortrait(img.naturalHeight > img.naturalWidth * 1.05);
-                };
-                img.onerror = () => {
-                    setIsPortrait(false);
-                };
-            }
-        } catch {
-            setIsPortrait(false);
-        }
-    }, [selectedEvent, selectedEventImages]);
+        if (eventScrollRef.current) eventScrollRef.current.scrollTop = 0;
+    }, [selectedEvent?.id]);
 
     useEffect(() => {
         if (!eventsSorted.length) return;
@@ -398,9 +383,12 @@ export default function EventsCalendar() {
     useEffect(() => {
         if (!eventOpen) return;
         const prev = document.body.style.overflow;
+        const previousFocus = document.activeElement;
         document.body.style.overflow = "hidden";
+        closeButtonRef.current?.focus({ preventScroll: true });
         return () => {
             document.body.style.overflow = prev;
+            previousFocus?.focus({ preventScroll: true });
         };
     }, [eventOpen]);
 
@@ -541,7 +529,7 @@ export default function EventsCalendar() {
         }
     };
 
-    const closeEvent = () => {
+    const closeEvent = useCallback(() => {
         if (eventClosing) return;
         setEventClosing(true);
 
@@ -562,7 +550,30 @@ export default function EventsCalendar() {
             const qs = params.toString();
             window.history.replaceState(null, "", `${window.location.pathname}${qs ? "?" + qs : ""}`);
         }
-    };
+    }, [eventClosing]);
+
+    useEffect(() => {
+        if (!eventOpen) return;
+        const handleEscape = (event) => {
+            if (event.key === "Escape") closeEvent();
+            if (event.key === "Tab") {
+                const dialog = closeButtonRef.current?.closest('[role="dialog"]');
+                const focusable = dialog?.querySelectorAll('button, a[href], [tabindex="0"]');
+                if (!focusable?.length) return;
+                const first = focusable[0];
+                const last = focusable[focusable.length - 1];
+                if (event.shiftKey && document.activeElement === first) {
+                    event.preventDefault();
+                    last.focus();
+                } else if (!event.shiftKey && document.activeElement === last) {
+                    event.preventDefault();
+                    first.focus();
+                }
+            }
+        };
+        window.addEventListener("keydown", handleEscape);
+        return () => window.removeEventListener("keydown", handleEscape);
+    }, [eventOpen, closeEvent]);
 
     useEffect(() => {
         return () => {
@@ -623,7 +634,7 @@ export default function EventsCalendar() {
         touchStartRef.current = null;
 
         // Swipe down to close (dragged down from header/drag-handle or dragged down when at the top)
-        const isHeaderTouch = startTarget && (startTarget.closest?.(".ev-header") || startTarget.closest?.(".ev-drag-handle"));
+        const isHeaderTouch = startTarget && (startTarget.closest?.(".ev-eventHeader, .ev-drag-handle"));
         if (isHeaderTouch && dy > 50 && Math.abs(dy) > Math.abs(dx)) {
             closeEvent();
             return;
@@ -720,100 +731,117 @@ export default function EventsCalendar() {
             {eventOpen && selectedEvent && (
                 <div className={`ev-overlay ${eventClosing ? "is-closing" : ""}`} onClick={closeEvent}>
                     <div
-                        className={`ev-modal ${eventClosing ? "is-closing" : ""} ${isPortrait ? "ev-modal--portrait" : ""}`}
+                        className={`ev-modal ev-eventModal ${eventClosing ? "is-closing" : ""}`}
+                        style={{ "--ev-media-ratio": imageFormats[activeImage]?.ratio || 1.5 }}
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby={eventTitleId}
                         onClick={(e) => e.stopPropagation()}
                         onTouchStart={handleTouchStart}
                         onTouchEnd={handleTouchEnd}
                     >
-                        <div className="ev-drag-handle" aria-hidden="true" />
-                        <header className="ev-header">
-                            <div className="ev-headText">
-                                <h2 className="ev-title">{selectedEvent.title || t("event")}</h2>
-                            </div>
-
-                            <button type="button" className="ev-close" onClick={closeEvent} aria-label={t("close")}>
-                                ×
-                            </button>
-
+                        <div className="ev-eventActions">
                             <button
                                 type="button"
                                 className={`ev-share-btn ${copied ? "is-copied" : ""}`}
                                 onClick={handleShare}
-                                aria-label={t("share") || "Share"}
+                                aria-label={t("share")}
                             >
-                                {copied ? (
-                                    <span className="ev-share-label">{t("copied") || "Copied!"}</span>
-                                ) : (
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
-                                        <polyline points="16 6 12 2 8 6" />
-                                        <line x1="12" y1="2" x2="12" y2="15" />
-                                    </svg>
-                                )}
+                                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                    {copied ? <path d="m5 12 4 4L19 6" /> : <path d="M12 15V3m-4 4 4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" />}
+                                </svg>
                             </button>
+                            {copied && <span className="ev-share-label" role="status">{t("copied")}</span>}
+                            <button type="button" className="ev-close" ref={closeButtonRef} onClick={closeEvent} aria-label={t("close")}>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" aria-hidden="true">
+                                    <path d="m6 6 12 12M18 6 6 18" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div className="ev-drag-handle" aria-hidden="true" />
+                        <div className="ev-eventScroll" ref={eventScrollRef}>
+                            <div
+                                className={`ev-layout ev-layout--${imageFormat}`}
+                            >
+                                {activeImage && (
+                                    <div className="ev-media">
+                                        <a className="ev-imageLink" href={activeImage} target="_blank" rel="noopener noreferrer">
+                                            <img
+                                                key={activeImage}
+                                                className="ev-heroImg"
+                                                src={activeImage}
+                                                alt={selectedEvent.title || t("event")}
+                                                onLoad={({ currentTarget: img }) => {
+                                                    const ratio = img.naturalWidth / img.naturalHeight;
+                                                    const format = ratio < 0.85 ? "portrait" : ratio > 1.2 ? "landscape" : "square";
+                                                    setImageFormats((previous) => previous[activeImage]?.format === format
+                                                        ? previous : { ...previous, [activeImage]: { format, ratio } });
+                                                }}
+                                            />
+                                        </a>
+                                        {selectedEventImages.length > 1 && (
+                                            <div className="ev-thumbnails" role="group" aria-label={t("event")}>
+                                                {selectedEventImages.map((src, index) => (
+                                                    <button type="button" key={`${index}-${src}`}
+                                                        aria-label={`${selectedEvent.title || t("event")} — ${index + 1} / ${selectedEventImages.length}`}
+                                                        aria-pressed={imageIndex === index}
+                                                        onClick={() => setGallerySelection({ eventId: selectedEvent.id, index })}>
+                                                        <img src={src} alt="" />
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
 
-                        </header>
-
-                        <div className="ev-body">
-                            <div className="ev-layout">
-                                <div className="ev-media">
-                                    {selectedEventImages.length > 1 ? (
-                                        <div className={`ev-heroImgsGrid ev-heroImgsGrid--count-${Math.min(selectedEventImages.length, 4)}`}>
-                                            {selectedEventImages.map((imgSrc, i) => (
-                                                <div key={i} className="ev-heroImgWrap">
-                                                    <img className="ev-heroImg" src={imgSrc} alt={`${selectedEvent.title || t("event")} ${i + 1}`} />
-                                                </div>
-                                            ))}
-                                        </div>
-                                    ) : selectedEventImages.length === 1 ? (
-                                        <div className="ev-heroImgWrap">
-                                            <img className="ev-heroImg" src={selectedEventImages[0]} alt={selectedEvent.title || t("event")} onLoad={(e) => { const el = e.currentTarget; if (el && el.naturalWidth > 0) { setIsPortrait(el.naturalHeight > el.naturalWidth * 1.05); } }} />
-                                        </div>
-                                    ) : null}
-                                </div>
+                                <header className="ev-eventHeader">
+                                    <h2 className="ev-title" id={eventTitleId}>{selectedEvent.title || t("event")}</h2>
+                                </header>
 
                                 <div className="ev-details">
-                                    {/* Un seul bloc compact : une ligne par information, une icône
-                                        à la place des intitulés en majuscules. */}
                                     <div className="ev-infoGrid">
-                                        {selectedEvent.time ? (
+                                        <div className="ev-schedule">
                                             <div className="ev-infoRow">
-                                                <EventInfoIcon kind="time" label={t("time")} />
-                                                <div className="ev-infoValue">{selectedEvent.time}</div>
+                                                <EventInfoIcon kind="date" label={t("date")} />
+                                                <div className="ev-infoValue">
+                                                    {formatEventDateLong(selectedEvent.dateEvent, selectedEvent.endDate)}
+                                                </div>
                                             </div>
-                                        ) : null}
 
-                                        <div className="ev-infoRow">
-                                            <EventInfoIcon kind="date" label={t("date")} />
-                                            <div className="ev-infoValue">
-                                                {formatEventDateLong(selectedEvent.dateEvent, selectedEvent.endDate)}
-                                            </div>
+                                            {selectedEvent.time && (
+                                                <div className="ev-infoRow">
+                                                    <EventInfoIcon kind="time" label={t("time")} />
+                                                    <div className="ev-infoValue">{selectedEvent.time}</div>
+                                                </div>
+                                            )}
                                         </div>
 
-                                        <div className="ev-infoRow">
-                                            <EventInfoIcon kind="place" label={t("location")} />
-                                            <div className="ev-infoValue">
-                                                {selectedEvent.place}
-                                                {selectedEvent.address ? <span className="ev-infoSub">{selectedEvent.address}</span> : null}
+                                        {mapQuery && (
+                                            <div className="ev-location">
+                                                <div className="ev-infoRow">
+                                                    <EventInfoIcon kind="place" label={t("location")} />
+                                                    <div className="ev-infoValue">
+                                                        {selectedEvent.place}
+                                                        {selectedEvent.address && <span className="ev-infoSub">{selectedEvent.address}</span>}
+                                                    </div>
+                                                </div>
+                                                <a
+                                                    className="ev-mapLink"
+                                                    href={`https://www.google.com/maps?q=${mapQuery}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                >
+                                                    {t("open_map")}
+                                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                                        <path d="M8 16 19 5M9 5h10v10" />
+                                                    </svg>
+                                                </a>
                                             </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="ev-mapCard">
-                                        <iframe
-                                            className="ev-map"
-                                            title={t("map_title")}
-                                            loading="lazy"
-                                            allowFullScreen
-                                            referrerPolicy="no-referrer-when-downgrade"
-                                            src={`https://www.google.com/maps?q=${mapQuery}&output=embed`}
-                                        />
+                                        )}
                                     </div>
                                 </div>
 
-                                {/* La description vient après l'image et les informations pratiques :
-                                    on voit d'abord qui vient, quand et où, puis on lit le texte. */}
-                                {selectedEvent.description ? <EventDescription text={selectedEvent.description} /> : null}
+                                {selectedEvent.description && <EventDescription text={selectedEvent.description} />}
                             </div>
                         </div>
 

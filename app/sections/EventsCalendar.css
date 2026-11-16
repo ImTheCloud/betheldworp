@@ -366,19 +366,12 @@
 }
 
 .ev-desc {
-    grid-area: desc;
     white-space: pre-line;
-    margin: 4px 0 0;
-    max-width: 68ch;
     font-size: 15px;
     font-weight: 450;
     color: rgba(10, 42, 67, 0.82);
-    line-height: 1.7;
-    text-align: left;
-    text-justify: auto;
-    hyphens: none;
-    word-break: normal;
-    overflow-wrap: break-word;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
 }
 
 .ev-close {
@@ -519,37 +512,264 @@
     overscroll-behavior: contain;
 }
 
-/* Ordre de lecture : image, infos pratiques, texte. Sur téléphone la carte
-   passe après le texte, pour ne pas séparer les infos de la description.
-   .ev-details s'efface (display: contents) pour que ses enfants se placent
-   directement dans cette grille. */
+.ev-overlay:has(.ev-eventModal) {
+    background: rgba(7, 22, 36, 0.6);
+    backdrop-filter: blur(9px);
+}
+
+.ev-eventModal {
+    --ev-ink: #132b3e;
+    --ev-surface: #fdfbf7;
+    --ev-muted: #516170;
+    position: relative;
+    width: min(1000px, calc(100% - 48px));
+    background: var(--ev-surface);
+    border-color: rgba(255, 255, 255, 0.55);
+    box-shadow: 0 24px 90px rgba(3, 15, 27, 0.38);
+}
+
+.ev-eventScroll {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
 .ev-layout {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: "media" "info" "desc" "map";
-    gap: 14px;
-    align-items: start;
+    --ev-image-height: min(540px, 70dvh);
+    display: flow-root;
+    padding: 24px;
+}
+
+.ev-eventHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 0;
+    margin-bottom: 15px;
+}
+
+.ev-eventHeader .ev-title {
+    margin-top: 2px;
+    padding: 0;
+    color: var(--ev-ink);
+    font-family: inherit;
+    font-size: clamp(1.25rem, 2.2vw, 1.65rem);
+    font-weight: 750;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    overflow-wrap: anywhere;
+    text-wrap: pretty;
+}
+
+.ev-eventActions {
+    position: absolute;
+    z-index: 3;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    gap: 6px;
+    padding: 5px;
+    border-radius: 999px;
+    background: rgba(253, 251, 247, 0.96);
+    box-shadow: 0 2px 12px #132b3e18;
+}
+
+.ev-eventActions .ev-close,
+.ev-eventActions .ev-share-btn {
+    position: static;
+    flex: 0 0 auto;
+    width: 40px;
+    min-width: 0;
+    height: 40px;
+    padding: 0;
+    background: transparent;
+    color: var(--ev-ink);
+    border: 1px solid #d7ddd9;
+    opacity: 1;
+}
+
+.ev-eventActions .ev-close {
+    background: var(--ev-ink);
+    color: #fff;
+    border-color: var(--ev-ink);
+}
+
+.ev-eventActions .ev-close:hover {
+    background: #244b64;
+    color: #fff;
+}
+
+.ev-eventActions .ev-share-btn:hover,
+.ev-eventActions .ev-share-btn.is-copied {
+    background: #e5ede8;
+    border-color: #ccd9d0;
+    color: #245744;
+}
+
+.ev-eventActions .ev-share-label {
+    position: absolute;
+    z-index: 1;
+    top: calc(100% + 6px);
+    right: 0;
+    padding: 5px 9px;
+    border-radius: 7px;
+    background: var(--ev-ink);
+    color: #fff;
+    white-space: nowrap;
+}
+
+.ev-eventModal .ev-modal-nav {
+    flex-shrink: 0;
+    padding: 8px 12px;
+    border-color: #e9e5dc;
+    background: var(--ev-surface);
 }
 
 .ev-media {
-    grid-area: media;
+    min-width: 0;
+    margin-bottom: 22px;
+}
+
+.ev-imageLink {
+    display: block;
+    border-radius: 16px;
+}
+
+.ev-heroImg {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: var(--ev-image-height);
+    object-fit: contain;
+    border-radius: 16px;
+}
+
+.ev-layout--landscape .ev-heroImg {
+    max-height: min(440px, 49dvh);
+    width: auto;
+    max-width: 100%;
+    margin-inline: auto;
+}
+
+.ev-thumbnails {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.ev-thumbnails button {
+    width: 54px;
+    height: 54px;
+    padding: 3px;
+    border: 2px solid transparent;
+    border-radius: 9px;
+    background: #e9ede8;
+    cursor: pointer;
+}
+
+.ev-thumbnails button[aria-pressed="true"] { border-color: #41675c; }
+.ev-thumbnails img { width: 100%; height: 100%; object-fit: contain; border-radius: 4px; }
+.ev-eventModal :is(button, a):focus-visible { outline: 3px solid #b57d38; outline-offset: 3px; }
+.ev-layout--none .ev-eventHeader { padding-right: 90px; }
+
+.ev-details {
+    display: flow-root;
     min-width: 0;
 }
 
-.ev-details {
-    display: contents;
-}
-
 .ev-infoGrid {
-    grid-area: info;
+    display: grid;
+    min-width: 0;
+    border: 1px solid #e3e9e2;
+    border-radius: 13px;
+    background: #edf2ee;
 }
 
-.ev-mapCard {
-    grid-area: map;
+.ev-schedule,
+.ev-location {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 16px;
+    row-gap: 8px;
+    padding: 10px 12px;
+}
+
+.ev-location {
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid #dce5dd;
+}
+
+.ev-infoRow {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    min-width: 0;
+}
+
+.ev-location .ev-infoRow {
+    flex: 1 1 12rem;
+}
+
+.ev-infoIcon {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    margin-top: 1px;
+    color: #41675c;
+}
+
+.ev-infoValue {
+    min-width: 0;
+    color: var(--ev-ink);
+    font-size: 0.875rem;
+    font-weight: 650;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+.ev-infoSub {
+    display: block;
+    margin-top: 2px;
+    font-size: 0.8rem;
+    font-weight: 450;
+    color: var(--ev-muted);
+}
+
+.ev-mapLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 30px;
+    margin-left: 24px;
+    padding: 3px 8px;
+    border: 1px solid #d7e1d8;
+    border-radius: 7px;
+    color: #234f41;
+    background: #f8fbf8;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.ev-mapLink:hover {
+    background: #dfeae2;
+}
+
+.ev-layout .ev-desc {
+    margin: 14px 0 0;
+    color: #364955;
+    font-size: 0.9375rem;
+    line-height: 1.75;
+    overflow-wrap: anywhere;
+    white-space: pre-line;
 }
 
 .ev-desc p {
-    margin: 0 0 12px;
+    margin: 0 0 10px;
 }
 
 .ev-desc p:last-child {
@@ -557,205 +777,29 @@
 }
 
 .ev-desc .ev-descGreeting {
-    font-weight: 800;
-    color: #0a2a43;
-    margin-bottom: 8px;
+    font-weight: 700;
+    color: var(--ev-ink);
+    margin-bottom: 5px;
 }
 
-.ev-heroImgsGrid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 12px;
-    width: 100%;
-}
-
-.ev-heroImgsGrid.ev-heroImgsGrid--count-2 {
-    grid-template-columns: 1fr 1fr;
-}
-
-.ev-heroImgsGrid.ev-heroImgsGrid--count-3 {
-    grid-template-columns: repeat(3, 1fr);
-}
-
-.ev-heroImgsGrid.ev-heroImgsGrid--count-4 {
-    grid-template-columns: repeat(2, 1fr);
-}
-
-.ev-heroImgsGrid .ev-heroImgWrap {
-    height: 100%;
-    display: flex;
-}
-
-.ev-heroImgsGrid .ev-heroImg {
-    height: 100%;
-    object-fit: cover;
-}
-
-@media (max-width: 768px) {
-    .ev-heroImgsGrid.ev-heroImgsGrid--count-3 {
-        grid-template-columns: 1fr 1fr;
-    }
-}
-
-@media (max-width: 600px) {
-    .ev-heroImgsGrid,
-    .ev-heroImgsGrid.ev-heroImgsGrid--count-2,
-    .ev-heroImgsGrid.ev-heroImgsGrid--count-3,
-    .ev-heroImgsGrid.ev-heroImgsGrid--count-4 {
-        grid-template-columns: 1fr;
-        gap: 10px;
-    }
-}
-
-.ev-heroImgWrap {
-    position: relative;
-    width: 100%;
-    background: #ffffff;
-    border-radius: 20px;
-    overflow: hidden;
-    border: 1px solid rgba(10, 42, 67, 0.15);
-    /* Extra clipping robustness on iOS Safari */
-    -webkit-mask-image: -webkit-radial-gradient(white, black);
-    clip-path: inset(0 round 20px);
-}
-
-.ev-heroImg {
-    width: 100%;
-    height: auto;
-    display: block;
-    border-radius: inherit;
-    transition: transform 0.4s ease;
-}
-
-.ev-heroImgWrap:hover .ev-heroImg {
-    transform: scale(1.02);
-}
-
-@media (min-width: 901px) {
-    /* PC : deux colonnes. À gauche la photo entière puis la carte ; à droite
-       l'heure, la date, le lieu puis le texte. Un long texte descend dans sa
-       colonne sans laisser de vide sous la photo. */
-    .ev-layout {
-        grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-        grid-template-areas:
-            "media info"
-            "media desc"
-            "map desc";
-        grid-template-rows: auto auto 1fr;
-        column-gap: 22px;
-        row-gap: 14px;
-        align-items: start;
+@media (min-width: 701px) {
+    .ev-eventModal:has(.ev-layout--landscape) {
+        width: min(1000px, calc(min(440px, 49dvh) * var(--ev-media-ratio) + 48px), calc(100% - 48px));
     }
 
-    /* La photo n'est plus recadrée : elle garde ses proportions. */
-    .ev-heroImg {
-        max-height: none;
-        height: auto;
-        object-fit: contain;
+    .ev-layout--portrait .ev-media,
+    .ev-layout--square .ev-media {
+        float: left;
+        width: min(48%, calc(var(--ev-image-height) * var(--ev-media-ratio)));
+        margin: 0 28px 18px 0;
     }
 
-    /* Infos en simple liste, sans cadre, alignées en haut de la colonne. */
-    .ev-layout .ev-infoGrid {
-        align-self: start;
-        padding: 2px 0 14px;
-        border: 0;
-        border-radius: 0;
-        background: transparent;
-        border-bottom: 1px solid rgba(10, 42, 67, 0.1);
-    }
+    .ev-layout--portrait .ev-eventHeader,
+    .ev-layout--square .ev-eventHeader { padding-top: 46px; }
 
-    .ev-layout .ev-desc {
-        margin: 0;
-        max-width: none;
-    }
-
-    .ev-mapCard {
-        display: flex;
-        align-self: start;
-    }
-
-    .ev-map {
-        height: 170px !important;
-        min-height: 170px;
-    }
-
-    /* ── Portrait poster adaptation on PC ── */
-    .ev-modal.ev-modal--portrait {
-        width: min(580px, 92vw);
-    }
-
-    .ev-modal.ev-modal--portrait .ev-heroImg {
-        max-height: none;
-        height: auto;
-        object-fit: contain;
-    }
-
-    .ev-modal.ev-modal--portrait .ev-layout {
-        grid-template-columns: minmax(0, 1fr);
-        grid-template-areas: "media" "info" "desc" "map";
-    }
-
-    .ev-modal.ev-modal--portrait .ev-map {
-        height: 200px !important;
-        min-height: 200px;
-    }
-}
-
-.ev-infoGrid {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding: 14px 16px;
-    border-radius: 16px;
-    background: #ffffff;
-    border: 1px solid rgba(10, 42, 67, 0.12);
-    min-width: 0;
-}
-
-.ev-infoRow {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    min-width: 0;
-}
-
-.ev-infoIcon {
-    flex-shrink: 0;
-    margin-top: 1px;
-    color: rgba(10, 42, 67, 0.5);
-}
-
-.ev-infoValue {
-    min-width: 0;
-    font-size: 15px;
-    font-weight: 750;
-    color: #0a2a43;
-    line-height: 1.35;
-    overflow-wrap: break-word;
-}
-
-.ev-infoSub {
-    display: block;
-    margin-top: 3px;
-    font-size: 13px;
-    font-weight: 550;
-    color: rgba(10, 42, 67, 0.6);
-}
-
-.ev-mapCard {
-    overflow: hidden;
-    border-radius: 20px;
-    background: #ffffff;
-    border: 1px solid rgba(10, 42, 67, 0.15);
-    /* Force clipping on mobile */
-    transform: translateZ(0);
-}
-
-.ev-map {
-    width: 100%;
-    height: clamp(180px, 18vw, 240px);
-    border: 0;
-    display: block;
+    .ev-layout--square .ev-media { width: 46%; }
+    .ev-eventModal:not(:has(.ev-media)) { max-width: 680px; }
+    .ev-mapLink { margin-left: 0; }
 }
 
 @media (max-width: 900px) {
@@ -770,15 +814,6 @@
 
     .ec-cell {
         height: 112px;
-    }
-
-    .ev-layout {
-        grid-template-columns: 1fr;
-        gap: 16px;
-    }
-
-    .ev-map {
-        height: 220px;
     }
 }
 
@@ -872,28 +907,46 @@
         font-size: 21px;
     }
 
-    .ev-layout {
-        grid-template-columns: 1fr;
-        gap: 12px;
-    }
-
-    .ev-infoGrid {
-        gap: 10px;
-        padding: 12px 14px;
-        border-radius: 14px;
-    }
-
-    .ev-infoValue {
-        font-size: 14.5px;
-    }
-
-    .ev-heroImgWrap {
+    .ev-eventModal {
         width: 100%;
+        border-inline: 0;
     }
 
-    .ev-map {
-        height: 190px;
+    .ev-layout {
+        --ev-image-height: min(340px, 43dvh);
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 14px;
+        padding: 12px 17px calc(17px + env(safe-area-inset-bottom, 0px));
     }
+
+    .ev-eventHeader {
+        grid-row: auto;
+        margin: 0;
+    }
+
+    .ev-eventHeader .ev-title {
+        font-size: 1.125rem;
+    }
+
+    .ev-layout .ev-desc { margin: 0; }
+    /* Full-width media: preserve the entire poster without lateral gutters. */
+    .ev-media { margin: 0 -17px; }
+    .ev-layout:has(.ev-media) { padding-top: 48px; }
+    .ev-imageLink { border-radius: 0; }
+    .ev-heroImg,
+    .ev-layout--landscape .ev-heroImg {
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+        max-height: none;
+        margin: 0;
+        border-radius: 0;
+    }
+    .ev-layout--none .ev-eventHeader { padding-top: 40px; padding-right: 0; }
+    .ev-eventHeader .ev-title { line-height: 1.3; }
+    .ev-eventActions { top: 10px; right: 10px; }
+
 }
 
 
@@ -946,10 +999,6 @@
         gap: 6px;
     }
 
-    .ev-heroImgWrap {
-        width: 100%;
-    }
-
     .ec-cell {
         height: auto;
         aspect-ratio: 1 / 1;
@@ -994,10 +1043,6 @@
         height: 100%;
         object-fit: cover;
         object-position: center 15%; /* Show heads better on mobile grid too */
-    }
-
-    .ev-map {
-        height: 175px;
     }
 }
 
