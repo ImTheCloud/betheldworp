@@ -799,6 +799,10 @@ export default function EventsCalendar() {
                                         </div>
                                     </div>
 
+                                    {selectedEvent.description ? <EventDescription text={selectedEvent.description} /> : null}
+
+
+                                </div>
                                     <div className="ev-mapCard">
                                         <iframe
                                             className="ev-map"
@@ -809,11 +813,8 @@ export default function EventsCalendar() {
                                             src={`https://www.google.com/maps?q=${mapQuery}&output=embed`}
                                         />
                                     </div>
-                                </div>
 
-                                {/* La description vient après l'image et les informations pratiques :
-                                    on voit d'abord qui vient, quand et où, puis on lit le texte. */}
-                                {selectedEvent.description ? <EventDescription text={selectedEvent.description} /> : null}
+
                             </div>
                         </div>
 
