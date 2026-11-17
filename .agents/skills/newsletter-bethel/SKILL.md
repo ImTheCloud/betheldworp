@@ -230,12 +230,14 @@ La newsletter est générée par le site à partir du programme (`program_overri
 - **Dimanche soir** : une tâche planifiée Vercel (`/api/cron/newsletter`, `vercel.json`) envoie une notification ntfy avec le lien vers l'aperçu. Elle n'envoie **jamais** rien aux abonnés.
 - **Jamais deux fois** : chaque envoi crée dans Brevo une liste `Newsletter 2026-W48 #1` (dossier « Newsletter trimis ») avec exactement ses destinataires. Après un ajout tardif, le même bouton n'envoie qu'aux abonnés qui ne l'ont pas encore reçue (`#2`). Ne pas supprimer ces listes tant que la semaine n'est pas passée.
 - **Ligne du calendrier** (newsletter générée, depuis le 17 nov 2026) : le **titre** d'abord avec sa pastille à côté, puis l'**heure**, puis la **note**. La couleur ne va que sur la boîte du jour, le titre et la pastille ; l'heure et la note restent neutres.
+- **Mêmes mots et mêmes couleurs que le programme du site** (un seul mot par pastille) :
   - gris, sans pastille : programme habituel
-  - vert + **ANUNȚ** : événement, invité ou annonce (ex. la chorale partie à Graz)
-  - jaune + **MUTAT** : jour d'arrivée d'un déplacement ; jaune + **MODIFICAT** : titre ou heure changés sur place
-  - rouge + **ANULAT** : annulé
+  - bleu **Anunț** : événement, invité ou annonce (ex. la chorale partie à Graz)
+  - vert **Adăugat** : programme ajouté à une heure où le créneau n'avait rien
+  - jaune **Mutat** : vient d'un autre jour et prend la place de l'activité habituelle à la même heure ; jaune **Modificat** : titre ou heure changés sur place
+  - rouge **Anulat** : annulé
 - **Déplacement montré une seule fois** dans la newsletter : le jour d'arrivée (MUTAT, « Mutat de marți »). Le jour de départ n'a pas de ligne (le site, lui, garde les deux cartes).
-- **Remplacé ou ajouté ?** Même heure que l'activité habituelle = remplacement (site : Mutat/Modificat avec « în locul: … », ex. lundi 9 nov le cor bărbătesc à la place de la soirée des jeunes). Heure où le créneau n'avait rien = programme en plus (site : **Program special**, avec « Mutat de marți » si l'activité vient d'un autre jour) et l'activité habituelle du créneau s'affiche **Anulat** à son heure (ex. mercredi 11 nov : jeûne le matin, cor mixte du soir annulé). La newsletter montre ce programme en plus comme un déplacement (MUTAT).
+- **Remplacé ou ajouté ?** Même heure que l'activité habituelle = remplacement (site : Mutat/Modificat avec « în locul: … », ex. lundi 9 nov le cor bărbătesc à la place de la soirée des jeunes). Heure où le créneau n'avait rien = programme en plus (site et newsletter : **Adăugat**, avec « Mutat de marți » si l'activité vient d'un autre jour) et l'activité habituelle du créneau s'affiche **Anulat** à son heure (ex. mercredi 11 nov : jeûne le matin, cor mixte du soir annulé). 
 - **« În locul: … » seulement si les horaires se chevauchent.** Une activité écrite sur un créneau annulé à une autre heure (jeûne au mercredi matin sur le créneau du cor mixte du soir) ne le remplace pas : l'activité habituelle s'affiche ANULAT à son heure, dans la newsletter et dans le résumé du site.
 - **Pas d'encadré « Schimbări în această săptămână »** dans la newsletter : les annulations et changements se voient déjà dans le calendrier juste en dessous (choix de l'utilisateur, 17 nov 2026). L'encadré reste sur le site.
 - **Envoi** : API Brevo, mêmes réglages que les campagnes faites à la main (expéditeur « Bethel Dworp » <info@betheldworp.be>, réponse à info@). Jamais de `tag` sur une campagne : le plan gratuit le refuse.

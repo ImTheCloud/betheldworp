@@ -154,11 +154,9 @@ export async function loadWeek(weekKey) {
     // l'e-mail (choix du 17 nov 2026 ; le site, lui, garde les deux cartes).
     // L'activité habituelle chassée d'un créneau à une autre heure (le cor
     // mixte quand le jeûne passe au mercredi matin) apparaît annulée.
-    // Une activité déplacée vers une heure libre est un « Program special »
-    // sur le site ; la newsletter la montre comme un déplacement (MUTAT).
-    const rows = cards.filter((c) => c.status !== "movedFrom")
-        .map((c) => (c.movedIn ? { ...c, status: "moved" } : c))
-        .map(cardRow);
+    // Une activité déplacée vers une heure libre est « Adăugat », comme sur le
+    // site, avec la note « Mutat de marți ».
+    const rows = cards.filter((c) => c.status !== "movedFrom").map(cardRow);
 
     function cardRow(c) {
         const dayIndex = DAY_INDEX_BY_SLOT[c.id];
@@ -167,7 +165,7 @@ export async function loadWeek(weekKey) {
         if (!note && c.status === "movedFrom" && c.moveTargetId) {
             const d = DAY_INDEX_BY_SLOT[c.moveTargetId];
             note = `Mutat ${DAY_NAMES[d].toLowerCase()}, ${dayMonth(addDaysUTC(monday, d))}`;
-        } else if (!note && c.status === "moved" && c.moveSourceId) {
+        } else if (!note && (c.status === "moved" || c.movedIn) && c.moveSourceId) {
             const d = DAY_INDEX_BY_SLOT[c.moveSourceId];
             note = [`Mutat de ${DAY_NAMES[d].toLowerCase()}`, c.replacesNote].filter(Boolean).join(", ");
         } else if (!note && (c.status === "event" || c.status === "changed")) {
@@ -217,7 +215,9 @@ export async function loadWeek(weekKey) {
         rows.push({
             key: `ev-${e.id}`,
             dayIndex,
-            status: "extra",
+            // Un événement sans créneau (voyage de la chorale, mariage) est une
+            // annonce, pas un programme : bleu, ANUNȚ.
+            status: "event",
             title: e.title,
             times: splitEventTimes(e.time),
             note,

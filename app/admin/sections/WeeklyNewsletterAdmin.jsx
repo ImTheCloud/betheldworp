@@ -82,7 +82,8 @@ export default function WeeklyNewsletterAdmin({ onDirtyChange }) {
     const [loadingPreview, setLoadingPreview] = useState(true);
     const [status, setStatus] = useState(null);
     const [statusError, setStatusError] = useState("");
-    const [dark, setDark] = useState(false);
+    // Aperçu en mode sombre par défaut : c'est le réglage de la plupart des téléphones.
+    const [dark, setDark] = useState(true);
     const [busy, setBusy] = useState("");
     const [toast, setToast] = useState(null);
     const [confirm, setConfirm] = useState(false);
