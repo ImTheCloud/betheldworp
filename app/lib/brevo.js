@@ -62,11 +62,146 @@ export async function listContactsOfList() {
 }
 
 // Vrai si Brevo ne doit plus rien envoyer à ce contact : blocklist générale,
-// ou désinscription de la seule liste newsletter.
+// ou désinscription d'une liste.
+//
+// Toute désinscription de liste compte, pas seulement celle de la liste #7 :
+// les newsletters partent vers une liste d'envoi par semaine (voir
+// newsletter/sending.js), et un « Dezabonare » cliqué dans l'une d'elles ne
+// doit pas laisser la personne recevoir la suivante. Aujourd'hui Brevo met
+// en blocklist générale, mais ce réglage peut changer dans son interface.
 export function isBlockedForNewsletter(contact) {
     if (!contact) return false;
     if (contact.emailBlacklisted === true) return true;
-    return (contact.listUnsubscribed || []).map(Number).includes(getListId());
+    return (contact.listUnsubscribed || []).length > 0;
+}
+
+// Vrai si le contact est dans la liste newsletter et joignable.
+export function isReachableInNewsletterList(contact) {
+    if (!contact || isBlockedForNewsletter(contact)) return false;
+    return (contact.listIds || []).map(Number).includes(getListId());
+}
+
+export { getListId };
+
+// ── Listes et dossiers (envois de la newsletter hebdomadaire) ──
+
+export async function listFolders() {
+    const res = await brevoFetch("/contacts/folders?limit=50&offset=0");
+    return res.ok ? res.body?.folders || [] : [];
+}
+
+export async function ensureFolder(name) {
+    const found = (await listFolders()).find((f) => f.name === name);
+    if (found) return found.id;
+    const res = await brevoFetch("/contacts/folders", { method: "POST", body: JSON.stringify({ name }) });
+    if (!res.ok) throw new Error(`Brevo folder create failed: ${res.status} ${JSON.stringify(res.body)}`);
+    return res.body.id;
+}
+
+export async function listAllLists() {
+    const lists = [];
+    for (let offset = 0; offset < 5000; offset += 50) {
+        const res = await brevoFetch(`/contacts/lists?limit=50&offset=${offset}&sort=asc`);
+        if (!res.ok) throw new Error(`Brevo lists read failed: ${res.status}`);
+        const page = res.body?.lists || [];
+        lists.push(...page);
+        if (page.length < 50) break;
+    }
+    return lists;
+}
+
+export async function getList(listId) {
+    const res = await brevoFetch(`/contacts/lists/${listId}`);
+    return res.ok ? res.body : null;
+}
+
+export async function listEmailsOfList(listId) {
+    const emails = [];
+    for (let offset = 0; offset < 20000; offset += 500) {
+        const res = await brevoFetch(`/contacts/lists/${listId}/contacts?limit=500&offset=${offset}`);
+        if (!res.ok) throw new Error(`Brevo list ${listId} read failed: ${res.status}`);
+        const page = res.body?.contacts || [];
+        emails.push(...page.map((c) => String(c.email || "").toLowerCase()).filter(Boolean));
+        if (page.length < 500) break;
+    }
+    return emails;
+}
+
+export async function createList(name, folderId) {
+    const res = await brevoFetch("/contacts/lists", { method: "POST", body: JSON.stringify({ name, folderId }) });
+    if (!res.ok) throw new Error(`Brevo list create failed: ${res.status} ${JSON.stringify(res.body)}`);
+    return res.body.id;
+}
+
+export function deleteList(listId) {
+    return brevoFetch(`/contacts/lists/${listId}`, { method: "DELETE" });
+}
+
+// Brevo accepte 150 adresses par appel.
+export async function addEmailsToList(listId, emails) {
+    const failures = [];
+    for (let i = 0; i < emails.length; i += 150) {
+        const chunk = emails.slice(i, i + 150);
+        const res = await brevoFetch(`/contacts/lists/${listId}/contacts/add`, {
+            method: "POST",
+            body: JSON.stringify({ emails: chunk }),
+        });
+        if (!res.ok) throw new Error(`Brevo list add failed: ${res.status} ${JSON.stringify(res.body)}`);
+        failures.push(...(res.body?.contacts?.failure || []));
+    }
+    return { failures };
+}
+
+// ── Campagnes ──
+
+export function getSenderId() {
+    return Number(process.env.BREVO_SENDER_ID || 2);
+}
+
+export const REPLY_TO = "info@betheldworp.be";
+
+export async function createCampaign({ name, subject, previewText, htmlContent, listIds, tag }) {
+    const body = {
+        name,
+        subject,
+        previewText,
+        htmlContent,
+        sender: { id: getSenderId() },
+        replyTo: REPLY_TO,
+        inlineImageActivation: false,
+        tag,
+    };
+    if (listIds?.length) body.recipients = { listIds };
+    const res = await brevoFetch("/emailCampaigns", { method: "POST", body: JSON.stringify(body) });
+    if (!res.ok) throw new Error(`Brevo campaign create failed: ${res.status} ${JSON.stringify(res.body)}`);
+    return res.body.id;
+}
+
+export function sendCampaignNow(campaignId) {
+    return brevoFetch(`/emailCampaigns/${campaignId}/sendNow`, { method: "POST" });
+}
+
+export function sendCampaignTest(campaignId, emailTo) {
+    return brevoFetch(`/emailCampaigns/${campaignId}/sendTest`, { method: "POST", body: JSON.stringify({ emailTo }) });
+}
+
+export function deleteCampaign(campaignId) {
+    return brevoFetch(`/emailCampaigns/${campaignId}`, { method: "DELETE" });
+}
+
+// Envoi transactionnel d'un seul message : solution de repli pour le test,
+// si Brevo refuse le test de campagne vers une adresse.
+export function sendTransactional({ to, subject, htmlContent }) {
+    return brevoFetch("/smtp/email", {
+        method: "POST",
+        body: JSON.stringify({
+            sender: { name: "Bethel Dworp", email: REPLY_TO },
+            replyTo: { email: REPLY_TO },
+            to: [{ email: to }],
+            subject,
+            htmlContent,
+        }),
+    });
 }
 
 // Ajoute le contact à la liste, ou le met à jour s'il existe déjà.

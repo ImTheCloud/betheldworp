@@ -27,6 +27,25 @@ function claimedUid(token) {
     }
 }
 
+function claimedEmail(token) {
+    try {
+        const [, payload] = token.split(".");
+        const json = Buffer.from(payload.replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf8");
+        return String(JSON.parse(json)?.email || "").toLowerCase();
+    } catch {
+        return "";
+    }
+}
+
+// Comme isAdminRequest, mais rend aussi le jeton (pour lire ou écrire Firestore
+// au nom de l'admin) et son adresse. null si l'appel n'est pas d'un admin.
+// L'adresse est lue dans le jeton, que Firestore vient de valider.
+export async function getAdminContext(request) {
+    if (!(await isAdminRequest(request))) return null;
+    const token = (request.headers.get("authorization") || "").slice(7).trim();
+    return { token, uid: claimedUid(token), email: claimedEmail(token) };
+}
+
 export async function isAdminRequest(request) {
     const header = request.headers.get("authorization") || "";
     if (!header.startsWith("Bearer ")) return false;
