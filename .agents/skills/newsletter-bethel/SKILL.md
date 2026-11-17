@@ -320,7 +320,7 @@ Avant d'envoyer, vérifier :
 | Protest Samson | `https://www.betheldworp.be/images/events/ProtestSamson.jpeg` | Protest Familia Samson |
 | Simion Buzduga | `https://www.betheldworp.be/images/events/SimionBuzduga.png` | Visite fr. Simion |
 | Orchestra Elim Bruxelles | `https://www.betheldworp.be/images/events/OrchestraElimBruxelles.jpg` | Visite / concert Orchestra Elim Bruxelles |
-| Orchestre de l'église | `https://www.betheldworp.be/images/events/Orchestra.png` | Répétition d'orchestre du mardi |
+| Orchestre de l'église | `https://www.betheldworp.be/images/events/Orchestra.jpg` | Répétition d'orchestre du mardi |
 
 ---
 
