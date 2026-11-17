@@ -14,7 +14,8 @@ export function clean(value, max = 80) {
         .slice(0, max);
 }
 
-export async function notify({ title, message, priority = "default", tags = "" }) {
+// click : adresse ouverte quand on touche la notification sur le téléphone.
+export async function notify({ title, message, priority = "default", tags = "", click = "" }) {
     const topic = process.env.NTFY_TOPIC;
     if (!topic) {
         console.error("NTFY_TOPIC is not set");
@@ -25,6 +26,7 @@ export async function notify({ title, message, priority = "default", tags = "" }
     // sont en roumain, et fetch() refuse tout octet non-ASCII dans un en-tête.
     const params = new URLSearchParams({ title, priority });
     if (tags) params.set("tags", tags);
+    if (click) params.set("click", click);
 
     try {
         const res = await fetch(`${NTFY}/${encodeURIComponent(topic)}?${params}`, {
