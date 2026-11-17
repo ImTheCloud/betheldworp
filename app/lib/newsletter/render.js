@@ -76,15 +76,17 @@ function capitalizeMonth(s) {
     return String(s).replace(/(\d+ )([a-zăâîșț])/g, (_, d, c) => d + c.toUpperCase());
 }
 
-// ── Pastille : seulement ANULAT ──
-//
-// Choix de l'utilisateur (17 nov 2026) : les couleurs suffisent (vert pour ce
-// qui sort de l'ordinaire, gris pour l'habituel) et la note sous le titre dit
-// le reste. Une pastille « Eveniment » ou « Program special » se trompait
-// d'ailleurs pour une simple annonce (la chorale partie à Graz). Seule
-// l'annulation, qui compte le plus, garde sa pastille rouge à côté de l'heure.
+// ── Pastilles (à côté du titre) ──
+//   ANULAT     rouge  annulé, y compris le jour de départ d'un déplacement
+//   MUTAT      jaune  jour d'arrivée d'un déplacement
+//   MODIFICAT  jaune  titre ou heure changés sur place
+//   ANUNȚ      vert   événement, invité ou annonce (ex. la chorale partie à Graz)
 
 const BADGES = {
+    moved: { label: "MUTAT", cls: "badge-mut", bg: "#fcf1da", border: "#f0c76a", color: "#92600a" },
+    changed: { label: "MODIFICAT", cls: "badge-mut", bg: "#fcf1da", border: "#f0c76a", color: "#92600a" },
+    event: { label: "ANUNȚ", cls: "badge-nou", bg: "#dcfce7", border: "#86efac", color: "#15803d" },
+    extra: { label: "ANUNȚ", cls: "badge-nou", bg: "#dcfce7", border: "#86efac", color: "#15803d" },
     cancelled: { label: "ANULAT", cls: "badge-an", bg: "#fdecec", border: "#f3b4b4", color: "#b91c1c" },
     movedFrom: { label: "ANULAT", cls: "badge-an", bg: "#fdecec", border: "#f3b4b4", color: "#b91c1c" },
 };
@@ -101,8 +103,8 @@ function badge(status, marginLeft = 6) {
 // seulement (l'heure et la note restent neutres, choix du 17 nov 2026) :
 //   gris   programme habituel
 //   vert   événement, invité, annonce
-//   jaune  déplacé (les deux jours) ou modifié
-//   rouge  annulé, avec la pastille ANULAT
+//   jaune  arrivée d'un déplacement, ou modifié
+//   rouge  annulé (y compris le jour de départ d'un déplacement)
 const CHIPS = {
     n: { cls: "chip-n", bg: "#f1f5f9", border: "#e2e8f0", lbl: "#64748b", num: "#0f172a", title: "#0f172a", titleCls: "t-head" },
     s: { cls: "chip-s", bg: "#dcfce7", border: "#86efac", lbl: GREEN, num: GREEN, title: "#15803d", titleCls: "t-accent" },
@@ -111,8 +113,8 @@ const CHIPS = {
 };
 
 function chipKind(status) {
-    if (status === "cancelled") return "c";
-    if (status === "moved" || status === "movedFrom" || status === "changed") return "m";
+    if (status === "cancelled" || status === "movedFrom") return "c";
+    if (status === "moved" || status === "changed") return "m";
     if (status === "normal") return "n";
     return "s";
 }
@@ -134,7 +136,7 @@ function calendarRow(day, row, isLast) {
     const padText = isLast ? "14px 0 6px 12px" : "14px 0 14px 12px";
     const titleWeight = kind === "n" ? 600 : 700;
 
-    const title = `<div class="${c.titleCls}" style="font-size:15px;color:${c.title};font-weight:${titleWeight};line-height:1.45;">${escapeHtml(row.title)}${kind === "c" ? badge(row.status, 6) : ""}</div>`;
+    const title = `<div class="${c.titleCls}" style="font-size:15px;color:${c.title};font-weight:${titleWeight};line-height:1.45;">${escapeHtml(row.title)}${badge(row.status, 6)}</div>`;
     const time = row.times.length
         ? `<div class="t-time" style="font-size:13px;font-weight:700;color:#475569;letter-spacing:0.3px;padding-top:2px;"><span class="no-detect" style="color:inherit !important;text-decoration:none !important;">${timesHtml(row.times)}</span></div>`
         : "";
@@ -287,6 +289,8 @@ a[x-apple-data-detectors],a[href^="x-apple-data-detectors"],[x-apple-data-detect
 .chip-m-lbl,.chip-m-num{color:#fcd34d !important;}
 .t-moved{color:#fcd34d !important;}
 .t-time,.t-time .no-detect{color:#cbd5e1 !important;}
+.badge-nou{background-color:#0f2918 !important;border:1px solid #4ade80 !important;color:#4ade80 !important;}
+.badge-mut{background-color:#2e2306 !important;border:1px solid #fbbf24 !important;color:#fcd34d !important;}
 .badge-an{background-color:#361010 !important;border:1px solid #f87171 !important;color:#fca5a5 !important;}
 .box-msg{background-color:#0f2918 !important;border-color:#1f5130 !important;}
 .cta{background-color:#4ade80 !important;color:#052e16 !important;}
@@ -305,6 +309,8 @@ a[x-apple-data-detectors],a[href^="x-apple-data-detectors"],[x-apple-data-detect
 [data-ogsc] .chip-m,[data-ogsb] .chip-m{background-color:#2e2306 !important;border:1px solid #fbbf24 !important;color:#fcd34d !important;}
 [data-ogsc] .chip-m-lbl,[data-ogsc] .chip-m-num,[data-ogsc] .t-moved,[data-ogsb] .chip-m-lbl,[data-ogsb] .chip-m-num,[data-ogsb] .t-moved{color:#fcd34d !important;}
 [data-ogsc] .t-time,[data-ogsb] .t-time{color:#cbd5e1 !important;}
+[data-ogsc] .badge-nou,[data-ogsb] .badge-nou{background-color:#0f2918 !important;border:1px solid #4ade80 !important;color:#4ade80 !important;}
+[data-ogsc] .badge-mut,[data-ogsb] .badge-mut{background-color:#2e2306 !important;border:1px solid #fbbf24 !important;color:#fcd34d !important;}
 [data-ogsc] .chip-c,[data-ogsb] .chip-c,[data-ogsc] .badge-an,[data-ogsb] .badge-an{background-color:#361010 !important;border:1px solid #f87171 !important;color:#f87171 !important;}
 [data-ogsc] .chip-c-lbl,[data-ogsc] .chip-c-num,[data-ogsb] .chip-c-lbl,[data-ogsb] .chip-c-num{color:#f87171 !important;}
 [data-ogsc] .box-msg,[data-ogsb] .box-msg{background-color:#0f2918 !important;border-color:#1f5130 !important;}
