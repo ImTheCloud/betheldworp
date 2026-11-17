@@ -190,16 +190,17 @@ export async function loadWeek(weekKey) {
             return;
         }
 
-        let note = "";
+        let until = "";
         const lastISO = e.endDate || e.dateEvent;
         if (lastISO > firstISO) {
             const last = new Date(`${lastISO}T12:00:00Z`);
             const lastIndex = Math.round((last - monday) / 86400000);
-            note = lastIndex <= 6
+            until = lastIndex <= 6
                 ? `Până ${DAY_NAMES[lastIndex].toLowerCase()}, ${dayMonth(last)}`
                 : `Până pe ${dayMonth(last)}`;
         }
-        if (e.place && !/bethel/i.test(e.place)) note = [note, e.place].filter(Boolean).join(", ");
+        const place = e.place && !/bethel/i.test(e.place) ? e.place : "";
+        const note = [until, place].filter(Boolean).join(", ");
         rows.push({
             key: `ev-${e.id}`,
             dayIndex,
@@ -207,6 +208,7 @@ export async function loadWeek(weekKey) {
             title: e.title,
             times: splitEventTimes(e.time),
             note,
+            until,
             eventId: e.id,
             inSummary: true,
         });
@@ -244,7 +246,7 @@ export async function loadWeek(weekKey) {
             g.occurrences.push(occ);
         }
         r.times.forEach((x) => { if (!occ.times.includes(x)) occ.times.push(x); });
-        if (r.key.startsWith("ev-") && r.note.startsWith("Până")) occ.untilNote = r.note.split(",")[0];
+        if (r.until) occ.untilNote = r.until;
     });
     const eventGroups = [...groups.values()].map((g) => ({
         ...g,
