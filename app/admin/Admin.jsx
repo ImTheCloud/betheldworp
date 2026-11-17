@@ -13,6 +13,7 @@ import ProgramOverridesAdmin from "./sections/ProgramOverridesAdmin";
 import EventsAdmin from "./sections/EventsAdmin";
 import StatsAdmin from "./sections/StatsAdmin";
 import NewsletterAdmin from "./sections/NewsletterAdmin";
+import WeeklyNewsletterAdmin from "./sections/WeeklyNewsletterAdmin";
 import ChurchesAdmin from "./sections/ChurchesAdmin";
 import ChurchSuggestionsAdmin from "./sections/ChurchSuggestionsAdmin";
 import AdminSidebar from "./AdminSidebar";
@@ -124,7 +125,7 @@ export default function Admin() {
 
         const handleHash = () => {
             const hash = window.location.hash.replace("#", "");
-            const validTabs = ["stats", "newsletter", "verse", "overrides", "events", "churches", "suggestions"];
+            const validTabs = ["stats", "weekly", "newsletter", "verse", "overrides", "events", "churches", "suggestions"];
             if (hash && validTabs.includes(hash)) {
                 setActiveTab(hash);
             }
@@ -340,6 +341,8 @@ export default function Admin() {
         switch (activeTab) {
             case "stats":
                 return <StatsAdmin {...props} />;
+            case "weekly":
+                return <WeeklyNewsletterAdmin {...props} />;
             case "newsletter":
                 return <NewsletterAdmin {...props} />;
             case "verse":

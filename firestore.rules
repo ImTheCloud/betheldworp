@@ -75,6 +75,14 @@ service cloud.firestore {
                     && request.resource.data.unsubscribed is bool;
     }
 
+    // Newsletter de la semaine : brouillon (message, événement en tête, objet)
+    // et historique des envois, un document par semaine (« 2026-W48 »).
+    // Réservé à l'admin, en lecture (règle récursive plus haut) comme en écriture.
+    // Le serveur y écrit avec le jeton de l'admin qui appuie sur « Trimite ».
+    match /newsletter_issues/{weekKey} {
+      allow write: if isAdmin();
+    }
+
     // --- CARTE DES ÉGLISES ---
 
     match /churches/{docId} {

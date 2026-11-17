@@ -216,6 +216,16 @@ await check("admin NON PLUS ne peut supprimer le compteur public", false, () =>
 await check("anon NE PEUT PAS creer le compteur public a une valeur arbitraire", false, () =>
     setDoc(doc(anon, "stats_public", "triche"), { visits: 5000 }));
 
+console.log("\n— Newsletter de la semaine (newsletter_issues) —");
+await check("admin ecrit le brouillon de la semaine", true, () =>
+    setDoc(doc(admin, "newsletter_issues", "2026-W48"), { weekKey: "2026-W48", message: "x" }, { merge: true }));
+await check("admin lit le brouillon", true, () => getDoc(doc(admin, "newsletter_issues", "2026-W48")));
+await check("anon NE PEUT PAS lire le brouillon", false, () => getDoc(doc(anon, "newsletter_issues", "2026-W48")));
+await check("anon NE PEUT PAS ecrire le brouillon", false, () =>
+    setDoc(doc(anon, "newsletter_issues", "2026-W48"), { message: "spam" }, { merge: true }));
+await check("non-admin NE PEUT PAS ecrire le brouillon", false, () =>
+    setDoc(doc(other, "newsletter_issues", "2026-W48"), { message: "spam" }, { merge: true }));
+
 console.log("\n— Escalade de privileges —");
 await check("admin NE PEUT PAS se nommer un co-admin", false, () => setDoc(doc(admin, "admins", "complice"), { role: "admin" }));
 await check("admin NE PEUT PAS se retirer / retirer un autre admin", false, () => deleteDoc(doc(admin, "admins", "boss")));
