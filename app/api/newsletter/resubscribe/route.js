@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { isValidEmail, normalizeEmail } from "../../../lib/validation";
-import { resubscribeContact } from "../../../lib/brevo";
+import { addContactToList, resubscribeContact } from "../../../lib/brevo";
 import { isAdminRequest } from "../../../lib/adminAuth";
 
 // Appelée quand un abonné est réactivé depuis le panneau admin : lève la
@@ -23,7 +23,10 @@ export async function POST(request) {
     }
 
     try {
-        const result = await resubscribeContact(email);
+        let result = await resubscribeContact(email);
+        // Contact supprimé de Brevo entre-temps : il faut le recréer, sinon la
+        // réactivation réussit sur le site et la personne ne reçoit rien.
+        if (result.status === 404) result = await addContactToList(email);
         if (!result.ok) {
             console.error("Brevo resubscribe failed:", result.status, result.body);
             return NextResponse.json({ error: "brevo_failed" }, { status: 502 });

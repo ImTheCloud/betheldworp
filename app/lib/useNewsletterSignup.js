@@ -72,6 +72,14 @@ export function useNewsletterSignup(source) {
                 // Brevo par une désinscription faite depuis un e-mail. Redonner son
                 // adresse vaut demande de retour : la route lève le blocage, et ne
                 // fait rien si le contact est déjà joignable.
+                //
+                // Le site doit suivre : sans cette ligne, Brevo réactivait la
+                // personne mais l'admin la montrait toujours « Unsubscribed », et
+                // la newsletter de la semaine (qui part des abonnés actifs du
+                // site) l'ignorait.
+                if (snapshot.data()?.unsubscribed === true) {
+                    await setDoc(docRef, { unsubscribed: false, updatedAt: serverTimestamp() }, { merge: true });
+                }
                 syncBrevo(em, source);
                 setSubscribedEmail(em);
                 setStatus("already");

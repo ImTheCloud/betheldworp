@@ -3,8 +3,16 @@ import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../../../lib/Firebase";
 import { normalizeEmail } from "../../../lib/validation";
 
-// Événements Brevo qui doivent couper les envois pour une adresse.
-const UNSUBSCRIBE_EVENTS = new Set(["unsubscribed", "unsubscribe", "spam", "list_removal"]);
+// Événements Brevo qui doivent couper les envois pour une adresse, comparés
+// sans casse ni tiret bas (« contact_deleted » et « contactDeleted »).
+//
+// La suppression d'un contact dans Brevo compte aussi : sans elle, le site le
+// croyait toujours abonné, et le bouton « Sync Brevo » le recréait. Le site ne
+// peut pas supprimer le document lui-même (règles Firestore) : il le marque
+// désabonné, et l'admin le supprime s'il le souhaite.
+const UNSUBSCRIBE_EVENTS = new Set(["unsubscribed", "unsubscribe", "spam", "listremoval", "contactdeleted", "delete"]);
+
+const normalizeEvent = (value) => String(value || "").toLowerCase().replace(/_/g, "");
 
 // Brevo ne signe pas ses webhooks : l'URL est protégée par un jeton partagé.
 function isAuthorized(request) {
@@ -27,7 +35,7 @@ export async function POST(request) {
         return NextResponse.json({ error: "invalid_body" }, { status: 400 });
     }
 
-    const event = String(payload?.event || "").toLowerCase();
+    const event = normalizeEvent(payload?.event);
     if (!UNSUBSCRIBE_EVENTS.has(event)) {
         // Brevo envoie aussi des ouvertures, clics, etc. : on les acquitte sans agir.
         return NextResponse.json({ ok: true, ignored: event });

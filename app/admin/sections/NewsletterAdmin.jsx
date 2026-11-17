@@ -378,9 +378,14 @@ export default function NewsletterAdmin({ onDirtyChange }) {
 
     // Répercute une action de l'admin sur la liste Brevo. Firestore reste la
     // source de vérité : un échec côté Brevo ne doit jamais bloquer l'admin.
+    //
+    // Mais un échec ne doit pas non plus passer inaperçu : avant, la réponse
+    // n'était jamais lue, et un abonné ajouté ici pouvait manquer dans Brevo
+    // sans que personne le sache.
     const syncBrevo = useCallback(async (action, email) => {
+        let ok = false;
         try {
-            await fetch(`/api/newsletter/${action}`, {
+            const res = await fetch(`/api/newsletter/${action}`, {
                 method: "POST",
                 headers: {
                     "content-type": "application/json",
@@ -388,10 +393,18 @@ export default function NewsletterAdmin({ onDirtyChange }) {
                 },
                 body: JSON.stringify({ email, source: "admin" }),
             });
+            ok = res.ok;
         } catch (e) {
             console.error(`Brevo ${action} error:`, e);
         }
-    }, []);
+        if (!ok && mountedRef.current) {
+            openInfoModal(
+                "Brevo did not follow",
+                `The change is saved on the site, but Brevo did not apply it for ${email}. Press “Sync Brevo” later to repair the list.`
+            );
+        }
+        return ok;
+    }, [openInfoModal]);
 
     // Retire l'adresse de la liste d'envoi. Si la personne s'était désabonnée, on
     // la met en blocklist au lieu de la supprimer : effacer le contact effacerait
@@ -450,9 +463,37 @@ export default function NewsletterAdmin({ onDirtyChange }) {
                     : "Nobody was missing from Brevo ✓",
             ];
             if (data.failed.length) lines.push(`Could not add (${data.failed.length}): ${data.failed.join(", ")}`);
-            if (data.blocked.length) lines.push(`Unsubscribed via an email link, left untouched (${data.blocked.length}): ${data.blocked.join(", ")}`);
-            if (data.onlyInBrevo.length) lines.push(`In Brevo but not active on the site (${data.onlyInBrevo.length}): ${data.onlyInBrevo.join(", ")}`);
-            openInfoModal(data.failed.length ? "Sync partly done" : "Brevo is in sync", lines.join("\n\n"));
+            if (data.blocked.length) lines.push(`Unsubscribed in Brevo but still active on the site (${data.blocked.length}): ${data.blocked.join(", ")}. They receive nothing.`);
+            if (data.onlyInBrevo.length) lines.push(`In Brevo but not active on the site (${data.onlyInBrevo.length}): ${data.onlyInBrevo.join(", ")}. The weekly email skips them.`);
+            const title = data.failed.length ? "Sync partly done" : "Brevo is in sync";
+            if (!data.blocked.length) {
+                openInfoModal(title, lines.join("\n\n"));
+                return;
+            }
+            // Une désinscription faite dans Brevo dont le webhook n'est jamais
+            // arrivé : proposer d'aligner le site, sans jamais débloquer Brevo.
+            setModal({
+                isOpen: true,
+                title,
+                message: lines.join("\n\n"),
+                actions: [
+                    { label: "Leave as is", variant: "secondary", onClick: () => setModal((p) => ({ ...p, isOpen: false })) },
+                    {
+                        label: `Mark ${data.blocked.length} unsubscribed`,
+                        variant: "primary",
+                        onClick: async () => {
+                            setModal((p) => ({ ...p, isOpen: false }));
+                            try {
+                                await Promise.all(data.blocked.map((em) =>
+                                    setDoc(doc(db, "newsletter", em), { unsubscribed: true, updatedAt: serverTimestamp() }, { merge: true })));
+                            } catch (err) {
+                                console.error(err);
+                                openInfoModal("Action Failed", "Could not update the site.");
+                            }
+                        },
+                    },
+                ],
+            });
         } catch (e) {
             console.error("Brevo sync error:", e);
             openInfoModal("Sync failed", "Network error. Nothing was changed.");
@@ -495,12 +536,15 @@ export default function NewsletterAdmin({ onDirtyChange }) {
                     const prev = snap.exists() ? snap.data() || {} : {};
                     const createdAt = prev.createdAt || prev.subscribedAt || serverTimestamp();
 
+                    // Ajouter une adresse connue mais désabonnée la réactive :
+                    // Brevo la réactive aussi (route subscribe), le site doit suivre.
                     await setDoc(
                         ref,
                         {
                             email: clean,
                             createdAt,
                             updatedAt: serverTimestamp(),
+                            unsubscribed: false,
                         },
                         { merge: true }
                     );

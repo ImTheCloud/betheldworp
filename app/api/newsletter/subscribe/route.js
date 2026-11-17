@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { isValidEmail, normalizeEmail } from "../../../lib/validation";
-import { addContactToList, getContact, resubscribeContact } from "../../../lib/brevo";
+import { addContactToList, getContact, isReachableInNewsletterList, resubscribeContact } from "../../../lib/brevo";
 import { notify } from "../../../lib/notify";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../../lib/Firebase";
@@ -44,16 +44,22 @@ export async function POST(request) {
     try {
         const fiche = await getContact(email);
         const connu = fiche.ok;
-        const bloque = connu && fiche.body?.emailBlacklisted === true;
 
-        // Déjà présent et joignable : la liste est correcte. On ne réécrit rien
-        // et on ne notifie pas, sinon un simple renvoi du formulaire annoncerait
-        // un abonné qui n'a rien de nouveau.
-        if (connu && !bloque) {
+        // Déjà dans la liste newsletter et joignable : la liste est correcte. On
+        // ne réécrit rien et on ne notifie pas, sinon un simple renvoi du
+        // formulaire annoncerait un abonné qui n'a rien de nouveau.
+        //
+        // « Connu de Brevo » ne suffit pas : un contact peut exister sans être
+        // dans la liste (supprimé de la liste dans Brevo), ou s'être désinscrit
+        // de la liste seulement. Avant, ces deux cas répondaient « already »
+        // et la personne ne recevait jamais rien.
+        if (connu && isReachableInNewsletterList(fiche.body)) {
             return NextResponse.json({ ok: true, status: "already" });
         }
+        // Connu mais pas joignable : bloqué, désinscrit de la liste, ou sorti de la liste.
+        const revient = connu;
 
-        const result = bloque
+        const result = revient
             ? await resubscribeContact(email)
             : await addContactToList(email);
 
@@ -70,15 +76,15 @@ export async function POST(request) {
         if (source !== "admin") {
             const origine = source === "footer" ? "formularul din footer" : "secțiunea Newsletter";
             await notify({
-                title: bloque ? "Abonat revenit" : "Abonat nou",
-                message: bloque
+                title: revient ? "Abonat revenit" : "Abonat nou",
+                message: revient
                     ? `Cineva s-a reabonat (${origine}).`
                     : `Un nou abonat (${origine}).`,
                 tags: "email,tada",
             });
         }
 
-        return NextResponse.json({ ok: true, status: bloque ? "resubscribed" : "created" });
+        return NextResponse.json({ ok: true, status: revient ? "resubscribed" : "created" });
     } catch (err) {
         console.error("Brevo subscribe error:", err);
         await alertBrevoFailure("eroare de rețea");
