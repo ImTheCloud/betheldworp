@@ -2,10 +2,10 @@
 
 // Logique d'inscription commune à la section Newsletter et au pied de page.
 // Les deux formulaires n'affichent pas la même chose, mais l'enchaînement est
-// identique : garde-fous contre les fautes de frappe, écriture Firestore, puis
-// réplique dans Brevo.
+// identique : suggestion discrète en cas de faute de frappe, refus d'un
+// domaine qui ne reçoit pas de courrier, écriture Firestore, réplique Brevo.
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
 import { db } from "./Firebase";
 import { isValidEmail, normalizeEmail } from "./validation";
@@ -32,22 +32,26 @@ export function useNewsletterSignup(source) {
     const [error, setError] = useState(null);
     const [suggestion, setSuggestion] = useState(null);
 
+    // La ligne « Ai vrut să scrii …? » apparaît quand la personne marque une
+    // pause en tapant, ou quitte le champ. Elle reste une simple aide : le
+    // bouton d'inscription n'est jamais bloqué, l'adresse tapée fait foi.
+    useEffect(() => {
+        const timer = setTimeout(() => setSuggestion(suggestEmail(email)), 800);
+        return () => clearTimeout(timer);
+    }, [email]);
+
     const setEmail = (value) => {
         setEmailState(value);
         setSuggestion(null);
         setError(null);
     };
 
-    const subscribe = async (raw, { skipSuggestion = false } = {}) => {
+    const onBlur = () => setSuggestion(suggestEmail(email));
+
+    const subscribe = async (raw) => {
         setError(null);
-        setSuggestion(null);
 
         const em = normalizeEmail(raw);
-        const proposed = skipSuggestion ? null : suggestEmail(em);
-        if (proposed) {
-            setSuggestion(proposed);
-            return;
-        }
         if (!isValidEmail(em)) {
             setError({ code: "invalid" });
             return;
@@ -94,22 +98,17 @@ export function useNewsletterSignup(source) {
         subscribe(email);
     };
 
-    // « Ai vrut să scrii …? » → Oui : on corrige le champ et on inscrit.
-    const acceptSuggestion = () => {
+    // Un appui sur l'adresse proposée corrige le champ, sans inscrire : la
+    // personne voit la correction et appuie elle-même sur « Abonează-te ».
+    const applySuggestion = () => {
         if (!suggestion || sending) return;
-        const fixed = suggestion;
-        setEmailState(fixed);
-        subscribe(fixed, { skipSuggestion: true });
-    };
-
-    // → Non, l'adresse tapée est la bonne.
-    const rejectSuggestion = () => {
-        if (sending) return;
-        subscribe(email, { skipSuggestion: true });
+        setEmailState(suggestion);
+        setSuggestion(null);
+        setError(null);
     };
 
     return {
-        email, setEmail, sending, status, subscribedEmail, error, suggestion,
-        onSubmit, acceptSuggestion, rejectSuggestion,
+        email, setEmail, onBlur, sending, status, subscribedEmail, error, suggestion,
+        onSubmit, applySuggestion,
     };
 }

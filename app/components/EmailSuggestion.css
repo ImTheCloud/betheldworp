@@ -1,91 +1,50 @@
-/* Proposition de correction d'adresse, sous les champs d'inscription.
-   Pensée pour le téléphone : texte lisible (15 px), boutons d'au moins 44 px
-   de haut, l'adresse peut se couper n'importe où pour ne jamais déborder. */
+/* Suggestion de correction d'adresse : une seule ligne sous le champ, comme
+   sur la plupart des sites. L'adresse proposée est un lien qu'on touche pour
+   corriger le champ. Elle peut se couper n'importe où pour ne pas déborder. */
 
-.email-suggest {
-    margin-top: 12px;
-    padding: 14px 16px;
-    border-radius: 16px;
+.email-hint {
+    margin: 10px 0 0;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.5;
     text-align: left;
 }
 
-.email-suggest--light {
-    background: rgba(22, 70, 120, 0.06);
-    border: 1px solid rgba(22, 70, 120, 0.25);
-    color: #0a2a43;
+.email-hint--light {
+    color: rgba(10, 42, 67, 0.75);
 }
 
-.email-suggest--dark {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    color: #ffffff;
+.email-hint--dark {
+    color: rgba(255, 255, 255, 0.85);
     max-width: 320px;
 }
 
-.email-suggest-text {
-    margin: 0 0 12px;
-    font-size: 15px;
-    font-weight: 600;
-    line-height: 1.45;
-}
-
-.email-suggest-address {
-    overflow-wrap: anywhere;
-}
-
-.email-suggest-address strong {
-    font-weight: 900;
-}
-
-.email-suggest-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.email-suggest-yes,
-.email-suggest-no {
-    min-height: 44px;
-    padding: 10px 16px;
-    border-radius: 12px;
-    font-size: 14px;
-    font-weight: 800;
-    cursor: pointer;
-    font-family: inherit;
-}
-
-.email-suggest-yes {
-    flex: 1 1 auto;
+.email-hint-fix {
+    display: inline;
+    /* Zone tactile agrandie vers le haut et le bas, sans décaler la ligne. */
+    padding: 8px 0;
+    margin: 0;
     border: 0;
+    background: none;
+    font: inherit;
+    font-weight: 700;
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1.5px;
+    cursor: pointer;
+    overflow-wrap: anywhere;
+    text-align: left;
 }
 
-.email-suggest-no {
-    flex: 1 1 auto;
-    background: transparent;
+.email-hint--light .email-hint-fix {
+    color: #164678;
 }
 
-.email-suggest--light .email-suggest-yes {
-    background: linear-gradient(135deg, #0a2a43 0%, #164678 100%);
+.email-hint--dark .email-hint-fix {
     color: #ffffff;
 }
 
-.email-suggest--light .email-suggest-no {
-    border: 1px solid rgba(10, 42, 67, 0.25);
-    color: #0a2a43;
-}
-
-.email-suggest--dark .email-suggest-yes {
-    background: #ffffff;
-    color: #0a2a43;
-}
-
-.email-suggest--dark .email-suggest-no {
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    color: #ffffff;
-}
-
-.email-suggest-yes:disabled,
-.email-suggest-no:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+.email-hint-fix strong {
+    font-weight: 900;
 }

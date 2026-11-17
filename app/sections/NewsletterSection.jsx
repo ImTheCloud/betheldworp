@@ -101,24 +101,18 @@ export default function NewsletterSection() {
                                     spellCheck={false}
                                     value={nl.email}
                                     onChange={(e) => nl.setEmail(e.target.value)}
+                                    onBlur={nl.onBlur}
                                     placeholder={t("email_placeholder")}
                                     autoComplete="email"
                                     aria-label={t("email_placeholder")}
                                     disabled={nl.sending}
                                 />
-                                {!nl.suggestion && (
-                                    <button className="nl-button" type="submit" disabled={nl.sending}>
-                                        {nl.sending ? t("sending") : t("subscribe")}
-                                    </button>
-                                )}
+                                <button className="nl-button" type="submit" disabled={nl.sending}>
+                                    {nl.sending ? t("sending") : t("subscribe")}
+                                </button>
                             </div>
 
-                            <EmailSuggestion
-                                suggestion={nl.suggestion}
-                                onAccept={nl.acceptSuggestion}
-                                onReject={nl.rejectSuggestion}
-                                disabled={nl.sending}
-                            />
+                            <EmailSuggestion suggestion={nl.suggestion} onApply={nl.applySuggestion} />
                         </form>
                     )}
                 </div>

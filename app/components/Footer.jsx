@@ -118,10 +118,11 @@ export default function Footer() {
                                             aria-label={t("email_placeholder")}
                                             value={nl.email}
                                             onChange={(e) => nl.setEmail(e.target.value)}
+                                            onBlur={nl.onBlur}
                                             placeholder={t("email_placeholder")}
                                             disabled={nl.sending}
                                         />
-                                        <button className="footer-nl-btn" type="submit" disabled={nl.sending || !!nl.suggestion} aria-label={t("newsletter_title")}>
+                                        <button className="footer-nl-btn" type="submit" disabled={nl.sending} aria-label={t("newsletter_title")}>
                                             {nl.sending ? (
                                                 <div className="footer-nl-spinner" />
                                             ) : (
@@ -133,13 +134,7 @@ export default function Footer() {
                                         </button>
                                     </div>
                                     {nlError && <div className="footer-nl-error" role="alert">{nlError}</div>}
-                                    <EmailSuggestion
-                                        suggestion={nl.suggestion}
-                                        onAccept={nl.acceptSuggestion}
-                                        onReject={nl.rejectSuggestion}
-                                        disabled={nl.sending}
-                                        tone="dark"
-                                    />
+                                    <EmailSuggestion suggestion={nl.suggestion} onApply={nl.applySuggestion} tone="dark" />
                                 </form>
                             )}
                         </div>
