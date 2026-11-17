@@ -52,7 +52,7 @@ Quand il y a Cina Domnului un dimanche :
 - **Dimanche matin** devient un chip vert spécial (`chip-s`) : `10:00 – 12:30` → "Cina Domnului în cadrul slujbei"
 - Ajouter un badge **Pauză ~ 1h** après la première partie
 - Puis `13:30 – 16:00` → "Reluăm programul bisericii"
-- **Dimanche soir ANULAT** (chip rouge `chip-c`) avec note "(datorită zilei de post)"
+- **Dimanche soir ANULAT, TOUJOURS** (chip rouge `chip-c`) avec note "Datorită zilei de post" : c'est une règle de l'église pour chaque « Cina Domnului și zi de post », sans exception. Dans l'admin : Program Overrides, Sunday PM = Cancelled. Le texte de l'événement le dit explicitement dès la première phrase (« Programul de seară (18:00) este anulat, datorită zilei de post. »). L'écran Weekly Email avertit si le soir n'est pas annulé.
 - **Section détaillée** avec le texte suivant :
 
 ```

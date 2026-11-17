@@ -65,6 +65,19 @@ export async function collectWarnings(week, rendered) {
     week.eventGroups.forEach((g) => {
         if (!g.description) warnings.push(`Evenimentul „${g.title}” nu are text în română.`);
     });
+
+    // Règle de l'église : la Cina Domnului est un jour de jeûne, le programme
+    // du soir est toujours annulé. Un oubli dans Program Overrides afficherait
+    // le culte du soir comme d'habitude, sur le site et dans l'e-mail.
+    week.eventGroups
+        .filter((g) => /cina domnului/i.test(g.title))
+        .forEach((g) => g.occurrences.forEach((o) => {
+            if (o.dayIndex !== 6) return;
+            const evening = week.days[6].rows.find((r) => r.key === "sun_pm");
+            if (evening && evening.status !== "cancelled" && evening.status !== "movedFrom") {
+                warnings.push("Cina Domnului: programul de seară de duminică nu este anulat. Anulează-l în Program Overrides (Sunday PM, Cancelled).");
+            }
+        }));
     const sundayEnd = addDaysUTC(week.sunday, 1);
     if (sundayEnd < new Date()) warnings.push("Această săptămână s-a încheiat deja.");
     return warnings;
