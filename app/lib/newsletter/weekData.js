@@ -154,14 +154,11 @@ export async function loadWeek(weekKey) {
     // l'e-mail (choix du 17 nov 2026 ; le site, lui, garde les deux cartes).
     // L'activité habituelle chassée d'un créneau à une autre heure (le cor
     // mixte quand le jeûne passe au mercredi matin) apparaît annulée.
-    const rows = cards.filter((c) => c.status !== "movedFrom").flatMap((c) => {
-        const own = cardRow(c);
-        if (!c.displacedBase) return [own];
-        return [own, {
-            key: `${c.key}-base`, dayIndex: own.dayIndex, status: "cancelled", title: c.displacedBase.title,
-            times: c.displacedBase.timeLabels, note: "", eventId: "", alsoEventIds: [], inSummary: true,
-        }];
-    });
+    // Une activité déplacée vers une heure libre est un « Program special »
+    // sur le site ; la newsletter la montre comme un déplacement (MUTAT).
+    const rows = cards.filter((c) => c.status !== "movedFrom")
+        .map((c) => (c.movedIn ? { ...c, status: "moved" } : c))
+        .map(cardRow);
 
     function cardRow(c) {
         const dayIndex = DAY_INDEX_BY_SLOT[c.id];

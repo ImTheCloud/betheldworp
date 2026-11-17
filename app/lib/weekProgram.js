@@ -330,11 +330,36 @@ export function computeProgramCards({ items, dateMetaById, override, eventsMap, 
             summaryNote = [adminNote, replacesNote].filter(Boolean).join(", ");
         }
 
-        cards.push({
+        // Activité ajoutée à une heure où le créneau n'avait rien (le jeûne
+        // passé au mercredi matin) : c'est un programme en plus (Program
+        // special), et l'activité habituelle du créneau (le cor mixte du soir)
+        // est annulée. Deux cartes, dans l'ordre des heures.
+        if (displaced) {
+            cards.push({
+                key: `${id}-added`, id, day, title, baseTitle: item?.title || "", note, adminNote,
+                status: "extra", statusLabel: t("status_addition"), timeLabels, dm, full,
+                summaryNote: status === "moved"
+                    ? t("move_summary").replace("{from}", lowerDay(moveSource.day)).replace("{to}", lowerDay(day))
+                    : adminNote,
+                isCancelled: false, isManual: true, isReplaced: false, replacementEventId: "", replacesNote: "",
+                alsoEventIds: [], movedIn: status === "moved",
+                moveSourceId: moveSource?.id || "", moveTargetId: "", inSummary: true,
+            });
+            cards.push({
+                key: id, id, day, title: item?.title || "", baseTitle: item?.title || "", note: "", adminNote: "",
+                status: "cancelled", statusLabel: t("status_cancelled"), timeLabels: cleanedTimes.map(formatRange),
+                dm, full, summaryNote: "", isCancelled: true, isManual: false, isReplaced: false,
+                replacementEventId: "", replacesNote: "", alsoEventIds: [], moveSourceId: "", moveTargetId: "",
+                inSummary: true,
+            });
+            const extraId = safeStr(additions[id]).trim();
+            if (!extraId || !eventsMap.get(extraId)) return;
+        }
+
+        if (!displaced) cards.push({
             key: id, id, day, title, baseTitle: item?.title || "", note, adminNote, status, statusLabel,
             timeLabels, dm, full, summaryNote, isCancelled, isManual, isReplaced, replacementEventId,
             replacesNote,
-            displacedBase: displaced ? { title: item?.title || "", timeLabels: cleanedTimes.map(formatRange) } : null,
             // Autres événements du même programme (alsoEvents) : jamais de carte
             // à eux dans le programme de la semaine, la carte du créneau garde
             // l'événement principal. La newsletter s'en sert pour les annoncer.
@@ -378,12 +403,6 @@ export function computeProgramCards({ items, dateMetaById, override, eventsMap, 
     const changes = [];
     cards.forEach((c) => {
         if (c.inSummary) changes.push(c);
-        if (c.displacedBase) {
-            changes.push({
-                key: `${c.key}-base`, id: c.id, day: c.day, title: c.displacedBase.title,
-                status: "cancelled", statusLabel: t("status_cancelled"), summaryNote: "", inSummary: true,
-            });
-        }
         (c.alsoEventIds || []).forEach((alsoId) => {
             const ev = eventsMap.get(alsoId);
             if (!ev) return;

@@ -442,7 +442,7 @@ export default function Program() {
         // Une carte remplacée par un événement ouvre l'événement. Les autres ouvrent
         // la réponse de la FAQ qui décrit l'activité affichée. Un titre manuel qui ne
         // correspond à aucune FAQ n'ouvre rien, plutôt que l'ancienne FAQ du créneau.
-        if (card.status === "extra") {
+        if (card.status === "extra" && card.additionEventId) {
             return { ...card, onActivate: () => window.dispatchEvent(new CustomEvent("open-event", { detail: { eventId: card.additionEventId } })) };
         }
         if (card.isReplaced) {
