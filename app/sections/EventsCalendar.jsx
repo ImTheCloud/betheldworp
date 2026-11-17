@@ -558,7 +558,8 @@ export default function EventsCalendar() {
             if (event.key === "Escape") closeEvent();
             if (event.key === "Tab") {
                 const dialog = closeButtonRef.current?.closest('[role="dialog"]');
-                const focusable = dialog?.querySelectorAll('button, a[href], [tabindex="0"]');
+                const focusable = [...(dialog?.querySelectorAll('button, a[href], [tabindex="0"]') || [])]
+                    .filter((element) => element.getClientRects().length > 0);
                 if (!focusable?.length) return;
                 const first = focusable[0];
                 const last = focusable[focusable.length - 1];
@@ -822,7 +823,14 @@ export default function EventsCalendar() {
                                                     <EventInfoIcon kind="place" label={t("location")} />
                                                     <div className="ev-infoValue">
                                                         {selectedEvent.place}
-                                                        {selectedEvent.address && <span className="ev-infoSub">{selectedEvent.address}</span>}
+                                                        {selectedEvent.address && (
+                                                            <a className="ev-infoSub ev-addressLink"
+                                                                href={`https://www.google.com/maps?q=${mapQuery}`}
+                                                                target="_blank" rel="noopener noreferrer"
+                                                                title={t("open_map")}>
+                                                                {selectedEvent.address} <span aria-hidden="true">↗</span>
+                                                            </a>
+                                                        )}
                                                     </div>
                                                 </div>
                                                 <a
