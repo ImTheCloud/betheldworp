@@ -310,7 +310,7 @@ function ProgramSlotGrid({
                                 </select>
                             </label>
         
-                            <label className="overrideSlotField" title="A second event held during this same program, e.g. the blessing of children during the Lord's Supper service. Shown as its own Eveniment card.">
+                            <label className="overrideSlotField" title="A second event held during this same program, e.g. the blessing of children during the Lord's Supper service. The weekly program only shows the main event; the monthly calendar shows both, the main one first.">
                                 <span className="overrideSlotFieldLabel">
                                     <IconPlus width="10" height="10" />
                                     Second Event (same program)

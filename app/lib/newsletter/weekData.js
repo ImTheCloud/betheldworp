@@ -141,7 +141,7 @@ export async function loadWeek(weekKey) {
     // Événements de la semaine : ceux qu'un créneau désigne, et ceux dont la
     // date tombe dans la semaine sans être rattachés à aucun créneau (un
     // mariage le samedi après-midi, un voyage de la chorale).
-    const linkedIds = new Set(cards.map((c) => c.replacementEventId || c.additionEventId).filter(Boolean));
+    const linkedIds = new Set(cards.flatMap((c) => [c.replacementEventId, c.additionEventId, ...(c.alsoEventIds || [])]).filter(Boolean));
     const standalone = events.filter((e) =>
         e.dateEvent && !linkedIds.has(e.id) &&
         e.dateEvent <= sundayISO && (e.endDate || e.dateEvent) >= mondayISO
@@ -171,6 +171,7 @@ export async function loadWeek(weekKey) {
             times: c.timeLabels,
             note: note ? note.charAt(0).toUpperCase() + note.slice(1) : "",
             eventId,
+            alsoEventIds: c.alsoEventIds || [],
             inSummary: c.inSummary,
         };
     });
@@ -228,8 +229,17 @@ export async function loadWeek(weekKey) {
     // Événements regroupés par titre : un invité qui vient vendredi et dimanche
     // est un seul événement, annoncé une fois avec ses deux dates.
     const groups = new Map();
-    rows.filter((r) => r.eventId).forEach((r) => {
-        const ev = eventsById.get(r.eventId);
+    // Les autres événements d'un même programme (alsoEvents) n'ont pas de ligne
+    // dans le calendrier, comme sur le site, mais restent annoncés plus bas.
+    const announced = rows.flatMap((r) => [
+        ...(r.eventId ? [{ r, eventId: r.eventId }] : []),
+        ...(r.alsoEventIds || []).map((id) => ({
+            r: { ...r, key: `${r.key}-also`, times: splitEventTimes(eventsById.get(id)?.time) },
+            eventId: id,
+        })),
+    ]);
+    announced.forEach(({ r, eventId }) => {
+        const ev = eventsById.get(eventId);
         if (!ev) return;
         const gk = normalizeActivityTitle(ev.title) || ev.id;
         if (!groups.has(gk)) {

@@ -183,8 +183,6 @@ export const EMPTY_OVERRIDE = normalizeWeekOverride("", {});
  *   "moved"      Mutat      titre manuel qui reprend l'activité d'un créneau annulé
  *   "changed"    Modificat  titre ou heure changés à la main, sans déplacement
  *   "event"      Eveniment  créneau remplacé par un événement
- *   "event"      Eveniment  aussi pour un second événement du même programme
- *                           (alsoEvents : Cina Domnului et bénédiction le même matin)
  *   "extra"      Program special  réunion en plus du programme habituel
  *
  * @param items      [{ id, day, times, title }] dans la langue affichée
@@ -317,38 +315,13 @@ export function computeProgramCards({ items, dateMetaById, override, eventsMap, 
             key: id, id, day, title, baseTitle: item?.title || "", note, adminNote, status, statusLabel,
             timeLabels, dm, full, summaryNote, isCancelled, isManual, isReplaced, replacementEventId,
             replacesNote,
+            // Autres événements du même programme (alsoEvents) : jamais de carte
+            // à eux dans le programme de la semaine, la carte du créneau garde
+            // l'événement principal. La newsletter s'en sert pour les annoncer.
+            alsoEventIds: safeArr(alsoEvents[id]).map((v) => safeStr(v).trim()).filter((v) => v && v !== replacementEventId && eventsMap.has(v)),
             moveSourceId: moveSource?.id || "", moveTargetId: moveTarget?.id || "",
             inSummary: status === "changed" || status === "event" || status === "moved" ||
                 (status === "cancelled" && isOverrideCancelled),
-        });
-
-        // Second (troisième…) événement du même programme : une carte
-        // « Eveniment » de plus, sur le même créneau, qui ouvre son événement.
-        safeArr(alsoEvents[id]).map((v) => safeStr(v).trim()).filter(Boolean).forEach((alsoId) => {
-            const ev = eventsMap.get(alsoId);
-            if (!ev || alsoId === replacementEventId) return;
-            const during = t("during").replace("{title}", item?.title || "");
-            cards.push({
-                key: `${id}-also-${alsoId}`,
-                id,
-                day,
-                title: ev.title,
-                baseTitle: item?.title || "",
-                note: "",
-                adminNote: "",
-                summaryNote: during,
-                status: "event",
-                statusLabel: t("status_event"),
-                timeLabels: ev.time ? [formatRange(ev.time)] : timeLabels,
-                dm,
-                full,
-                isCancelled: false,
-                isManual: false,
-                isReplaced: true,
-                replacementEventId: alsoId,
-                replacesNote: during,
-                inSummary: true,
-            });
         });
 
         const additionEventId = safeStr(additions[id]).trim();

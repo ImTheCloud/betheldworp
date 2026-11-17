@@ -128,7 +128,7 @@ Depuis novembre 2026, le programme hebdomadaire du site affiche un statut sur ch
 | **EVENIMENT** | Créneau remplacé par un événement (invité, concert, baptême) | `chip-s` vert, pastille `EVENIMENT` à côté de l'heure, titre de l'événement, ligne verte `Invitat special: …` si besoin, note `În locul: Serviciu Divin` si utile |
 | **MODIFICAT** | Titre ou heure changés pour une autre raison | `chip-s` vert, pastille `MODIFICAT` à côté de l'heure, note courte qui dit ce qui change (ex. `În locul serii de tineret`) |
 | **PROGRAM SPECIAL** (ex-Extra) | Réunion qui n'existe pas d'habitude (ex. un culte un jeudi), en plus du programme | `chip-s` vert, pastille `PROGRAM SPECIAL` à côté de l'heure |
-| **EVENIMENT** (2e événement) | Deux événements dans le même programme (ex. Cina Domnului et bénédiction des enfants le même dimanche matin) | Deux lignes `EVENIMENT` sur le même créneau, chacune avec son titre et son heure. Ce n'est **jamais** un Program special |
+| **EVENIMENT** (2e événement) | Deux événements dans le même programme (ex. Cina Domnului et bénédiction des enfants le même dimanche matin) | Une seule ligne dans le calendrier : l'**événement principal**. Le second n'a pas de ligne, il est annoncé après le calendrier (« Tot în această săptămână »). Ce n'est **jamais** un Program special. Même règle sur le site : une seule carte dans le programme de la semaine ; le calendrier du mois montre les deux, le principal en premier |
 | **NOU** | Activité qui entre dans le programme régulier (ex. orchestre, novembre 2026) | `chip-s` vert, pastille `NOU` à côté de l'heure, **uniquement la première semaine** |
 
 **Pastille à côté de l'heure** (même ligne que l'heure, donc aucune hauteur en plus sur mobile). Exemple pour `NOU`, voir `newsletter_2026-11-16.html` :
@@ -144,7 +144,7 @@ Depuis novembre 2026, le programme hebdomadaire du site affiche un statut sur ch
 - `Main Program` sur `Cancelled` : **Anulat**.
 - `Main Program` sur un événement : **Eveniment**.
 - `Manual Text Override` (titre ou heure) : **Modificat**.
-- `Second Event (same program)` : second événement pendant le même programme (champ `alsoEvents`), carte **Eveniment** de plus. Dans l'admin Événements, lier un 2e événement à un créneau déjà pris l'ajoute ici au lieu de remplacer le premier.
+- `Second Event (same program)` : second événement pendant le même programme (champ `alsoEvents`). Pas de carte à lui dans le programme de la semaine : seul l'événement principal (`Main Program`) y figure. Dans l'admin Événements, lier un 2e événement à un créneau déjà pris l'ajoute ici au lieu de remplacer le premier.
 - `Special Program (extra)` : **Program special** (ex-Extra), réunion en plus du programme habituel.
 - **Mutat est détecté tout seul** : un créneau annulé dont le titre habituel est écrit à la main sur un autre créneau de la même semaine. Le jour de départ affiche **Anulat** (note `Mutat miercuri`), le jour d'arrivée **Mutat** (note `Mutat de marți`). Il suffit d'annuler mardi matin et d'écrire « Zi de post și mijlocire » sur le créneau de mercredi.
 - `Note for visitors` (RO, FR, NL, EN) : texte court affiché sous le titre de la carte et dans le résumé. Il remplace la note automatique (`Mutat miercuri`, `Mutat de marți`).

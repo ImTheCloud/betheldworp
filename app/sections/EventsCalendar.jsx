@@ -202,11 +202,44 @@ export default function EventsCalendar() {
         return () => unsub();
     }, [lang, t]);
 
+    // Événements choisis comme programme principal d'un créneau (Program
+    // overrides, « Main Program »). Quand deux événements tombent le même jour
+    // (Cina Domnului et bénédiction des enfants le même dimanche), le principal
+    // s'affiche en premier, comme dans le programme de la semaine qui ne montre
+    // que lui.
+    const [mainEventIds, setMainEventIds] = useState(() => new Set());
+
+    useEffect(() => {
+        const unsub = onSnapshot(
+            collection(db, "program_overrides"),
+            (snap) => {
+                const ids = new Set();
+                snap.docs.forEach((d) => {
+                    const repl = d.data()?.replacements;
+                    if (repl && typeof repl === "object") {
+                        Object.values(repl).forEach((v) => { if (v) ids.add(String(v)); });
+                    }
+                });
+                setMainEventIds(ids);
+            },
+            () => setMainEventIds(new Set())
+        );
+        return () => unsub();
+    }, []);
+
     const eventsSorted = useMemo(() => {
         const copy = Array.isArray(events) ? [...events] : [];
-        copy.sort((a, b) => String(a.dateEvent || "").localeCompare(String(b.dateEvent || "")));
+        const startMinutes = (time) => {
+            const m = String(time || "").match(/(\d{1,2}):(\d{2})/);
+            return m ? Number(m[1]) * 60 + Number(m[2]) : 24 * 60;
+        };
+        copy.sort((a, b) =>
+            String(a.dateEvent || "").localeCompare(String(b.dateEvent || ""))
+            || (Number(mainEventIds.has(b.id)) - Number(mainEventIds.has(a.id)))
+            || (startMinutes(a.time) - startMinutes(b.time))
+        );
         return copy;
-    }, [events]);
+    }, [events, mainEventIds]);
 
     const eventsByDate = useMemo(() => {
         const map = new Map();

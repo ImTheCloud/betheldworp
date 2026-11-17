@@ -386,7 +386,7 @@ export default function Program() {
         [ovDoc]
     );
 
-    const { replacements, additions, alsoEvents } = overrideData;
+    const { replacements, additions } = overrideData;
 
     // ── Events data for replacement & addition display ──
     const [eventsMap, setEventsMap] = useState(new Map());
@@ -395,9 +395,8 @@ export default function Program() {
     const hasLinkedEvents = useMemo(() => {
         const replKeys = Object.keys(replacements).filter((k) => !!replacements[k]);
         const addKeys = Object.keys(additions).filter((k) => !!additions[k]);
-        const alsoKeys = Object.keys(alsoEvents || {}).filter((k) => Array.isArray(alsoEvents[k]) && alsoEvents[k].length);
-        return replKeys.length > 0 || addKeys.length > 0 || alsoKeys.length > 0;
-    }, [replacements, additions, alsoEvents]);
+        return replKeys.length > 0 || addKeys.length > 0;
+    }, [replacements, additions]);
 
     useEffect(() => {
         if (!hasLinkedEvents) {
