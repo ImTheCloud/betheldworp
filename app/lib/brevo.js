@@ -10,7 +10,7 @@ function getApiKey() {
     return key;
 }
 
-// Liste "Newsletter Bethel" (#7 dans le compte Brevo).
+// Liste "Newsletter Bethel Dworp" (#7 dans le compte Brevo).
 function getListId() {
     return Number(process.env.BREVO_LIST_ID || 7);
 }
