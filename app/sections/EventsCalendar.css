@@ -776,6 +776,28 @@
     margin-bottom: 0;
 }
 
+.ev-desc .ev-descBlock {
+    margin: 0 0 10px;
+    white-space: normal;
+}
+
+.ev-desc .ev-descBlock:last-child {
+    margin-bottom: 0;
+}
+
+.ev-desc .ev-descIntro {
+    margin: 0 0 4px;
+}
+
+.ev-desc .ev-descList {
+    margin: 0;
+    padding-left: 1.25em;
+}
+
+.ev-desc .ev-descList li {
+    margin: 2px 0;
+}
+
 .ev-desc .ev-descGreeting {
     font-weight: 700;
     color: var(--ev-ink);

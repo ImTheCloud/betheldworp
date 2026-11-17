@@ -119,15 +119,31 @@ function EventInfoIcon({ kind, label }) {
 }
 
 // Description d'un événement : un paragraphe par bloc séparé d'une ligne vide.
-// Une première ligne courte terminée par une virgule (« Pacea Domnului, ») est
-// une salutation : elle est mise en valeur plutôt que fondue dans le texte.
+// Une première ligne courte terminée par une virgule est une salutation
+// (« Pacea Domnului, dragi frați și surori, », formule officielle depuis
+// novembre 2026) : elle est mise en valeur plutôt que fondue dans le texte.
+// Les lignes qui commencent par « - » forment une liste (programme de la
+// journée, lieu et heure), une éventuelle phrase d'introduction au-dessus.
 function EventDescription({ text }) {
     const blocks = String(text ?? "").split(/\n\s*\n/).map((b) => b.trim()).filter(Boolean);
     if (!blocks.length) return null;
     return (
         <div className="ev-desc">
             {blocks.map((block, i) => {
-                const isGreeting = i === 0 && block.length <= 40 && !block.includes("\n") && /,$/.test(block);
+                const isGreeting = i === 0 && block.length <= 60 && !block.includes("\n") && /,$/.test(block);
+                const lines = block.split("\n");
+                const items = lines.filter((l) => /^\s*-\s+/.test(l));
+                if (!isGreeting && items.length && lines.slice(lines.length - items.length).every((l) => /^\s*-\s+/.test(l))) {
+                    const intro = lines.slice(0, lines.length - items.length).join("\n").trim();
+                    return (
+                        <div key={i} className="ev-descBlock">
+                            {intro && <p className="ev-descIntro">{intro}</p>}
+                            <ul className="ev-descList">
+                                {items.map((l, j) => <li key={j}>{l.replace(/^\s*-\s+/, "")}</li>)}
+                            </ul>
+                        </div>
+                    );
+                }
                 return (
                     <p key={i} className={isGreeting ? "ev-descGreeting" : undefined}>{block}</p>
                 );

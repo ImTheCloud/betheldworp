@@ -39,20 +39,37 @@ function timesText(labels) {
     return (labels || []).map((l) => String(l).split("-").map((x) => x.trim()).join(" – ")).join(" și ");
 }
 
-/** Paragraphes d'un texte libre : ligne vide = nouveau paragraphe, retour simple = <br>. */
+// Formule de salutation officielle (novembre 2026), la même que dans le texte
+// des événements sur le site.
+export const GREETING = "Pacea Domnului, dragi frați și surori,";
+
+/**
+ * Paragraphes d'un texte libre : ligne vide = nouveau paragraphe, retour
+ * simple = <br>. Les lignes « - … » en fin de bloc deviennent une liste.
+ */
 function paragraphs(text) {
     return String(text || "")
         .replace(/\r\n?/g, "\n")
         .split(/\n\s*\n/)
         .map((p) => p.trim())
         .filter(Boolean)
-        .map((p) => escapeHtml(p).replace(/\n/g, "<br />"));
+        .map((p) => {
+            const lines = p.split("\n");
+            let n = 0;
+            while (n < lines.length && /^\s*-\s+/.test(lines[lines.length - 1 - n])) n++;
+            if (!n) return escapeHtml(p).replace(/\n/g, "<br />");
+            const intro = lines.slice(0, lines.length - n).join("\n").trim();
+            const items = lines.slice(lines.length - n).map((l) =>
+                `<li style="margin:2px 0;">${escapeHtml(l.replace(/^\s*-\s+/, ""))}</li>`).join("");
+            return `${intro ? escapeHtml(intro).replace(/\n/g, "<br />") : ""}<ul style="margin:${intro ? 4 : 0}px 0 0;padding-left:22px;">${items}</ul>`;
+        });
 }
 
-// La newsletter salue déjà (« Pace, dragi frați și surori, ») : la salutation
-// par laquelle l'admin commence souvent le texte de l'événement ferait doublon.
+// La newsletter salue déjà : la salutation par laquelle commence le texte de
+// l'événement (« Pacea Domnului, dragi frați și surori, », ou l'ancienne
+// « Pacea Domnului, ») ferait doublon.
 function stripGreeting(text) {
-    return String(text || "").replace(/^\s*pacea domnului\s*[,!.]*\s*\n/i, "");
+    return String(text || "").replace(/^\s*pacea domnului[^\n]*\n/i, "");
 }
 
 function capitalizeMonth(s) {
@@ -415,7 +432,7 @@ ${imageRow(heroImage, heroAlt)}
 <td class="px" style="padding:30px 32px 0;font-family:Arial,Helvetica,sans-serif;">
 <div class="h1 t-head" style="font-size:23px;font-weight:900;color:#0f172a;line-height:1.3;padding-bottom:4px;">${escapeHtml(headTitle)}</div>
 ${headDate}
-<div class="t-head" style="font-size:16px;font-weight:800;color:#0f172a;line-height:1.4;padding-bottom:10px;">Pace, dragi frați și surori,</div>
+<div class="t-head" style="font-size:16px;font-weight:800;color:#0f172a;line-height:1.4;padding-bottom:10px;">${escapeHtml(GREETING)}</div>
 ${bodyParagraphs(introText)}
 ${messageBox}
 </td>

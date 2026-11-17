@@ -161,7 +161,7 @@ Depuis novembre 2026, le programme hebdomadaire du site affiche un statut sur ch
    Quand la semaine comporte un événement phare (invité, orchestre, concert, etc.), il est placé **directement au début**, avant le calendrier, dans cet ordre strict :
    - **Titre de l'événement** en grand (`.h1`, ex: `Orchestra Bisericii Elim Bruxelles în mijlocul nostru`)
    - **Date & Heure** juste en-dessous en sous-titre vert sobre (`.t-accent`, ex: `Duminică, 8 Noiembrie, 18:00 – 20:00`). **Ne JAMAIS mettre** de mention superflue comme *"Evenimentul săptămânii"* ni de parenthèses encombrantes autour des heures.
-   - **Salutation** ensuite : `Pace, dragi frați și surori,` placée **au-dessus du texte de présentation** (donc en-dessous du titre de l'événement).
+   - **Salutation** ensuite : `Pacea Domnului, dragi frați și surori,` placée **au-dessus du texte de présentation** (donc en-dessous du titre de l'événement).
    - **Texte de présentation** fraternel et naturel.
 
 2. **Aucun verset sans demande expresse** :
@@ -200,7 +200,7 @@ Depuis novembre 2026, le programme hebdomadaire du site affiche un statut sur ch
 6. **Section 4 : Événement phare en tête** :
    - Titre de l'événement (`.h1`)
    - Date & Heure sobre (`.t-accent`)
-   - `Pace, dragi frați și surori,`
+   - `Pacea Domnului, dragi frați și surori,`
    - Texte de présentation de l'événement
 7. **Section 5 : Calendrier** — Tableau avec tous les jours de la semaine (badge vert `chip-s` pour l'événement spécial)
 8. **Section 6 : Événement secondaire éventuel** *(uniquement s'il y a un 2e événement distinct non couvert au début)*
@@ -296,7 +296,7 @@ La méthode manuelle ci-dessous reste valable pour une newsletter exceptionnelle
 
 Avant d'envoyer, vérifier :
 
-- [ ] **Hiérarchie respectée** : Titre de l'événement en premier, date/heure sobre en-dessous, puis `Pace, dragi frați și surori,` au-dessus du texte
+- [ ] **Hiérarchie respectée** : Titre de l'événement en premier, date/heure sobre en-dessous, puis `Pacea Domnului, dragi frați și surori,` au-dessus du texte
 - [ ] **Aucun verset non demandé** : Ne pas afficher de verset sauf demande expresse de l'utilisateur
 - [ ] **Zéro répétition** : Aucune image ou texte n'est dupliqué dans la newsletter
 - [ ] **Pas d'anciens événements** : Pas de verset du mois ou d'événement passé déjà annoncé dans les newsletters précédentes
