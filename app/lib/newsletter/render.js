@@ -220,7 +220,7 @@ function secondaryEventHtml(group) {
 <div class="rule" style="border-top:1px solid #e2e8f0;padding-top:30px;">
 <div class="t-accent" style="font-size:11px;font-weight:900;color:${BLUE};letter-spacing:1.5px;text-transform:uppercase;">Tot în această săptămână</div>
 <div class="h2 t-head" style="font-size:21px;font-weight:900;color:#0f172a;padding-top:5px;line-height:1.3;">${escapeHtml(group.title)}</div>
-<div class="t-accent" style="font-size:13px;font-weight:800;color:${BLUE};padding-top:4px;line-height:1.6;">${occurrencesHtml(group)}</div>
+<div class="t-body" style="font-size:13px;font-weight:800;color:#475569;padding-top:4px;line-height:1.6;">${occurrencesHtml(group)}</div>
 ${img}
 ${text.length ? `<div style="padding-top:14px;">${bodyParagraphs(text)}</div>` : ""}
 </div>
@@ -361,7 +361,7 @@ export function renderNewsletter(week, options = {}) {
 
     const headTitle = headline ? headline.title : "Programul săptămânii";
     const headDate = headline
-        ? `<div class="t-accent" style="font-size:13px;font-weight:800;color:${BLUE};padding-bottom:18px;line-height:1.6;">${occurrencesHtml(headline)}</div>`
+        ? `<div class="t-body" style="font-size:13px;font-weight:800;color:#475569;padding-bottom:18px;line-height:1.6;">${occurrencesHtml(headline)}</div>`
         : `<div style="height:14px;line-height:14px;font-size:0;">&nbsp;</div>`;
 
     // Après le texte d'aperçu, des espaces invisibles empêchent Gmail et Apple
