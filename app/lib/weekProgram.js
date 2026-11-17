@@ -134,6 +134,19 @@ export function formatRange(range) {
     return `${formatTimeToken(start)}-${formatTimeToken(end)}`;
 }
 
+function rangeMinutes(label) {
+    const m = safeStr(label).match(/(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})/);
+    if (!m) return null;
+    return [Number(m[1]) * 60 + Number(m[2]), Number(m[3]) * 60 + Number(m[4])];
+}
+
+/** Vrai si une des plages de `a` recouvre une des plages de `b` (ou si une heure manque). */
+function timesOverlap(a, b) {
+    const ra = a.map(rangeMinutes), rb = b.map(rangeMinutes);
+    if (ra.some((r) => !r) || rb.some((r) => !r) || !ra.length || !rb.length) return true;
+    return ra.some(([s1, e1]) => rb.some(([s2, e2]) => s1 < e2 && s2 < e1));
+}
+
 function formatBrusselsParts(dateObj) {
     const parts = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Brussels", day: "2-digit", month: "2-digit", year: "numeric" }).formatToParts(dateObj);
     let dd = "00", mm = "00", yy = "0000";
@@ -291,7 +304,13 @@ export function computeProgramCards({ items, dateMetaById, override, eventsMap, 
         // lundi, le cor bărbătesc prend la place de la soirée des jeunes.
         // Un événement, lui, ne remplace rien : l'invité vient pendant le programme
         // habituel (« în cadrul programului: Seară de rugăciune »).
-        const replacesNote = title !== item?.title
+        // Une activité écrite sur un créneau annulé, à une heure qui ne recouvre
+        // pas l'activité habituelle, ne la « remplace » pas : le créneau habituel
+        // est simplement annulé (9 nov 2026 : le jeûne déplacé au mercredi matin,
+        // le cor mixte du mercredi soir annulé).
+        const displaced = (status === "moved" || status === "changed") && title !== item?.title &&
+            cancelledSet.has(id) && !timesOverlap(timeLabels, cleanedTimes.map(formatRange));
+        const replacesNote = title !== item?.title && !displaced
             ? status === "event"
                 ? t("during").replace("{title}", item?.title || "")
                 : (status === "moved" || status === "changed")
@@ -315,6 +334,7 @@ export function computeProgramCards({ items, dateMetaById, override, eventsMap, 
             key: id, id, day, title, baseTitle: item?.title || "", note, adminNote, status, statusLabel,
             timeLabels, dm, full, summaryNote, isCancelled, isManual, isReplaced, replacementEventId,
             replacesNote,
+            displacedBase: displaced ? { title: item?.title || "", timeLabels: cleanedTimes.map(formatRange) } : null,
             // Autres événements du même programme (alsoEvents) : jamais de carte
             // à eux dans le programme de la semaine, la carte du créneau garde
             // l'événement principal. La newsletter s'en sert pour les annoncer.
@@ -358,6 +378,12 @@ export function computeProgramCards({ items, dateMetaById, override, eventsMap, 
     const changes = [];
     cards.forEach((c) => {
         if (c.inSummary) changes.push(c);
+        if (c.displacedBase) {
+            changes.push({
+                key: `${c.key}-base`, id: c.id, day: c.day, title: c.displacedBase.title,
+                status: "cancelled", statusLabel: t("status_cancelled"), summaryNote: "", inSummary: true,
+            });
+        }
         (c.alsoEventIds || []).forEach((alsoId) => {
             const ev = eventsMap.get(alsoId);
             if (!ev) return;

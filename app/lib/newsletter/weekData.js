@@ -148,7 +148,22 @@ export async function loadWeek(weekKey) {
     );
 
     // Lignes du calendrier, jour par jour.
-    const rows = cards.map((c) => {
+    //
+    // Un déplacement n'est montré qu'une fois, le jour d'arrivée (« Mutat de
+    // marți ») : la ligne « annulé » du jour de départ ferait doublon dans
+    // l'e-mail (choix du 17 nov 2026 ; le site, lui, garde les deux cartes).
+    // L'activité habituelle chassée d'un créneau à une autre heure (le cor
+    // mixte quand le jeûne passe au mercredi matin) apparaît annulée.
+    const rows = cards.filter((c) => c.status !== "movedFrom").flatMap((c) => {
+        const own = cardRow(c);
+        if (!c.displacedBase) return [own];
+        return [own, {
+            key: `${c.key}-base`, dayIndex: own.dayIndex, status: "cancelled", title: c.displacedBase.title,
+            times: c.displacedBase.timeLabels, note: "", eventId: "", alsoEventIds: [], inSummary: true,
+        }];
+    });
+
+    function cardRow(c) {
         const dayIndex = DAY_INDEX_BY_SLOT[c.id];
         const eventId = c.replacementEventId && c.status === "event" ? c.replacementEventId : (c.additionEventId || "");
         let note = c.adminNote;
@@ -174,7 +189,7 @@ export async function loadWeek(weekKey) {
             alsoEventIds: c.alsoEventIds || [],
             inSummary: c.inSummary,
         };
-    });
+    }
 
     standalone.forEach((e) => {
         const firstISO = e.dateEvent < mondayISO ? mondayISO : e.dateEvent;

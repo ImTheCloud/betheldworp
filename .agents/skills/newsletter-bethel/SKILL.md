@@ -233,7 +233,9 @@ La newsletter est générée par le site à partir du programme (`program_overri
   - gris, sans pastille : programme habituel
   - vert + **ANUNȚ** : événement, invité ou annonce (ex. la chorale partie à Graz)
   - jaune + **MUTAT** : jour d'arrivée d'un déplacement ; jaune + **MODIFICAT** : titre ou heure changés sur place
-  - rouge + **ANULAT** : annulé, y compris le **jour de départ** d'un déplacement (note « Mutat miercuri, 11 noiembrie »)
+  - rouge + **ANULAT** : annulé
+- **Déplacement montré une seule fois** dans la newsletter : le jour d'arrivée (MUTAT, « Mutat de marți »). Le jour de départ n'a pas de ligne (le site, lui, garde les deux cartes).
+- **« În locul: … » seulement si les horaires se chevauchent.** Une activité écrite sur un créneau annulé à une autre heure (jeûne au mercredi matin sur le créneau du cor mixte du soir) ne le remplace pas : l'activité habituelle s'affiche ANULAT à son heure, dans la newsletter et dans le résumé du site.
 - **Pas d'encadré « Schimbări în această săptămână »** dans la newsletter : les annulations et changements se voient déjà dans le calendrier juste en dessous (choix de l'utilisateur, 17 nov 2026). L'encadré reste sur le site.
 - **Envoi** : API Brevo, mêmes réglages que les campagnes faites à la main (expéditeur « Bethel Dworp » <info@betheldworp.be>, réponse à info@). Jamais de `tag` sur une campagne : le plan gratuit le refuse.
 - **Destinataires** : abonnés actifs dans Firestore (`newsletter`) ET joignables dans Brevo. Un contact présent seulement dans Brevo, ou bloqué dans Brevo, ne reçoit rien.
