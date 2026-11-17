@@ -351,7 +351,30 @@ export function computeProgramCards({ items, dateMetaById, override, eventsMap, 
         }
     });
 
-    const changes = cards.filter((c) => c.inSummary);
+    // Le résumé reprend les cartes à signaler, et, juste sous l'événement
+    // principal d'un créneau, les autres événements du même programme
+    // (alsoEvents). Ceux-ci n'ont pas de carte : la grille garde une carte
+    // par créneau, le résumé dit tout ce qui se passe.
+    const changes = [];
+    cards.forEach((c) => {
+        if (c.inSummary) changes.push(c);
+        (c.alsoEventIds || []).forEach((alsoId) => {
+            const ev = eventsMap.get(alsoId);
+            if (!ev) return;
+            const during = c.baseTitle ? t("during").replace("{title}", c.baseTitle) : "";
+            changes.push({
+                key: `${c.key}-also-${alsoId}`,
+                id: c.id,
+                day: c.day,
+                title: ev.title,
+                status: "event",
+                statusLabel: t("status_event"),
+                summaryNote: during,
+                eventId: alsoId,
+                inSummary: true,
+            });
+        });
+    });
 
     // Le titre du résumé dit ce qu'il contient : des événements seuls ne sont pas
     // des « changements ».

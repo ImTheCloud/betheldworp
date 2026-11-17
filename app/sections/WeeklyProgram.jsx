@@ -426,7 +426,7 @@ export default function Program() {
     // lisent la même liste, donc disent la même chose.
     // Les créneaux coupés par la pause d'été n'entrent pas dans le résumé :
     // l'avis d'été au-dessus de la grille l'explique déjà.
-    const { cards: computedCards, changesTitle } = computeProgramCards({
+    const { cards: computedCards, changes: programChanges, changesTitle } = computeProgramCards({
         items: LOCAL_PROGRAM_ITEMS,
         dateMetaById,
         override: overrideData,
@@ -467,7 +467,6 @@ export default function Program() {
         return { ...card, onActivate };
     });
 
-    const programChanges = programCards.filter((c) => c.inSummary);
 
     return (
         <>
