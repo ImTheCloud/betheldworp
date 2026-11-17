@@ -76,13 +76,15 @@ function capitalizeMonth(s) {
     return String(s).replace(/(\d+ )([a-zăâîșț])/g, (_, d, c) => d + c.toUpperCase());
 }
 
-// ── Pastilles de statut, mêmes mots et mêmes couleurs que le site ──
+// ── Pastille : seulement ANULAT ──
+//
+// Choix de l'utilisateur (17 nov 2026) : les couleurs suffisent (vert pour ce
+// qui sort de l'ordinaire, gris pour l'habituel) et la note sous le titre dit
+// le reste. Une pastille « Eveniment » ou « Program special » se trompait
+// d'ailleurs pour une simple annonce (la chorale partie à Graz). Seule
+// l'annulation, qui compte le plus, garde sa pastille rouge à côté de l'heure.
 
 const BADGES = {
-    event: { label: "EVENIMENT", cls: "badge-ev", bg: "#dde9fb", border: "#93b4ef", color: "#0f4c8a" },
-    moved: { label: "MUTAT", cls: "badge-mut", bg: "#fcf1da", border: "#f0c76a", color: "#92600a" },
-    changed: { label: "MODIFICAT", cls: "badge-mut", bg: "#fcf1da", border: "#f0c76a", color: "#92600a" },
-    extra: { label: "PROGRAM SPECIAL", cls: "badge-nou", bg: "#dcfce7", border: "#86efac", color: "#15803d" },
     cancelled: { label: "ANULAT", cls: "badge-an", bg: "#fdecec", border: "#f3b4b4", color: "#b91c1c" },
     movedFrom: { label: "ANULAT", cls: "badge-an", bg: "#fdecec", border: "#f3b4b4", color: "#b91c1c" },
 };
@@ -131,12 +133,8 @@ function calendarRow(day, row, isLast) {
     const time = row.times.length
         ? `<span class="no-detect" style="color:inherit !important;text-decoration:none !important;">${timesHtml(row.times)}</span>`
         : "";
-    const timeLine = (time || (!cancelled && BADGES[row.status]))
-        ? `<div class="${timeCls}" style="font-size:13px;font-weight:800;color:${timeColor};letter-spacing:0.3px;">${time}${cancelled ? "" : badge(row.status, time ? 6 : 0)}</div>`
-        : "";
-
-    const anulat = cancelled
-        ? `<div class="t-cancel" style="font-size:13px;color:#dc2626;font-weight:800;letter-spacing:0.5px;padding-top:2px;">ANULAT</div>`
+    const timeLine = (time || cancelled)
+        ? `<div class="${timeCls}" style="font-size:13px;font-weight:800;color:${timeColor};letter-spacing:0.3px;">${time}${cancelled ? badge(row.status, time ? 6 : 0) : ""}</div>`
         : "";
     const note = row.note
         ? `<div class="${cancelled ? "t-cancel" : "t-muted"}" style="font-size:13px;color:${cancelled ? "#dc2626" : "#64748b"};font-weight:${cancelled ? 600 : 400};padding-top:3px;line-height:1.45;">${escapeHtml(row.note)}</div>`
@@ -147,7 +145,7 @@ function calendarRow(day, row, isLast) {
 <td class="rule" valign="top" style="padding:${padText};${border}">
 ${timeLine}
 <div class="${titleCls}" style="font-size:15px;color:${titleColor};font-weight:${titleWeight};line-height:1.45;padding-top:${timeLine ? 2 : 0}px;">${escapeHtml(row.title)}</div>
-${anulat}${note}
+${note}
 </td>
 </tr>`;
 }
@@ -283,9 +281,6 @@ a[x-apple-data-detectors],a[href^="x-apple-data-detectors"],[x-apple-data-detect
 .chip-s-lbl,.chip-s-num{color:#4ade80 !important;}
 .chip-c{background-color:#361010 !important;border:1px solid #f87171 !important;color:#f87171 !important;}
 .chip-c-lbl,.chip-c-num{color:#f87171 !important;}
-.badge-nou{background-color:#0f2918 !important;border:1px solid #4ade80 !important;color:#4ade80 !important;}
-.badge-ev{background-color:#0c2340 !important;border:1px solid #60a5fa !important;color:#93c5fd !important;}
-.badge-mut{background-color:#2e2306 !important;border:1px solid #fbbf24 !important;color:#fcd34d !important;}
 .badge-an{background-color:#361010 !important;border:1px solid #f87171 !important;color:#fca5a5 !important;}
 .box-msg{background-color:#0f2918 !important;border-color:#1f5130 !important;}
 .cta{background-color:#4ade80 !important;color:#052e16 !important;}
@@ -299,12 +294,10 @@ a[x-apple-data-detectors],a[href^="x-apple-data-detectors"],[x-apple-data-detect
 [data-ogsc] .chip-n,[data-ogsb] .chip-n{background-color:#2a2a2a !important;border-color:#3e3e3e !important;color:#cbd5e1 !important;}
 [data-ogsc] .chip-n-lbl,[data-ogsb] .chip-n-lbl{color:#94a3b8 !important;}
 [data-ogsc] .chip-n-num,[data-ogsb] .chip-n-num{color:#f1f5f9 !important;}
-[data-ogsc] .chip-s,[data-ogsb] .chip-s,[data-ogsc] .badge-nou,[data-ogsb] .badge-nou{background-color:#0f2918 !important;border:1px solid #4ade80 !important;color:#4ade80 !important;}
+[data-ogsc] .chip-s,[data-ogsb] .chip-s{background-color:#0f2918 !important;border:1px solid #4ade80 !important;color:#4ade80 !important;}
 [data-ogsc] .chip-s-lbl,[data-ogsc] .chip-s-num,[data-ogsb] .chip-s-lbl,[data-ogsb] .chip-s-num{color:#4ade80 !important;}
 [data-ogsc] .chip-c,[data-ogsb] .chip-c,[data-ogsc] .badge-an,[data-ogsb] .badge-an{background-color:#361010 !important;border:1px solid #f87171 !important;color:#f87171 !important;}
 [data-ogsc] .chip-c-lbl,[data-ogsc] .chip-c-num,[data-ogsb] .chip-c-lbl,[data-ogsb] .chip-c-num{color:#f87171 !important;}
-[data-ogsc] .badge-ev,[data-ogsb] .badge-ev{background-color:#0c2340 !important;border:1px solid #60a5fa !important;color:#93c5fd !important;}
-[data-ogsc] .badge-mut,[data-ogsb] .badge-mut{background-color:#2e2306 !important;border:1px solid #fbbf24 !important;color:#fcd34d !important;}
 [data-ogsc] .box-msg,[data-ogsb] .box-msg{background-color:#0f2918 !important;border-color:#1f5130 !important;}
 `;
 
