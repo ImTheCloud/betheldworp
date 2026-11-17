@@ -154,22 +154,23 @@ export async function addEmailsToList(listId, emails) {
 
 // ── Campagnes ──
 
-export function getSenderId() {
-    return Number(process.env.BREVO_SENDER_ID || 2);
-}
-
 export const REPLY_TO = "info@betheldworp.be";
 
-export async function createCampaign({ name, subject, previewText, htmlContent, listIds, tag }) {
+// Mêmes réglages que les campagnes faites à la main dans Brevo (expéditeur 2,
+// réponse à info@, images hébergées sur le site). Pas d'étiquette (« tag ») :
+// le plan gratuit la refuse (405 « not allowed to avail tag option »), ce qui
+// faisait échouer toute création de campagne.
+export async function createCampaign({ name, subject, previewText, htmlContent, listIds }) {
     const body = {
         name,
         subject,
         previewText,
         htmlContent,
-        sender: { id: getSenderId() },
+        // Nom écrit en toutes lettres : avec l'identifiant seul, Brevo laisse
+        // « [DEFAULT_FROM_NAME] » dans la campagne.
+        sender: { name: "Bethel Dworp", email: REPLY_TO },
         replyTo: REPLY_TO,
         inlineImageActivation: false,
-        tag,
     };
     if (listIds?.length) body.recipients = { listIds };
     const res = await brevoFetch("/emailCampaigns", { method: "POST", body: JSON.stringify(body) });

@@ -174,30 +174,6 @@ function calendarHtml(days) {
     }).join("\n");
 }
 
-// ── Résumé des changements (annulations, déplacements, modifications) ──
-
-function changesHtml(changes, days) {
-    if (!changes.length) return "";
-    const items = changes.map((r) => {
-        const day = days[r.dayIndex];
-        const label = `${day.name}, ${dayMonth(day.date)}`;
-        return `<tr><td style="padding:7px 0;font-family:Arial,Helvetica,sans-serif;">
-<div class="t-head" style="font-size:14px;color:#0f172a;line-height:1.5;">${badge(r.status, 0)} <b>${escapeHtml(label)}</b></div>
-<div class="t-body" style="font-size:15px;color:#475569;line-height:1.5;padding-top:2px;">${escapeHtml(r.title)}${r.note ? `<br /><span class="t-muted" style="font-size:13px;color:#64748b;">${escapeHtml(r.note)}</span>` : ""}</div>
-</td></tr>`;
-    }).join("\n");
-    return `<tr>
-<td class="px" style="padding:22px 32px 0;font-family:Arial,Helvetica,sans-serif;">
-<table role="presentation" class="box-info" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate;background-color:#fffbeb;border:1px solid #fde68a;border-radius:12px;">
-<tr><td style="padding:14px 16px 8px;">
-<div class="t-info-title" style="font-size:15px;font-weight:900;color:#0f172a;padding-bottom:4px;">Schimbări în această săptămână</div>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">${items}</table>
-</td></tr>
-</table>
-</td>
-</tr>`;
-}
-
 // ── Événements ──
 
 function occurrenceLine(o) {
@@ -311,8 +287,6 @@ a[x-apple-data-detectors],a[href^="x-apple-data-detectors"],[x-apple-data-detect
 .badge-ev{background-color:#0c2340 !important;border:1px solid #60a5fa !important;color:#93c5fd !important;}
 .badge-mut{background-color:#2e2306 !important;border:1px solid #fbbf24 !important;color:#fcd34d !important;}
 .badge-an{background-color:#361010 !important;border:1px solid #f87171 !important;color:#fca5a5 !important;}
-.box-info{background-color:#1f1a0a !important;border-color:#5c4a14 !important;}
-.t-info-title{color:#f8fafc !important;}
 .box-msg{background-color:#0f2918 !important;border-color:#1f5130 !important;}
 .cta{background-color:#4ade80 !important;color:#052e16 !important;}
 .img-round{border:1px solid #2e2e2e !important;}
@@ -331,7 +305,6 @@ a[x-apple-data-detectors],a[href^="x-apple-data-detectors"],[x-apple-data-detect
 [data-ogsc] .chip-c-lbl,[data-ogsc] .chip-c-num,[data-ogsb] .chip-c-lbl,[data-ogsb] .chip-c-num{color:#f87171 !important;}
 [data-ogsc] .badge-ev,[data-ogsb] .badge-ev{background-color:#0c2340 !important;border:1px solid #60a5fa !important;color:#93c5fd !important;}
 [data-ogsc] .badge-mut,[data-ogsb] .badge-mut{background-color:#2e2306 !important;border:1px solid #fbbf24 !important;color:#fcd34d !important;}
-[data-ogsc] .box-info,[data-ogsb] .box-info{background-color:#1f1a0a !important;border-color:#5c4a14 !important;}
 [data-ogsc] .box-msg,[data-ogsb] .box-msg{background-color:#0f2918 !important;border-color:#1f5130 !important;}
 `;
 
@@ -447,7 +420,6 @@ ${messageBox}
 </div>
 </td>
 </tr>
-${changesHtml(week.changes, week.days)}
 <tr>
 <td class="px" style="padding:14px 32px 0;font-family:Arial,Helvetica,sans-serif;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">

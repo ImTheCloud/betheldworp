@@ -192,7 +192,6 @@ export async function sendWeek({ weekKey, token, rendered, expectedCount, adminE
             previewText: rendered.preheader,
             htmlContent: rendered.html,
             listIds: [listId],
-            tag: "newsletter-saptamanala",
         });
 
         const sent = await sendCampaignNow(campaignId);
@@ -233,7 +232,6 @@ export async function sendTest({ rendered, to }) {
             subject,
             previewText: rendered.preheader,
             htmlContent: rendered.html,
-            tag: "newsletter-test",
         });
         const res = await sendCampaignTest(campaignId, [to]);
         if (res.ok) return { ok: true, via: "campaign" };
