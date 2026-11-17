@@ -56,10 +56,11 @@ async function postJson(url, body) {
     return { ok: res.ok && data.ok !== false, status: res.status, data };
 }
 
-// Le mode sombre de l'e-mail dépend du téléphone du lecteur. Pour le montrer
-// ici, les règles « prefers-color-scheme: dark » sont appliquées sans condition.
-function forceDark(html) {
-    return html.replace("@media (prefers-color-scheme: dark){", "@media all{");
+// Le mode sombre de l'e-mail dépend du téléphone du lecteur, pas de celui de
+// l'admin. Pour montrer chaque version quel que soit le réglage de l'appareil,
+// les règles « prefers-color-scheme: dark » sont forcées ou neutralisées.
+function withScheme(html, dark) {
+    return html.replace("@media (prefers-color-scheme: dark){", dark ? "@media all{" : "@media not all{");
 }
 
 const ERRORS = {
@@ -190,7 +191,7 @@ export default function WeeklyNewsletterAdmin({ onDirtyChange }) {
 
     const frameDoc = useMemo(() => {
         if (!preview?.html) return "";
-        return dark ? forceDark(preview.html) : preview.html;
+        return withScheme(preview.html, dark);
     }, [preview, dark]);
 
     const onFrameLoad = () => {
