@@ -220,7 +220,20 @@ Où `YYYY-MM-DD` est le **lundi** de la semaine concernée (premier jour de la s
 
 ## 7. Créer le fichier
 
-### Méthode recommandée :
+### Méthode automatique (depuis novembre 2026, à privilégier)
+
+La newsletter est générée par le site à partir du programme (`program_overrides`) et des événements, avec le même calcul de statuts que le site (`app/lib/weekProgram.js`). Plus rien à copier à la main :
+
+- **Admin → Weekly Email** (`/admin#weekly`, pensé pour le téléphone) : choix de la semaine, aperçu clair et sombre, événement en tête, message de la semaine facultatif, objet et texte d'aperçu modifiables, bouton « Trimite test » (à l'adresse de l'admin) et « Trimite newsletter-ul » avec confirmation (objet, liste, nombre de destinataires).
+- **Dimanche soir** : une tâche planifiée Vercel (`/api/cron/newsletter`, `vercel.json`) envoie une notification ntfy avec le lien vers l'aperçu. Elle n'envoie **jamais** rien aux abonnés.
+- **Jamais deux fois** : chaque envoi crée dans Brevo une liste `Newsletter 2026-W48 #1` (dossier « Newsletter trimis ») avec exactement ses destinataires. Après un ajout tardif, le même bouton n'envoie qu'aux abonnés qui ne l'ont pas encore reçue (`#2`). Ne pas supprimer ces listes tant que la semaine n'est pas passée.
+- **Destinataires** : abonnés actifs dans Firestore (`newsletter`) ET joignables dans Brevo. Un contact présent seulement dans Brevo, ou bloqué dans Brevo, ne reçoit rien.
+- Code : `app/lib/newsletter/` (données, rendu, envoi), routes `app/api/newsletter/weekly/*`. En local, aucun envoi n'est possible (`sendingAllowed`).
+- Pour changer le texte d'un événement, modifier l'événement dans l'admin : la newsletter reprend son texte roumain (sans la ligne « Pacea Domnului », la newsletter salue déjà).
+
+La méthode manuelle ci-dessous reste valable pour une newsletter exceptionnelle.
+
+### Méthode manuelle :
 
 1. **Copier la dernière newsletter** comme base
 2. **Mettre à jour** :
