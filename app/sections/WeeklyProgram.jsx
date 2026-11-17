@@ -7,7 +7,11 @@ import { db } from "../lib/Firebase";
 import { useLang } from "../components/LanguageProvider";
 import { makeT } from "../lib/i18n";
 import tr from "../translations/WeeklyProgram.json";
-import { isSlotOnSummerBreak, isSummerBreakWeek } from "../lib/programSchedule";
+import { isSummerBreakWeek } from "../lib/programSchedule";
+import {
+    PROGRAM_SLOTS, buildDateMeta, computeProgramCards, getBrusselsWeekRange, normalizeActivityTitle,
+    normalizeWeekOverride, pickByLang, weekKeyOf, getISOWeekYearAndNumberUTC, EMPTY_OVERRIDE,
+} from "../lib/weekProgram";
 
 const WEEK_STORAGE_KEY = "bethel:program-week";
 
@@ -29,19 +33,11 @@ const FAQ_KEY_BY_DAY = {
 };
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
-const safeArr = (v) => (Array.isArray(v) ? v : []);
-const safeStr = (v) => String(v ?? "");
-const safeObj = (v) => (v && typeof v === "object" && !Array.isArray(v) ? v : {});
+// Titres roumains des créneaux : l'admin ne remplit parfois que le roumain,
+// et c'est par eux que les déplacements sont reconnus.
+const RO_TITLES = Object.fromEntries(PROGRAM_SLOTS.map(({ id }) => [id, tr?.ro?.[`act_${id}`] || ""]));
 
-function normalizeActivityTitle(str) {
-    return safeStr(str)
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^a-z0-9]/g, " ")
-        .replace(/\s+/g, " ")
-        .trim();
-}
+const safeStr = (v) => String(v ?? "");
 
 function resolveFaqKeyForTitle(title) {
     if (!title) return null;
@@ -220,47 +216,6 @@ function FAQItem({ question, answer, index, isOpen, onToggle }) {
     );
 }
 
-function addDaysUTC(date, days) {
-    return new Date(date.getTime() + days * 24 * 60 * 60 * 1000);
-}
-
-function getBrusselsYMD(date = new Date()) {
-    const parts = new Intl.DateTimeFormat("en-CA", {
-        timeZone: "Europe/Brussels",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-    }).formatToParts(date);
-
-    let yy = 0, mm = 0, dd = 0;
-    parts.forEach((p) => {
-        if (p.type === "year") yy = Number(p.value);
-        if (p.type === "month") mm = Number(p.value);
-        if (p.type === "day") dd = Number(p.value);
-    });
-    return { yy, mm, dd };
-}
-
-function getBrusselsWeekRange(date = new Date()) {
-    const { yy, mm, dd } = getBrusselsYMD(date);
-    const noonUTC = new Date(Date.UTC(yy, mm - 1, dd, 12, 0, 0));
-    const dow = noonUTC.getUTCDay();
-    const mondayIndex = (dow + 6) % 7;
-    const start = addDaysUTC(noonUTC, -mondayIndex);
-    const end = addDaysUTC(start, 6);
-    return { start, end };
-}
-
-function getISOWeekYearAndNumberUTC(dateUTC) {
-    const d = new Date(Date.UTC(dateUTC.getUTCFullYear(), dateUTC.getUTCMonth(), dateUTC.getUTCDate()));
-    const day = d.getUTCDay() || 7;
-    d.setUTCDate(d.getUTCDate() + 4 - day);
-    const isoYear = d.getUTCFullYear();
-    const yearStart = new Date(Date.UTC(isoYear, 0, 1));
-    const week = Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
-    return { isoYear, week };
-}
-
 function getLocaleFromLang(lang) {
     const l = safeStr(lang).toLowerCase();
     if (l.startsWith("fr")) return "fr-BE";
@@ -286,62 +241,6 @@ function formatWeekRangeLong(startUTC, endUTC, lang) {
     // consigne de n'employer aucun tiret dans les textes du site.
     const liaison = { ro: "până la", fr: "au", nl: "tot", en: "to" }[safeStr(lang).slice(0, 2).toLowerCase()] || "au";
     return `${startPart} ${liaison} ${endPart} ${yearPart}`;
-}
-
-function formatTimeToken(token) {
-    const t = safeStr(token).trim();
-    const m = t.match(/^(\d{1,2}):(\d{2})$/);
-    if (!m) return t;
-    return `${String(Number(m[1]))}:${m[2]}`;
-}
-
-function formatRange(range) {
-    const raw = safeStr(range).trim().replace(/\s+/g, "");
-    const [start, end] = raw.split("-");
-    if (!start || !end) return safeStr(range);
-    return `${formatTimeToken(start)}-${formatTimeToken(end)}`;
-}
-
-function normalizeWeekOverride(docId, data) {
-    const weekKey = safeStr(data?.weekKey || docId).trim().toUpperCase();
-    const affectedProgramIds = safeArr(data?.affectedProgramIds).map((v) => safeStr(v).trim()).filter(Boolean);
-    const replacements = safeObj(data?.replacements);
-    const additions = safeObj(data?.additions);
-    const customTitles = safeObj(data?.customTitles);
-    const customTimes = safeObj(data?.customTimes);
-    const notes = safeObj(data?.notes);
-    return { weekKey, affectedProgramIds, replacements, additions, customTitles, customTimes, notes };
-}
-
-function pickByLang(value, lang) {
-    if (!value) return "";
-    if (typeof value === "string") return String(value || "").trim();
-    if (typeof value === "object") {
-        const v = value?.[lang] ?? value?.ro ?? value?.en ?? "";
-        return String(v || "").trim();
-    }
-    return "";
-}
-
-function formatBrusselsDDMM(dateObj) {
-    const parts = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Brussels", day: "2-digit", month: "2-digit" }).formatToParts(dateObj);
-    let dd = "00", mm = "00";
-    parts.forEach((p) => {
-        if (p.type === "day") dd = p.value;
-        if (p.type === "month") mm = p.value;
-    });
-    return `${dd}/${mm}`;
-}
-
-function formatBrusselsDDMMYYYY(dateObj) {
-    const parts = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Brussels", day: "2-digit", month: "2-digit", year: "numeric" }).formatToParts(dateObj);
-    let dd = "00", mm = "00", yy = "0000";
-    parts.forEach((p) => {
-        if (p.type === "day") dd = p.value;
-        if (p.type === "month") mm = p.value;
-        if (p.type === "year") yy = p.value;
-    });
-    return `${dd}/${mm}/${yy}`;
 }
 
 export default function Program() {
@@ -433,8 +332,8 @@ export default function Program() {
         const base = new Date();
         base.setDate(base.getDate() + weekOffset * 7);
         const { start, end } = getBrusselsWeekRange(base);
-        const { isoYear, week } = getISOWeekYearAndNumberUTC(start);
-        const weekKey = `${String(isoYear).padStart(4, "0")}-W${String(week).padStart(2, "0")}`;
+        const { week } = getISOWeekYearAndNumberUTC(start);
+        const weekKey = weekKeyOf(start);
         const rangeLong = formatWeekRangeLong(start, end, lang);
         const weekLabel = t("week_label").replace("{n}", week);
         return { start, weekKey, rangeLong, weekLabel };
@@ -469,20 +368,7 @@ export default function Program() {
     }, [weekInfo.start]);
 
 
-    const dayIdToIndex = { mon: 0, tue_fast: 1, tue: 1, tue_orch: 1, wed: 2, thu: 3, fri: 4, sat: 5, sun_am: 6, sun_pm: 6 };
-
-    const dateMetaById = useMemo(() => {
-        const byId = {};
-        Object.entries(dayIdToIndex).forEach(([id, dayIndex]) => {
-            const d = addDaysUTC(weekInfo.start, dayIndex);
-            byId[id] = {
-                dm: formatBrusselsDDMM(d),
-                full: formatBrusselsDDMMYYYY(d),
-                summerBreak: isSlotOnSummerBreak(id, d),
-            };
-        });
-        return byId;
-    }, [weekInfo.start]);
+    const dateMetaById = useMemo(() => buildDateMeta(weekInfo.start), [weekInfo.start]);
 
     const [ovDoc, setOvDoc] = useState(null);
 
@@ -495,20 +381,12 @@ export default function Program() {
         return () => unsub();
     }, [weekInfo.weekKey]);
 
-    const overrideData = useMemo(() => {
-        if (!ovDoc) return { cancelledSet: new Set(), replacements: {}, additions: {}, customTitles: {}, customTimes: {}, notes: {} };
-        const o = normalizeWeekOverride(ovDoc.id, ovDoc.data);
-        return { 
-            cancelledSet: new Set(o.affectedProgramIds), 
-            replacements: o.replacements, 
-            additions: o.additions,
-            customTitles: o.customTitles,
-            customTimes: o.customTimes,
-            notes: o.notes
-        };
-    }, [ovDoc]);
+    const overrideData = useMemo(
+        () => (ovDoc ? normalizeWeekOverride(ovDoc.id, ovDoc.data) : EMPTY_OVERRIDE),
+        [ovDoc]
+    );
 
-    const { cancelledSet, replacements, additions, customTitles, customTimes, notes } = overrideData;
+    const { replacements, additions } = overrideData;
 
     // ── Events data for replacement & addition display ──
     const [eventsMap, setEventsMap] = useState(new Map());
@@ -543,190 +421,53 @@ export default function Program() {
         return () => unsub();
     }, [hasLinkedEvents, lang]);
 
-    // Toutes les cartes de la semaine, calculées une fois : la grille et le
-    // résumé des changements en haut lisent la même liste.
-    //
-    // Statuts, déduits de ce qui est rempli dans l'admin pour la semaine :
-    //   "cancelled"  Anulat     créneau annulé, rien ne le remplace ailleurs
-    //   "movedFrom"  Anulat     créneau annulé dont l'activité a lieu un autre jour
-    //                           (note « Mutat miercuri »)
-    //   "moved"      Mutat      titre manuel qui reprend l'activité d'un créneau annulé
-    //   "changed"    Modificat  titre ou heure changés à la main, sans déplacement
-    //   "event"      Eveniment  créneau remplacé par un événement
-    //   "extra"      Extra      événement ajouté en plus du programme
+    // Toutes les cartes de la semaine, calculées une fois par le module partagé
+    // avec la newsletter : la grille, le résumé en haut et l'e-mail de la semaine
+    // lisent la même liste, donc disent la même chose.
     // Les créneaux coupés par la pause d'été n'entrent pas dans le résumé :
     // l'avis d'été au-dessus de la grille l'explique déjà.
-    const lowerDay = (d) => (lang === "en" ? d : d.toLowerCase());
-    const baseCards = LOCAL_PROGRAM_ITEMS.map((item, idx) => {
-        const id = safeStr(item?.id || `day-${idx}`).trim();
-        const replacementEventId = safeStr(replacements[id]).trim();
-        const replacementEvent = replacementEventId ? eventsMap.get(replacementEventId) : null;
-        const isBrokenOverride = replacementEventId && !replacementEvent;
-        const customTitle = pickByLang(customTitles?.[id], lang);
-        const customTime = safeStr(customTimes?.[id]).trim();
-        return {
-            item,
-            id,
-            day: safeStr(item?.day).trim(),
-            replacementEventId,
-            replacementEvent,
-            isReplaced: !!replacementEvent,
-            isSummerBreak: !!dateMetaById?.[id]?.summerBreak,
-            isOverrideCancelled: cancelledSet.has(id) && !isBrokenOverride,
-            customTitle,
-            customTime,
-            isManual: customTitle !== "" || customTime !== "",
-            // Titre habituel dans la langue affichée et en roumain : l'admin ne
-            // remplit parfois que le titre roumain.
-            defaultTitles: [item?.title, tr?.ro?.[`act_${id}`]].map(normalizeActivityTitle).filter(Boolean),
-        };
+    const { cards: computedCards, changesTitle } = computeProgramCards({
+        items: LOCAL_PROGRAM_ITEMS,
+        dateMetaById,
+        override: overrideData,
+        eventsMap,
+        t,
+        lang,
+        roTitles: RO_TITLES,
     });
 
-    // Déplacements : un créneau annulé (ni remplacé, ni modifié) dont l'activité
-    // habituelle réapparaît, en titre manuel, sur un autre créneau de la semaine.
-    // Ex. le post annulé mardi et écrit à la main mercredi.
-    const movedFromById = {};
-    const movedToById = {};
-    baseCards.forEach((target) => {
-        if (!target.customTitle || target.isReplaced) return;
-        const wanted = normalizeActivityTitle(target.customTitle);
-        const source = baseCards.find((c) =>
-            c.id !== target.id &&
-            c.isOverrideCancelled && !c.isReplaced && !c.isManual &&
-            !movedToById[c.id] &&
-            c.defaultTitles.includes(wanted)
-        );
-        if (!source) return;
-        movedFromById[target.id] = source;
-        movedToById[source.id] = target;
-    });
-
-    const programCards = [];
-    baseCards.forEach((c) => {
-        const { item, id, day, replacementEventId, replacementEvent, isReplaced, isSummerBreak, isOverrideCancelled, customTitle, customTime, isManual } = c;
-        const moveSource = movedFromById[id];
-        const moveTarget = movedToById[id];
-
-        let status = "normal";
-        if (moveTarget) status = "movedFrom";
-        else if (moveSource) status = "moved";
-        // Un événement posé sur plusieurs créneaux du même jour (dimanche matin et
-        // soir) reçoit de l'admin une heure par créneau : ce n'est pas une
-        // modification manuelle, la carte reste un événement. Seul un titre écrit
-        // à la main en fait un « Modificat ».
-        else if (isReplaced && !customTitle) status = "event";
-        else if (isManual) status = "changed";
-        else if (isOverrideCancelled || isSummerBreak) status = "cancelled";
-
-        const statusLabel = {
-            changed: t("status_replaced"),
-            event: t("status_event"),
-            cancelled: t("status_cancelled"),
-            moved: t("status_moved"),
-            // Le jour de départ est d'abord annulé : la note dit où l'activité part.
-            movedFrom: t("status_cancelled"),
-        }[status] || "";
-        const isCancelled = status === "cancelled" || status === "movedFrom";
-
-        // La note saisie dans l'admin passe avant la note automatique.
-        const adminNote = pickByLang(notes?.[id], lang);
-        const autoNote = moveTarget
-            ? t("move_to").replace("{day}", lowerDay(moveTarget.day))
-            : moveSource
-                ? t("move_from").replace("{day}", lowerDay(moveSource.day))
-                : "";
-        const note = adminNote || autoNote;
-
-        const dm = safeStr(dateMetaById?.[id]?.dm || "");
-        const full = safeStr(dateMetaById?.[id]?.full || "");
-
-        const title = customTitle || (isReplaced ? replacementEvent.title : item?.title);
-        const displayTime = isReplaced && replacementEvent.time ? replacementEvent.time : null;
-        const cleanedTimes = safeArr(item?.times).map((x) => safeStr(x).trim()).filter(Boolean);
-        const timeLabels = customTime
-            ? [formatRange(customTime)]
-            : (isReplaced && displayTime ? [formatRange(displayTime)] : cleanedTimes.map(formatRange));
-
-        // Ce que la modification fait disparaître du créneau, pour le résumé :
-        // lundi, le cor bărbătesc prend la place de la soirée des jeunes.
-        // Un événement, lui, ne remplace rien : l'invité vient pendant le programme
-        // habituel (« în cadrul programului: Seară de rugăciune »).
-        const replacesNote = title !== item?.title
-            ? status === "event"
-                ? t("during").replace("{title}", item?.title || "")
-                : (status === "moved" || status === "changed")
-                    ? t("replaces").replace("{title}", item?.title || "")
-                    : ""
-            : "";
+    const programCards = computedCards.map((card) => {
+        const { id, day, title, note, timeLabels, full, isCancelled, isManual } = card;
 
         // Une carte remplacée par un événement ouvre l'événement. Les autres ouvrent
         // la réponse de la FAQ qui décrit l'activité affichée. Un titre manuel qui ne
         // correspond à aucune FAQ n'ouvre rien, plutôt que l'ancienne FAQ du créneau.
+        if (card.status === "extra") {
+            return { ...card, onActivate: () => window.dispatchEvent(new CustomEvent("open-event", { detail: { eventId: card.additionEventId } })) };
+        }
+        if (card.isReplaced) {
+            return { ...card, onActivate: () => window.dispatchEvent(new CustomEvent("open-event", { detail: { eventId: card.replacementEventId } })) };
+        }
         const faqKey = isManual
             ? resolveFaqKeyForTitle(title)
             : (resolveFaqKeyForTitle(title) ?? FAQ_KEY_BY_DAY[id] ?? null);
         const faqEntry = faqKey ? faqQuestions.find((q) => q.key === faqKey) ?? null : null;
-
-        const onActivate = isReplaced
-            ? () => window.dispatchEvent(new CustomEvent("open-event", { detail: { eventId: replacementEventId } }))
-            : faqEntry
-                ? () => openDayModal({
-                    question: faqEntry.q.split(" · ").pop(),
-                    answer: faqEntry.a,
-                    day,
-                    title,
-                    note,
-                    dateLong: full,
-                    timeLabels,
-                    isCancelled,
-                })
-                : null;
-
-        // Résumé : un déplacement tient en une seule ligne, sur le jour d'arrivée
-        // (« Zi de post și mijlocire, de marți pe miercuri »).
-        let summaryNote = "";
-        if (status === "moved") {
-            summaryNote = [
-                t("move_summary").replace("{from}", lowerDay(moveSource.day)).replace("{to}", lowerDay(day)),
-                replacesNote,
-            ].filter(Boolean).join(", ");
-        } else {
-            summaryNote = [adminNote, replacesNote].filter(Boolean).join(", ");
-        }
-
-        programCards.push({
-            key: id, day, title, note, status, statusLabel, timeLabels, dm, full, onActivate, summaryNote,
-            inSummary: status === "changed" || status === "event" || status === "moved" ||
-                (status === "cancelled" && isOverrideCancelled),
-        });
-
-        const additionEventId = safeStr(additions[id]).trim();
-        const additionEvent = additionEventId ? eventsMap.get(additionEventId) : null;
-        if (additionEvent) {
-            programCards.push({
-                key: `${id}-extra`,
+        const onActivate = faqEntry
+            ? () => openDayModal({
+                question: faqEntry.q.split(" · ").pop(),
+                answer: faqEntry.a,
                 day,
-                title: additionEvent.title,
-                note: "",
-                summaryNote: "",
-                status: "extra",
-                statusLabel: t("status_addition"),
-                timeLabels: additionEvent.time ? [formatRange(additionEvent.time)] : [],
-                dm,
-                full,
-                onActivate: () => window.dispatchEvent(new CustomEvent("open-event", { detail: { eventId: additionEventId } })),
-                inSummary: true,
-            });
-        }
+                title,
+                note,
+                dateLong: full,
+                timeLabels,
+                isCancelled,
+            })
+            : null;
+        return { ...card, onActivate };
     });
 
     const programChanges = programCards.filter((c) => c.inSummary);
-
-    // Le titre du résumé dit ce qu'il contient : des événements seuls ne sont pas
-    // des « changements ».
-    const hasEventsOnly = programChanges.length > 0 && programChanges.every((c) => c.status === "event" || c.status === "extra");
-    const hasNoEvents = programChanges.every((c) => c.status !== "event" && c.status !== "extra");
-    const changesTitle = hasEventsOnly ? t("events_title") : hasNoEvents ? t("changes_title") : t("changes_events_title");
 
     return (
         <>
