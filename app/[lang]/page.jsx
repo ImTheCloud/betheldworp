@@ -13,13 +13,29 @@ import Gallery from "../sections/Gallery";
 import Donations from "../sections/Donations";
 import WorldMapSection from "../sections/WorldMapSection";
 import NewsletterSection from "../sections/NewsletterSection";
+import { buildStructuredData, serializeJsonLd } from "../lib/structuredData";
 
 // Chaque bloc est enveloppé dans SectionBoundary : une exception ne peut plus
 // emporter que sa propre section, là où elle remplaçait auparavant la page
 // entière par la frontière d'erreur.
-export default function Home() {
+// La page reste pré-générée, mais se régénère au plus une fois par heure :
+// sans cela, les événements des données structurées resteraient figés au
+// dernier déploiement.
+export const revalidate = 3600;
+
+export default async function Home({ params }) {
+    const { lang } = await params;
+    const structuredData = await buildStructuredData(lang);
+
     return (
         <>
+            {/* Fiche de l'église et événements à venir pour Google et les IA
+                (voir app/lib/structuredData.js). */}
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: serializeJsonLd(structuredData) }}
+            />
+
             <SectionBoundary nom="Barre du prochain programme">
                 <NextProgramBar />
             </SectionBoundary>

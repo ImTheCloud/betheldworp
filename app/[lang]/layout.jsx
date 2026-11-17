@@ -7,24 +7,39 @@ const SITE_TITLE = "Bethel Dworp";
 const SITE_URL = "https://www.betheldworp.be";
 const LANGS = ["ro", "fr", "nl", "en"];
 
+// Titres et descriptions pour les moteurs de recherche. Ils reprennent ce que
+// les gens tapent vraiment : « biserica penticostala romana Bruxelles »,
+// « église roumaine Bruxelles », plutôt que le seul nom du village.
 const TITLES = {
-    ro: "Bethel Dworp Biserica Penticostală",
-    fr: "Bethel Dworp Église Pentecôtiste",
-    nl: "Bethel Dworp Pinksterkerk",
-    en: "Bethel Dworp Pentecostal Church",
+    ro: "Biserica Penticostală Română Bethel Dworp – lângă Bruxelles",
+    fr: "Église Pentecôtiste Roumaine Bethel Dworp – près de Bruxelles",
+    nl: "Roemeense Pinksterkerk Bethel Dworp – bij Brussel",
+    en: "Bethel Dworp Romanian Pentecostal Church – near Brussels",
 };
 
 const DESCRIPTIONS = {
-    ro: "Biserica Penticostală Bethel din Dworp. Programul serviciilor divine și evenimente.",
-    fr: "Église pentecôtiste Bethel à Dworp. Horaires des cultes et événements.",
-    nl: "Pinksterkerk Bethel in Dworp. Dienstentijden en activiteiten.",
-    en: "Bethel Pentecostal Church in Dworp. Service times and events.",
+    ro: "Biserică penticostală română în Dworp (Beersel), la sud de Bruxelles. Serviciu divin duminica la 10:00 și 18:00, programul săptămânal și evenimentele bisericii.",
+    fr: "Église pentecôtiste roumaine à Dworp (Beersel), au sud de Bruxelles. Culte le dimanche à 10h et 18h, programme de la semaine et événements de l’église.",
+    nl: "Roemeense pinksterkerk in Dworp (Beersel), ten zuiden van Brussel. Eredienst op zondag om 10u en 18u, weekprogramma en activiteiten van de kerk.",
+    en: "Romanian Pentecostal church in Dworp (Beersel), south of Brussels. Sunday services at 10:00 and 18:00, weekly program and church events.",
 };
+
+// Aperçu de partage (WhatsApp, Facebook) : textes inchangés, en roumain sur
+// toutes les langues (choix du 28 septembre 2026), indépendants des titres
+// de recherche ci-dessus.
+const SHARE_TITLE = "Bethel Dworp Biserica Penticostală";
+const SHARE_DESCRIPTION = "Biserica Penticostală Bethel din Dworp. Programul serviciilor divine și evenimente.";
 
 // Pré-génère les quatre langues au build plutôt qu'à chaque visite.
 export function generateStaticParams() {
     return LANGS.map((lang) => ({ lang }));
 }
+
+// Seules ces quatre langues existent. Sans cette ligne, /favicon.ico,
+// /llms.txt ou /nimporte-quoi.txt affichaient la page d'accueil avec un code
+// 200 : du contenu dupliqué aux yeux de Google, et des fichiers introuvables
+// pour les robots. Elles renvoient désormais une vraie erreur 404.
+export const dynamicParams = false;
 
 // Indique à Google que les quatre versions sont la même page en langues
 // différentes, et non du contenu dupliqué. Sans ces balises il en choisissait
@@ -61,19 +76,18 @@ export async function generateMetadata({ params }) {
         openGraph: {
             type: "website",
             siteName: SITE_TITLE,
-            // Aperçu de partage volontairement en roumain sur toutes les
-            // langues (choix du 28 septembre 2026) : les liens circulent
-            // surtout dans les groupes WhatsApp de la communauté roumaine.
-            title: TITLES.ro,
-            description: DESCRIPTIONS.ro,
+            // Voir SHARE_TITLE : les liens circulent surtout dans les groupes
+            // WhatsApp de la communauté roumaine.
+            title: SHARE_TITLE,
+            description: SHARE_DESCRIPTION,
             url: `${SITE_URL}/${l}`,
             locale: "ro_RO",
-            images: [{ url: "/images/og-v13.jpg", width: 1200, height: 630, alt: TITLES.ro }],
+            images: [{ url: "/images/og-v13.jpg", width: 1200, height: 630, alt: SHARE_TITLE }],
         },
         twitter: {
             card: "summary_large_image",
-            title: TITLES.ro,
-            description: DESCRIPTIONS.ro,
+            title: SHARE_TITLE,
+            description: SHARE_DESCRIPTION,
             images: ["/images/og-v13.jpg"],
         },
     };
