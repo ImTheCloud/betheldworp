@@ -900,9 +900,11 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
         const wk = dateToWeekKey(dateStr);
         if (!wk) return { slots: [], slotTimes: {} };
         const override = overrides.find((o) => o.id === wk || o.weekKey === wk);
-        if (!override || !override.replacements) return { slots: [], slotTimes: {} };
+        if (!override) return { slots: [], slotTimes: {} };
         const possibleSlots = dateToSlotIds(dateStr);
-        const slots = possibleSlots.filter((s) => override.replacements[s] === eventId);
+        const repl = override.replacements || {};
+        const also = override.alsoEvents || {};
+        const slots = possibleSlots.filter((s) => repl[s] === eventId || (Array.isArray(also[s]) && also[s].includes(eventId)));
         const slotTimes = {};
         slots.forEach((s) => {
             if (override.customTimes && override.customTimes[s]) {
@@ -1160,19 +1162,25 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
             const oldSlots = dateToSlotIds(oldDateStr);
             if (oldWk && oldSlots.length > 0) {
                 const oldOverride = overrides.find((o) => o.id === oldWk || o.weekKey === oldWk);
-                if (oldOverride && oldOverride.replacements) {
+                if (oldOverride && (oldOverride.replacements || oldOverride.alsoEvents)) {
                     const updates = {};
                     let changed = false;
                     for (const s of oldSlots) {
-                        if (oldOverride.replacements[s] === oldEventId) {
+                        if (oldOverride.replacements?.[s] === oldEventId) {
                             updates[`replacements.${s}`] = deleteField();
                             updates[`customTimes.${s}`] = deleteField();
+                            changed = true;
+                        }
+                        const oldAlso = oldOverride.alsoEvents?.[s];
+                        if (Array.isArray(oldAlso) && oldAlso.includes(oldEventId)) {
+                            const rest = oldAlso.filter((x) => x !== oldEventId);
+                            updates[`alsoEvents.${s}`] = rest.length ? rest : deleteField();
                             changed = true;
                         }
                     }
                     if (changed) {
                         updates['affectedProgramIds'] = (oldOverride.affectedProgramIds || []).filter((id) => {
-                            if (oldSlots.includes(id) && oldOverride.replacements[id] === oldEventId) return false;
+                            if (oldSlots.includes(id) && oldOverride.replacements?.[id] === oldEventId) return false;
                             return true;
                         });
                         await updateDoc(doc(db, "program_overrides", oldWk), updates);
@@ -1189,6 +1197,8 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
         const base = overrideDoc || { weekKey: wk, affectedProgramIds: [], replacements: {}, customTimes: {} };
         const newReplacements = { ...(base.replacements || {}) };
         const newCustomTimes = { ...(base.customTimes || {}) };
+        const newAlso = Object.fromEntries(Object.entries(base.alsoEvents || {}).map(([k, v]) => [k, Array.isArray(v) ? [...v] : []]));
+        const eventExists = (id) => items.some((it) => it.id === id);
         let affected = [...(base.affectedProgramIds || [])];
 
         const selectedSlots = isOverride 
@@ -1199,6 +1209,25 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
         let changed = false;
 
         daySlotIds.forEach((slotId) => {
+            const alsoHere = newAlso[slotId] || [];
+            const otherMain = newReplacements[slotId] && newReplacements[slotId] !== eventId && eventExists(newReplacements[slotId]);
+            if (selectedSlots.includes(slotId) && (otherMain || alsoHere.includes(eventId))) {
+                // Le créneau porte déjà un autre événement : celui-ci a lieu
+                // pendant le même programme (Cina Domnului et bénédiction des
+                // enfants le même dimanche matin). Il s'ajoute, sans remplacer.
+                if (!alsoHere.includes(eventId)) {
+                    newAlso[slotId] = [...alsoHere, eventId];
+                    changed = true;
+                }
+                return;
+            }
+            if (!selectedSlots.includes(slotId) && alsoHere.includes(eventId)) {
+                const rest = alsoHere.filter((x) => x !== eventId);
+                if (rest.length) newAlso[slotId] = rest;
+                else delete newAlso[slotId];
+                changed = true;
+                return;
+            }
             if (selectedSlots.includes(slotId)) {
                 if (newReplacements[slotId] !== eventId) {
                     newReplacements[slotId] = eventId;
@@ -1223,28 +1252,36 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
                     delete newReplacements[slotId];
                     delete newCustomTimes[slotId];
                     changed = true;
-                    affected = affected.filter((id) => id !== slotId);
+                    // Un second événement du même programme prend la place
+                    // laissée libre, plutôt que de disparaître avec le premier.
+                    if (alsoHere.length) {
+                        newReplacements[slotId] = alsoHere[0];
+                        if (alsoHere.length > 1) newAlso[slotId] = alsoHere.slice(1);
+                        else delete newAlso[slotId];
+                    } else {
+                        affected = affected.filter((id) => id !== slotId);
+                    }
                 }
             }
         });
 
         if (changed) {
-            if (selectedSlots.length > 0 || Object.keys(newReplacements).length > 0 || affected.length > 0) {
-                await setDoc(doc(db, "program_overrides", wk), {
-                    ...base,
-                    weekKey: wk,
-                    affectedProgramIds: [...new Set(affected)],
-                    replacements: newReplacements,
-                    customTimes: newCustomTimes
-                }, { merge: true });
-            } else if (overrideDoc) {
-                await setDoc(doc(db, "program_overrides", wk), {
-                    ...base,
-                    weekKey: wk,
-                    affectedProgramIds: [],
-                    replacements: {},
-                    customTimes: {}
-                }, { merge: true });
+            // updateDoc et non setDoc(…, { merge: true }) : la fusion garde les
+            // clés retirées d'une map. Décocher le dimanche soir laissait alors
+            // l'événement accroché au soir (6 décembre 2026). updateDoc remplace
+            // chaque map en entier, donc une clé retirée disparaît vraiment.
+            const ref = doc(db, "program_overrides", wk);
+            const fields = {
+                weekKey: wk,
+                affectedProgramIds: [...new Set(affected)],
+                replacements: newReplacements,
+                customTimes: newCustomTimes,
+                alsoEvents: newAlso,
+            };
+            if (overrideDoc) {
+                await updateDoc(ref, fields);
+            } else if (selectedSlots.length > 0 || Object.keys(newReplacements).length > 0 || affected.length > 0) {
+                await setDoc(ref, fields);
             }
         }
     };

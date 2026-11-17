@@ -127,7 +127,8 @@ Depuis novembre 2026, le programme hebdomadaire du site affiche un statut sur ch
 | **MUTAT** | Activité déplacée d'un jour à l'autre (ex. post de marți à miercuri) | Jour de départ : c'est d'abord une annulation, donc `chip-c` rouge, heure + titre + `ANULAT` en rouge, puis la note `Mutat miercuri, 11 noiembrie`. Jour d'arrivée : `chip-s` vert, pastille `MUTAT` à côté de l'heure, note `Mutat de marți` (ajouter `, în locul: …` si l'activité prend la place d'un autre programme, ex. lundi le cor bărbătesc à la place de la soirée des jeunes) |
 | **EVENIMENT** | Créneau remplacé par un événement (invité, concert, baptême) | `chip-s` vert, pastille `EVENIMENT` à côté de l'heure, titre de l'événement, ligne verte `Invitat special: …` si besoin, note `În locul: Serviciu Divin` si utile |
 | **MODIFICAT** | Titre ou heure changés pour une autre raison | `chip-s` vert, pastille `MODIFICAT` à côté de l'heure, note courte qui dit ce qui change (ex. `În locul serii de tineret`) |
-| **EXTRA** | Événement en plus du programme, sans rien annuler | `chip-s` vert, pastille `EXTRA` à côté de l'heure |
+| **PROGRAM SPECIAL** (ex-Extra) | Réunion qui n'existe pas d'habitude (ex. un culte un jeudi), en plus du programme | `chip-s` vert, pastille `PROGRAM SPECIAL` à côté de l'heure |
+| **EVENIMENT** (2e événement) | Deux événements dans le même programme (ex. Cina Domnului et bénédiction des enfants le même dimanche matin) | Deux lignes `EVENIMENT` sur le même créneau, chacune avec son titre et son heure. Ce n'est **jamais** un Program special |
 | **NOU** | Activité qui entre dans le programme régulier (ex. orchestre, novembre 2026) | `chip-s` vert, pastille `NOU` à côté de l'heure, **uniquement la première semaine** |
 
 **Pastille à côté de l'heure** (même ligne que l'heure, donc aucune hauteur en plus sur mobile). Exemple pour `NOU`, voir `newsletter_2026-11-16.html` :
@@ -137,13 +138,14 @@ Depuis novembre 2026, le programme hebdomadaire du site affiche un statut sur ch
     style="display:inline-block;margin-left:6px;padding:2px 8px;border-radius:999px;background-color:#dcfce7;border:1px solid #86efac;color:#15803d;font-size:10px;font-weight:900;letter-spacing:0.6px;line-height:1.4;vertical-align:1px;">NOU</span>
 ```
 
-`ANULAT` n'a pas de pastille : il reste écrit en rouge sous le titre, comme avant. Couleurs des pastilles, identiques au site : `ANULAT` rouge (`#fdecec`, `#f3b4b4`, `#b91c1c`) si jamais une pastille est nécessaire, `MUTAT` / `MODIFICAT` jaune (`#fcf1da`, `#f0c76a`, `#92600a`), `NOU` / `EXTRA` vert (`#dcfce7`, `#86efac`, `#15803d`), `EVENIMENT` bleu (`#dde9fb`, `#93b4ef`, `#0f4c8a`). Toujours ajouter la règle du mode sombre de la classe (`@media (prefers-color-scheme: dark)` et `[data-ogsc]` / `[data-ogsb]`), comme pour `.badge-nou`.
+`ANULAT` n'a pas de pastille : il reste écrit en rouge sous le titre, comme avant. Couleurs des pastilles, identiques au site : `ANULAT` rouge (`#fdecec`, `#f3b4b4`, `#b91c1c`) si jamais une pastille est nécessaire, `MUTAT` / `MODIFICAT` jaune (`#fcf1da`, `#f0c76a`, `#92600a`), `NOU` / `PROGRAM SPECIAL` vert (`#dcfce7`, `#86efac`, `#15803d`), `EVENIMENT` bleu (`#dde9fb`, `#93b4ef`, `#0f4c8a`). Toujours ajouter la règle du mode sombre de la classe (`@media (prefers-color-scheme: dark)` et `[data-ogsc]` / `[data-ogsb]`), comme pour `.badge-nou`.
 
 **Comment le site décide du statut** (à connaître pour vérifier que site et newsletter disent la même chose). Tout vient de l'admin, section Program overrides :
 - `Main Program` sur `Cancelled` : **Anulat**.
 - `Main Program` sur un événement : **Eveniment**.
 - `Manual Text Override` (titre ou heure) : **Modificat**.
-- `Extra Event` : **Extra**, carte en plus.
+- `Second Event (same program)` : second événement pendant le même programme (champ `alsoEvents`), carte **Eveniment** de plus. Dans l'admin Événements, lier un 2e événement à un créneau déjà pris l'ajoute ici au lieu de remplacer le premier.
+- `Special Program (extra)` : **Program special** (ex-Extra), réunion en plus du programme habituel.
 - **Mutat est détecté tout seul** : un créneau annulé dont le titre habituel est écrit à la main sur un autre créneau de la même semaine. Le jour de départ affiche **Anulat** (note `Mutat miercuri`), le jour d'arrivée **Mutat** (note `Mutat de marți`). Il suffit d'annuler mardi matin et d'écrire « Zi de post și mijlocire » sur le créneau de mercredi.
 - `Note for visitors` (RO, FR, NL, EN) : texte court affiché sous le titre de la carte et dans le résumé. Il remplace la note automatique (`Mutat miercuri`, `Mutat de marți`).
 - Dans le résumé, le site ajoute de lui-même ce qu'une modification remplace : `în locul: Seară de Tineret și Adolescenți`. La newsletter peut reprendre la même formule dans la note.
@@ -302,7 +304,7 @@ Avant d'envoyer, vérifier :
 - [ ] Les **numéros de jour** correspondent au bon jour de la semaine
 - [ ] Les **événements spéciaux** sont bien marqués en vert (`chip-s`)
 - [ ] Les **programmes annulés** sont bien en rouge (`chip-c`) avec mention "ANULAT"
-- [ ] Les **statuts** (ANULAT, MUTAT, EVENIMENT, MODIFICAT, EXTRA, NOU) correspondent à ce qu'affiche le site pour la même semaine
+- [ ] Les **statuts** (ANULAT, MUTAT, EVENIMENT, MODIFICAT, PROGRAM SPECIAL, NOU) correspondent à ce qu'affiche le site pour la même semaine
 - [ ] L'**image principale** correspond à l'événement phare (ou drone si semaine standard)
 - [ ] Le **preheader** résume bien la semaine
 - [ ] L'**objet Brevo** est clair et résume les points forts

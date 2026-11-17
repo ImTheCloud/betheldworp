@@ -65,7 +65,7 @@ const BADGES = {
     event: { label: "EVENIMENT", cls: "badge-ev", bg: "#dde9fb", border: "#93b4ef", color: "#0f4c8a" },
     moved: { label: "MUTAT", cls: "badge-mut", bg: "#fcf1da", border: "#f0c76a", color: "#92600a" },
     changed: { label: "MODIFICAT", cls: "badge-mut", bg: "#fcf1da", border: "#f0c76a", color: "#92600a" },
-    extra: { label: "EXTRA", cls: "badge-nou", bg: "#dcfce7", border: "#86efac", color: "#15803d" },
+    extra: { label: "PROGRAM SPECIAL", cls: "badge-nou", bg: "#dcfce7", border: "#86efac", color: "#15803d" },
     cancelled: { label: "ANULAT", cls: "badge-an", bg: "#fdecec", border: "#f3b4b4", color: "#b91c1c" },
     movedFrom: { label: "ANULAT", cls: "badge-an", bg: "#fdecec", border: "#f3b4b4", color: "#b91c1c" },
 };

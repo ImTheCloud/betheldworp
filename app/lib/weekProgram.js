@@ -164,6 +164,8 @@ export function normalizeWeekOverride(docId, data) {
         cancelledSet: new Set(safeArr(data?.affectedProgramIds).map((v) => safeStr(v).trim()).filter(Boolean)),
         replacements: safeObj(data?.replacements),
         additions: safeObj(data?.additions),
+        // Autres événements pendant le même programme : { sun_am: ["id"] }.
+        alsoEvents: safeObj(data?.alsoEvents),
         customTitles: safeObj(data?.customTitles),
         customTimes: safeObj(data?.customTimes),
         notes: safeObj(data?.notes),
@@ -181,7 +183,9 @@ export const EMPTY_OVERRIDE = normalizeWeekOverride("", {});
  *   "moved"      Mutat      titre manuel qui reprend l'activité d'un créneau annulé
  *   "changed"    Modificat  titre ou heure changés à la main, sans déplacement
  *   "event"      Eveniment  créneau remplacé par un événement
- *   "extra"      Extra      événement ajouté en plus du programme
+ *   "event"      Eveniment  aussi pour un second événement du même programme
+ *                           (alsoEvents : Cina Domnului et bénédiction le même matin)
+ *   "extra"      Program special  réunion en plus du programme habituel
  *
  * @param items      [{ id, day, times, title }] dans la langue affichée
  * @param override   résultat de normalizeWeekOverride
@@ -192,6 +196,7 @@ export const EMPTY_OVERRIDE = normalizeWeekOverride("", {});
  */
 export function computeProgramCards({ items, dateMetaById, override, eventsMap, t, lang, roTitles = {} }) {
     const { cancelledSet, replacements, additions, customTitles, customTimes, notes } = override || EMPTY_OVERRIDE;
+    const alsoEvents = (override || EMPTY_OVERRIDE).alsoEvents || {};
     const lowerDay = (d) => (lang === "en" ? d : d.toLowerCase());
 
     const baseCards = items.map((item, idx) => {
@@ -315,6 +320,35 @@ export function computeProgramCards({ items, dateMetaById, override, eventsMap, 
             moveSourceId: moveSource?.id || "", moveTargetId: moveTarget?.id || "",
             inSummary: status === "changed" || status === "event" || status === "moved" ||
                 (status === "cancelled" && isOverrideCancelled),
+        });
+
+        // Second (troisième…) événement du même programme : une carte
+        // « Eveniment » de plus, sur le même créneau, qui ouvre son événement.
+        safeArr(alsoEvents[id]).map((v) => safeStr(v).trim()).filter(Boolean).forEach((alsoId) => {
+            const ev = eventsMap.get(alsoId);
+            if (!ev || alsoId === replacementEventId) return;
+            const during = t("during").replace("{title}", item?.title || "");
+            cards.push({
+                key: `${id}-also-${alsoId}`,
+                id,
+                day,
+                title: ev.title,
+                baseTitle: item?.title || "",
+                note: "",
+                adminNote: "",
+                summaryNote: during,
+                status: "event",
+                statusLabel: t("status_event"),
+                timeLabels: ev.time ? [formatRange(ev.time)] : timeLabels,
+                dm,
+                full,
+                isCancelled: false,
+                isManual: false,
+                isReplaced: true,
+                replacementEventId: alsoId,
+                replacesNote: during,
+                inSummary: true,
+            });
         });
 
         const additionEventId = safeStr(additions[id]).trim();
