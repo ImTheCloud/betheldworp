@@ -92,19 +92,27 @@ const BADGES = {
 function badge(status, marginLeft = 6) {
     const b = BADGES[status];
     if (!b) return "";
-    return `<span class="${b.cls}" style="display:inline-block;margin-left:${marginLeft}px;padding:2px 8px;border-radius:999px;background-color:${b.bg};border:1px solid ${b.border};color:${b.color};font-size:10px;font-weight:900;letter-spacing:0.6px;line-height:1.4;vertical-align:1px;">${b.label}</span>`;
+    return `<span class="${b.cls}" style="display:inline-block;margin-left:${marginLeft}px;padding:2px 8px;border-radius:999px;background-color:${b.bg};border:1px solid ${b.border};color:${b.color};font-size:10px;font-weight:900;letter-spacing:0.6px;line-height:1.4;vertical-align:2px;">${b.label}</span>`;
 }
 
 // ── Boîte du jour ──
 
+// Couleurs par nature de changement, sur la boîte du jour et sur le titre
+// seulement (l'heure et la note restent neutres, choix du 17 nov 2026) :
+//   gris   programme habituel
+//   vert   événement, invité, annonce
+//   jaune  déplacé (les deux jours) ou modifié
+//   rouge  annulé, avec la pastille ANULAT
 const CHIPS = {
-    n: { cls: "chip-n", bg: "#f1f5f9", border: "#e2e8f0", lbl: "#64748b", num: "#0f172a" },
-    s: { cls: "chip-s", bg: "#dcfce7", border: "#86efac", lbl: GREEN, num: GREEN },
-    c: { cls: "chip-c", bg: "#fee2e2", border: "#fca5a5", lbl: "#dc2626", num: "#dc2626" },
+    n: { cls: "chip-n", bg: "#f1f5f9", border: "#e2e8f0", lbl: "#64748b", num: "#0f172a", title: "#0f172a", titleCls: "t-head" },
+    s: { cls: "chip-s", bg: "#dcfce7", border: "#86efac", lbl: GREEN, num: GREEN, title: "#15803d", titleCls: "t-accent" },
+    m: { cls: "chip-m", bg: "#fcf1da", border: "#f0c76a", lbl: "#92600a", num: "#92600a", title: "#92600a", titleCls: "t-moved" },
+    c: { cls: "chip-c", bg: "#fee2e2", border: "#fca5a5", lbl: "#dc2626", num: "#dc2626", title: "#dc2626", titleCls: "t-cancel" },
 };
 
 function chipKind(status) {
-    if (status === "cancelled" || status === "movedFrom") return "c";
+    if (status === "cancelled") return "c";
+    if (status === "moved" || status === "movedFrom" || status === "changed") return "m";
     if (status === "normal") return "n";
     return "s";
 }
@@ -117,34 +125,28 @@ function dayChip(kind, dayName, dateUTC) {
 </div>`;
 }
 
+// Une ligne : le titre (en couleur), puis l'heure, puis la note.
 function calendarRow(day, row, isLast) {
     const kind = chipKind(row.status);
-    const cancelled = kind === "c";
+    const c = CHIPS[kind];
     const border = isLast ? "" : "border-bottom:1px solid #eef2f6;";
     const pad = isLast ? "14px 0 6px" : "14px 0";
     const padText = isLast ? "14px 0 6px 12px" : "14px 0 14px 12px";
-
-    const timeCls = cancelled ? "t-cancel" : kind === "s" ? "t-accent" : "t-head";
-    const timeColor = cancelled ? "#dc2626" : kind === "s" ? GREEN : "#0f172a";
-    const titleCls = cancelled ? "t-cancel" : "t-head";
-    const titleColor = cancelled ? "#dc2626" : "#0f172a";
     const titleWeight = kind === "n" ? 600 : 700;
 
+    const title = `<div class="${c.titleCls}" style="font-size:15px;color:${c.title};font-weight:${titleWeight};line-height:1.45;">${escapeHtml(row.title)}${kind === "c" ? badge(row.status, 6) : ""}</div>`;
     const time = row.times.length
-        ? `<span class="no-detect" style="color:inherit !important;text-decoration:none !important;">${timesHtml(row.times)}</span>`
-        : "";
-    const timeLine = (time || cancelled)
-        ? `<div class="${timeCls}" style="font-size:13px;font-weight:800;color:${timeColor};letter-spacing:0.3px;">${time}${cancelled ? badge(row.status, time ? 6 : 0) : ""}</div>`
+        ? `<div class="t-time" style="font-size:13px;font-weight:700;color:#475569;letter-spacing:0.3px;padding-top:2px;"><span class="no-detect" style="color:inherit !important;text-decoration:none !important;">${timesHtml(row.times)}</span></div>`
         : "";
     const note = row.note
-        ? `<div class="${cancelled ? "t-cancel" : "t-muted"}" style="font-size:13px;color:${cancelled ? "#dc2626" : "#64748b"};font-weight:${cancelled ? 600 : 400};padding-top:3px;line-height:1.45;">${escapeHtml(row.note)}</div>`
+        ? `<div class="t-muted" style="font-size:13px;color:#64748b;padding-top:2px;line-height:1.45;">${escapeHtml(row.note)}</div>`
         : "";
 
     return `<tr>
 <td class="rule" width="56" valign="top" style="padding:${pad};${border}">${dayChip(kind, day.name, day.date)}</td>
 <td class="rule" valign="top" style="padding:${padText};${border}">
-${timeLine}
-<div class="${titleCls}" style="font-size:15px;color:${titleColor};font-weight:${titleWeight};line-height:1.45;padding-top:${timeLine ? 2 : 0}px;">${escapeHtml(row.title)}</div>
+${title}
+${time}
 ${note}
 </td>
 </tr>`;
@@ -281,6 +283,10 @@ a[x-apple-data-detectors],a[href^="x-apple-data-detectors"],[x-apple-data-detect
 .chip-s-lbl,.chip-s-num{color:#4ade80 !important;}
 .chip-c{background-color:#361010 !important;border:1px solid #f87171 !important;color:#f87171 !important;}
 .chip-c-lbl,.chip-c-num{color:#f87171 !important;}
+.chip-m{background-color:#2e2306 !important;border:1px solid #fbbf24 !important;color:#fcd34d !important;}
+.chip-m-lbl,.chip-m-num{color:#fcd34d !important;}
+.t-moved{color:#fcd34d !important;}
+.t-time,.t-time .no-detect{color:#cbd5e1 !important;}
 .badge-an{background-color:#361010 !important;border:1px solid #f87171 !important;color:#fca5a5 !important;}
 .box-msg{background-color:#0f2918 !important;border-color:#1f5130 !important;}
 .cta{background-color:#4ade80 !important;color:#052e16 !important;}
@@ -296,6 +302,9 @@ a[x-apple-data-detectors],a[href^="x-apple-data-detectors"],[x-apple-data-detect
 [data-ogsc] .chip-n-num,[data-ogsb] .chip-n-num{color:#f1f5f9 !important;}
 [data-ogsc] .chip-s,[data-ogsb] .chip-s{background-color:#0f2918 !important;border:1px solid #4ade80 !important;color:#4ade80 !important;}
 [data-ogsc] .chip-s-lbl,[data-ogsc] .chip-s-num,[data-ogsb] .chip-s-lbl,[data-ogsb] .chip-s-num{color:#4ade80 !important;}
+[data-ogsc] .chip-m,[data-ogsb] .chip-m{background-color:#2e2306 !important;border:1px solid #fbbf24 !important;color:#fcd34d !important;}
+[data-ogsc] .chip-m-lbl,[data-ogsc] .chip-m-num,[data-ogsc] .t-moved,[data-ogsb] .chip-m-lbl,[data-ogsb] .chip-m-num,[data-ogsb] .t-moved{color:#fcd34d !important;}
+[data-ogsc] .t-time,[data-ogsb] .t-time{color:#cbd5e1 !important;}
 [data-ogsc] .chip-c,[data-ogsb] .chip-c,[data-ogsc] .badge-an,[data-ogsb] .badge-an{background-color:#361010 !important;border:1px solid #f87171 !important;color:#f87171 !important;}
 [data-ogsc] .chip-c-lbl,[data-ogsc] .chip-c-num,[data-ogsb] .chip-c-lbl,[data-ogsb] .chip-c-num{color:#f87171 !important;}
 [data-ogsc] .box-msg,[data-ogsb] .box-msg{background-color:#0f2918 !important;border-color:#1f5130 !important;}
