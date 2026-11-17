@@ -154,7 +154,7 @@ export async function loadWeek(weekKey) {
     // l'e-mail (choix du 17 nov 2026 ; le site, lui, garde les deux cartes).
     // L'activité habituelle chassée d'un créneau à une autre heure (le cor
     // mixte quand le jeûne passe au mercredi matin) apparaît annulée.
-    // Une activité déplacée vers une heure libre est « Adăugat », comme sur le
+    // Une activité déplacée vers une heure libre reste « Mutat », comme sur le
     // site, avec la note « Mutat de marți ».
     const rows = cards.filter((c) => c.status !== "movedFrom").map(cardRow);
 

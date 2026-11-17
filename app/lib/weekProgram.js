@@ -330,14 +330,14 @@ export function computeProgramCards({ items, dateMetaById, override, eventsMap, 
             summaryNote = [adminNote, replacesNote].filter(Boolean).join(", ");
         }
 
-        // Activité ajoutée à une heure où le créneau n'avait rien (le jeûne
-        // passé au mercredi matin) : c'est un programme en plus (Program
-        // special), et l'activité habituelle du créneau (le cor mixte du soir)
-        // est annulée. Deux cartes, dans l'ordre des heures.
+        // Activité à une autre heure que le programme habituel annulé : deux
+        // cartes. Si elle vient d'un autre jour, elle reste un déplacement ;
+        // sinon, c'est un ajout. Le programme habituel reste annulé.
         if (displaced) {
             cards.push({
                 key: `${id}-added`, id, day, title, baseTitle: item?.title || "", note, adminNote,
-                status: "extra", statusLabel: t("status_addition"), timeLabels, dm, full,
+                status: status === "moved" ? "moved" : "extra",
+                statusLabel: status === "moved" ? statusLabel : t("status_addition"), timeLabels, dm, full,
                 summaryNote: status === "moved"
                     ? t("move_summary").replace("{from}", lowerDay(moveSource.day)).replace("{to}", lowerDay(day))
                     : adminNote,
