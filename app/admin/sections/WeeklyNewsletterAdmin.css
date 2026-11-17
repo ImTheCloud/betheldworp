@@ -72,8 +72,8 @@
 .wn-chip {
     padding: 1px 8px;
     border-radius: 999px;
-    background: #dcfce7;
-    color: #15803d;
+    background: #dde9fb;
+    color: #0f4c8a;
     font-size: 11px;
     font-weight: 800;
 }
@@ -100,7 +100,7 @@
     vertical-align: 1px;
 }
 
-.wn-dot--done { background: #16a34a; }
+.wn-dot--done { background: #0f4c8a; }
 .wn-dot--todo { background: #f59e0b; }
 
 .wn-muted {
@@ -192,7 +192,7 @@
 }
 
 .wn-input:focus {
-    outline: 2px solid #16a34a;
+    outline: 2px solid #0f4c8a;
     outline-offset: 1px;
 }
 
@@ -278,7 +278,7 @@
     height: 14px;
     border-radius: 50%;
     border: 2px solid rgba(10, 42, 67, 0.15);
-    border-top-color: #16a34a;
+    border-top-color: #0f4c8a;
     animation: wn-spin 0.8s linear infinite;
 }
 
@@ -320,7 +320,7 @@
 }
 
 .wn-btn--primary {
-    background: #16a34a;
+    background: #0f4c8a;
     border: none;
     color: #fff;
 }
@@ -340,7 +340,7 @@
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
 }
 
-.wn-toast--ok { background: #14532d; color: #fff; }
+.wn-toast--ok { background: #0c2340; color: #fff; }
 .wn-toast--error { background: #7f1d1d; color: #fff; }
 
 .wn-dl {

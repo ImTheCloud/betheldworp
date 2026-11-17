@@ -13,7 +13,7 @@
 import crypto from "node:crypto";
 import { DAY_NAMES, SITE, dayMonth } from "./weekData";
 
-const GREEN = "#16a34a";
+const BLUE = "#0f4c8a";
 
 export function escapeHtml(value) {
     return String(value ?? "")
@@ -24,11 +24,11 @@ export function escapeHtml(value) {
         .replace(/'/g, "&#39;");
 }
 
-// « 20:00-21:30 » → « 20&zwnj;:00 – 21&zwnj;:30 » : le zwnj empêche iOS et
+// « 20:00-21:30 » → « 20&zwnj;:00 la 21&zwnj;:30 » : le zwnj empêche iOS et
 // Gmail de transformer l'heure en lien bleu.
 function timeHtml(label) {
-    const parts = String(label || "").split("-").map((x) => escapeHtml(x.trim()).replace(/(\d{1,2}):(\d{2})/, "$1&zwnj;:$2"));
-    return parts.join(" – ");
+    const parts = String(label || "").split(/\s*[-–—]\s*/).map((x) => escapeHtml(x.trim()).replace(/(\d{1,2}):(\d{2})/, "$1&zwnj;:$2"));
+    return parts.join(" la ");
 }
 
 function timesHtml(labels) {
@@ -36,7 +36,7 @@ function timesHtml(labels) {
 }
 
 function timesText(labels) {
-    return (labels || []).map((l) => String(l).split("-").map((x) => x.trim()).join(" – ")).join(" și ");
+    return (labels || []).map((l) => String(l).split(/\s*[-–—]\s*/).map((x) => x.trim()).join(" la ")).join(" și ");
 }
 
 // Formule de salutation officielle (novembre 2026), la même que dans le texte
@@ -80,13 +80,13 @@ function capitalizeMonth(s) {
 //   ANULAT     rouge  annulé
 //   MUTAT      jaune  remplace l'activité habituelle à la même heure, venu d'un autre jour
 //   MODIFICAT  jaune  titre ou heure changés sur place
-//   ADĂUGAT    vert   programme ajouté à une heure où le créneau n'avait rien
+//   ADĂUGAT    bleu   programme ajouté à une heure où le créneau n'avait rien
 //   ANUNȚ      bleu   événement, invité ou annonce (ex. la chorale partie à Graz)
 
 const BADGES = {
     moved: { label: "MUTAT", cls: "badge-mut", bg: "#fcf1da", border: "#f0c76a", color: "#92600a" },
     changed: { label: "MODIFICAT", cls: "badge-mut", bg: "#fcf1da", border: "#f0c76a", color: "#92600a" },
-    extra: { label: "ADĂUGAT", cls: "badge-nou", bg: "#e3f5e9", border: "#86efac", color: "#15803d" },
+    extra: { label: "ADĂUGAT", cls: "badge-nou", bg: "#dde9fb", border: "#93b4ef", color: "#0f4c8a" },
     event: { label: "ANUNȚ", cls: "badge-ev", bg: "#dde9fb", border: "#93b4ef", color: "#0f4c8a" },
     cancelled: { label: "ANULAT", cls: "badge-an", bg: "#fdecec", border: "#f3b4b4", color: "#b91c1c" },
     movedFrom: { label: "ANULAT", cls: "badge-an", bg: "#fdecec", border: "#f3b4b4", color: "#b91c1c" },
@@ -104,12 +104,12 @@ function badge(status, marginLeft = 6) {
 // seulement (l'heure et la note restent neutres, choix du 17 nov 2026) :
 //   gris   programme habituel
 //   bleu   événement, invité, annonce
-//   vert   programme ajouté
+//   bleu   programme ajouté
 //   jaune  déplacé ou modifié à la place de l'activité habituelle
 //   rouge  annulé (y compris le jour de départ d'un déplacement)
 const CHIPS = {
     n: { cls: "chip-n", bg: "#f1f5f9", border: "#e2e8f0", lbl: "#64748b", num: "#0f172a", title: "#0f172a", titleCls: "t-head" },
-    s: { cls: "chip-s", bg: "#dcfce7", border: "#86efac", lbl: GREEN, num: GREEN, title: "#15803d", titleCls: "t-accent" },
+    s: { cls: "chip-s", bg: "#dde9fb", border: "#93b4ef", lbl: BLUE, num: BLUE, title: "#0f4c8a", titleCls: "t-accent" },
     e: { cls: "chip-e", bg: "#dde9fb", border: "#93b4ef", lbl: "#0f4c8a", num: "#0f4c8a", title: "#0f4c8a", titleCls: "t-event" },
     m: { cls: "chip-m", bg: "#fcf1da", border: "#f0c76a", lbl: "#92600a", num: "#92600a", title: "#92600a", titleCls: "t-moved" },
     c: { cls: "chip-c", bg: "#fee2e2", border: "#fca5a5", lbl: "#dc2626", num: "#dc2626", title: "#dc2626", titleCls: "t-cancel" },
@@ -218,9 +218,9 @@ function secondaryEventHtml(group) {
     return `<tr>
 <td class="px" style="padding:34px 32px 0;font-family:Arial,Helvetica,sans-serif;">
 <div class="rule" style="border-top:1px solid #e2e8f0;padding-top:30px;">
-<div class="t-accent" style="font-size:11px;font-weight:900;color:${GREEN};letter-spacing:1.5px;text-transform:uppercase;">Tot în această săptămână</div>
+<div class="t-accent" style="font-size:11px;font-weight:900;color:${BLUE};letter-spacing:1.5px;text-transform:uppercase;">Tot în această săptămână</div>
 <div class="h2 t-head" style="font-size:21px;font-weight:900;color:#0f172a;padding-top:5px;line-height:1.3;">${escapeHtml(group.title)}</div>
-<div class="t-accent" style="font-size:13px;font-weight:800;color:${GREEN};padding-top:4px;line-height:1.6;">${occurrencesHtml(group)}</div>
+<div class="t-accent" style="font-size:13px;font-weight:800;color:${BLUE};padding-top:4px;line-height:1.6;">${occurrencesHtml(group)}</div>
 ${img}
 ${text.length ? `<div style="padding-top:14px;">${bodyParagraphs(text)}</div>` : ""}
 </div>
@@ -261,7 +261,7 @@ const CSS = `
 a[x-apple-data-detectors],a[href^="x-apple-data-detectors"],[x-apple-data-detectors],.x-apple-data-detectors,.x-apple-data-detectors *,span.MsoHyperlink,span.MsoHyperlinkFollowed{color:inherit !important;text-decoration:none !important;font-size:inherit !important;font-family:inherit !important;font-weight:inherit !important;line-height:inherit !important;}
 .no-detect,.no-detect a,.no-detect span{color:inherit !important;text-decoration:none !important;}
 .t-head .no-detect,.t-head a{color:inherit !important;text-decoration:none !important;}
-.t-accent,.t-accent .no-detect,.t-accent a,.t-accent a:link,.t-accent a:visited{color:#16a34a !important;text-decoration:none !important;}
+.t-accent,.t-accent .no-detect,.t-accent a,.t-accent a:link,.t-accent a:visited{color:#0f4c8a !important;text-decoration:none !important;}
 .t-muted a,.t-muted a:link,.t-muted a:visited{color:#64748b !important;text-decoration:none !important;}
 .t-cancel,.t-cancel .no-detect,.t-cancel a,.t-cancel a:link,.t-cancel a:visited{color:#dc2626 !important;text-decoration:none !important;}
 @media only screen and (max-width:600px){
@@ -275,54 +275,54 @@ a[x-apple-data-detectors],a[href^="x-apple-data-detectors"],[x-apple-data-detect
 }
 @media (prefers-color-scheme: dark){
 .bg-page,.bg-card,.bg-header{background-color:#141414 !important;}
-.bg-banner{background-color:#15803d !important;}
+.bg-banner{background-color:#0f4c8a !important;}
 .t-head,.t-head .no-detect,.t-head a{color:#f1f5f9 !important;}
 .t-body{color:#b6c2d4 !important;}
 .t-muted{color:#8a97a8 !important;}
-.t-accent,.t-accent .no-detect,.t-accent a,.t-accent a:link,.t-accent a:visited{color:#4ade80 !important;}
+.t-accent,.t-accent .no-detect,.t-accent a,.t-accent a:link,.t-accent a:visited{color:#93c5fd !important;}
 .t-cancel,.t-cancel .no-detect,.t-cancel a,.t-cancel a:link,.t-cancel a:visited{color:#f87171 !important;}
 .rule{border-color:#2e2e2e !important;}
 .chip-n{background-color:#2a2a2a !important;border-color:#3e3e3e !important;color:#cbd5e1 !important;}
 .chip-n-lbl{color:#94a3b8 !important;}
 .chip-n-num{color:#f1f5f9 !important;}
-.chip-s{background-color:#0f2918 !important;border:1px solid #4ade80 !important;color:#4ade80 !important;}
-.chip-s-lbl,.chip-s-num{color:#4ade80 !important;}
+.chip-s{background-color:#0c2340 !important;border:1px solid #60a5fa !important;color:#93c5fd !important;}
+.chip-s-lbl,.chip-s-num{color:#93c5fd !important;}
 .chip-c{background-color:#361010 !important;border:1px solid #f87171 !important;color:#f87171 !important;}
 .chip-c-lbl,.chip-c-num{color:#f87171 !important;}
 .chip-m{background-color:#2e2306 !important;border:1px solid #fbbf24 !important;color:#fcd34d !important;}
 .chip-m-lbl,.chip-m-num{color:#fcd34d !important;}
 .t-moved{color:#fcd34d !important;}
 .t-time,.t-time .no-detect{color:#cbd5e1 !important;}
-.badge-nou{background-color:#0f2918 !important;border:1px solid #4ade80 !important;color:#4ade80 !important;}
+.badge-nou{background-color:#0c2340 !important;border:1px solid #60a5fa !important;color:#93c5fd !important;}
 .badge-mut{background-color:#2e2306 !important;border:1px solid #fbbf24 !important;color:#fcd34d !important;}
 .chip-e{background-color:#0c2340 !important;border:1px solid #60a5fa !important;color:#93c5fd !important;}
 .chip-e-lbl,.chip-e-num,.t-event{color:#93c5fd !important;}
 .badge-ev{background-color:#0c2340 !important;border:1px solid #60a5fa !important;color:#93c5fd !important;}
 .badge-an{background-color:#361010 !important;border:1px solid #f87171 !important;color:#fca5a5 !important;}
-.box-msg{background-color:#0f2918 !important;border-color:#1f5130 !important;}
-.cta{background-color:#4ade80 !important;color:#052e16 !important;}
+.box-msg{background-color:#0c2340 !important;border-color:#60a5fa !important;}
+.cta{background-color:#93c5fd !important;color:#082f49 !important;}
 .img-round{border:1px solid #2e2e2e !important;}
 .logo-box,.logo-box td,.logo-img,.logo-bg{background-color:#ffffff !important;background:#ffffff !important;background-image:linear-gradient(#ffffff,#ffffff) !important;}
 }
 [data-ogsc] .logo-box,[data-ogsc] .logo-box td,[data-ogsc] .logo-img,[data-ogsb] .logo-box,[data-ogsb] .logo-box td,[data-ogsb] .logo-img{background-color:#ffffff !important;background:#ffffff !important;background-image:linear-gradient(#ffffff,#ffffff) !important;}
 [data-ogsc] .t-head,[data-ogsc] .t-head .no-detect,[data-ogsb] .t-head,[data-ogsb] .t-head .no-detect{color:#f1f5f9 !important;}
-[data-ogsc] .t-accent,[data-ogsc] .t-accent a,[data-ogsc] .t-accent .no-detect,[data-ogsb] .t-accent,[data-ogsb] .t-accent a,[data-ogsb] .t-accent .no-detect{color:#4ade80 !important;}
+[data-ogsc] .t-accent,[data-ogsc] .t-accent a,[data-ogsc] .t-accent .no-detect,[data-ogsb] .t-accent,[data-ogsb] .t-accent a,[data-ogsb] .t-accent .no-detect{color:#93c5fd !important;}
 [data-ogsc] .t-cancel,[data-ogsc] .t-cancel a,[data-ogsc] .t-cancel .no-detect,[data-ogsb] .t-cancel,[data-ogsb] .t-cancel a,[data-ogsb] .t-cancel .no-detect{color:#f87171 !important;}
 [data-ogsc] .chip-n,[data-ogsb] .chip-n{background-color:#2a2a2a !important;border-color:#3e3e3e !important;color:#cbd5e1 !important;}
 [data-ogsc] .chip-n-lbl,[data-ogsb] .chip-n-lbl{color:#94a3b8 !important;}
 [data-ogsc] .chip-n-num,[data-ogsb] .chip-n-num{color:#f1f5f9 !important;}
-[data-ogsc] .chip-s,[data-ogsb] .chip-s{background-color:#0f2918 !important;border:1px solid #4ade80 !important;color:#4ade80 !important;}
-[data-ogsc] .chip-s-lbl,[data-ogsc] .chip-s-num,[data-ogsb] .chip-s-lbl,[data-ogsb] .chip-s-num{color:#4ade80 !important;}
+[data-ogsc] .chip-s,[data-ogsb] .chip-s{background-color:#0c2340 !important;border:1px solid #60a5fa !important;color:#93c5fd !important;}
+[data-ogsc] .chip-s-lbl,[data-ogsc] .chip-s-num,[data-ogsb] .chip-s-lbl,[data-ogsb] .chip-s-num{color:#93c5fd !important;}
 [data-ogsc] .chip-m,[data-ogsb] .chip-m{background-color:#2e2306 !important;border:1px solid #fbbf24 !important;color:#fcd34d !important;}
 [data-ogsc] .chip-m-lbl,[data-ogsc] .chip-m-num,[data-ogsc] .t-moved,[data-ogsb] .chip-m-lbl,[data-ogsb] .chip-m-num,[data-ogsb] .t-moved{color:#fcd34d !important;}
 [data-ogsc] .t-time,[data-ogsb] .t-time{color:#cbd5e1 !important;}
-[data-ogsc] .badge-nou,[data-ogsb] .badge-nou{background-color:#0f2918 !important;border:1px solid #4ade80 !important;color:#4ade80 !important;}
+[data-ogsc] .badge-nou,[data-ogsb] .badge-nou{background-color:#0c2340 !important;border:1px solid #60a5fa !important;color:#93c5fd !important;}
 [data-ogsc] .badge-mut,[data-ogsb] .badge-mut{background-color:#2e2306 !important;border:1px solid #fbbf24 !important;color:#fcd34d !important;}
 [data-ogsc] .chip-e,[data-ogsb] .chip-e,[data-ogsc] .badge-ev,[data-ogsb] .badge-ev{background-color:#0c2340 !important;border:1px solid #60a5fa !important;color:#93c5fd !important;}
 [data-ogsc] .chip-e-lbl,[data-ogsc] .chip-e-num,[data-ogsc] .t-event,[data-ogsb] .chip-e-lbl,[data-ogsb] .chip-e-num,[data-ogsb] .t-event{color:#93c5fd !important;}
 [data-ogsc] .chip-c,[data-ogsb] .chip-c,[data-ogsc] .badge-an,[data-ogsb] .badge-an{background-color:#361010 !important;border:1px solid #f87171 !important;color:#f87171 !important;}
 [data-ogsc] .chip-c-lbl,[data-ogsc] .chip-c-num,[data-ogsb] .chip-c-lbl,[data-ogsb] .chip-c-num{color:#f87171 !important;}
-[data-ogsc] .box-msg,[data-ogsb] .box-msg{background-color:#0f2918 !important;border-color:#1f5130 !important;}
+[data-ogsc] .box-msg,[data-ogsb] .box-msg{background-color:#0c2340 !important;border-color:#60a5fa !important;}
 `;
 
 /**
@@ -353,14 +353,14 @@ export function renderNewsletter(week, options = {}) {
     }
 
     const messageBox = message.length
-        ? `<table role="presentation" class="box-msg" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate;background-color:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;margin-top:18px;">
+        ? `<table role="presentation" class="box-msg" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate;background-color:#eff6ff;border:1px solid #93b4ef;border-radius:12px;margin-top:18px;">
 <tr><td style="padding:14px 16px;font-family:Arial,Helvetica,sans-serif;">${bodyParagraphs(message)}</td></tr>
 </table>`
         : "";
 
     const headTitle = headline ? headline.title : "Programul săptămânii";
     const headDate = headline
-        ? `<div class="t-accent" style="font-size:13px;font-weight:800;color:${GREEN};padding-bottom:18px;line-height:1.6;">${occurrencesHtml(headline)}</div>`
+        ? `<div class="t-accent" style="font-size:13px;font-weight:800;color:${BLUE};padding-bottom:18px;line-height:1.6;">${occurrencesHtml(headline)}</div>`
         : `<div style="height:14px;line-height:14px;font-size:0;">&nbsp;</div>`;
 
     // Après le texte d'aperçu, des espaces invisibles empêchent Gmail et Apple
@@ -400,7 +400,7 @@ export function renderNewsletter(week, options = {}) {
 <td style="padding-left:12px;font-family:Arial,Helvetica,sans-serif;">
 <div class="t-head" style="color:#0f172a;font-size:16px;font-weight:800;line-height:1.25;">Bethel Dworp</div>
 <div class="t-muted" style="color:#64748b;font-size:12px;line-height:1.25;padding-top:3px;">Programul Săptămânii</div>
-<div style="line-height:1.25;padding-top:3px;"><a class="t-accent" href="${SITE}/" style="color:${GREEN};font-size:12px;font-weight:800;text-decoration:none;font-family:Arial,Helvetica,sans-serif;white-space:nowrap;">www.betheldworp.be</a></div>
+<div style="line-height:1.25;padding-top:3px;"><a class="t-accent" href="${SITE}/" style="color:${BLUE};font-size:12px;font-weight:800;text-decoration:none;font-family:Arial,Helvetica,sans-serif;white-space:nowrap;">www.betheldworp.be</a></div>
 </td>
 </tr>
 </table>
@@ -409,7 +409,7 @@ export function renderNewsletter(week, options = {}) {
 
 <!-- 2. SEMAINE -->
 <tr>
-<td class="bg-banner" style="background-color:${GREEN};padding:11px 20px;font-family:Arial,Helvetica,sans-serif;text-align:center;">
+<td class="bg-banner" style="background-color:${BLUE};padding:11px 20px;font-family:Arial,Helvetica,sans-serif;text-align:center;">
 <div style="color:#ffffff;font-size:13px;font-weight:800;letter-spacing:0.5px;">${escapeHtml(bannerRange)}</div>
 </td>
 </tr>
@@ -432,7 +432,7 @@ ${messageBox}
 <tr>
 <td class="px" style="padding:34px 32px 0;font-family:Arial,Helvetica,sans-serif;">
 <div class="rule" style="border-top:1px solid #e2e8f0;padding-top:30px;">
-<div class="t-accent" style="font-size:11px;font-weight:900;color:${GREEN};letter-spacing:1.5px;text-transform:uppercase;">Calendar</div>
+<div class="t-accent" style="font-size:11px;font-weight:900;color:${BLUE};letter-spacing:1.5px;text-transform:uppercase;">Calendar</div>
 <div class="h2 t-head" style="font-size:21px;font-weight:900;color:#0f172a;padding-top:5px;line-height:1.3;">Programul Săptămânii</div>
 </div>
 </td>
@@ -460,7 +460,7 @@ ${others.map(secondaryEventHtml).join("\n")}
 <td class="px" style="padding:32px 32px 30px;font-family:Arial,Helvetica,sans-serif;">
 <div class="rule t-body" style="border-top:1px solid #e2e8f0;padding-top:26px;font-size:15px;line-height:1.7;color:#475569;">Vă dorim o săptămână binecuvântată și vă așteptăm cu drag la toate programele bisericii!</div>
 <div class="t-head" style="font-size:15px;font-weight:900;color:#0f172a;padding-top:14px;">Echipa Bethel Dworp</div>
-<div style="padding-top:4px;"><a class="t-accent" href="${SITE}/" style="color:${GREEN};text-decoration:none;font-weight:700;font-size:14px;">www.betheldworp.be</a></div>
+<div style="padding-top:4px;"><a class="t-accent" href="${SITE}/" style="color:${BLUE};text-decoration:none;font-weight:700;font-size:14px;">www.betheldworp.be</a></div>
 </td>
 </tr>
 </table>
