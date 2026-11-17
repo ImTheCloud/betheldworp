@@ -80,13 +80,13 @@ function capitalizeMonth(s) {
 //   ANULAT     rouge  annulé
 //   MUTAT      jaune  remplace l'activité habituelle à la même heure, venu d'un autre jour
 //   MODIFICAT  jaune  titre ou heure changés sur place
-//   ADĂUGAT    bleu   programme ajouté à une heure où le créneau n'avait rien
+//   ADĂUGAT    vert   programme ajouté à une heure où le créneau n'avait rien
 //   ANUNȚ      bleu   événement, invité ou annonce (ex. la chorale partie à Graz)
 
 const BADGES = {
     moved: { label: "MUTAT", cls: "badge-mut", bg: "#fcf1da", border: "#f0c76a", color: "#92600a" },
     changed: { label: "MODIFICAT", cls: "badge-mut", bg: "#fcf1da", border: "#f0c76a", color: "#92600a" },
-    extra: { label: "ADĂUGAT", cls: "badge-nou", bg: "#dde9fb", border: "#93b4ef", color: "#0f4c8a" },
+    extra: { label: "ADĂUGAT", cls: "badge-nou", bg: "#e3f5e9", border: "#86efac", color: "#15803d" },
     event: { label: "ANUNȚ", cls: "badge-ev", bg: "#dde9fb", border: "#93b4ef", color: "#0f4c8a" },
     cancelled: { label: "ANULAT", cls: "badge-an", bg: "#fdecec", border: "#f3b4b4", color: "#b91c1c" },
     movedFrom: { label: "ANULAT", cls: "badge-an", bg: "#fdecec", border: "#f3b4b4", color: "#b91c1c" },
@@ -104,12 +104,12 @@ function badge(status, marginLeft = 6) {
 // seulement (l'heure et la note restent neutres, choix du 17 nov 2026) :
 //   gris   programme habituel
 //   bleu   événement, invité, annonce
-//   bleu   programme ajouté
+//   vert   programme ajouté
 //   jaune  déplacé ou modifié à la place de l'activité habituelle
 //   rouge  annulé (y compris le jour de départ d'un déplacement)
 const CHIPS = {
     n: { cls: "chip-n", bg: "#f1f5f9", border: "#e2e8f0", lbl: "#64748b", num: "#0f172a", title: "#0f172a", titleCls: "t-head" },
-    s: { cls: "chip-s", bg: "#dde9fb", border: "#93b4ef", lbl: BLUE, num: BLUE, title: "#0f4c8a", titleCls: "t-accent" },
+    s: { cls: "chip-s", bg: "#dcfce7", border: "#86efac", lbl: "#16a34a", num: "#16a34a", title: "#15803d", titleCls: "t-added" },
     e: { cls: "chip-e", bg: "#dde9fb", border: "#93b4ef", lbl: "#0f4c8a", num: "#0f4c8a", title: "#0f4c8a", titleCls: "t-event" },
     m: { cls: "chip-m", bg: "#fcf1da", border: "#f0c76a", lbl: "#92600a", num: "#92600a", title: "#92600a", titleCls: "t-moved" },
     c: { cls: "chip-c", bg: "#fee2e2", border: "#fca5a5", lbl: "#dc2626", num: "#dc2626", title: "#dc2626", titleCls: "t-cancel" },
@@ -262,6 +262,7 @@ a[x-apple-data-detectors],a[href^="x-apple-data-detectors"],[x-apple-data-detect
 .no-detect,.no-detect a,.no-detect span{color:inherit !important;text-decoration:none !important;}
 .t-head .no-detect,.t-head a{color:inherit !important;text-decoration:none !important;}
 .t-accent,.t-accent .no-detect,.t-accent a,.t-accent a:link,.t-accent a:visited{color:#0f4c8a !important;text-decoration:none !important;}
+.t-added,.t-added .no-detect,.t-added a{color:#15803d !important;}
 .t-muted a,.t-muted a:link,.t-muted a:visited{color:#64748b !important;text-decoration:none !important;}
 .t-cancel,.t-cancel .no-detect,.t-cancel a,.t-cancel a:link,.t-cancel a:visited{color:#dc2626 !important;text-decoration:none !important;}
 @media only screen and (max-width:600px){
@@ -285,15 +286,15 @@ a[x-apple-data-detectors],a[href^="x-apple-data-detectors"],[x-apple-data-detect
 .chip-n{background-color:#2a2a2a !important;border-color:#3e3e3e !important;color:#cbd5e1 !important;}
 .chip-n-lbl{color:#94a3b8 !important;}
 .chip-n-num{color:#f1f5f9 !important;}
-.chip-s{background-color:#0c2340 !important;border:1px solid #60a5fa !important;color:#93c5fd !important;}
-.chip-s-lbl,.chip-s-num{color:#93c5fd !important;}
+.chip-s{background-color:#0f2918 !important;border:1px solid #4ade80 !important;color:#4ade80 !important;}
+.chip-s-lbl,.chip-s-num,.t-added,.t-added .no-detect,.t-added a{color:#4ade80 !important;}
 .chip-c{background-color:#361010 !important;border:1px solid #f87171 !important;color:#f87171 !important;}
 .chip-c-lbl,.chip-c-num{color:#f87171 !important;}
 .chip-m{background-color:#2e2306 !important;border:1px solid #fbbf24 !important;color:#fcd34d !important;}
 .chip-m-lbl,.chip-m-num{color:#fcd34d !important;}
 .t-moved{color:#fcd34d !important;}
 .t-time,.t-time .no-detect{color:#cbd5e1 !important;}
-.badge-nou{background-color:#0c2340 !important;border:1px solid #60a5fa !important;color:#93c5fd !important;}
+.badge-nou{background-color:#0f2918 !important;border:1px solid #4ade80 !important;color:#4ade80 !important;}
 .badge-mut{background-color:#2e2306 !important;border:1px solid #fbbf24 !important;color:#fcd34d !important;}
 .chip-e{background-color:#0c2340 !important;border:1px solid #60a5fa !important;color:#93c5fd !important;}
 .chip-e-lbl,.chip-e-num,.t-event{color:#93c5fd !important;}
@@ -311,12 +312,12 @@ a[x-apple-data-detectors],a[href^="x-apple-data-detectors"],[x-apple-data-detect
 [data-ogsc] .chip-n,[data-ogsb] .chip-n{background-color:#2a2a2a !important;border-color:#3e3e3e !important;color:#cbd5e1 !important;}
 [data-ogsc] .chip-n-lbl,[data-ogsb] .chip-n-lbl{color:#94a3b8 !important;}
 [data-ogsc] .chip-n-num,[data-ogsb] .chip-n-num{color:#f1f5f9 !important;}
-[data-ogsc] .chip-s,[data-ogsb] .chip-s{background-color:#0c2340 !important;border:1px solid #60a5fa !important;color:#93c5fd !important;}
-[data-ogsc] .chip-s-lbl,[data-ogsc] .chip-s-num,[data-ogsb] .chip-s-lbl,[data-ogsb] .chip-s-num{color:#93c5fd !important;}
+[data-ogsc] .chip-s,[data-ogsb] .chip-s{background-color:#0f2918 !important;border:1px solid #4ade80 !important;color:#4ade80 !important;}
+[data-ogsc] .t-added,[data-ogsc] .t-added a,[data-ogsc] .t-added .no-detect,[data-ogsb] .t-added,[data-ogsb] .t-added a,[data-ogsb] .t-added .no-detect,[data-ogsc] .chip-s-lbl,[data-ogsc] .chip-s-num,[data-ogsb] .chip-s-lbl,[data-ogsb] .chip-s-num{color:#4ade80 !important;}
 [data-ogsc] .chip-m,[data-ogsb] .chip-m{background-color:#2e2306 !important;border:1px solid #fbbf24 !important;color:#fcd34d !important;}
 [data-ogsc] .chip-m-lbl,[data-ogsc] .chip-m-num,[data-ogsc] .t-moved,[data-ogsb] .chip-m-lbl,[data-ogsb] .chip-m-num,[data-ogsb] .t-moved{color:#fcd34d !important;}
 [data-ogsc] .t-time,[data-ogsb] .t-time{color:#cbd5e1 !important;}
-[data-ogsc] .badge-nou,[data-ogsb] .badge-nou{background-color:#0c2340 !important;border:1px solid #60a5fa !important;color:#93c5fd !important;}
+[data-ogsc] .badge-nou,[data-ogsb] .badge-nou{background-color:#0f2918 !important;border:1px solid #4ade80 !important;color:#4ade80 !important;}
 [data-ogsc] .badge-mut,[data-ogsb] .badge-mut{background-color:#2e2306 !important;border:1px solid #fbbf24 !important;color:#fcd34d !important;}
 [data-ogsc] .chip-e,[data-ogsb] .chip-e,[data-ogsc] .badge-ev,[data-ogsb] .badge-ev{background-color:#0c2340 !important;border:1px solid #60a5fa !important;color:#93c5fd !important;}
 [data-ogsc] .chip-e-lbl,[data-ogsc] .chip-e-num,[data-ogsc] .t-event,[data-ogsb] .chip-e-lbl,[data-ogsb] .chip-e-num,[data-ogsb] .t-event{color:#93c5fd !important;}
