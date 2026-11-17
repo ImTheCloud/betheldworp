@@ -699,13 +699,13 @@ export default function NewsletterAdmin({ onDirtyChange }) {
                 <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", minHeight: 40 }}>
                     <h2 className="adminTitle" style={{ margin: 0, lineHeight: 1 }}>Newsletter</h2>
                     <span role="status" style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "4px 8px", fontSize: 13, color: "rgba(10, 42, 67, 0.6)", fontWeight: 600 }}>
-                        {loading ? "Chargement…" : (
+                        {loading ? "Loading…" : (
                             <>
-                                <span style={{ whiteSpace: "nowrap" }}>{subscriptionCounts.active} actif{subscriptionCounts.active === 1 ? "" : "s"}</span>
+                                <span style={{ whiteSpace: "nowrap" }}>{subscriptionCounts.active} active</span>
                                 <span aria-hidden="true">·</span>
-                                <span style={{ whiteSpace: "nowrap" }}>{subscriptionCounts.unsubscribed} désabonné{subscriptionCounts.unsubscribed === 1 ? "" : "s"}</span>
+                                <span style={{ whiteSpace: "nowrap" }}>{subscriptionCounts.unsubscribed} unsubscribed</span>
                                 <span aria-hidden="true">·</span>
-                                <span style={{ whiteSpace: "nowrap" }}>{subscriptionCounts.total} au total</span>
+                                <span style={{ whiteSpace: "nowrap" }}>{subscriptionCounts.total} total</span>
                             </>
                         )}
                     </span>
