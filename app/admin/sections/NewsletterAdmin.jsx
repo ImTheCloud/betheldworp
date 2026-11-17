@@ -227,6 +227,13 @@ export default function NewsletterAdmin({ onDirtyChange }) {
         });
     }, []);
 
+    // Global subscription counts stay independent of search and pagination.
+    const subscriptionCounts = useMemo(() => {
+        const total = items.length;
+        const unsubscribed = items.filter((item) => item.unsubscribed).length;
+        return { active: total - unsubscribed, unsubscribed, total };
+    }, [items]);
+
     // Sorting logic
     const sortedItems = useMemo(() => {
         let arr = [...items];
@@ -252,7 +259,6 @@ export default function NewsletterAdmin({ onDirtyChange }) {
         paginatedItems,
         nextPage,
         prevPage,
-        totalItems,
     } = usePagination(sortedItems, PAGE_SIZE);
 
     // Report aggregate dirty state to parent
@@ -690,11 +696,18 @@ export default function NewsletterAdmin({ onDirtyChange }) {
     return (
         <div className="adminFullPage">
             <div className="adminFullTop">
-                <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", height: 40 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", minHeight: 40 }}>
                     <h2 className="adminTitle" style={{ margin: 0, lineHeight: 1 }}>Newsletter</h2>
-                    <span style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "rgba(10, 42, 67, 0.6)", fontWeight: 600, height: "100%" }}>
-                        <span className="adminCountDot" aria-hidden="true" style={{ width: 6, height: 6, opacity: 0.3 }} />
-                        {totalItems} subscriber{totalItems === 1 ? "" : "s"}
+                    <span role="status" style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "4px 8px", fontSize: 13, color: "rgba(10, 42, 67, 0.6)", fontWeight: 600 }}>
+                        {loading ? "Chargement…" : (
+                            <>
+                                <span style={{ whiteSpace: "nowrap" }}>{subscriptionCounts.active} actif{subscriptionCounts.active === 1 ? "" : "s"}</span>
+                                <span aria-hidden="true">·</span>
+                                <span style={{ whiteSpace: "nowrap" }}>{subscriptionCounts.unsubscribed} désabonné{subscriptionCounts.unsubscribed === 1 ? "" : "s"}</span>
+                                <span aria-hidden="true">·</span>
+                                <span style={{ whiteSpace: "nowrap" }}>{subscriptionCounts.total} au total</span>
+                            </>
+                        )}
                     </span>
                 </div>
                 <div className="adminActions">
