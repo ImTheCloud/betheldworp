@@ -69,6 +69,12 @@ export async function generateMetadata({ params }) {
             apple: { url: "/apple-icon.png", sizes: "180x180", type: "image/png" },
         },
         manifest: "/manifest.webmanifest",
+        // Preuve de propriété pour Bing Webmaster Tools (Bing alimente aussi
+        // la recherche de ChatGPT et DuckDuckGo). Ne pas supprimer : Bing
+        // revérifie régulièrement et retirerait l'accès au site.
+        verification: {
+            other: { "msvalidate.01": "C2A47FFBDCD59BECD647397218546C48" },
+        },
         alternates: {
             canonical: `${SITE_URL}/${l}`,
             languages: languageAlternates(),
