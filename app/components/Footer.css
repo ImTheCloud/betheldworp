@@ -443,3 +443,12 @@
         white-space: normal;
     }
 }
+
+/* L'adresse enregistrée, en clair, sous le message de réussite. */
+.footer-nl-success-address {
+    margin-top: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    opacity: 0.85;
+    overflow-wrap: anywhere;
+}

@@ -1,25 +1,25 @@
 "use client";
 
 import { useState } from "react";
-import { collection, serverTimestamp, setDoc, doc } from "firebase/firestore";
-import { db } from "../lib/Firebase";
 import "./NewsletterSection.css";
 import { useLang } from "../components/LanguageProvider";
 import { makeT } from "../lib/i18n";
 import tr from "../translations/NewsletterSection.json";
-import { isValidEmail } from "../lib/validation";
+import { useNewsletterSignup } from "../lib/useNewsletterSignup";
+import EmailSuggestion, { useEmailCheckText } from "../components/EmailSuggestion";
 
 export default function NewsletterSection() {
     const { lang } = useLang();
     const t = makeT(tr, lang);
 
-    const [email, setEmail] = useState("");
-    const [sending, setSending] = useState(false);
-    const [success, setSuccess] = useState(false);
-    const [error, setError] = useState("");
+    const nl = useNewsletterSignup("website");
+    const tc = useEmailCheckText();
     const [nlCopied, setNlCopied] = useState(false);
 
-    const [successText, setSuccessText] = useState("");
+    const errorText = !nl.error ? ""
+        : nl.error.code === "invalid" ? t("email_invalid")
+        : nl.error.code === "domain" ? tc("domain_missing").replace("{domain}", nl.error.domain)
+        : t("subscribe_error");
 
     const handleNlShare = async () => {
         try {
@@ -50,68 +50,6 @@ export default function NewsletterSection() {
         }
     };
 
-    const onSubscribe = async (e) => {
-        e.preventDefault();
-        setError("");
-        
-        const em = email.trim().toLowerCase();
-        if (!isValidEmail(em)) {
-            setError(t("email_invalid"));
-            return;
-        }
-
-        setSending(true);
-        try {
-            const nlRef = collection(db, "newsletter");
-            const docRef = doc(nlRef, em);
-
-            const { getDoc } = await import("firebase/firestore");
-            const snapshot = await getDoc(docRef);
-
-            if (snapshot.exists()) {
-                // L'adresse est connue, mais elle a pu être mise en blocklist chez
-                // Brevo par une désinscription faite depuis un e-mail. Redonner son
-                // adresse vaut demande de retour : la route lève le blocage, et ne
-                // fait rien si le contact est déjà joignable.
-                fetch("/api/newsletter/subscribe", {
-                    method: "POST",
-                    keepalive: true,
-                    headers: { "content-type": "application/json" },
-                    body: JSON.stringify({ email: em, source: "website" }),
-                }).catch((e) => console.error("Brevo sync error:", e));
-
-                setSuccessText(t("subscribe_already"));
-                setSuccess(true);
-                setSending(false);
-                return;
-            }
-
-            await setDoc(docRef, {
-                email: em,
-                subscribedAt: serverTimestamp(),
-                source: "website",
-            });
-
-            // Réplique le contact dans la liste Brevo. Un échec ici ne doit pas
-            // faire échouer l'abonnement : Firestore reste la source de vérité.
-            fetch("/api/newsletter/subscribe", {
-                method: "POST",
-                keepalive: true,
-                headers: { "content-type": "application/json" },
-                body: JSON.stringify({ email: em, source: "website" }),
-            }).catch((e) => console.error("Brevo sync error:", e));
-
-            setSuccessText("");
-            setSuccess(true);
-            setEmail("");
-        } catch (err) {
-            console.error("Error subscribing:", err);
-            setError(t("subscribe_error"));
-        } finally {
-            setSending(false);
-        }
-    };
-
     return (
         <section className="nl-section" id="newsletter">
             <div className="nl-content">
@@ -139,29 +77,48 @@ export default function NewsletterSection() {
                     
                     <p className="nl-description">{t("newsletter_desc")}</p>
 
-                    {success ? (
-                        <div className="nl-success">
-                            <div className="nl-success-title">{successText || t("subscribe_success_short")}</div>
+                    {nl.status ? (
+                        <div className="nl-success" role="status">
+                            <div className="nl-success-title">
+                                {nl.status === "already" ? t("subscribe_already") : t("subscribe_success_short")}
+                            </div>
                             <div className="nl-success-text">{t("subscribe_success_long")}</div>
+                            <div className="nl-success-address">
+                                {tc("sent_to").replace("{email}", nl.subscribedEmail)}
+                            </div>
                         </div>
                     ) : (
-                        <form className="nl-form" onSubmit={onSubscribe}>
-                            {error && <div className="nl-error">{error}</div>}
+                        <form className="nl-form" onSubmit={nl.onSubmit} noValidate>
+                            {errorText && <div className="nl-error" role="alert">{errorText}</div>}
 
                             <div className="nl-input-group">
                                 <input
                                     className="nl-input"
                                     type="email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
+                                    inputMode="email"
+                                    autoCapitalize="none"
+                                    autoCorrect="off"
+                                    spellCheck={false}
+                                    value={nl.email}
+                                    onChange={(e) => nl.setEmail(e.target.value)}
                                     placeholder={t("email_placeholder")}
                                     autoComplete="email"
-                                    disabled={sending}
+                                    aria-label={t("email_placeholder")}
+                                    disabled={nl.sending}
                                 />
-                                <button className="nl-button" type="submit" disabled={sending}>
-                                    {sending ? t("sending") : t("subscribe")}
-                                </button>
+                                {!nl.suggestion && (
+                                    <button className="nl-button" type="submit" disabled={nl.sending}>
+                                        {nl.sending ? t("sending") : t("subscribe")}
+                                    </button>
+                                )}
                             </div>
+
+                            <EmailSuggestion
+                                suggestion={nl.suggestion}
+                                onAccept={nl.acceptSuggestion}
+                                onReject={nl.rejectSuggestion}
+                                disabled={nl.sending}
+                            />
                         </form>
                     )}
                 </div>

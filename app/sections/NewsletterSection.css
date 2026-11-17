@@ -192,6 +192,17 @@
     line-height: 1.5;
 }
 
+/* L'adresse enregistrée, en clair : la personne voit tout de suite si elle
+   s'est trompée en la tapant. */
+.nl-success-address {
+    margin-top: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #0a2a43;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
 @media (max-width: 900px) {
     .nl-section {
         padding: 20px 20px 40px;

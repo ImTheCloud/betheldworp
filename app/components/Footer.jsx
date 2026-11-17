@@ -5,11 +5,12 @@ import { useEffect, useMemo, useState } from "react";
 import { useLang } from "./LanguageProvider";
 import { makeT } from "../lib/i18n";
 import tr from "../translations/Footer.json";
-import { collection, serverTimestamp, setDoc, doc, getDoc } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { brusselsDayKey, paliersDuJour } from "../lib/Tracker";
 import { SIGNAL_VISITE_COMPTEE } from "../lib/tracking";
 import { db } from "../lib/Firebase";
-import { isValidEmail } from "../lib/validation";
+import { useNewsletterSignup } from "../lib/useNewsletterSignup";
+import EmailSuggestion, { useEmailCheckText } from "./EmailSuggestion";
 
 
 
@@ -17,11 +18,11 @@ export default function Footer() {
     const { lang } = useLang();
     const t = useMemo(() => makeT(tr, lang), [lang]);
 
-    const [email, setEmail] = useState("");
-    const [sending, setSending] = useState(false);
-    const [success, setSuccess] = useState(false);
-    const [error, setError] = useState("");
-    const [successText, setSuccessText] = useState("");
+    const nl = useNewsletterSignup("footer");
+    const tc = useEmailCheckText();
+    const nlError = !nl.error ? ""
+        : nl.error.code === "domain" ? tc("domain_missing").replace("{domain}", nl.error.domain)
+        : t("subscribe_error");
 
     // Compteurs publics du pied de page : deux documents ne contenant qu'un
     // nombre. Lus une seule fois, sans écouteur temps réel : un total de
@@ -76,68 +77,6 @@ export default function Footer() {
         };
     }, []);
 
-    const onSubscribe = async (e) => {
-        e.preventDefault();
-        setError("");
-
-        const em = email.trim().toLowerCase();
-        if (!isValidEmail(em)) {
-            setError(t("subscribe_error"));
-            return;
-        }
-
-        setSending(true);
-        try {
-            const nlRef = collection(db, "newsletter");
-            const docRef = doc(nlRef, em);
-
-            const { getDoc } = await import("firebase/firestore");
-            const snapshot = await getDoc(docRef);
-
-            if (snapshot.exists()) {
-                // L'adresse est connue, mais elle a pu être mise en blocklist chez
-                // Brevo par une désinscription faite depuis un e-mail. Redonner son
-                // adresse vaut demande de retour : la route lève le blocage, et ne
-                // fait rien si le contact est déjà joignable.
-                fetch("/api/newsletter/subscribe", {
-                    method: "POST",
-                    keepalive: true,
-                    headers: { "content-type": "application/json" },
-                    body: JSON.stringify({ email: em, source: "footer" }),
-                }).catch((e) => console.error("Brevo sync error:", e));
-
-                setSuccessText(t("subscribe_already"));
-                setSuccess(true);
-                setSending(false);
-                return;
-            }
-
-            await setDoc(docRef, {
-                email: em,
-                subscribedAt: serverTimestamp(),
-                source: "footer",
-            });
-
-            // Réplique le contact dans la liste Brevo. Un échec ici ne doit pas
-            // faire échouer l'abonnement : Firestore reste la source de vérité.
-            fetch("/api/newsletter/subscribe", {
-                method: "POST",
-                keepalive: true,
-                headers: { "content-type": "application/json" },
-                body: JSON.stringify({ email: em, source: "footer" }),
-            }).catch((e) => console.error("Brevo sync error:", e));
-
-            setSuccessText("");
-            setSuccess(true);
-            setEmail("");
-        } catch (err) {
-            console.error("Error subscribing:", err);
-            setError(t("subscribe_error"));
-        } finally {
-            setSending(false);
-        }
-    };
-
     const phoneDisplay = "+32 488 29 70 15";
     const phoneHref = "+32488297015";
 
@@ -158,24 +97,32 @@ export default function Footer() {
                             <h4 className="footer-nl-title">{t("newsletter_title")}</h4>
                             <p className="footer-nl-desc">{t("newsletter_desc_short")}</p>
 
-                            {success ? (
-                                <div className="footer-nl-success">
-                                    {successText || t("subscribe_success")}
+                            {nl.status ? (
+                                <div className="footer-nl-success" role="status">
+                                    {nl.status === "already" ? t("subscribe_already") : t("subscribe_success")}
+                                    <div className="footer-nl-success-address">
+                                        {tc("sent_to").replace("{email}", nl.subscribedEmail)}
+                                    </div>
                                 </div>
                             ) : (
-                                <form className="footer-nl-form" onSubmit={onSubscribe}>
+                                <form className="footer-nl-form" onSubmit={nl.onSubmit} noValidate>
                                     <div className="footer-nl-input-group">
                                         <input
                                             className="footer-nl-input"
                                             type="email"
-                                            value={email}
-                                            onChange={(e) => setEmail(e.target.value)}
+                                            inputMode="email"
+                                            autoCapitalize="none"
+                                            autoCorrect="off"
+                                            spellCheck={false}
+                                            autoComplete="email"
+                                            aria-label={t("email_placeholder")}
+                                            value={nl.email}
+                                            onChange={(e) => nl.setEmail(e.target.value)}
                                             placeholder={t("email_placeholder")}
-                                            disabled={sending}
-                                            required
+                                            disabled={nl.sending}
                                         />
-                                        <button className="footer-nl-btn" type="submit" disabled={sending}>
-                                            {sending ? (
+                                        <button className="footer-nl-btn" type="submit" disabled={nl.sending || !!nl.suggestion} aria-label={t("newsletter_title")}>
+                                            {nl.sending ? (
                                                 <div className="footer-nl-spinner" />
                                             ) : (
                                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -185,7 +132,14 @@ export default function Footer() {
                                             )}
                                         </button>
                                     </div>
-                                    {error && <div className="footer-nl-error">{error}</div>}
+                                    {nlError && <div className="footer-nl-error" role="alert">{nlError}</div>}
+                                    <EmailSuggestion
+                                        suggestion={nl.suggestion}
+                                        onAccept={nl.acceptSuggestion}
+                                        onReject={nl.rejectSuggestion}
+                                        disabled={nl.sending}
+                                        tone="dark"
+                                    />
                                 </form>
                             )}
                         </div>

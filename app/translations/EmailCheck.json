@@ -1,0 +1,30 @@
+{
+  "ro": {
+    "did_you_mean": "Ai vrut să scrii",
+    "yes_fix": "Da, corectează",
+    "no_keep": "Nu, adresa e corectă",
+    "domain_missing": "Adresa „{domain}” nu poate primi e-mailuri. Verifică dacă e scrisă corect.",
+    "sent_to": "Vei primi e-mailurile la {email}"
+  },
+  "fr": {
+    "did_you_mean": "Vouliez-vous dire",
+    "yes_fix": "Oui, corriger",
+    "no_keep": "Non, l’adresse est correcte",
+    "domain_missing": "Le domaine « {domain} » ne peut pas recevoir d’e-mails. Vérifiez l’orthographe.",
+    "sent_to": "Vous recevrez les e-mails à {email}"
+  },
+  "nl": {
+    "did_you_mean": "Bedoelde je",
+    "yes_fix": "Ja, verbeteren",
+    "no_keep": "Nee, het adres klopt",
+    "domain_missing": "Het domein „{domain}” kan geen e-mails ontvangen. Controleer de spelling.",
+    "sent_to": "Je ontvangt de e-mails op {email}"
+  },
+  "en": {
+    "did_you_mean": "Did you mean",
+    "yes_fix": "Yes, fix it",
+    "no_keep": "No, the address is correct",
+    "domain_missing": "The domain “{domain}” can’t receive emails. Please check the spelling.",
+    "sent_to": "You’ll receive the emails at {email}"
+  }
+}
