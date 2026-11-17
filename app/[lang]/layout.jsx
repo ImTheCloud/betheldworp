@@ -44,13 +44,14 @@ export async function generateMetadata({ params }) {
         metadataBase: new URL(SITE_URL),
         title: pageTitle,
         description: pageDesc,
-        // apple est indispensable : sans balise apple-touch-icon, iOS ne prend
-        // pas le favicon pour l'écran d'accueil, il fabrique une pastille avec
-        // l'initiale du site, d'où le « B » à la place du logo. iOS exige aussi
-        // une image carrée, alors que icon.png fait 372x445.
+        // Google et Brave exigent un favicon carré : icon.png (372x445) était
+        // ignoré, d'où l'ancien logo dans les résultats de recherche. apple est
+        // indispensable : sans lui, iOS fabrique une pastille avec l'initiale
+        // du site sur l'écran d'accueil. app/favicon.ico couvre l'adresse
+        // /favicon.ico que les moteurs lisent en premier.
         icons: {
-            icon: "/icon.png",
-            apple: "/apple-icon.png",
+            icon: { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+            apple: { url: "/apple-icon.png", sizes: "180x180", type: "image/png" },
         },
         manifest: "/manifest.webmanifest",
         alternates: {
@@ -60,6 +61,9 @@ export async function generateMetadata({ params }) {
         openGraph: {
             type: "website",
             siteName: SITE_TITLE,
+            // Aperçu de partage volontairement en roumain sur toutes les
+            // langues (choix du 28 septembre 2026) : les liens circulent
+            // surtout dans les groupes WhatsApp de la communauté roumaine.
             title: TITLES.ro,
             description: DESCRIPTIONS.ro,
             url: `${SITE_URL}/${l}`,
