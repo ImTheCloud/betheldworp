@@ -40,7 +40,9 @@ function timesHtml(labels) {
 // des événements sur le site.
 export const GREETING = "Pacea Domnului, dragi frați și surori,";
 
-const INTRO = "Vă împărtășim cu bucurie programul acestei săptămâni. Vă așteptăm cu drag să fim împreună în Casa Domnului!";
+const INTRO = "Vă împărtășim cu bucurie programul acestei săptămâni.";
+const INTRO_DETAILS = "Detaliile despre evenimente le găsiți mai jos în acest e-mail, după calendar.";
+const INTRO_END = "Vă așteptăm cu drag să fim împreună în Casa Domnului!";
 
 /**
  * Paragraphes d'un texte libre : ligne vide = nouveau paragraphe, retour
@@ -138,10 +140,10 @@ function dayChip(kind, dayName, dateUTC) {
 
 function dayRow(kind, day, isLast, content, { cls = "", valign = "top", style = "" } = {}) {
     const border = isLast ? "" : `border-bottom:1px solid ${RULE};`;
-    const pad = isLast ? "14px 0 6px" : "14px 0";
+    const pad = isLast ? "14px 0 2px" : "14px 0";
     return `<tr>
 <td class="rule" width="56" valign="top" style="padding:${pad};${border}">${dayChip(kind, day.name, day.date)}</td>
-<td class="rule${cls ? ` ${cls}` : ""}" valign="${valign}" style="padding:${isLast ? "14px 0 6px 12px" : "14px 0 14px 12px"};${border}${style}">${content}</td>
+<td class="rule${cls ? ` ${cls}` : ""}" valign="${valign}" style="padding:${isLast ? "14px 0 2px 12px" : "14px 0 14px 12px"};${border}${style}">${content}</td>
 </tr>`;
 }
 
@@ -196,8 +198,8 @@ function calendarHtml(days) {
 function sequelHtml(days) {
     if (!days?.length) return "";
     return `<tr>
-<td class="px" style="padding:20px 32px 0;font-family:Arial,Helvetica,sans-serif;">
-<div class="rule" style="border-top:1px solid ${RULE};padding-top:20px;">
+<td class="px" style="padding:14px 32px 0;font-family:Arial,Helvetica,sans-serif;">
+<div class="rule" style="border-top:1px solid ${RULE};padding-top:14px;">
 <div class="t-accent" style="font-size:11px;font-weight:900;color:${BLUE};letter-spacing:1.5px;text-transform:uppercase;">Continuă săptămâna viitoare</div>
 </div>
 </td>
@@ -291,20 +293,20 @@ function imageRow(src, alt) {
 // la répète pas.
 function eventHtml(group, { first, showImage }) {
     const img = group.image && showImage
-        ? `<div style="padding-top:16px;"><img class="img-round" src="${escapeHtml(group.image)}" width="576" alt="${escapeHtml(group.title)}" style="display:block;width:100%;max-width:576px;height:auto;border:0;border-radius:12px;" /></div>`
+        ? `<div style="padding-top:12px;"><img class="img-round" src="${escapeHtml(group.image)}" width="576" alt="${escapeHtml(group.title)}" style="display:block;width:100%;max-width:576px;height:auto;border:0;border-radius:12px;" /></div>`
         : "";
     const text = paragraphs(stripGreeting(group.description));
     const label = first
         ? `<div class="t-accent" style="font-size:11px;font-weight:900;color:${BLUE};letter-spacing:1.5px;text-transform:uppercase;padding-bottom:5px;">Evenimente</div>`
         : "";
     return `<tr>
-<td class="px" style="padding:34px 32px 0;font-family:Arial,Helvetica,sans-serif;">
-<div class="rule" style="border-top:1px solid ${RULE};padding-top:30px;">
+<td class="px" style="padding:20px 32px 0;font-family:Arial,Helvetica,sans-serif;">
+<div class="rule" style="border-top:1px solid ${RULE};padding-top:18px;">
 ${label}
 <div class="h2 t-head" style="font-size:21px;font-weight:900;color:#0f172a;line-height:1.3;">${escapeHtml(group.title)}</div>
 <div class="t-body" style="font-size:13px;font-weight:800;color:#475569;padding-top:6px;line-height:1.6;">${occurrencesHtml(group)}</div>
 ${img}
-${text.length ? `<div style="padding-top:14px;">${bodyParagraphs(text)}</div>` : ""}
+${text.length ? `<div style="padding-top:10px;">${bodyParagraphs(text)}</div>` : ""}
 </div>
 </td>
 </tr>`;
@@ -358,6 +360,7 @@ a[x-apple-data-detectors],a[href^="x-apple-data-detectors"],[x-apple-data-detect
 .logo-cell{width:64px !important;}
 .h2{font-size:19px !important;}
 .cta{display:block !important;padding:15px 18px !important;}
+.cta2{display:block !important;}
 }
 @media (prefers-color-scheme: dark){
 .bg-page,.bg-card,.bg-header{background-color:#141414 !important;}
@@ -368,6 +371,7 @@ a[x-apple-data-detectors],a[href^="x-apple-data-detectors"],[x-apple-data-detect
 .t-accent,.t-accent .no-detect,.t-accent a,.t-accent a:link,.t-accent a:visited{color:#93c5fd !important;}
 .t-cancel,.t-cancel .no-detect,.t-cancel a,.t-cancel a:link,.t-cancel a:visited{color:#f87171 !important;}
 .rule{border-color:#4a4a4a !important;}
+.cta2{border-color:#93c5fd !important;}
 .chip-n{background-color:#2a2a2a !important;border-color:#3e3e3e !important;color:#cbd5e1 !important;}
 .chip-n-lbl{color:#94a3b8 !important;}
 .chip-n-num{color:#f1f5f9 !important;}
@@ -395,6 +399,7 @@ a[x-apple-data-detectors],a[href^="x-apple-data-detectors"],[x-apple-data-detect
 [data-ogsc] .t-accent,[data-ogsc] .t-accent a,[data-ogsc] .t-accent .no-detect,[data-ogsb] .t-accent,[data-ogsb] .t-accent a,[data-ogsb] .t-accent .no-detect{color:#93c5fd !important;}
 [data-ogsc] .t-cancel,[data-ogsc] .t-cancel a,[data-ogsc] .t-cancel .no-detect,[data-ogsb] .t-cancel,[data-ogsb] .t-cancel a,[data-ogsb] .t-cancel .no-detect{color:#f87171 !important;}
 [data-ogsc] .rule,[data-ogsb] .rule{border-color:#4a4a4a !important;}
+[data-ogsc] .cta2,[data-ogsb] .cta2{border-color:#93c5fd !important;}
 [data-ogsc] .chip-n,[data-ogsb] .chip-n{background-color:#2a2a2a !important;border-color:#3e3e3e !important;color:#cbd5e1 !important;}
 [data-ogsc] .chip-n-lbl,[data-ogsb] .chip-n-lbl{color:#94a3b8 !important;}
 [data-ogsc] .chip-n-num,[data-ogsb] .chip-n-num{color:#f1f5f9 !important;}
@@ -430,7 +435,7 @@ export function renderNewsletter(week, options = {}) {
 
     // Toujours la même phrase, puis le calendrier, puis les événements : qui lit
     // seulement le début voit toute la semaine (choix du 23 nov 2026).
-    const introText = [escapeHtml(INTRO)];
+    const introText = [escapeHtml([INTRO, events.length ? INTRO_DETAILS : "", INTRO_END].filter(Boolean).join(" "))];
     if (week.summer) {
         introText.push(escapeHtml("Suntem în programul de vară: ne întâlnim la seara de rugăciune de vineri și la serviciile divine de duminică. Celelalte programe din timpul săptămânii sunt anulate."));
     }
@@ -465,7 +470,7 @@ export function renderNewsletter(week, options = {}) {
 
 <!-- 1. EN-TÊTE -->
 <tr>
-<td class="hdr-pad bg-header" style="background-color:#ffffff;padding:20px 24px;">
+<td class="hdr-pad bg-header" style="background-color:#ffffff;padding:16px 24px;">
 <table role="presentation" cellpadding="0" cellspacing="0" align="left">
 <tr>
 <td class="logo-cell" style="width:64px;" valign="middle">
@@ -497,24 +502,25 @@ ${imageRow(heroImage, heroAlt)}
 
 <!-- 4. EN TÊTE -->
 <tr>
-<td class="px" style="padding:30px 32px 0;font-family:Arial,Helvetica,sans-serif;">
+<td class="px" style="padding:22px 32px 0;font-family:Arial,Helvetica,sans-serif;">
 <div class="h2 t-head" style="font-size:21px;font-weight:900;color:#0f172a;line-height:1.35;padding-bottom:10px;">${escapeHtml(GREETING)}</div>
 ${bodyParagraphs(introText)}
+${events.length ? `<div style="padding-top:14px;"><a class="cta2 t-accent" href="${SITE}/ro#evenimente" style="display:inline-block;border:1px solid ${BLUE};color:${BLUE};text-decoration:none;font-weight:800;font-size:14px;padding:10px 20px;border-radius:12px;font-family:Arial,Helvetica,sans-serif;text-align:center;">Vezi evenimentele pe site</a></div>` : ""}
 ${messageBox}
 </td>
 </tr>
 
 <!-- 5. CALENDRIER -->
 <tr>
-<td class="px" style="padding:34px 32px 0;font-family:Arial,Helvetica,sans-serif;">
-<div class="rule" style="border-top:1px solid ${RULE};padding-top:30px;">
+<td class="px" style="padding:20px 32px 0;font-family:Arial,Helvetica,sans-serif;">
+<div class="rule" style="border-top:1px solid ${RULE};padding-top:18px;">
 <div class="t-accent" style="font-size:11px;font-weight:900;color:${BLUE};letter-spacing:1.5px;text-transform:uppercase;">Calendar</div>
 <div class="h2 t-head" style="font-size:21px;font-weight:900;color:#0f172a;padding-top:5px;line-height:1.3;">Programul Săptămânii</div>
 </div>
 </td>
 </tr>
 <tr>
-<td class="px" style="padding:14px 32px 0;font-family:Arial,Helvetica,sans-serif;">
+<td class="px" style="padding:4px 32px 0;font-family:Arial,Helvetica,sans-serif;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
 ${calendarHtml(week.days)}
 </table>
@@ -527,15 +533,15 @@ ${events.map((g, i) => eventHtml(g, { first: i === 0, showImage: g !== headline 
 
 <!-- 7. BOUTON -->
 <tr>
-<td class="px" align="center" style="padding:36px 32px 0;font-family:Arial,Helvetica,sans-serif;">
+<td class="px" align="center" style="padding:24px 32px 0;font-family:Arial,Helvetica,sans-serif;">
 <a class="cta" href="${SITE}/ro#evenimente" style="display:inline-block;background-color:#0f172a;color:#ffffff;text-decoration:none;font-weight:800;font-size:15px;padding:14px 28px;border-radius:12px;font-family:Arial,Helvetica,sans-serif;text-align:center;">Vezi toate evenimentele pe site</a>
 </td>
 </tr>
 
 <!-- 8. SALUT FINAL -->
 <tr>
-<td class="px" style="padding:32px 32px 30px;font-family:Arial,Helvetica,sans-serif;">
-<div class="rule t-body" style="border-top:1px solid ${RULE};padding-top:26px;font-size:15px;line-height:1.7;color:#475569;">Vă dorim o săptămână binecuvântată și vă așteptăm cu drag la toate programele bisericii!</div>
+<td class="px" style="padding:22px 32px 18px;font-family:Arial,Helvetica,sans-serif;">
+<div class="rule t-body" style="border-top:1px solid ${RULE};padding-top:18px;font-size:15px;line-height:1.7;color:#475569;">Vă dorim o săptămână binecuvântată și vă așteptăm cu drag la toate programele bisericii!</div>
 <div class="t-head" style="font-size:15px;font-weight:900;color:#0f172a;padding-top:14px;">Echipa Bethel Dworp</div>
 <div style="padding-top:4px;"><a class="t-accent" href="${SITE}/" style="color:${BLUE};text-decoration:none;font-weight:700;font-size:14px;">www.betheldworp.be</a></div>
 </td>
@@ -545,7 +551,7 @@ ${events.map((g, i) => eventHtml(g, { first: i === 0, showImage: g !== headline 
 <!-- 9. MENTIONS ET DÉSABONNEMENT (Brevo refuse une campagne sans {{ unsubscribe }}) -->
 <table role="presentation" class="bg-card" width="640" cellpadding="0" cellspacing="0" style="border-collapse:collapse;width:100%;max-width:640px;background-color:#ffffff;">
 <tr>
-<td class="px" style="padding:22px 24px 28px;font-family:Arial,Helvetica,sans-serif;text-align:center;">
+<td class="px" style="padding:10px 24px 20px;font-family:Arial,Helvetica,sans-serif;text-align:center;">
 <div class="t-muted" style="font-size:13px;color:#64748b;line-height:1.7;">Primiți acest email deoarece faceți parte din Newsletter-ul Bisericii Bethel Dworp.</div>
 <div style="padding-top:8px;"><a class="t-muted" href="{{ unsubscribe }}" style="display:inline-block;padding:10px 16px;font-size:13px;color:#64748b;text-decoration:underline;font-family:Arial,Helvetica,sans-serif;">Dezabonare</a></div>
 <div class="t-muted" style="font-size:11px;color:#94a3b8;padding-top:8px;">© ${week.year} Bethel Dworp</div>
