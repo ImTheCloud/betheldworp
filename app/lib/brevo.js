@@ -116,7 +116,7 @@ export async function listEmailsOfList(listId) {
         const res = await brevoFetch(`/contacts/lists/${listId}/contacts?limit=500&offset=${offset}`);
         if (!res.ok) throw new Error(`Brevo list ${listId} read failed: ${res.status}`);
         const page = res.body?.contacts || [];
-        emails.push(...page.map((c) => String(c.email || "").toLowerCase()).filter(Boolean));
+        emails.push(...page.map((c) => String(c.email || "").trim().toLowerCase()).filter(Boolean));
         if (page.length < 500) break;
     }
     return emails;

@@ -19,10 +19,16 @@ export async function POST(request) {
             readIssue(parsed.weekKey, admin.token),
         ]);
         const history = Array.isArray(issue?.history) ? issue.history : [];
+        const nextNumber = (plan.sends.reduce((m, s) => Math.max(m, s.number), 0) || 0) + 1;
+        const listName = plan.sends.length > 0
+            ? `Newsletter ${parsed.weekKey} #${nextNumber} (doar abonații noi)`
+            : `Newsletter ${parsed.weekKey} #1`;
+
         return NextResponse.json({
             ok: true,
             weekKey: parsed.weekKey,
             recipients: plan.recipients.length,
+            recipientEmails: plan.recipients,
             alreadyReceived: plan.alreadyReceived.length,
             siteActive: plan.siteActive,
             missingInBrevo: plan.missingInBrevo,
@@ -30,7 +36,7 @@ export async function POST(request) {
             onlyInBrevo: plan.onlyInBrevo,
             sends: await withDelivery(plan.sends, history),
             history,
-            listName: "Newsletter Bethel Dworp",
+            listName,
             sendingAllowed: sendingAllowed(),
             testEmail: process.env.NEWSLETTER_TEST_EMAIL || admin.email || "",
         });

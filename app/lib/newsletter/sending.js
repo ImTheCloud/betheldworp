@@ -46,7 +46,7 @@ export async function getWeekSends(weekKey) {
     const received = new Set();
     for (const l of lists) {
         const emails = await listEmailsOfList(l.id);
-        emails.forEach((e) => received.add(e));
+        emails.forEach((e) => received.add(normalizeEmail(e)));
         sends.push({ listId: l.id, name: l.name, number: Number(String(l.name).slice(prefix.length)) || 0, count: emails.length });
     }
     return { sends, received, allLists: all };
@@ -208,6 +208,11 @@ export async function sendWeek({ weekKey, token, rendered, expectedCount, adminE
         const { failures } = await addEmailsToList(listId, plan.recipients);
         const failed = new Set(failures.map((e) => String(e).toLowerCase()));
         const sentTo = plan.recipients.filter((e) => !failed.has(e));
+
+        if (!sentTo.length) {
+            await deleteList(listId).catch(() => { });
+            return { ok: false, error: "brevo_failed", detail: "Niciun destinatar nu a putut fi adăugat în lista Brevo." };
+        }
 
         // Deux envois lancés en même temps (double appui, deux téléphones)
         // créeraient deux listes du même nom : seule la plus ancienne part.

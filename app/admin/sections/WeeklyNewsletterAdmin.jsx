@@ -343,7 +343,13 @@ export default function WeeklyNewsletterAdmin({ onDirtyChange }) {
                                     return <SendLine key={s.listId} send={s} at={h?.at} showNumber={sends.length > 1} />;
                                 })}
                                 {recipients > 0 ? (
-                                    <p className="wn-status"><span className="wn-dot wn-dot--todo" /><b>{plural(recipients, "abonat nou nu a", "abonați noi nu au")}</b> primit-o încă.</p>
+                                    <p className="wn-status">
+                                        <span className="wn-dot wn-dot--todo" />
+                                        <b>{plural(recipients, "abonat nou nu a", "abonați noi nu au")}</b> primit-o încă
+                                        {status.recipientEmails?.length > 0 && status.recipientEmails.length <= 3 ? (
+                                            <>: <b>{status.recipientEmails.join(", ")}</b></>
+                                        ) : ""}.
+                                    </p>
                                 ) : !sending && !stopped ? (
                                     <p className="wn-status"><span className="wn-dot wn-dot--done" />A plecat către toți abonații activi.</p>
                                 ) : null}
@@ -472,22 +478,42 @@ export default function WeeklyNewsletterAdmin({ onDirtyChange }) {
                 <div className="adminModalOverlay" onClick={() => busy !== "send" && setConfirm(false)}>
                     <div className="adminConfirmModal wn-confirm" role="dialog" aria-modal="true" aria-labelledby="wn-confirm-title" onClick={(e) => e.stopPropagation()}>
                         <div className="adminModalHeader">
-                            <h3 id="wn-confirm-title" className="adminModalTitle">{isLate ? "Trimite abonaților noi?" : "Trimite newsletter-ul?"}</h3>
+                            <h3 id="wn-confirm-title" className="adminModalTitle">{isLate ? "Trimite exclusiv abonaților noi?" : "Trimite newsletter-ul?"}</h3>
                         </div>
                         <div className="adminModalBody">
                             <dl className="wn-dl">
                                 <dt>Subiect</dt><dd>{preview.subject}</dd>
-                                <dt>Listă</dt><dd>{status.listName}</dd>
+                                <dt>Listă Brevo</dt>
+                                <dd>
+                                    <b>{status.listName}</b>
+                                    <span className="wn-muted" style={{ display: "block", fontSize: "12px", marginTop: "2px" }}>
+                                        {isLate
+                                            ? "Listă dedicată creată automat în Brevo, conținând exclusiv abonații noi."
+                                            : "Listă creată automat în Brevo pentru această trimitere."}
+                                    </span>
+                                </dd>
                                 <dt>Destinatari</dt>
-                                <dd><b>{plural(status.recipients, "abonat", "abonați")}</b>{isLate ? `, care nu au primit-o încă (${status.alreadyReceived} au primit-o deja și nu o vor primi din nou)` : ""}</dd>
+                                <dd>
+                                    <b>{plural(status.recipients, "abonat", "abonați")}</b>
+                                    {isLate ? (
+                                        <>
+                                            <span style={{ display: "block", color: "#16a34a", fontWeight: "700", marginTop: "3px" }}>
+                                                Doar cei noi ({status.recipientEmails?.length > 0 && status.recipientEmails.length <= 3 ? status.recipientEmails.join(", ") : plural(status.recipients, "adresă nouă", "adrese noi")})
+                                            </span>
+                                            <span className="wn-muted" style={{ display: "block", fontSize: "12px", marginTop: "3px" }}>
+                                                Cei {status.alreadyReceived} care au primit-o deja sunt excluși automat (nu o vor primi din nou).
+                                            </span>
+                                        </>
+                                    ) : null}
+                                </dd>
                                 <dt>Expeditor</dt><dd>Bethel Dworp &lt;info@betheldworp.be&gt;</dd>
                             </dl>
-                            <p className="wn-muted">Trimiterea pleacă imediat și nu poate fi anulată.</p>
+                            <p className="wn-muted">Trimiterea pleacă imediat prin Brevo și nu poate fi anulată.</p>
                         </div>
                         <div className="adminModalFooter">
                             <button type="button" className="adminModalBtn adminModalBtn--cancel" onClick={() => setConfirm(false)} disabled={busy === "send"}>Anulează</button>
                             <button type="button" className="adminModalBtn adminModalBtn--primary" onClick={sendNow} disabled={busy === "send"}>
-                                {busy === "send" ? "Se trimite…" : `Trimite la ${status.recipients}`}
+                                {busy === "send" ? "Se trimite…" : isLate ? `Trimite la cei ${status.recipients} noi` : `Trimite la ${status.recipients}`}
                             </button>
                         </div>
                     </div>
