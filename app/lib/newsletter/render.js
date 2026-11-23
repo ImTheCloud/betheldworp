@@ -93,7 +93,7 @@ const BADGES = {
 function badge(status) {
     const b = BADGES[status];
     if (!b) return "";
-    return `<span class="${b.cls}" style="display:inline-block;padding:2px 8px;border-radius:999px;background-color:${b.bg};border:1px solid ${b.border};color:${b.color};font-size:10px;font-weight:900;letter-spacing:0.6px;line-height:1.4;vertical-align:1px;white-space:nowrap;">${b.label}</span>`;
+    return `<span class="${b.cls}" style="display:inline-block;padding:2px 8px;border-radius:999px;background-color:${b.bg};border:1px solid ${b.border};color:${b.color};font-size:10px;font-weight:900;letter-spacing:0.6px;line-height:1.4;vertical-align:2px;white-space:nowrap;">${b.label}</span>`;
 }
 
 // Séparateurs : un gris moyen. Le gris très clair d'avant, inversé par le mode
@@ -149,15 +149,14 @@ function dayRow(kind, day, isLast, content, { cls = "", valign = "top", style = 
 function calendarRow(day, row, isLast) {
     const kind = chipKind(row.status);
     const c = CHIPS[kind];
-    const titleWeight = kind === "n" ? 600 : 700;
     const tag = badge(row.status);
 
-    const title = `<div class="t-head" style="font-size:15px;color:#0f172a;font-weight:${titleWeight};line-height:1.45;padding-top:2px;">${escapeHtml(row.title)}</div>`;
+    const title = `<div class="t-head" style="font-size:15px;color:#0f172a;font-weight:700;line-height:1.45;padding-top:2px;">${escapeHtml(row.title)}</div>`;
     const times = row.times.length
         ? `<span class="no-detect" style="color:inherit !important;text-decoration:none !important;">${timesHtml(row.times)}</span>`
         : "";
     const time = times || tag
-        ? `<div class="${c.timeCls}" style="font-size:13px;font-weight:700;color:${c.time};letter-spacing:0.3px;line-height:1.5;">${times}${times && tag ? "&nbsp; " : ""}${tag}</div>`
+        ? `<div class="${c.timeCls}" style="font-size:15px;font-weight:700;color:${c.time};line-height:1.45;">${times}${times && tag ? "&nbsp; " : ""}${tag}</div>`
         : "";
     const note = row.note
         ? `<div class="t-muted" style="font-size:13px;color:#64748b;padding-top:2px;line-height:1.45;">${escapeHtml(row.note)}</div>`
