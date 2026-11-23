@@ -124,21 +124,34 @@ function chipKind(status) {
     return "s";
 }
 
+// La boîte est une cellule : elle prend la hauteur du texte voisin, qu'il tienne
+// sur deux lignes ou sur cinq (« În cadrul programului… » sur téléphone). Un
+// bloc posé dans la cellule restait plus court que le texte.
 function dayChip(kind, dayName, dateUTC) {
     const c = CHIPS[kind];
-    return `<div class="${c.cls}" style="width:52px;background-color:${c.bg};border:1px solid ${c.border};border-radius:10px;padding:6px 0 5px;text-align:center;">
-<div class="${c.cls}-lbl" style="font-size:8px;font-weight:900;color:${c.lbl};letter-spacing:0.2px;line-height:1.1;white-space:nowrap;text-transform:uppercase;">${escapeHtml(dayName.toUpperCase())}</div>
+    return `<td class="${c.cls}" width="52" valign="middle" align="center" style="width:52px;background-color:${c.bg};border:1px solid ${c.border};border-radius:10px;padding:6px 0 5px;text-align:center;">
+<div class="${c.cls}-lbl" style="width:52px;font-size:8px;font-weight:900;color:${c.lbl};letter-spacing:0.2px;line-height:1.1;white-space:nowrap;text-transform:uppercase;">${escapeHtml(dayName.toUpperCase())}</div>
 <div class="${c.cls}-num" style="font-size:19px;font-weight:900;color:${c.num};line-height:1.15;padding-top:1px;">${dateUTC.getUTCDate()}</div>
-</div>`;
+</td>`;
+}
+
+function dayRow(kind, day, isLast, content, { cls = "", valign = "top", style = "" } = {}) {
+    return `<tr>
+<td class="rule" style="padding:${isLast ? "14px 0 6px" : "14px 0"};${isLast ? "" : "border-bottom:1px solid #eef2f6;"}">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate;border-spacing:0;">
+<tr>
+${dayChip(kind, day.name, day.date)}
+<td${cls ? ` class="${cls}"` : ""} valign="${valign}" style="padding:0 0 0 12px;${style}">${content}</td>
+</tr>
+</table>
+</td>
+</tr>`;
 }
 
 // Une ligne : le titre (en couleur), puis l'heure, puis la note.
 function calendarRow(day, row, isLast) {
     const kind = chipKind(row.status);
     const c = CHIPS[kind];
-    const border = isLast ? "" : "border-bottom:1px solid #eef2f6;";
-    const pad = isLast ? "14px 0 6px" : "14px 0";
-    const padText = isLast ? "14px 0 6px 12px" : "14px 0 14px 12px";
     const titleWeight = kind === "n" ? 600 : 700;
 
     const title = `<div class="${c.titleCls}" style="font-size:15px;color:${c.title};font-weight:${titleWeight};line-height:1.45;">${escapeHtml(row.title)}${badge(row.status, 6)}</div>`;
@@ -149,24 +162,17 @@ function calendarRow(day, row, isLast) {
         ? `<div class="t-muted" style="font-size:13px;color:#64748b;padding-top:2px;line-height:1.45;">${escapeHtml(row.note)}</div>`
         : "";
 
-    return `<tr>
-<td class="rule" width="56" valign="top" style="padding:${pad};${border}">${dayChip(kind, day.name, day.date)}</td>
-<td class="rule" valign="top" style="padding:${padText};${border}">
+    return dayRow(kind, day, isLast, `
 ${title}
 ${time}
 ${note}
-</td>
-</tr>`;
+`);
 }
 
 // Un jour sans aucun créneau (pause d'été qui n'est pas affichée, par exemple)
 // reste dans le calendrier : « tous les jours sont gardés ».
 function emptyDayRow(day, isLast) {
-    const border = isLast ? "" : "border-bottom:1px solid #eef2f6;";
-    return `<tr>
-<td class="rule" width="56" valign="top" style="padding:14px 0;${border}">${dayChip("n", day.name, day.date)}</td>
-<td class="rule t-muted" valign="middle" style="padding:14px 0 14px 12px;${border}font-size:14px;color:#64748b;">Niciun program</td>
-</tr>`;
+    return dayRow("n", day, isLast, "Niciun program", { cls: "t-muted", valign: "middle", style: "font-size:14px;color:#64748b;" });
 }
 
 function calendarHtml(days) {
