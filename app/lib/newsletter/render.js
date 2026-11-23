@@ -106,19 +106,19 @@ const RULE = "#cbd5e1";
 
 // ── Boîte du jour ──
 
-// Couleurs par nature de changement, sur la boîte du jour et sur l'heure
-// seulement (le titre et la note restent neutres, choix du 23 nov 2026) :
+// Couleurs par nature de changement, sur la boîte du jour, l'heure et le
+// titre (la note reste neutre, choix du 23 nov 2026) :
 //   gris   programme habituel
 //   bleu   événement, invité, annonce
 //   vert   programme ajouté
 //   jaune  déplacé ou modifié à la place de l'activité habituelle
 //   rouge  annulé (y compris le jour de départ d'un déplacement)
 const CHIPS = {
-    n: { cls: "chip-n", bg: "#f1f5f9", border: "#e2e8f0", lbl: "#64748b", num: "#0f172a", time: "#475569", timeCls: "t-time" },
-    s: { cls: "chip-s", bg: "#dcfce7", border: "#86efac", lbl: "#16a34a", num: "#16a34a", time: "#15803d", timeCls: "t-added" },
-    e: { cls: "chip-e", bg: "#dde9fb", border: "#93b4ef", lbl: "#0f4c8a", num: "#0f4c8a", time: "#0f4c8a", timeCls: "t-event" },
-    m: { cls: "chip-m", bg: "#fcf1da", border: "#f0c76a", lbl: "#92600a", num: "#92600a", time: "#92600a", timeCls: "t-moved" },
-    c: { cls: "chip-c", bg: "#fee2e2", border: "#fca5a5", lbl: "#dc2626", num: "#dc2626", time: "#dc2626", timeCls: "t-cancel" },
+    n: { cls: "chip-n", bg: "#f1f5f9", border: "#e2e8f0", lbl: "#64748b", num: "#0f172a", time: "#475569", timeCls: "t-time", title: "#0f172a", titleCls: "t-head" },
+    s: { cls: "chip-s", bg: "#dcfce7", border: "#86efac", lbl: "#16a34a", num: "#16a34a", time: "#15803d", timeCls: "t-added", title: "#15803d", titleCls: "t-added" },
+    e: { cls: "chip-e", bg: "#dde9fb", border: "#93b4ef", lbl: "#0f4c8a", num: "#0f4c8a", time: "#0f4c8a", timeCls: "t-event", title: "#0f4c8a", titleCls: "t-event" },
+    m: { cls: "chip-m", bg: "#fcf1da", border: "#f0c76a", lbl: "#92600a", num: "#92600a", time: "#92600a", timeCls: "t-moved", title: "#92600a", titleCls: "t-moved" },
+    c: { cls: "chip-c", bg: "#fee2e2", border: "#fca5a5", lbl: "#dc2626", num: "#dc2626", time: "#dc2626", timeCls: "t-cancel", title: "#dc2626", titleCls: "t-cancel" },
 };
 
 function chipKind(status) {
@@ -147,7 +147,7 @@ function dayRow(kind, day, isLast, content, { cls = "", valign = "top", style = 
 </tr>`;
 }
 
-// Une ligne : l'heure (en couleur) et la pastille, puis le titre, puis la note.
+// Une ligne : l'heure et la pastille, puis le titre, puis la note.
 // La pastille suit l'heure, toujours courte : après le titre, elle passait à la
 // ligne sur téléphone.
 function calendarRow(day, row, isLast) {
@@ -155,7 +155,9 @@ function calendarRow(day, row, isLast) {
     const c = CHIPS[kind];
     const tag = badge(row.status);
 
-    const title = `<div class="t-head" style="font-size:15px;color:#0f172a;font-weight:700;line-height:1.45;padding-top:2px;">${[row.title, ...(row.alsoTitles || []).map((x) => `+ ${x}`)].map(escapeHtml).join("<br />")}</div>`;
+    // Plusieurs événements au même créneau : une puce chacun.
+    const names = [row.title, ...(row.alsoTitles || [])];
+    const title = names.map((x) => `<div class="${c.titleCls}" style="font-size:15px;color:${c.title};font-weight:700;line-height:1.45;padding-top:2px;">${names.length > 1 ? "&bull;&nbsp;" : ""}${escapeHtml(x)}</div>`).join("");
     const times = row.times.length
         ? `<span class="no-detect" style="color:inherit !important;text-decoration:none !important;">${timesHtml(row.times)}</span>`
         : "";
@@ -214,6 +216,9 @@ ${calendarHtml(days)}
 }
 
 // ── Événements ──
+
+// En haut et en bas de l'e-mail, strictement le même.
+const EVENTS_BUTTON = `<a class="cta" href="${SITE}/ro#evenimente" style="display:inline-block;background-color:#93c5fd;color:#082f49;text-decoration:none;font-weight:800;font-size:15px;padding:13px 28px;border-radius:12px;font-family:Arial,Helvetica,sans-serif;text-align:center;">Vezi evenimentele pe site</a>`;
 
 // « Serviciu Divin de dimineață » + « Serviciu Divin de seară »
 // → « Serviciu Divin de dimineață și de seară ».
@@ -289,10 +294,10 @@ function imageRow(src, alt) {
 </tr>`;
 }
 
-// Un événement, sous le calendrier. Celui dont la photo ouvre déjà l'e-mail ne
-// la répète pas.
-function eventHtml(group, { first, showImage }) {
-    const img = group.image && showImage
+// Un événement, sous le calendrier, toujours avec sa photo : celui dont la photo
+// ouvre l'e-mail la répète, sinon on la cherche (23 nov 2026).
+function eventHtml(group, first) {
+    const img = group.image
         ? `<div style="padding-top:12px;"><img class="img-round" src="${escapeHtml(group.image)}" width="576" alt="${escapeHtml(group.title)}" style="display:block;width:100%;max-width:576px;height:auto;border:0;border-radius:12px;" /></div>`
         : "";
     const text = paragraphs(stripGreeting(group.description));
@@ -359,8 +364,7 @@ a[x-apple-data-detectors],a[href^="x-apple-data-detectors"],[x-apple-data-detect
 .logo-img{width:48px !important;height:48px !important;}
 .logo-cell{width:64px !important;}
 .h2{font-size:19px !important;}
-.cta{display:block !important;padding:15px 18px !important;}
-.cta2{display:block !important;}
+.cta{display:block !important;padding:13px 18px !important;}
 }
 @media (prefers-color-scheme: dark){
 .bg-page,.bg-card,.bg-header{background-color:#141414 !important;}
@@ -371,7 +375,6 @@ a[x-apple-data-detectors],a[href^="x-apple-data-detectors"],[x-apple-data-detect
 .t-accent,.t-accent .no-detect,.t-accent a,.t-accent a:link,.t-accent a:visited{color:#93c5fd !important;}
 .t-cancel,.t-cancel .no-detect,.t-cancel a,.t-cancel a:link,.t-cancel a:visited{color:#f87171 !important;}
 .rule{border-color:#4a4a4a !important;}
-.cta2{border-color:#93c5fd !important;}
 .chip-n{background-color:#2a2a2a !important;border-color:#3e3e3e !important;color:#cbd5e1 !important;}
 .chip-n-lbl{color:#94a3b8 !important;}
 .chip-n-num{color:#f1f5f9 !important;}
@@ -399,7 +402,6 @@ a[x-apple-data-detectors],a[href^="x-apple-data-detectors"],[x-apple-data-detect
 [data-ogsc] .t-accent,[data-ogsc] .t-accent a,[data-ogsc] .t-accent .no-detect,[data-ogsb] .t-accent,[data-ogsb] .t-accent a,[data-ogsb] .t-accent .no-detect{color:#93c5fd !important;}
 [data-ogsc] .t-cancel,[data-ogsc] .t-cancel a,[data-ogsc] .t-cancel .no-detect,[data-ogsb] .t-cancel,[data-ogsb] .t-cancel a,[data-ogsb] .t-cancel .no-detect{color:#f87171 !important;}
 [data-ogsc] .rule,[data-ogsb] .rule{border-color:#4a4a4a !important;}
-[data-ogsc] .cta2,[data-ogsb] .cta2{border-color:#93c5fd !important;}
 [data-ogsc] .chip-n,[data-ogsb] .chip-n{background-color:#2a2a2a !important;border-color:#3e3e3e !important;color:#cbd5e1 !important;}
 [data-ogsc] .chip-n-lbl,[data-ogsb] .chip-n-lbl{color:#94a3b8 !important;}
 [data-ogsc] .chip-n-num,[data-ogsb] .chip-n-num{color:#f1f5f9 !important;}
@@ -505,7 +507,7 @@ ${imageRow(heroImage, heroAlt)}
 <td class="px" style="padding:22px 32px 0;font-family:Arial,Helvetica,sans-serif;">
 <div class="h2 t-head" style="font-size:21px;font-weight:900;color:#0f172a;line-height:1.35;padding-bottom:10px;">${escapeHtml(GREETING)}</div>
 ${bodyParagraphs(introText)}
-${events.length ? `<div style="padding-top:14px;"><a class="cta2 t-accent" href="${SITE}/ro#evenimente" style="display:inline-block;border:1px solid ${BLUE};color:${BLUE};text-decoration:none;font-weight:800;font-size:14px;padding:10px 20px;border-radius:12px;font-family:Arial,Helvetica,sans-serif;text-align:center;">Vezi evenimentele pe site</a></div>` : ""}
+${events.length ? `<div style="padding-top:14px;">${EVENTS_BUTTON}</div>` : ""}
 ${messageBox}
 </td>
 </tr>
@@ -529,12 +531,12 @@ ${calendarHtml(week.days)}
 ${sequelHtml(week.nextDays)}
 
 <!-- 6. ÉVÉNEMENTS -->
-${events.map((g, i) => eventHtml(g, { first: i === 0, showImage: g !== headline })).join("\n")}
+${events.map((g, i) => eventHtml(g, i === 0)).join("\n")}
 
 <!-- 7. BOUTON -->
 <tr>
 <td class="px" align="center" style="padding:24px 32px 0;font-family:Arial,Helvetica,sans-serif;">
-<a class="cta" href="${SITE}/ro#evenimente" style="display:inline-block;background-color:#0f172a;color:#ffffff;text-decoration:none;font-weight:800;font-size:15px;padding:14px 28px;border-radius:12px;font-family:Arial,Helvetica,sans-serif;text-align:center;">Vezi toate evenimentele pe site</a>
+${EVENTS_BUTTON}
 </td>
 </tr>
 
@@ -580,6 +582,6 @@ ${events.map((g, i) => eventHtml(g, { first: i === 0, showImage: g !== headline 
         contentHash,
         headlineKey: headline?.key || "none",
         headlineOptions: week.eventGroups.map((g) => ({ key: g.key, title: g.title, hasImage: !!g.image })),
-        images: [heroImage, ...events.filter((g) => g !== headline).map((g) => g.image).filter(Boolean)],
+        images: [...new Set([heroImage, ...events.map((g) => g.image).filter(Boolean)])],
     };
 }
