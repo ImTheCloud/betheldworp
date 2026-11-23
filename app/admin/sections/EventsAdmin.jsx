@@ -894,7 +894,7 @@ function NewEventCard({ draft, saveState, activeLang, onLangChange, onChangeFiel
 
 const PAGE_SIZE = 10;
 
-export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
+export default function EventsAdmin({ onDirtyChange }) {
     const mountedRef = useRef(true);
     const timeoutRef = useRef(null);
 

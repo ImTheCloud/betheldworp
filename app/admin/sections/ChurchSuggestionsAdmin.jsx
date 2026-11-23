@@ -212,11 +212,9 @@ export default function ChurchSuggestionsAdmin({ onDirtyChange }) {
                     const submitterName = `${submitter.firstName || ""} ${submitter.lastName || ""}`.trim() || "Unknown";
                     const attribution = { name: submitterName, at: serverTimestamp() };
 
-                    let targetId = originalChurchId;
                     let newDocRef = null;
                     if (type === "new") {
                         newDocRef = doc(collection(db, "churches"));
-                        targetId = newDocRef.id;
                     }
 
                     const finalData = { 

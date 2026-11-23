@@ -17,10 +17,6 @@ function pad2(n) {
     return String(n).padStart(2, "0");
 }
 
-function safeStr(v) {
-    return typeof v === "string" ? v : (v == null ? "" : String(v));
-}
-
 function normalizeDateToIso(input) {
     const v = String(input || "").trim();
     if (!v) return "";
@@ -301,7 +297,6 @@ export default function EventsCalendar() {
     const [selectedDate, setSelectedDate] = useState(null);
     const [eventIndex, setEventIndex] = useState(0);
     const preventNextScrollRef = useRef(false);
-    const internalNavRef = useRef(false);
     const touchStartRef = useRef(null);
     const eventScrollRef = useRef(null);
     const closeButtonRef = useRef(null);

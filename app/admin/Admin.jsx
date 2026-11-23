@@ -54,7 +54,6 @@ export default function Admin() {
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [loggingIn, setLoggingIn] = useState(false);
-    const [pendingOverride, setPendingOverride] = useState(null);
     const [activeTab, setActiveTab] = useState("stats");
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [dirtyTabs, setDirtyTabs] = useState({});
@@ -143,12 +142,6 @@ export default function Admin() {
             window.history.replaceState(null, null, `#${activeTab}`);
         }
     }, [activeTab, isAdmin]);
-
-    const navigateToOverride = ({ weekKey, eventId, dateStr }) => {
-        setPendingOverride({ weekKey, eventId, dateStr });
-        setActiveTab("overrides");
-        setSidebarOpen(false);
-    };
 
     useEffect(() => {
         mountedRef.current = true;
@@ -348,15 +341,9 @@ export default function Admin() {
             case "verse":
                 return <MonthlyVerseAdmin {...props} />;
             case "overrides":
-                return (
-                    <ProgramOverridesAdmin
-                        {...props}
-                        initialOverride={pendingOverride}
-                        onConsumed={() => setPendingOverride(null)}
-                    />
-                );
+                return <ProgramOverridesAdmin {...props} />;
             case "events":
-                return <EventsAdmin {...props} onCreateOverride={navigateToOverride} />;
+                return <EventsAdmin {...props} />;
             case "churches":
                 return <ChurchesAdmin {...props} />;
             case "suggestions":

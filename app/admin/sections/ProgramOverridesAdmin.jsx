@@ -429,7 +429,7 @@ function ProgramSlotGrid({
     );
 }
 
-function OverrideCard({ item, expanded, draft, saveState, eventsList, weekKeyForCard, onToggleExpand, onToggleAffected, onChangeWeekKey, onChangeReplacement, onChangeAddition, onChangeAlso, onChangeCustomTitle, onChangeCustomTime, onChangeNote, onSave, onDelete }) {
+function OverrideCard({ item, expanded, draft, saveState, eventsList, onToggleExpand, onChangeWeekKey, onChangeReplacement, onChangeAddition, onChangeAlso, onChangeCustomTitle, onChangeCustomTime, onChangeNote, onSave, onDelete }) {
     const id = safeStr(item?.id).trim();
     const affectedSet = useMemo(() => toSet(draft?.affectedProgramIds ?? item?.affectedProgramIds), [draft, item]);
     const weekKeyValue = safeStr(draft?.weekKey ?? item?.weekKey);
@@ -534,7 +534,7 @@ function OverrideCard({ item, expanded, draft, saveState, eventsList, weekKeyFor
     );
 }
 
-function NewOverrideCard({ draft, saveState, eventsList, weekKeyForCard, onToggleAffected, onChangeWeekKey, onChangeReplacement, onChangeAddition, onChangeAlso, onChangeCustomTitle, onChangeCustomTime, onChangeNote, onCancel, onSave }) {
+function NewOverrideCard({ draft, saveState, eventsList, onChangeWeekKey, onChangeReplacement, onChangeAddition, onChangeAlso, onChangeCustomTitle, onChangeCustomTime, onChangeNote, onCancel, onSave }) {
     const affectedSet = useMemo(() => toSet(draft?.affectedProgramIds), [draft]);
     const weekKeyValue = safeStr(draft?.weekKey);
     const replacements = safeObj(draft?.replacements);
@@ -617,17 +617,7 @@ function pickByLang(value) {
     return "";
 }
 
-/** Maps a YYYY-MM-DD date string to the affected AFFECT_OPTIONS slot IDs */
-function dateToSlotIds(dateStr) {
-    if (!dateStr) return [];
-    const d = new Date(`${dateStr}T12:00:00Z`);
-    if (isNaN(d)) return [];
-    const day = d.getUTCDay(); // 0=Sun, 1=Mon ... 6=Sat
-    const map = { 0: ["sun_am", "sun_pm"], 1: ["mon"], 2: ["tue_fast", "tue", "tue_orch"], 3: ["wed"], 4: ["thu"], 5: ["fri"], 6: ["sat"] };
-    return map[day] ?? [];
-}
-
-export default function ProgramOverridesAdmin({ initialOverride, onConsumed, onDirtyChange }) {
+export default function ProgramOverridesAdmin({ onDirtyChange }) {
     const mountedRef = useRef(true);
     const timeoutRef = useRef(null);
 
@@ -738,69 +728,6 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed, onD
             if (timeoutRef.current) clearTimeout(timeoutRef.current);
         };
     }, []);
-
-    // ── Consume the pre-filled override context from EventsAdmin shortcut ──
-    useEffect(() => {
-        // Wait until data is loaded so items is populated for the "already exists" check
-        if (!initialOverride || loading) return;
-        const { weekKey, eventId, dateStr } = initialOverride;
-        const normalized = safeStr(weekKey).trim().toUpperCase();
-        if (!normalized) return;
-
-        // Compute affected day slots from the event date (same logic for both branches)
-        const affectedSlots = dateToSlotIds(dateStr);
-
-        const existing = items.find((it) => it.weekKey === normalized);
-        if (existing) {
-            // Expand the card and switch to the right history view
-            setExpandedIds((prev) => new Set([...prev, existing.id]));
-            setShowHistory(!existing.upcoming);
-
-            // Merge the event into the existing override draft
-            if (eventId && affectedSlots.length > 0) {
-                setDraftsById((prev) => {
-                    const base = prev[existing.id] || {
-                        weekKey: existing.weekKey,
-                        affectedProgramIds: safeArr(existing.affectedProgramIds),
-                        replacements: safeObj(existing.replacements),
-                        additions: safeObj(existing.additions),
-                        alsoEvents: safeObj(existing.alsoEvents),
-                    };
-                    // Merge the new affected slots into the existing ones
-                    const mergedAffected = [...new Set([...safeArr(base.affectedProgramIds), ...affectedSlots])];
-                    // Set the event as the replacement for each affected slot
-                    const mergedReplacements = { ...safeObj(base.replacements) };
-                    affectedSlots.forEach((slot) => { mergedReplacements[slot] = eventId; });
-                    return {
-                        ...prev,
-                        [existing.id]: {
-                            ...base,
-                            affectedProgramIds: mergedAffected,
-                            replacements: mergedReplacements,
-                        },
-                    };
-                });
-            }
-        } else {
-            // Build replacements object: map each affected slot to the event ID
-            const replacements = {};
-            affectedSlots.forEach((slot) => {
-                if (eventId) replacements[slot] = eventId;
-            });
-            // Pre-fill the new override draft with everything
-            setNewDraft({
-                weekKey: normalized,
-                affectedProgramIds: affectedSlots,
-                replacements,
-                additions: {},
-            });
-            setShowNew(true);
-        }
-        if (onConsumed) onConsumed();
-        // Re-run when loading resolves, since items won't exist until then
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [initialOverride, loading]);
-
 
     useEffect(() => {
         setLoading(true);
@@ -918,36 +845,6 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed, onD
             ...prev,
             [key]: { ...(prev[key] || { weekKey: "", affectedProgramIds: [] }), weekKey: weekKey || safeStr(wk).trim() },
         }));
-    };
-
-    const toggleAffected = (id, programId) => {
-        const key = safeStr(id).trim();
-        const p = safeStr(programId).trim();
-        if (!p) return;
-
-        if (key === "__new__") {
-            setNewDraft((d) => {
-                const set = toSet(d.affectedProgramIds);
-                if (set.has(p)) set.delete(p);
-            else set.add(p);
-                // Also clean up replacements if unchecking
-                const repl = { ...safeObj(d.replacements) };
-                if (!set.has(p)) delete repl[p];
-                return { ...d, affectedProgramIds: Array.from(set), replacements: repl };
-            });
-            return;
-        }
-
-        if (!key) return;
-        setDraftsById((prev) => {
-            const cur = prev[key] || { weekKey: "", affectedProgramIds: [], replacements: {}, additions: {} };
-            const set = toSet(cur.affectedProgramIds);
-            if (set.has(p)) set.delete(p);
-            else set.add(p);
-            const repl = { ...safeObj(cur.replacements) };
-            if (!set.has(p)) delete repl[p];
-            return { ...prev, [key]: { ...cur, affectedProgramIds: Array.from(set), replacements: repl } };
-        });
     };
 
     const changeReplacement = (id, programId, eventId) => {
@@ -1311,8 +1208,6 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed, onD
                                     draft={newDraft}
                                     saveState={newState}
                                     eventsList={eventsList}
-                                    weekKeyForCard={newDraft.weekKey}
-                                    onToggleAffected={toggleAffected}
                                     onChangeWeekKey={changeWeekKey}
                                     onChangeReplacement={changeReplacement}
                                     onChangeAddition={changeAddition}
@@ -1336,9 +1231,7 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed, onD
                                         draft={draftsById[it.id]}
                                         saveState={saveStateById[it.id] || "idle"}
                                         eventsList={eventsList}
-                                        weekKeyForCard={safeStr(draftsById[it.id]?.weekKey ?? it.weekKey)}
                                         onToggleExpand={toggleExpand}
-                                        onToggleAffected={toggleAffected}
                                         onChangeWeekKey={changeWeekKey}
                                         onChangeReplacement={changeReplacement}
                                         onChangeAddition={changeAddition}
@@ -1361,9 +1254,7 @@ export default function ProgramOverridesAdmin({ initialOverride, onConsumed, onD
                                         draft={draftsById[it.id]}
                                         saveState={saveStateById[it.id] || "idle"}
                                         eventsList={eventsList}
-                                        weekKeyForCard={safeStr(draftsById[it.id]?.weekKey ?? it.weekKey)}
                                         onToggleExpand={toggleExpand}
-                                        onToggleAffected={toggleAffected}
                                         onChangeWeekKey={changeWeekKey}
                                         onChangeReplacement={changeReplacement}
                                         onChangeAddition={changeAddition}

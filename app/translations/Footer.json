@@ -16,10 +16,8 @@
         "subscribe_error": "Eroare. Mai încearcă.",
         "address": "Adresă",
         "privacy": "Confidențialitate",
-        "visits_total": "total",
         "visits_today": "azi",
         "visits_label": "Vizite",
-        "visits_since": "din decembrie 2025",
         "visits_month": "luna aceasta",
         "visits_month_prev": "luna trecută",
         "visits_year": "anul acesta"
@@ -41,10 +39,8 @@
         "subscribe_error": "Erreur. Réessayez.",
         "address": "Adresse",
         "privacy": "Confidentialité",
-        "visits_total": "total",
         "visits_today": "aujourd'hui",
         "visits_label": "Visites",
-        "visits_since": "depuis décembre 2025",
         "visits_month": "mois en cours",
         "visits_month_prev": "mois passé",
         "visits_year": "année en cours"
@@ -66,10 +62,8 @@
         "subscribe_error": "Fout. Probeer opnieuw.",
         "address": "Adres",
         "privacy": "Privacy",
-        "visits_total": "totaal",
         "visits_today": "vandaag",
         "visits_label": "Bezoeken",
-        "visits_since": "sinds december 2025",
         "visits_month": "deze maand",
         "visits_month_prev": "vorige maand",
         "visits_year": "dit jaar"
@@ -91,10 +85,8 @@
         "subscribe_error": "Error. Try again.",
         "address": "Address",
         "privacy": "Privacy",
-        "visits_total": "total",
         "visits_today": "today",
         "visits_label": "Visits",
-        "visits_since": "since December 2025",
         "visits_month": "this month",
         "visits_month_prev": "last month",
         "visits_year": "this year"
