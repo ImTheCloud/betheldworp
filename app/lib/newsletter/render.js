@@ -181,10 +181,32 @@ function calendarHtml(days) {
     }).join("\n");
 }
 
+// La suite d'un événement après le dimanche (des invités encore là lundi) :
+// sous le calendrier, avec un intertitre pour ne pas la confondre avec le
+// lundi de la semaine annoncée.
+function sequelHtml(days) {
+    if (!days?.length) return "";
+    return `<tr>
+<td class="px" style="padding:20px 32px 0;font-family:Arial,Helvetica,sans-serif;">
+<div class="rule" style="border-top:1px solid #e2e8f0;padding-top:20px;">
+<div class="t-accent" style="font-size:11px;font-weight:900;color:${BLUE};letter-spacing:1.5px;text-transform:uppercase;">Continuă săptămâna viitoare</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="px" style="padding:4px 32px 0;font-family:Arial,Helvetica,sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+${calendarHtml(days)}
+</table>
+</td>
+</tr>`;
+}
+
 // ── Événements ──
 
 function occurrenceLine(o) {
-    const when = `${DAY_NAMES[o.dayIndex]}, ${capitalizeMonth(dayMonth(o.date))}`;
+    // dayIndex 7 et plus : suite de l'événement la semaine d'après.
+    const when = `${DAY_NAMES[o.dayIndex % 7]}, ${capitalizeMonth(dayMonth(o.date))}`;
     const times = o.times.length
         ? `, <span class="no-detect" style="color:inherit !important;text-decoration:none !important;">${timesHtml(o.times)}</span>`
         : "";
@@ -232,7 +254,7 @@ ${text.length ? `<div style="padding-top:14px;">${bodyParagraphs(text)}</div>` :
 // ── Texte d'aperçu et objet ──
 
 function daysPhrase(group) {
-    const names = [...new Set(group.occurrences.map((o) => DAY_NAMES[o.dayIndex].toLowerCase()))];
+    const names = [...new Set(group.occurrences.map((o) => DAY_NAMES[o.dayIndex % 7].toLowerCase()))];
     if (names.length <= 1) return names[0] || "";
     return `${names.slice(0, -1).join(", ")} și ${names[names.length - 1]}`;
 }
@@ -446,6 +468,7 @@ ${calendarHtml(week.days)}
 </table>
 </td>
 </tr>
+${sequelHtml(week.nextDays)}
 
 <!-- 6. AUTRES ÉVÉNEMENTS -->
 ${others.map(secondaryEventHtml).join("\n")}
@@ -486,7 +509,7 @@ ${others.map(secondaryEventHtml).join("\n")}
     // Empreinte du contenu généré à partir des données, hors objet et message :
     // elle dit si le programme a changé depuis un envoi.
     const contentHash = crypto.createHash("sha256")
-        .update(JSON.stringify({ days: week.days, groups: week.eventGroups.map((g) => [g.title, g.description, g.image, g.occurrences]) }))
+        .update(JSON.stringify({ days: week.days, groups: week.eventGroups.map((g) => [g.title, g.description, g.image, g.occurrences]), next: week.nextDays?.length ? week.nextDays : undefined }))
         .digest("hex")
         .slice(0, 16);
 

@@ -7,7 +7,7 @@
 import { getDocument, listDocuments } from "../firestoreRest";
 import {
     PROGRAM_SLOTS, DAY_INDEX_BY_SLOT, addDaysUTC, buildDateMeta, computeProgramCards, formatRange,
-    isoDateOf, mondayOfWeekKey, normalizeActivityTitle, normalizeWeekOverride, EMPTY_OVERRIDE,
+    isoDateOf, mondayOfWeekKey, normalizeActivityTitle, normalizeWeekOverride, weekKeyOf, EMPTY_OVERRIDE,
 } from "../weekProgram";
 import { isSummerBreakWeek } from "../programSchedule";
 import tr from "../../translations/WeeklyProgram.json";
@@ -108,8 +108,10 @@ function normalizeEvent(id, d) {
 /**
  * Tout le contenu d'une semaine.
  * @param weekKey « 2026-W48 »
+ * @param withSequel ajoute la suite, la semaine d'après, d'un événement encore
+ *                   en cours le dimanche (des invités restés jusqu'à lundi)
  */
-export async function loadWeek(weekKey) {
+export async function loadWeek(weekKey, { withSequel = true } = {}) {
     const monday = mondayOfWeekKey(weekKey);
     if (!monday) throw new Error(`invalid week key: ${weekKey}`);
     const sunday = addDaysUTC(monday, 6);
@@ -270,9 +272,11 @@ export async function loadWeek(weekKey) {
         r.times.forEach((x) => { if (!occ.times.includes(x)) occ.times.push(x); });
         if (r.until) occ.untilNote = r.until;
     });
-    const eventGroups = [...groups.values()].map(({ descriptions, ...g }) => ({
+    const nextDays = withSequel ? await addSequel([...groups.values()], events, sunday) : [];
+
+    const eventGroups = [...groups.values()].map((g) => ({
         ...g,
-        description: mergeDescriptions(descriptions),
+        description: mergeDescriptions(g.descriptions),
         occurrences: g.occurrences.sort((a, b) => a.dayIndex - b.dayIndex),
         firstDay: Math.min(...g.occurrences.map((o) => o.dayIndex)),
     })).sort((a, b) => (a.firstDay - b.firstDay) || (Number(!a.image) - Number(!b.image)));
@@ -287,7 +291,47 @@ export async function loadWeek(weekKey) {
         days,
         changes: rows.filter((r) => r.inSummary && ["cancelled", "movedFrom", "moved", "changed"].includes(r.status)),
         eventGroups,
+        nextDays,
     };
+}
+
+/**
+ * La suite d'une visite après le dimanche. Les mêmes invités (même titre) le
+ * dimanche puis le lundi, sans jour d'interruption, forment un seul événement :
+ * l'e-mail de la semaine annonce aussi le lundi, sinon la newsletter suivante
+ * arrive trop tard (30 nov 2026, Matei Trif și Nicu Iurian à la soirée des
+ * jeunes). Un événement qui revient une semaine plus tard n'est pas concerné.
+ *
+ * Complète les groupes et renvoie les jours à ajouter sous le calendrier, avec
+ * les seules lignes de ces événements, calculées comme le reste.
+ */
+async function addSequel(groups, events, sunday) {
+    const nextMonday = addDaysUTC(sunday, 1);
+    const nextMondayISO = isoDateOf(nextMonday);
+    const open = groups.filter((g) =>
+        g.occurrences.some((o) => o.dayIndex === 6) &&
+        events.some((e) => e.dateEvent === nextMondayISO && normalizeActivityTitle(e.title) === g.key)
+    );
+    if (!open.length) return [];
+
+    const next = await loadWeek(weekKeyOf(nextMonday), { withSequel: false });
+    const nextDays = [];
+    open.forEach((g) => {
+        const ng = next.eventGroups.find((x) => x.key === g.key);
+        if (!ng) return;
+        for (let i = 0; i < 7; i++) {
+            const occ = ng.occurrences.find((o) => o.dayIndex === i);
+            if (!occ) break;
+            g.occurrences.push({ ...occ, dayIndex: 7 + i });
+            const rows = next.days[i].rows.filter((r) => ng.eventIds.includes(r.eventId));
+            if (!rows.length) continue;
+            const day = nextDays.find((d) => d.index === i);
+            if (day) day.rows.push(...rows);
+            else nextDays.push({ ...next.days[i], rows });
+        }
+        ng.descriptions.forEach((d) => { if (!g.descriptions.includes(d)) g.descriptions.push(d); });
+    });
+    return nextDays.sort((a, b) => a.index - b.index);
 }
 
 /**
@@ -297,14 +341,20 @@ export async function loadWeek(weekKey) {
  * au-dessus. Les paragraphes identiques restent ; dans un paragraphe qui ne
  * diffère que par sa fin, on garde le début commun :
  * « …prin Cuvântul lui Dumnezeu și prin cântare. » (choix du 22 nov 2026).
- * Si les textes sont vraiment différents, on garde le premier.
+ * Un texte écrit tout autrement que le premier (la soirée de jeunes du lundi)
+ * est laissé de côté, pour ne pas faire perdre la partie commune aux autres.
  */
 export function mergeDescriptions(descriptions) {
     const list = (descriptions || []).map((d) => safeStr(d).trim()).filter(Boolean);
     if (list.length <= 1) return list[0] || "";
-    const split = (d) => d.split(/\n\s*\n/).map((p) => p.trim());
-    const all = list.map(split);
-    if (all.some((ps) => ps.length !== all[0].length)) return list[0];
+    const alike = list.filter((d) => commonText([list[0], d]) !== null);
+    return commonText(alike) ?? list[0];
+}
+
+/** Partie commune de plusieurs textes, ou null s'ils ne se ressemblent pas assez. */
+function commonText(list) {
+    const all = list.map((d) => d.split(/\n\s*\n/).map((p) => p.trim()));
+    if (all.some((ps) => ps.length !== all[0].length)) return null;
     const merged = [];
     for (let i = 0; i < all[0].length; i++) {
         const paras = all.map((ps) => ps[i]);
@@ -315,9 +365,8 @@ export function mergeDescriptions(descriptions) {
         const words = paras.map((p) => p.split(/\s+/));
         let n = 0;
         while (words.every((w) => n < w.length && w[n] === words[0][n])) n++;
-        const shortest = Math.min(...words.map((w) => w.length));
         // Le début commun doit porter l'essentiel de la phrase.
-        if (n < shortest * 0.6) return list[0];
+        if (n < Math.min(...words.map((w) => w.length)) * 0.6) return null;
         const common = words[0].slice(0, n).join(" ").replace(/[\s,;:–-]+$/, "");
         merged.push(/[.!?]$/.test(common) ? common : `${common}.`);
     }
