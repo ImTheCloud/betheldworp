@@ -102,19 +102,19 @@ const RULE = "#cbd5e1";
 
 // ── Boîte du jour ──
 
-// Couleurs par nature de changement, sur la boîte du jour et sur le titre
-// seulement (l'heure et la note restent neutres, choix du 17 nov 2026) :
+// Couleurs par nature de changement, sur la boîte du jour et sur l'heure
+// seulement (le titre et la note restent neutres, choix du 23 nov 2026) :
 //   gris   programme habituel
 //   bleu   événement, invité, annonce
 //   vert   programme ajouté
 //   jaune  déplacé ou modifié à la place de l'activité habituelle
 //   rouge  annulé (y compris le jour de départ d'un déplacement)
 const CHIPS = {
-    n: { cls: "chip-n", bg: "#f1f5f9", border: "#e2e8f0", lbl: "#64748b", num: "#0f172a", title: "#0f172a", titleCls: "t-head" },
-    s: { cls: "chip-s", bg: "#dcfce7", border: "#86efac", lbl: "#16a34a", num: "#16a34a", title: "#15803d", titleCls: "t-added" },
-    e: { cls: "chip-e", bg: "#dde9fb", border: "#93b4ef", lbl: "#0f4c8a", num: "#0f4c8a", title: "#0f4c8a", titleCls: "t-event" },
-    m: { cls: "chip-m", bg: "#fcf1da", border: "#f0c76a", lbl: "#92600a", num: "#92600a", title: "#92600a", titleCls: "t-moved" },
-    c: { cls: "chip-c", bg: "#fee2e2", border: "#fca5a5", lbl: "#dc2626", num: "#dc2626", title: "#dc2626", titleCls: "t-cancel" },
+    n: { cls: "chip-n", bg: "#f1f5f9", border: "#e2e8f0", lbl: "#64748b", num: "#0f172a", time: "#475569", timeCls: "t-time" },
+    s: { cls: "chip-s", bg: "#dcfce7", border: "#86efac", lbl: "#16a34a", num: "#16a34a", time: "#15803d", timeCls: "t-added" },
+    e: { cls: "chip-e", bg: "#dde9fb", border: "#93b4ef", lbl: "#0f4c8a", num: "#0f4c8a", time: "#0f4c8a", timeCls: "t-event" },
+    m: { cls: "chip-m", bg: "#fcf1da", border: "#f0c76a", lbl: "#92600a", num: "#92600a", time: "#92600a", timeCls: "t-moved" },
+    c: { cls: "chip-c", bg: "#fee2e2", border: "#fca5a5", lbl: "#dc2626", num: "#dc2626", time: "#dc2626", timeCls: "t-cancel" },
 };
 
 function chipKind(status) {
@@ -143,7 +143,7 @@ function dayRow(kind, day, isLast, content, { cls = "", valign = "top", style = 
 </tr>`;
 }
 
-// Une ligne : l'heure et la pastille, puis le titre (en couleur), puis la note.
+// Une ligne : l'heure (en couleur) et la pastille, puis le titre, puis la note.
 // La pastille suit l'heure, toujours courte : après le titre, elle passait à la
 // ligne sur téléphone.
 function calendarRow(day, row, isLast) {
@@ -152,12 +152,12 @@ function calendarRow(day, row, isLast) {
     const titleWeight = kind === "n" ? 600 : 700;
     const tag = badge(row.status);
 
-    const title = `<div class="${c.titleCls}" style="font-size:15px;color:${c.title};font-weight:${titleWeight};line-height:1.45;padding-top:2px;">${escapeHtml(row.title)}</div>`;
+    const title = `<div class="t-head" style="font-size:15px;color:#0f172a;font-weight:${titleWeight};line-height:1.45;padding-top:2px;">${escapeHtml(row.title)}</div>`;
     const times = row.times.length
         ? `<span class="no-detect" style="color:inherit !important;text-decoration:none !important;">${timesHtml(row.times)}</span>`
         : "";
     const time = times || tag
-        ? `<div class="t-time" style="font-size:13px;font-weight:700;color:#475569;letter-spacing:0.3px;line-height:1.5;">${times}${times && tag ? "&nbsp; " : ""}${tag}</div>`
+        ? `<div class="${c.timeCls}" style="font-size:13px;font-weight:700;color:${c.time};letter-spacing:0.3px;line-height:1.5;">${times}${times && tag ? "&nbsp; " : ""}${tag}</div>`
         : "";
     const note = row.note
         ? `<div class="t-muted" style="font-size:13px;color:#64748b;padding-top:2px;line-height:1.45;">${escapeHtml(row.note)}</div>`
