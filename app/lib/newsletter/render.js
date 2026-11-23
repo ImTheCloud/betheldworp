@@ -11,7 +11,7 @@
 // le texte.
 
 import crypto from "node:crypto";
-import { DAY_NAMES, SITE, SPECIAL_PROGRAM, dayMonth, rangeLabel } from "./weekData";
+import { DAY_NAMES, SITE, SPECIAL_PROGRAM, dayMonth } from "./weekData";
 
 const BLUE = "#0f4c8a";
 
@@ -39,6 +39,8 @@ function timesHtml(labels) {
 // Formule de salutation officielle (novembre 2026), la même que dans le texte
 // des événements sur le site.
 export const GREETING = "Pacea Domnului, dragi frați și surori,";
+
+const INTRO = "Vă împărtășim cu bucurie programul acestei săptămâni. Vă așteptăm cu drag să fim împreună în Casa Domnului!";
 
 /**
  * Paragraphes d'un texte libre : ligne vide = nouveau paragraphe, retour
@@ -151,15 +153,16 @@ function calendarRow(day, row, isLast) {
     const c = CHIPS[kind];
     const tag = badge(row.status);
 
-    const title = `<div class="t-head" style="font-size:15px;color:#0f172a;font-weight:700;line-height:1.45;padding-top:2px;">${escapeHtml(row.title)}</div>`;
+    const title = `<div class="t-head" style="font-size:15px;color:#0f172a;font-weight:700;line-height:1.45;padding-top:2px;">${[row.title, ...(row.alsoTitles || []).map((x) => `+ ${x}`)].map(escapeHtml).join("<br />")}</div>`;
     const times = row.times.length
         ? `<span class="no-detect" style="color:inherit !important;text-decoration:none !important;">${timesHtml(row.times)}</span>`
         : "";
     const time = times || tag
         ? `<div class="${c.timeCls}" style="font-size:15px;font-weight:700;color:${c.time};line-height:1.45;">${times}${times && tag ? "&nbsp; " : ""}${tag}</div>`
         : "";
-    const note = row.note
-        ? `<div class="t-muted" style="font-size:13px;color:#64748b;padding-top:2px;line-height:1.45;">${escapeHtml(row.note)}</div>`
+    const noteText = row.noteIsProgram ? `${PROGRAM_LABEL}${row.program}` : row.note;
+    const note = noteText
+        ? `<div class="t-muted" style="font-size:13px;color:#64748b;padding-top:2px;line-height:1.45;">${escapeHtml(noteText)}</div>`
         : "";
 
     return dayRow(kind, day, isLast, `
@@ -221,11 +224,14 @@ function joinPrograms(list) {
     return parts.length < 2 ? parts[0] || "" : `${parts.slice(0, -1).join(", ")} și ${parts[parts.length - 1]}`;
 }
 
+// « În cadrul programului: » passait à la ligne sur téléphone (23 nov 2026).
+const PROGRAM_LABEL = "Program: ";
+
 // Le programme pendant lequel l'événement a lieu, sous sa date.
 function programNote(programs = []) {
     const usual = programs.filter((p) => p !== SPECIAL_PROGRAM);
     const text = [
-        usual.length ? `În cadrul programului: ${joinPrograms(usual)}` : "",
+        usual.length ? `${PROGRAM_LABEL}${joinPrograms(usual)}` : "",
         programs.includes(SPECIAL_PROGRAM) ? SPECIAL_PROGRAM : "",
     ].filter(Boolean).join(", ");
     return text ? `<div class="t-muted" style="font-weight:400;color:#64748b;line-height:1.45;padding-bottom:6px;">${escapeHtml(text)}</div>` : "";
@@ -259,26 +265,6 @@ function occurrencesHtml(group) {
     return bulletList(group.occurrences.map(occurrenceLine)) + place;
 }
 
-// ── Annonce de tous les événements, en haut ──
-
-const COUNTS = ["", "un", "două", "trei", "patru", "cinci", "șase", "șapte", "opt", "nouă", "zece"];
-
-function countEvents(n) {
-    return `${COUNTS[n] || n} ${n === 1 ? "eveniment" : "evenimente"}`;
-}
-
-// Un événement de la liste : quand, puis quoi. Plusieurs dates tiennent en une
-// ligne, leur détail est dans la partie de l'événement.
-function summaryItem(group) {
-    const occ = group.occurrences;
-    const phrase = daysPhrase(group);
-    const when = occ.length > 1
-        ? `<div>${escapeHtml(`${phrase.charAt(0).toUpperCase()}${phrase.slice(1)}, ${capitalizeMonth(rangeLabel(occ[0].date, occ[occ.length - 1].date))}`)}</div>`
-        : occurrenceLine({ ...occ[0], programs: [] });
-    const place = group.place ? `<div class="t-muted" style="font-weight:400;color:#64748b;">${escapeHtml(group.place)}</div>` : "";
-    return `${when}<div class="t-head" style="font-size:15px;font-weight:700;color:#0f172a;line-height:1.45;">${escapeHtml(group.title)}</div>${place}<div style="height:10px;line-height:10px;font-size:0;">&nbsp;</div>`;
-}
-
 // Dans l'ordre de la semaine ; à heure égale, l'événement en tête d'abord.
 function chronological(groups, headline) {
     const start = (g) => {
@@ -301,17 +287,22 @@ function imageRow(src, alt) {
 </tr>`;
 }
 
-function secondaryEventHtml(group, label) {
-    const img = group.image
+// Un événement, sous le calendrier. Celui dont la photo ouvre déjà l'e-mail ne
+// la répète pas.
+function eventHtml(group, { first, showImage }) {
+    const img = group.image && showImage
         ? `<div style="padding-top:16px;"><img class="img-round" src="${escapeHtml(group.image)}" width="576" alt="${escapeHtml(group.title)}" style="display:block;width:100%;max-width:576px;height:auto;border:0;border-radius:12px;" /></div>`
         : "";
     const text = paragraphs(stripGreeting(group.description));
+    const label = first
+        ? `<div class="t-accent" style="font-size:11px;font-weight:900;color:${BLUE};letter-spacing:1.5px;text-transform:uppercase;padding-bottom:5px;">Evenimente</div>`
+        : "";
     return `<tr>
 <td class="px" style="padding:34px 32px 0;font-family:Arial,Helvetica,sans-serif;">
 <div class="rule" style="border-top:1px solid ${RULE};padding-top:30px;">
-${label ? `<div class="t-accent" style="font-size:11px;font-weight:900;color:${BLUE};letter-spacing:1.5px;text-transform:uppercase;">${label}</div>` : ""}
-<div class="h2 t-head" style="font-size:21px;font-weight:900;color:#0f172a;padding-top:5px;line-height:1.3;">${escapeHtml(group.title)}</div>
-<div class="t-body" style="font-size:13px;font-weight:800;color:#475569;padding-top:4px;line-height:1.6;">${occurrencesHtml(group)}</div>
+${label}
+<div class="h2 t-head" style="font-size:21px;font-weight:900;color:#0f172a;line-height:1.3;">${escapeHtml(group.title)}</div>
+<div class="t-body" style="font-size:13px;font-weight:800;color:#475569;padding-top:6px;line-height:1.6;">${occurrencesHtml(group)}</div>
 ${img}
 ${text.length ? `<div style="padding-top:14px;">${bodyParagraphs(text)}</div>` : ""}
 </div>
@@ -365,7 +356,6 @@ a[x-apple-data-detectors],a[href^="x-apple-data-detectors"],[x-apple-data-detect
 .hdr-pad{padding:16px !important;}
 .logo-img{width:48px !important;height:48px !important;}
 .logo-cell{width:64px !important;}
-.h1{font-size:22px !important;}
 .h2{font-size:19px !important;}
 .cta{display:block !important;padding:15px 18px !important;}
 }
@@ -429,7 +419,7 @@ a[x-apple-data-detectors],a[href^="x-apple-data-detectors"],[x-apple-data-detect
  */
 export function renderNewsletter(week, options = {}) {
     const headline = pickHeadline(week, options.headlineKey);
-    const others = week.eventGroups.filter((g) => g !== headline);
+    const events = chronological(week.eventGroups, headline);
     const subject = String(options.subject || "").trim() || defaultSubject(week, headline);
     const preheader = String(options.preheader || "").trim() || defaultPreheader(week, headline);
     const message = paragraphs(options.message);
@@ -438,13 +428,9 @@ export function renderNewsletter(week, options = {}) {
     const heroImage = headline?.image || `${SITE}/images/landing_page/drone.jpg`;
     const heroAlt = headline ? headline.title : "Biserica Bethel Dworp";
 
-    let introText = [];
-    if (headline) {
-        introText = paragraphs(stripGreeting(headline.description));
-    }
-    if (!headline || !introText.length) {
-        introText.push(escapeHtml("Vă transmitem mai jos programul complet al acestei săptămâni."));
-    }
+    // Toujours la même phrase, puis le calendrier, puis les événements : qui lit
+    // seulement le début voit toute la semaine (choix du 23 nov 2026).
+    const introText = [escapeHtml(INTRO)];
     if (week.summer) {
         introText.push(escapeHtml("Suntem în programul de vară: ne întâlnim la seara de rugăciune de vineri și la serviciile divine de duminică. Celelalte programe din timpul săptămânii sunt anulate."));
     }
@@ -454,23 +440,6 @@ export function renderNewsletter(week, options = {}) {
 <tr><td style="padding:14px 16px;font-family:Arial,Helvetica,sans-serif;">${bodyParagraphs(message)}</td></tr>
 </table>`
         : "";
-
-    // Plusieurs événements : tous annoncés en haut. Sans cela, qui ne lisait que
-    // le début croyait qu'il n'y avait que l'événement en tête (23 nov 2026).
-    const summary = week.eventGroups.length > 1 ? chronological(week.eventGroups, headline) : [];
-    const headTitle = summary.length ? "Evenimentele săptămânii" : headline ? headline.title : "Programul săptămânii";
-    const summaryHtml = summary.length
-        ? `${bodyParagraphs([`Săptămâna aceasta avem ${countEvents(summary.length)}:`])}
-<div style="padding:14px 0 6px;">${bulletList(summary.map(summaryItem))}</div>
-${headline?.description ? `<div class="rule" style="border-top:1px solid ${RULE};padding-top:22px;"><div class="h2 t-head" style="font-size:21px;font-weight:900;color:#0f172a;line-height:1.3;padding-bottom:10px;">${escapeHtml(headline.title)}</div></div>` : ""}`
-        : "";
-    // Plusieurs dates : la liste entre dans la lettre, après l'annonce (salutation,
-    // qui vient, quand, « vă așteptăm »). Au-dessus de la salutation, elle faisait
-    // un bloc à part (23 nov 2026). Une seule date reste sous le titre.
-    const datesInLetter = !!headline?.description && headline.occurrences.length > 1 && introText.length > 0;
-    const headDate = headline && !datesInLetter && !summary.length
-        ? `<div class="t-body" style="font-size:13px;font-weight:800;color:#475569;padding-bottom:18px;line-height:1.6;">${occurrencesHtml(headline)}</div>`
-        : `<div style="height:14px;line-height:14px;font-size:0;">&nbsp;</div>`;
 
     // Après le texte d'aperçu, des espaces invisibles empêchent Gmail et Apple
     // Mail de compléter l'aperçu avec le début du corps du message.
@@ -529,15 +498,8 @@ ${imageRow(heroImage, heroAlt)}
 <!-- 4. EN TÊTE -->
 <tr>
 <td class="px" style="padding:30px 32px 0;font-family:Arial,Helvetica,sans-serif;">
-<div class="h1 t-head" style="font-size:23px;font-weight:900;color:#0f172a;line-height:1.3;padding-bottom:4px;">${escapeHtml(headTitle)}</div>
-${headDate}
-<div class="t-head" style="font-size:16px;font-weight:800;color:#0f172a;line-height:1.4;padding-bottom:10px;">${escapeHtml(GREETING)}</div>
-${summaryHtml}
-${datesInLetter
-        ? `${bodyParagraphs(introText.slice(0, 1))}
-<div class="t-body" style="font-size:13px;font-weight:800;color:#475569;padding:14px 0 10px;line-height:1.6;">${occurrencesHtml(headline)}</div>
-${bodyParagraphs(introText.slice(1))}`
-        : bodyParagraphs(introText)}
+<div class="h2 t-head" style="font-size:21px;font-weight:900;color:#0f172a;line-height:1.35;padding-bottom:10px;">${escapeHtml(GREETING)}</div>
+${bodyParagraphs(introText)}
 ${messageBox}
 </td>
 </tr>
@@ -560,8 +522,8 @@ ${calendarHtml(week.days)}
 </tr>
 ${sequelHtml(week.nextDays)}
 
-<!-- 6. AUTRES ÉVÉNEMENTS -->
-${others.map((g, i) => secondaryEventHtml(g, summary.length ? (i ? "" : "Mai multe detalii") : "Tot în această săptămână")).join("\n")}
+<!-- 6. ÉVÉNEMENTS -->
+${events.map((g, i) => eventHtml(g, { first: i === 0, showImage: g !== headline })).join("\n")}
 
 <!-- 7. BOUTON -->
 <tr>
@@ -601,7 +563,7 @@ ${others.map((g, i) => secondaryEventHtml(g, summary.length ? (i ? "" : "Mai mul
     // Les noms de programme se déduisent des lignes : hors empreinte, pour ne pas
     // signaler à tort un changement sur les semaines déjà envoyées.
     const contentHash = crypto.createHash("sha256")
-        .update(JSON.stringify({ days: week.days, groups: week.eventGroups.map((g) => [g.title, g.description, g.image, g.occurrences]), next: week.nextDays?.length ? week.nextDays : undefined }, (k, v) => (k === "program" || k === "programs" ? undefined : v)))
+        .update(JSON.stringify({ days: week.days, groups: week.eventGroups.map((g) => [g.title, g.description, g.image, g.occurrences]), next: week.nextDays?.length ? week.nextDays : undefined }, (k, v) => (["program", "programs", "noteIsProgram", "alsoTitles"].includes(k) ? undefined : v)))
         .digest("hex")
         .slice(0, 16);
 
@@ -612,6 +574,6 @@ ${others.map((g, i) => secondaryEventHtml(g, summary.length ? (i ? "" : "Mai mul
         contentHash,
         headlineKey: headline?.key || "none",
         headlineOptions: week.eventGroups.map((g) => ({ key: g.key, title: g.title, hasImage: !!g.image })),
-        images: [heroImage, ...others.map((g) => g.image).filter(Boolean)],
+        images: [heroImage, ...events.filter((g) => g !== headline).map((g) => g.image).filter(Boolean)],
     };
 }

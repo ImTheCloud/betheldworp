@@ -178,6 +178,10 @@ export async function loadWeek(weekKey, { withSequel = true } = {}) {
         } else if (!note && c.status === "normal") {
             note = SLOT_HINTS[c.id] || "";
         }
+        // Ce dans quoi l'événement a lieu, pour sa date et sa note.
+        const program = c.status === "event" && normalizeActivityTitle(c.baseTitle) !== normalizeActivityTitle(c.title)
+            ? c.baseTitle
+            : c.status === "extra" ? SPECIAL_PROGRAM : "";
         return {
             key: c.key,
             dayIndex,
@@ -188,10 +192,11 @@ export async function loadWeek(weekKey, { withSequel = true } = {}) {
             eventId,
             alsoEventIds: c.alsoEventIds || [],
             inSummary: c.inSummary,
-            // Ce dans quoi l'événement a lieu, pour les dates en tête.
-            program: c.status === "event" && normalizeActivityTitle(c.baseTitle) !== normalizeActivityTitle(c.title)
-                ? c.baseTitle
-                : c.status === "extra" ? SPECIAL_PROGRAM : "",
+            program,
+            // Les autres événements du créneau : sans ligne à eux, ils ne se
+            // verraient qu'en bas de l'e-mail.
+            alsoTitles: (c.alsoEventIds || []).map((id) => eventsMap.get(id)?.title).filter(Boolean),
+            noteIsProgram: c.status === "event" && !!program && !c.adminNote,
         };
     }
 
