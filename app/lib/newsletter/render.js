@@ -404,7 +404,11 @@ export function renderNewsletter(week, options = {}) {
         : "";
 
     const headTitle = headline ? headline.title : "Programul săptămânii";
-    const headDate = headline
+    // Plusieurs dates : la liste entre dans la lettre, après l'annonce (salutation,
+    // qui vient, quand, « vă așteptăm »). Au-dessus de la salutation, elle faisait
+    // un bloc à part (23 nov 2026). Une seule date reste sous le titre.
+    const datesInLetter = !!headline?.description && headline.occurrences.length > 1 && introText.length > 0;
+    const headDate = headline && !datesInLetter
         ? `<div class="t-body" style="font-size:13px;font-weight:800;color:#475569;padding-bottom:18px;line-height:1.6;">${occurrencesHtml(headline)}</div>`
         : `<div style="height:14px;line-height:14px;font-size:0;">&nbsp;</div>`;
 
@@ -468,7 +472,11 @@ ${imageRow(heroImage, heroAlt)}
 <div class="h1 t-head" style="font-size:23px;font-weight:900;color:#0f172a;line-height:1.3;padding-bottom:4px;">${escapeHtml(headTitle)}</div>
 ${headDate}
 <div class="t-head" style="font-size:16px;font-weight:800;color:#0f172a;line-height:1.4;padding-bottom:10px;">${escapeHtml(GREETING)}</div>
-${bodyParagraphs(introText)}
+${datesInLetter
+        ? `${bodyParagraphs(introText.slice(0, 1))}
+<div class="t-body" style="font-size:13px;font-weight:800;color:#475569;padding:14px 0 10px;line-height:1.6;">${occurrencesHtml(headline)}</div>
+${bodyParagraphs(introText.slice(1))}`
+        : bodyParagraphs(introText)}
 ${messageBox}
 </td>
 </tr>
