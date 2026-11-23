@@ -254,22 +254,12 @@ function occurrenceLine(o) {
     return `<div>${escapeHtml(when)}${times}${until}</div>${programNote(o.programs)}`;
 }
 
-// Un tableau, pas une liste : les marges des listes changent d'une messagerie à
-// l'autre.
-function bulletList(items) {
-    const rows = items.map((item) => `<tr>
-<td class="t-body" width="14" valign="top" style="width:14px;padding:0;font-size:13px;font-weight:800;line-height:1.6;color:#475569;">&bull;</td>
-<td class="t-body" valign="top" style="padding:0;font-size:13px;font-weight:800;line-height:1.6;color:#475569;">${item}</td>
-</tr>`).join("\n");
-    return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;font-family:Arial,Helvetica,sans-serif;">
-${rows}
-</table>`;
-}
-
 function occurrencesHtml(group) {
     const place = group.place ? `<div>${escapeHtml(group.place)}</div>` : "";
-    if (group.occurrences.length < 2) return group.occurrences.map(occurrenceLine).join("") + place;
-    return bulletList(group.occurrences.map(occurrenceLine)) + place;
+    if (group.occurrences.length === 1) return occurrenceLine(group.occurrences[0]) + place;
+    // Quand l'événement a plusieurs occurrences dans la semaine, on ne répète
+    // pas la liste des dates : elles sont déjà toutes détaillées dans le calendrier.
+    return place;
 }
 
 // Dans l'ordre de la semaine ; à heure égale, l'événement en tête d'abord.
@@ -435,17 +425,54 @@ export function renderNewsletter(week, options = {}) {
     const heroImage = headline?.image || `${SITE}/images/landing_page/drone.jpg`;
     const heroAlt = headline ? headline.title : "Biserica Bethel Dworp";
 
-    // Toujours la même phrase, puis le calendrier, puis les événements : qui lit
-    // seulement le début voit toute la semaine (choix du 23 nov 2026).
-    const introText = [escapeHtml([INTRO, events.length ? INTRO_DETAILS : "", INTRO_END].filter(Boolean).join(" "))];
-    if (week.summer) {
-        introText.push(escapeHtml("Suntem în programul de vară: ne întâlnim la seara de rugăciune de vineri și la serviciile divine de duminică. Celelalte programe din timpul săptămânii sunt anulate."));
-    }
-
     const messageBox = message.length
         ? `<table role="presentation" class="box-msg" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate;background-color:#eff6ff;border:1px solid #93b4ef;border-radius:12px;margin-top:18px;">
 <tr><td style="padding:14px 16px;font-family:Arial,Helvetica,sans-serif;">${bodyParagraphs(message)}</td></tr>
 </table>`
+        : "";
+
+    // Un seul événement dans la semaine (ou le même événement présent plusieurs
+    // fois dans la semaine) : on le met directement en haut avant le calendrier,
+    // sans la phrase classique de renvoi vers les détails et sans récapitulatif des dates.
+    // Au moins 2 événements distincts : phrase classique avec renvoi vers les détails,
+    // bouton vers le site, et tous les événements détaillés après le calendrier.
+    const isSingleEvent = events.length === 1 && !!headline;
+
+    let headHtml = "";
+    if (isSingleEvent) {
+        const ev = headline;
+        const headDate = ev.occurrences.length === 1
+            ? `<div class="t-accent" style="font-size:13px;font-weight:800;color:${BLUE};padding-bottom:14px;">${occurrenceLine(ev.occurrences[0])}</div>`
+            : ev.place
+                ? `<div class="t-muted" style="font-size:13px;font-weight:700;color:#64748b;padding-bottom:12px;">${escapeHtml(ev.place)}</div>`
+                : `<div style="height:10px;line-height:10px;font-size:0;">&nbsp;</div>`;
+        const desc = paragraphs(stripGreeting(ev.description));
+        const eventText = desc.length ? desc : [escapeHtml("Vă așteptăm cu drag să fim împreună în Casa Domnului!")];
+        headHtml = `
+<div class="h1 t-head" style="font-size:23px;font-weight:900;color:#0f172a;line-height:1.3;padding-bottom:4px;">${escapeHtml(ev.title)}</div>
+${headDate}
+<div class="t-head" style="font-size:16px;font-weight:800;color:#0f172a;line-height:1.4;padding-bottom:10px;">${escapeHtml(GREETING)}</div>
+${bodyParagraphs(eventText)}
+${week.summer ? `<div style="padding-top:12px;">${bodyParagraphs([escapeHtml("Suntem în programul de vară: ne întâlnim la seara de rugăciune de vineri și la serviciile divine de duminică. Celelalte programe din timpul săptămânii sunt anulate.")])}</div>` : ""}
+${messageBox}`;
+    } else {
+        const introText = [escapeHtml([
+            INTRO,
+            events.length >= 2 ? INTRO_DETAILS : "",
+            INTRO_END,
+        ].filter(Boolean).join(" "))];
+        if (week.summer) {
+            introText.push(escapeHtml("Suntem în programul de vară: ne întâlnim la seara de rugăciune de vineri și la serviciile divine de duminică. Celelalte programe din timpul săptămânii sunt anulate."));
+        }
+        headHtml = `
+<div class="h2 t-head" style="font-size:21px;font-weight:900;color:#0f172a;line-height:1.35;padding-bottom:10px;">${escapeHtml(GREETING)}</div>
+${bodyParagraphs(introText)}
+${events.length >= 2 ? `<div style="padding-top:14px;">${EVENTS_BUTTON}</div>` : ""}
+${messageBox}`;
+    }
+
+    const eventsSection = !isSingleEvent && events.length > 0
+        ? `\n<!-- 6. ÉVÉNEMENTS -->\n${events.map((g, i) => eventHtml(g, i === 0)).join("\n")}`
         : "";
 
     // Après le texte d'aperçu, des espaces invisibles empêchent Gmail et Apple
@@ -505,10 +532,7 @@ ${imageRow(heroImage, heroAlt)}
 <!-- 4. EN TÊTE -->
 <tr>
 <td class="px" style="padding:22px 32px 0;font-family:Arial,Helvetica,sans-serif;">
-<div class="h2 t-head" style="font-size:21px;font-weight:900;color:#0f172a;line-height:1.35;padding-bottom:10px;">${escapeHtml(GREETING)}</div>
-${bodyParagraphs(introText)}
-${events.length ? `<div style="padding-top:14px;">${EVENTS_BUTTON}</div>` : ""}
-${messageBox}
+${headHtml}
 </td>
 </tr>
 
@@ -528,10 +552,7 @@ ${calendarHtml(week.days)}
 </table>
 </td>
 </tr>
-${sequelHtml(week.nextDays)}
-
-<!-- 6. ÉVÉNEMENTS -->
-${events.map((g, i) => eventHtml(g, i === 0)).join("\n")}
+${sequelHtml(week.nextDays)}${eventsSection}
 
 <!-- 7. BOUTON -->
 <tr>
@@ -582,6 +603,6 @@ ${EVENTS_BUTTON}
         contentHash,
         headlineKey: headline?.key || "none",
         headlineOptions: week.eventGroups.map((g) => ({ key: g.key, title: g.title, hasImage: !!g.image })),
-        images: [...new Set([heroImage, ...events.map((g) => g.image).filter(Boolean)])],
+        images: [...new Set([heroImage, ...(isSingleEvent ? [] : events.map((g) => g.image).filter(Boolean))])],
     };
 }

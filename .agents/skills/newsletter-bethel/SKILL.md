@@ -158,11 +158,15 @@ Depuis novembre 2026, le programme hebdomadaire du site affiche un statut sur ch
 ### ⚠️ RÈGLES FONDAMENTALES :
 
 1. **Hiérarchie de l'événement en tête (avant le calendrier)** :
-   Quand la semaine comporte un événement phare (invité, orchestre, concert, etc.), il est placé **directement au début**, avant le calendrier, dans cet ordre strict :
-   - **Titre de l'événement** en grand (`.h1`, ex: `Orchestra Bisericii Elim Bruxelles în mijlocul nostru`)
-   - **Date & Heure** juste en-dessous en sous-titre vert sobre (`.t-accent`, ex: `Duminică, 8 Noiembrie, 18:00 – 20:00`). **Ne JAMAIS mettre** de mention superflue comme *"Evenimentul săptămânii"* ni de parenthèses encombrantes autour des heures.
-   - **Salutation** ensuite : `Pacea Domnului, dragi frați și surori,` placée **au-dessus du texte de présentation** (donc en-dessous du titre de l'événement).
-   - **Texte de présentation** fraternel et naturel.
+   Quand la semaine comporte un seul événement (ou le même événement répété sur plusieurs jours dans la semaine, ex: invités vendredi, samedi, dimanche et lundi), il est placé **directement au début**, avant le calendrier :
+   - On ne met **PLUS** le message classique (« Vă împărtășim cu bucurie programul acestei săptămâni. Detaliile despre evenimente le găsiți mai jos în acest e-mail, după calendar. Vă așteptăm cu drag să fim împreună în Casa Domnului! »).
+   - On met directement l'événement lui-même en tête dans cet ordre strict :
+     - **Titre de l'événement** en grand (`.h1`, ex: `Invitați: Matei Trif și Nicu Iurian`)
+     - **Date & Heure** : s'il n'y a qu'une seule date, la mettre en sous-titre sobre (`.t-accent`, ex: `Marți, 17 Noiembrie, 20:00 la 21:30`). Mais s'il est là plusieurs fois cette semaine, **ne PAS mettre de récapitulatif des dates** (les dates sont déjà toutes détaillées dans le calendrier, aucune liste redondante).
+     - **Salutation** ensuite : `Pacea Domnului, dragi frați și surori,` placée **au-dessus du texte de présentation** (donc en-dessous du titre de l'événement).
+     - **Texte de présentation** fraternel et naturel.
+   - **Après le calendrier** : aucun événement réaffiché (zéro répétition, pas de Section 6).
+   - **Quand utiliser le message classique avec détails ?** Le message classique (« Vă împărtășim cu bucurie programul acestei săptămâni. Detaliile despre evenimente le găsiți mai jos în acest e-mail, după calendar. Vă așteptăm cu drag să fim împreună în Casa Domnului! ») et le bouton vers le site en haut ne s'utilisent **QUE lorsqu'il y a au moins 2 événements DIFFÉRENTS** dans la semaine. Dans ce cas, les événements sont détaillés sous le calendrier (sans récapitulatif de dates sous forme de liste à puces si un événement a plusieurs occurrences).
 
 2. **Aucun verset sans demande expresse** :
    - Ne **JAMAIS** ajouter de verset biblique dans la newsletter **sauf si l'utilisateur le demande explicitement**.

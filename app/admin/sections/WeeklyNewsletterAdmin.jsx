@@ -381,7 +381,7 @@ export default function WeeklyNewsletterAdmin({ onDirtyChange }) {
             <section className="wn-card wn-fields">
                 {preview?.headlineOptions?.length > 0 && (
                     <label className="wn-label">
-                        Evenimentul principal <span className="wn-optional">imaginea de sus și subiectul</span>
+                        Evenimentul principal
                         <select className="wn-input" value={draft.headlineKey || preview.headlineKey} onChange={(e) => updateDraft("headlineKey", e.target.value)}>
                             {preview.headlineOptions.map((o) => (
                                 <option key={o.key} value={o.key}>{o.title}{o.hasImage ? "" : " (fără imagine)"}</option>
