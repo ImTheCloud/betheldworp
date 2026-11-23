@@ -80,13 +80,14 @@ function capitalizeMonth(s) {
 //   ANULAT     rouge  annulé
 //   MUTAT      jaune  remplace l'activité habituelle à la même heure, venu d'un autre jour
 //   MODIFICAT  jaune  titre ou heure changés sur place
-//   ADĂUGAT    vert   programme ajouté à une heure où le créneau n'avait rien
+//   PROGRAM SPECIAL  vert  programme en plus du programme habituel (« Adăugat » seul
+//                    ne disait pas ce qui était ajouté, choix du 22 nov 2026)
 //   ANUNȚ      bleu   événement, invité ou annonce (ex. la chorale partie à Graz)
 
 const BADGES = {
     moved: { label: "MUTAT", cls: "badge-mut", bg: "#fcf1da", border: "#f0c76a", color: "#92600a" },
     changed: { label: "MODIFICAT", cls: "badge-mut", bg: "#fcf1da", border: "#f0c76a", color: "#92600a" },
-    extra: { label: "ADĂUGAT", cls: "badge-nou", bg: "#e3f5e9", border: "#86efac", color: "#15803d" },
+    extra: { label: "PROGRAM SPECIAL", cls: "badge-nou", bg: "#e3f5e9", border: "#86efac", color: "#15803d" },
     event: { label: "ANUNȚ", cls: "badge-ev", bg: "#dde9fb", border: "#93b4ef", color: "#0f4c8a" },
     cancelled: { label: "ANULAT", cls: "badge-an", bg: "#fdecec", border: "#f3b4b4", color: "#b91c1c" },
     movedFrom: { label: "ANULAT", cls: "badge-an", bg: "#fdecec", border: "#f3b4b4", color: "#b91c1c" },
@@ -95,7 +96,7 @@ const BADGES = {
 function badge(status, marginLeft = 6) {
     const b = BADGES[status];
     if (!b) return "";
-    return `<span class="${b.cls}" style="display:inline-block;margin-left:${marginLeft}px;padding:2px 8px;border-radius:999px;background-color:${b.bg};border:1px solid ${b.border};color:${b.color};font-size:10px;font-weight:900;letter-spacing:0.6px;line-height:1.4;vertical-align:2px;">${b.label}</span>`;
+    return `<span class="${b.cls}" style="display:inline-block;margin-left:${marginLeft}px;padding:2px 8px;border-radius:999px;background-color:${b.bg};border:1px solid ${b.border};color:${b.color};font-size:10px;font-weight:900;letter-spacing:0.6px;line-height:1.4;vertical-align:2px;white-space:nowrap;">${b.label}</span>`;
 }
 
 // ── Boîte du jour ──

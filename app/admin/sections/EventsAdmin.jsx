@@ -275,6 +275,22 @@ function timeChangeFields(draft, newTime, slots, isOverrideActive, mode) {
     return fields;
 }
 
+/**
+ * New date: a time typed by hand is kept and decides the mode. A time that only
+ * came from the usual slots of the previous day (or from several slots) is
+ * replaced by the usual times of the new day.
+ */
+function dateChangeFields(draft, newDate, mode, keepExtra = false) {
+    const slots = dateToSlots(newDate);
+    if (!slots.length) return {};
+    const time = safeStr(draft?.time).trim();
+    const wasUsual = !parseRanges(time) || time.includes("&")
+        || dateToSlots(draft?.dateEvent).some((s) => s.defaultTime === time);
+    if (wasUsual && mode !== "extra") return overrideModeFields("replace", slots, "");
+    const next = keepExtra || draft?.overrideModeTouched ? mode : (suggestOverrideMode(time, slots) || mode);
+    return overrideModeFields(next, slots, time);
+}
+
 function OverrideSection({ draft, availableSlots, selectedSlotIds, currentSlotTimes, isOverrideActive, mode, set }) {
     const isExtra = mode === "extra";
     const spansDays = !!draft?.endDate && draft.endDate > safeStr(draft?.dateEvent);
@@ -525,7 +541,7 @@ function EventCard({ item, expanded, draft, saveState, activeLang, onToggle, onL
                                     const newDate = e.target.value;
                                     set("dateEvent", newDate);
                                     if (isOverrideActive) {
-                                        const fields = overrideModeFields(mode, dateToSlots(newDate), draft?.time);
+                                        const fields = dateChangeFields(draft, newDate, mode, mode === "extra");
                                         Object.entries(fields).forEach(([k, v]) => set(k, v));
                                     }
                                 }}
@@ -750,15 +766,9 @@ function NewEventCard({ draft, saveState, activeLang, onLangChange, onChangeFiel
                             value={safeStr(draft?.dateEvent)}
                             onChange={(e) => {
                                 const newDate = e.target.value;
-                                const slots = dateToSlots(newDate);
                                 set("dateEvent", newDate);
                                 if (!isOverrideActive && draft?.isOverride === false) return;
-                                // A time already typed that matches no usual slot
-                                // of the new day keeps the event as an extra program.
-                                const keepExtra = mode === "extra" || (!draft?.overrideModeTouched && suggestOverrideMode(draft?.time, slots) === "extra");
-                                const fields = keepExtra
-                                    ? overrideModeFields("extra", slots, draft?.time)
-                                    : overrideModeFields("replace", slots, "");
+                                const fields = dateChangeFields(draft, newDate, mode);
                                 Object.entries(fields).forEach(([k, v]) => set(k, v));
                             }}
                         />
@@ -1180,6 +1190,15 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
             ...d,
             dateEvent: prev.dateEvent,
             endDate: prev.endDate,
+            // Date already chosen: its time and program link stay.
+            ...(prev.dateEvent ? {
+                time: prev.time,
+                slotTimes: prev.slotTimes,
+                isOverride: prev.isOverride,
+                overrideSlots: prev.overrideSlots,
+                overrideMode: prev.overrideMode,
+                overrideModeTouched: prev.overrideModeTouched,
+            } : {}),
         }));
     };
 
@@ -1262,6 +1281,30 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
         const newAlso = Object.fromEntries(Object.entries(base.alsoEvents || {}).map(([k, v]) => [k, Array.isArray(v) ? [...v] : []]));
         const eventExists = (id) => items.some((it) => it.id === id);
         let affected = [...(base.affectedProgramIds || [])];
+        let changed = false;
+
+        // Déplacé dans la même semaine : le nettoyage ci-dessus a modifié ce même
+        // document, mais `overrides` garde l'ancienne version. Sans ceci,
+        // l'écriture finale rattachait de nouveau l'événement à l'ancien jour.
+        if (oldEventId && oldDateStr && oldDateStr !== dateStr && dateToWeekKey(oldDateStr) === wk) {
+            dateToSlotIds(oldDateStr).forEach((s) => {
+                if (newReplacements[s] === oldEventId) {
+                    delete newReplacements[s];
+                    delete newCustomTimes[s];
+                    affected = affected.filter((id) => id !== s);
+                    changed = true;
+                }
+                if (newAlso[s]?.includes(oldEventId)) {
+                    newAlso[s] = newAlso[s].filter((x) => x !== oldEventId);
+                    if (!newAlso[s].length) delete newAlso[s];
+                    changed = true;
+                }
+                if (newAdditions[s] === oldEventId) {
+                    delete newAdditions[s];
+                    changed = true;
+                }
+            });
+        }
 
         const chosenSlots = isOverride
             ? (Array.isArray(targetSlotIds) ? targetSlotIds : daySlotIds)
@@ -1270,8 +1313,6 @@ export default function EventsAdmin({ onCreateOverride, onDirtyChange }) {
         // An extra program never takes a slot's place.
         const selectedSlots = isExtra ? [] : chosenSlots;
         const slotTimesMap = targetSlotTimes || {};
-
-        let changed = false;
 
         daySlotIds.forEach((slotId) => {
             const alsoHere = newAlso[slotId] || [];

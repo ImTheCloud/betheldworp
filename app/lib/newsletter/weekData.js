@@ -255,11 +255,11 @@ export async function loadWeek(weekKey) {
         if (!ev) return;
         const gk = normalizeActivityTitle(ev.title) || ev.id;
         if (!groups.has(gk)) {
-            groups.set(gk, { key: gk, title: ev.title, description: "", image: "", place: "", eventIds: [], occurrences: [] });
+            groups.set(gk, { key: gk, title: ev.title, description: "", descriptions: [], image: "", place: "", eventIds: [], occurrences: [] });
         }
         const g = groups.get(gk);
         if (!g.eventIds.includes(ev.id)) g.eventIds.push(ev.id);
-        if (!g.description && ev.description) g.description = ev.description;
+        if (ev.description && !g.descriptions.includes(ev.description)) g.descriptions.push(ev.description);
         if (!g.image && ev.image) g.image = absoluteImage(ev.image);
         if (!g.place && ev.place && !/bethel/i.test(ev.place)) g.place = ev.place;
         let occ = g.occurrences.find((o) => o.dayIndex === r.dayIndex);
@@ -270,8 +270,9 @@ export async function loadWeek(weekKey) {
         r.times.forEach((x) => { if (!occ.times.includes(x)) occ.times.push(x); });
         if (r.until) occ.untilNote = r.until;
     });
-    const eventGroups = [...groups.values()].map((g) => ({
+    const eventGroups = [...groups.values()].map(({ descriptions, ...g }) => ({
         ...g,
+        description: mergeDescriptions(descriptions),
         occurrences: g.occurrences.sort((a, b) => a.dayIndex - b.dayIndex),
         firstDay: Math.min(...g.occurrences.map((o) => o.dayIndex)),
     })).sort((a, b) => (a.firstDay - b.firstDay) || (Number(!a.image) - Number(!b.image)));
@@ -287,4 +288,38 @@ export async function loadWeek(weekKey) {
         changes: rows.filter((r) => r.inSummary && ["cancelled", "movedFrom", "moved", "changed"].includes(r.status)),
         eventGroups,
     };
+}
+
+/**
+ * Un seul texte pour un groupe d'événements (les mêmes invités vendredi,
+ * samedi et dimanche). Chaque événement dit son jour (« vineri seara, în seara
+ * de rugăciune ») ; l'e-mail les annonce ensemble, dates et heures juste
+ * au-dessus. Les paragraphes identiques restent ; dans un paragraphe qui ne
+ * diffère que par sa fin, on garde le début commun :
+ * « …prin Cuvântul lui Dumnezeu și prin cântare. » (choix du 22 nov 2026).
+ * Si les textes sont vraiment différents, on garde le premier.
+ */
+export function mergeDescriptions(descriptions) {
+    const list = (descriptions || []).map((d) => safeStr(d).trim()).filter(Boolean);
+    if (list.length <= 1) return list[0] || "";
+    const split = (d) => d.split(/\n\s*\n/).map((p) => p.trim());
+    const all = list.map(split);
+    if (all.some((ps) => ps.length !== all[0].length)) return list[0];
+    const merged = [];
+    for (let i = 0; i < all[0].length; i++) {
+        const paras = all.map((ps) => ps[i]);
+        if (paras.every((p) => p === paras[0])) {
+            merged.push(paras[0]);
+            continue;
+        }
+        const words = paras.map((p) => p.split(/\s+/));
+        let n = 0;
+        while (words.every((w) => n < w.length && w[n] === words[0][n])) n++;
+        const shortest = Math.min(...words.map((w) => w.length));
+        // Le début commun doit porter l'essentiel de la phrase.
+        if (n < shortest * 0.6) return list[0];
+        const common = words[0].slice(0, n).join(" ").replace(/[\s,;:–-]+$/, "");
+        merged.push(/[.!?]$/.test(common) ? common : `${common}.`);
+    }
+    return merged.join("\n\n");
 }
