@@ -260,6 +260,17 @@ export default function WeeklyNewsletterAdmin({ onDirtyChange }) {
     const isLate = sends.length > 0;
     const recipients = status?.recipients ?? 0;
 
+    // La pastille dit ce qui s'est vraiment passé : « trimis » dès qu'un envoi
+    // existe, « de trimis » seulement pour la semaine à envoyer encore non partie.
+    // Rien tant que l'état n'est pas lu.
+    const weekChip = !status
+        ? null
+        : sends.length > 0
+            ? <span className="wn-chip wn-chip--done">trimis</span>
+            : weekKey === defaultWeekKey()
+                ? <span className="wn-chip">de trimis</span>
+                : null;
+
     const sendLabel = !status
         ? "Trimite newsletter-ul"
         : recipients === 0
@@ -276,7 +287,7 @@ export default function WeeklyNewsletterAdmin({ onDirtyChange }) {
                     <button type="button" className="wn-weekBtn" onClick={() => setWeekKey((w) => shiftWeek(w, -1))} aria-label="Săptămâna precedentă">‹</button>
                     <div className="wn-weekText">
                         <div className="wn-weekRange">{weekLabel}</div>
-                        <div className="wn-weekKey">{weekKey}{weekKey === defaultWeekKey() && <span className="wn-chip">de trimis</span>}</div>
+                        <div className="wn-weekKey">{weekKey}{weekChip}</div>
                     </div>
                     <button type="button" className="wn-weekBtn" onClick={() => setWeekKey((w) => shiftWeek(w, 1))} aria-label="Săptămâna următoare">›</button>
                 </div>

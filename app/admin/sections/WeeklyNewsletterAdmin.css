@@ -78,6 +78,11 @@
     font-weight: 800;
 }
 
+.wn-chip--done {
+    background: #e3f5e9;
+    color: #15803d;
+}
+
 .wn-card p {
     margin: 0;
 }
