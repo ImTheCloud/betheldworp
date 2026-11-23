@@ -11,7 +11,7 @@
 // le texte.
 
 import crypto from "node:crypto";
-import { DAY_NAMES, SITE, SPECIAL_PROGRAM, dayMonth } from "./weekData";
+import { DAY_NAMES, SITE, SPECIAL_PROGRAM, dayMonth, rangeLabel } from "./weekData";
 
 const BLUE = "#0f4c8a";
 
@@ -241,18 +241,51 @@ function occurrenceLine(o) {
     return `<div>${escapeHtml(when)}${times}${until}</div>${programNote(o.programs)}`;
 }
 
-function occurrencesHtml(group) {
-    const place = group.place ? `<div>${escapeHtml(group.place)}</div>` : "";
-    if (group.occurrences.length < 2) return group.occurrences.map(occurrenceLine).join("") + place;
-    // Plusieurs dates : une puce chacune. Un tableau, pas une liste : les marges
-    // des listes changent d'une messagerie à l'autre.
-    const rows = group.occurrences.map((o) => `<tr>
+// Un tableau, pas une liste : les marges des listes changent d'une messagerie à
+// l'autre.
+function bulletList(items) {
+    const rows = items.map((item) => `<tr>
 <td class="t-body" width="14" valign="top" style="width:14px;padding:0;font-size:13px;font-weight:800;line-height:1.6;color:#475569;">&bull;</td>
-<td class="t-body" valign="top" style="padding:0;font-size:13px;font-weight:800;line-height:1.6;color:#475569;">${occurrenceLine(o)}</td>
+<td class="t-body" valign="top" style="padding:0;font-size:13px;font-weight:800;line-height:1.6;color:#475569;">${item}</td>
 </tr>`).join("\n");
     return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;font-family:Arial,Helvetica,sans-serif;">
 ${rows}
-</table>${place}`;
+</table>`;
+}
+
+function occurrencesHtml(group) {
+    const place = group.place ? `<div>${escapeHtml(group.place)}</div>` : "";
+    if (group.occurrences.length < 2) return group.occurrences.map(occurrenceLine).join("") + place;
+    return bulletList(group.occurrences.map(occurrenceLine)) + place;
+}
+
+// ── Annonce de tous les événements, en haut ──
+
+const COUNTS = ["", "un", "două", "trei", "patru", "cinci", "șase", "șapte", "opt", "nouă", "zece"];
+
+function countEvents(n) {
+    return `${COUNTS[n] || n} ${n === 1 ? "eveniment" : "evenimente"}`;
+}
+
+// Un événement de la liste : quand, puis quoi. Plusieurs dates tiennent en une
+// ligne, leur détail est dans la partie de l'événement.
+function summaryItem(group) {
+    const occ = group.occurrences;
+    const phrase = daysPhrase(group);
+    const when = occ.length > 1
+        ? `<div>${escapeHtml(`${phrase.charAt(0).toUpperCase()}${phrase.slice(1)}, ${capitalizeMonth(rangeLabel(occ[0].date, occ[occ.length - 1].date))}`)}</div>`
+        : occurrenceLine({ ...occ[0], programs: [] });
+    const place = group.place ? `<div class="t-muted" style="font-weight:400;color:#64748b;">${escapeHtml(group.place)}</div>` : "";
+    return `${when}<div class="t-head" style="font-size:15px;font-weight:700;color:#0f172a;line-height:1.45;">${escapeHtml(group.title)}</div>${place}<div style="height:10px;line-height:10px;font-size:0;">&nbsp;</div>`;
+}
+
+// Dans l'ordre de la semaine ; à heure égale, l'événement en tête d'abord.
+function chronological(groups, headline) {
+    const start = (g) => {
+        const m = String(g.occurrences[0].times[0] || "").match(/(\d{1,2}):(\d{2})/);
+        return g.occurrences[0].dayIndex * 1440 + (m ? Number(m[1]) * 60 + Number(m[2]) : 1439);
+    };
+    return [...groups].sort((a, b) => (start(a) - start(b)) || (Number(b === headline) - Number(a === headline)));
 }
 
 function bodyParagraphs(list, firstPadTop = 0) {
@@ -268,7 +301,7 @@ function imageRow(src, alt) {
 </tr>`;
 }
 
-function secondaryEventHtml(group) {
+function secondaryEventHtml(group, label) {
     const img = group.image
         ? `<div style="padding-top:16px;"><img class="img-round" src="${escapeHtml(group.image)}" width="576" alt="${escapeHtml(group.title)}" style="display:block;width:100%;max-width:576px;height:auto;border:0;border-radius:12px;" /></div>`
         : "";
@@ -276,7 +309,7 @@ function secondaryEventHtml(group) {
     return `<tr>
 <td class="px" style="padding:34px 32px 0;font-family:Arial,Helvetica,sans-serif;">
 <div class="rule" style="border-top:1px solid ${RULE};padding-top:30px;">
-<div class="t-accent" style="font-size:11px;font-weight:900;color:${BLUE};letter-spacing:1.5px;text-transform:uppercase;">Tot în această săptămână</div>
+${label ? `<div class="t-accent" style="font-size:11px;font-weight:900;color:${BLUE};letter-spacing:1.5px;text-transform:uppercase;">${label}</div>` : ""}
 <div class="h2 t-head" style="font-size:21px;font-weight:900;color:#0f172a;padding-top:5px;line-height:1.3;">${escapeHtml(group.title)}</div>
 <div class="t-body" style="font-size:13px;font-weight:800;color:#475569;padding-top:4px;line-height:1.6;">${occurrencesHtml(group)}</div>
 ${img}
@@ -296,12 +329,16 @@ function daysPhrase(group) {
 
 export function defaultSubject(week, headline) {
     const base = `Programul săptămânii (${week.range})`;
-    return headline ? `${base} ${headline.title}` : base;
+    if (!headline) return base;
+    const more = week.eventGroups.length - 1;
+    return `${base} ${headline.title}${more > 0 ? ` + ${more} ${more === 1 ? "eveniment" : "evenimente"}` : ""}`;
 }
 
 export function defaultPreheader(week, headline) {
     const parts = [];
-    if (headline) parts.push(`${headline.title}, ${daysPhrase(headline)}.`);
+    // Tous les événements, pas seulement celui en tête.
+    const announced = week.eventGroups.length > 1 ? chronological(week.eventGroups, headline) : headline ? [headline] : [];
+    if (announced.length) parts.push(`${announced.map((g) => `${g.title}, ${daysPhrase(g)}`).join("; ")}.`);
     if (week.changes.length) parts.push("Atenție la schimbările din program.");
     parts.push(`Programul complet al bisericii Bethel Dworp, ${week.range}.`);
     return parts.join(" ");
@@ -418,12 +455,20 @@ export function renderNewsletter(week, options = {}) {
 </table>`
         : "";
 
-    const headTitle = headline ? headline.title : "Programul săptămânii";
+    // Plusieurs événements : tous annoncés en haut. Sans cela, qui ne lisait que
+    // le début croyait qu'il n'y avait que l'événement en tête (23 nov 2026).
+    const summary = week.eventGroups.length > 1 ? chronological(week.eventGroups, headline) : [];
+    const headTitle = summary.length ? "Evenimentele săptămânii" : headline ? headline.title : "Programul săptămânii";
+    const summaryHtml = summary.length
+        ? `${bodyParagraphs([`Săptămâna aceasta avem ${countEvents(summary.length)}:`])}
+<div style="padding:14px 0 6px;">${bulletList(summary.map(summaryItem))}</div>
+${headline?.description ? `<div class="rule" style="border-top:1px solid ${RULE};padding-top:22px;"><div class="h2 t-head" style="font-size:21px;font-weight:900;color:#0f172a;line-height:1.3;padding-bottom:10px;">${escapeHtml(headline.title)}</div></div>` : ""}`
+        : "";
     // Plusieurs dates : la liste entre dans la lettre, après l'annonce (salutation,
     // qui vient, quand, « vă așteptăm »). Au-dessus de la salutation, elle faisait
     // un bloc à part (23 nov 2026). Une seule date reste sous le titre.
     const datesInLetter = !!headline?.description && headline.occurrences.length > 1 && introText.length > 0;
-    const headDate = headline && !datesInLetter
+    const headDate = headline && !datesInLetter && !summary.length
         ? `<div class="t-body" style="font-size:13px;font-weight:800;color:#475569;padding-bottom:18px;line-height:1.6;">${occurrencesHtml(headline)}</div>`
         : `<div style="height:14px;line-height:14px;font-size:0;">&nbsp;</div>`;
 
@@ -487,6 +532,7 @@ ${imageRow(heroImage, heroAlt)}
 <div class="h1 t-head" style="font-size:23px;font-weight:900;color:#0f172a;line-height:1.3;padding-bottom:4px;">${escapeHtml(headTitle)}</div>
 ${headDate}
 <div class="t-head" style="font-size:16px;font-weight:800;color:#0f172a;line-height:1.4;padding-bottom:10px;">${escapeHtml(GREETING)}</div>
+${summaryHtml}
 ${datesInLetter
         ? `${bodyParagraphs(introText.slice(0, 1))}
 <div class="t-body" style="font-size:13px;font-weight:800;color:#475569;padding:14px 0 10px;line-height:1.6;">${occurrencesHtml(headline)}</div>
@@ -515,7 +561,7 @@ ${calendarHtml(week.days)}
 ${sequelHtml(week.nextDays)}
 
 <!-- 6. AUTRES ÉVÉNEMENTS -->
-${others.map(secondaryEventHtml).join("\n")}
+${others.map((g, i) => secondaryEventHtml(g, summary.length ? (i ? "" : "Mai multe detalii") : "Tot în această săptămână")).join("\n")}
 
 <!-- 7. BOUTON -->
 <tr>
