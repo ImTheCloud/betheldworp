@@ -110,11 +110,6 @@ export async function listAllLists() {
     return lists;
 }
 
-export async function getList(listId) {
-    const res = await brevoFetch(`/contacts/lists/${listId}`);
-    return res.ok ? res.body : null;
-}
-
 export async function listEmailsOfList(listId) {
     const emails = [];
     for (let offset = 0; offset < 20000; offset += 500) {
@@ -180,6 +175,12 @@ export async function createCampaign({ name, subject, previewText, htmlContent, 
 
 export function sendCampaignNow(campaignId) {
     return brevoFetch(`/emailCampaigns/${campaignId}/sendNow`, { method: "POST" });
+}
+
+/** Campagne et chiffres d'envoi, sans le HTML ; null si Brevo ne répond pas. */
+export async function getCampaign(campaignId) {
+    const res = await brevoFetch(`/emailCampaigns/${campaignId}?statistics=globalStats&excludeHtmlContent=true`);
+    return res.ok ? res.body : null;
 }
 
 export function sendCampaignTest(campaignId, emailTo) {

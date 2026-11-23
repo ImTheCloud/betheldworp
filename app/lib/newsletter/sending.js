@@ -19,7 +19,7 @@ import { listDocuments, patchDocument, getDocument } from "../firestoreRest";
 import {
     addContactToList, addEmailsToList, createCampaign, createList, deleteCampaign, deleteList, ensureFolder,
     getContact, getListId, isBlockedForNewsletter, listAllLists, listContactsOfList, listEmailsOfList,
-    sendCampaignNow, sendCampaignTest, sendTransactional,
+    getCampaign, sendCampaignNow, sendCampaignTest, sendTransactional,
 } from "../brevo";
 import { isValidEmail, normalizeEmail } from "../validation";
 
@@ -126,6 +126,37 @@ export async function readIssue(weekKey, token) {
         console.error("newsletter_issues read failed:", err);
         return null;
     }
+}
+
+/**
+ * Où en est vraiment un envoi chez Brevo. sendNow ne fait que confier la
+ * campagne : Brevo l'a gardée « en cours » 13 minutes le 23 nov 2026.
+ *   "sending"  pas fini          "done"  terminé
+ *   "stopped"  suspendu, annulé  null    inconnu (Brevo muet, envoi sans trace)
+ */
+async function deliveryOf(entry) {
+    if (!entry?.campaignId) return null;
+    const campaign = await getCampaign(entry.campaignId).catch(() => null);
+    if (!campaign?.status) return null;
+    const status = String(campaign.status).toLowerCase().replace(/[^a-z]/g, "");
+    const state = ["sent", "archive"].includes(status)
+        ? "done"
+        : ["queued", "inprocess", "inreview"].includes(status) ? "sending" : "stopped";
+    // Par liste : le total global compte aussi les e-mails de test.
+    const stats = (campaign.statistics?.campaignStats || []).find((s) => s.listId === entry.listId) || campaign.statistics?.globalStats || {};
+    return {
+        state,
+        delivered: Number(stats.delivered) || 0,
+        bounced: (Number(stats.softBounces) || 0) + (Number(stats.hardBounces) || 0),
+    };
+}
+
+/** Les envois d'une semaine, avec leur état chez Brevo. */
+export async function withDelivery(sends, history) {
+    return Promise.all(sends.map(async (s) => ({
+        ...s,
+        delivery: await deliveryOf(history.find((h) => h.listId === s.listId)),
+    })));
 }
 
 async function recordSend(weekKey, token, entry) {

@@ -83,6 +83,16 @@
     color: #15803d;
 }
 
+.wn-chip--sending {
+    background: #fcf1da;
+    color: #92600a;
+}
+
+.wn-chip--stopped {
+    background: #fdecec;
+    color: #b91c1c;
+}
+
 .wn-card p {
     margin: 0;
 }
@@ -276,6 +286,31 @@
     width: 100%;
     border: 1px solid rgba(10, 42, 67, 0.1);
     border-radius: 12px;
+}
+
+/* Largeur d'un téléphone courant : l'e-mail y prend sa mise en page mobile. */
+.wn-frame--phone {
+    width: 375px;
+    max-width: 100%;
+    margin: 0 auto;
+    border-radius: 28px;
+    border-width: 6px;
+    border-color: #0a2a43;
+    box-sizing: content-box;
+}
+
+@media (max-width: 700px) {
+    /* Sur un téléphone, l'aperçu est déjà celui d'un téléphone. */
+    .wn-toggle--device {
+        display: none;
+    }
+
+    .wn-frame--phone {
+        width: 100%;
+        border: 1px solid rgba(10, 42, 67, 0.1);
+        border-radius: 12px;
+        box-sizing: border-box;
+    }
 }
 
 .wn-spinner {

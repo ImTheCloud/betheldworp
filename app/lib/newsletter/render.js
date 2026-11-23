@@ -32,11 +32,8 @@ function timeHtml(label) {
 }
 
 function timesHtml(labels) {
-    return (labels || []).map(timeHtml).join(" și ");
-}
-
-function timesText(labels) {
-    return (labels || []).map((l) => String(l).split(/\s*[-–—]\s*/).map((x) => x.trim()).join(" la ")).join(" și ");
+    // Une plage ne se coupe pas : la ligne casse avant « și », pas dans l'heure.
+    return (labels || []).map((l, i) => `<span style="white-space:nowrap;">${i ? "și " : ""}${timeHtml(l)}</span>`).join(" ");
 }
 
 // Formule de salutation officielle (novembre 2026), la même que dans le texte
@@ -93,11 +90,15 @@ const BADGES = {
     movedFrom: { label: "ANULAT", cls: "badge-an", bg: "#fdecec", border: "#f3b4b4", color: "#b91c1c" },
 };
 
-function badge(status, marginLeft = 6) {
+function badge(status) {
     const b = BADGES[status];
     if (!b) return "";
-    return `<span class="${b.cls}" style="display:inline-block;margin-left:${marginLeft}px;padding:2px 8px;border-radius:999px;background-color:${b.bg};border:1px solid ${b.border};color:${b.color};font-size:10px;font-weight:900;letter-spacing:0.6px;line-height:1.4;vertical-align:2px;white-space:nowrap;">${b.label}</span>`;
+    return `<span class="${b.cls}" style="display:inline-block;padding:2px 8px;border-radius:999px;background-color:${b.bg};border:1px solid ${b.border};color:${b.color};font-size:10px;font-weight:900;letter-spacing:0.6px;line-height:1.4;vertical-align:1px;white-space:nowrap;">${b.label}</span>`;
 }
+
+// Séparateurs : un gris moyen. Le gris très clair d'avant, inversé par le mode
+// sombre de certaines messageries, devenait presque noir.
+const RULE = "#cbd5e1";
 
 // ── Boîte du jour ──
 
@@ -124,39 +125,41 @@ function chipKind(status) {
     return "s";
 }
 
-// La boîte est une cellule : elle prend la hauteur du texte voisin, qu'il tienne
-// sur deux lignes ou sur cinq (« În cadrul programului… » sur téléphone). Un
-// bloc posé dans la cellule restait plus court que le texte.
-function dayChip(kind, dayName, dateUTC) {
+// Hauteur fixe : deux lignes de texte, ou trois quand il y a une note. Une boîte
+// étirée à la hauteur du texte devenait immense sur téléphone (23 nov 2026).
+function dayChip(kind, dayName, dateUTC, tall) {
     const c = CHIPS[kind];
-    return `<td class="${c.cls}" width="52" valign="middle" align="center" style="width:52px;background-color:${c.bg};border:1px solid ${c.border};border-radius:10px;padding:6px 0 5px;text-align:center;">
-<div class="${c.cls}-lbl" style="width:52px;font-size:8px;font-weight:900;color:${c.lbl};letter-spacing:0.2px;line-height:1.1;white-space:nowrap;text-transform:uppercase;">${escapeHtml(dayName.toUpperCase())}</div>
+    const pad = tall ? "13px 0" : "6px 0 5px";
+    return `<div class="${c.cls}" style="width:52px;background-color:${c.bg};border:1px solid ${c.border};border-radius:10px;padding:${pad};text-align:center;">
+<div class="${c.cls}-lbl" style="font-size:8px;font-weight:900;color:${c.lbl};letter-spacing:0.2px;line-height:1.1;white-space:nowrap;text-transform:uppercase;">${escapeHtml(dayName.toUpperCase())}</div>
 <div class="${c.cls}-num" style="font-size:19px;font-weight:900;color:${c.num};line-height:1.15;padding-top:1px;">${dateUTC.getUTCDate()}</div>
-</td>`;
+</div>`;
 }
 
-function dayRow(kind, day, isLast, content, { cls = "", valign = "top", style = "" } = {}) {
+function dayRow(kind, day, isLast, content, { tall = false, cls = "", valign = "top", style = "" } = {}) {
+    const border = isLast ? "" : `border-bottom:1px solid ${RULE};`;
+    const pad = isLast ? "14px 0 6px" : "14px 0";
     return `<tr>
-<td class="rule" style="padding:${isLast ? "14px 0 6px" : "14px 0"};${isLast ? "" : "border-bottom:1px solid #eef2f6;"}">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate;border-spacing:0;">
-<tr>
-${dayChip(kind, day.name, day.date)}
-<td${cls ? ` class="${cls}"` : ""} valign="${valign}" style="padding:0 0 0 12px;${style}">${content}</td>
-</tr>
-</table>
-</td>
+<td class="rule" width="56" valign="top" style="padding:${pad};${border}">${dayChip(kind, day.name, day.date, tall)}</td>
+<td class="rule${cls ? ` ${cls}` : ""}" valign="${valign}" style="padding:${isLast ? "14px 0 6px 12px" : "14px 0 14px 12px"};${border}${style}">${content}</td>
 </tr>`;
 }
 
-// Une ligne : le titre (en couleur), puis l'heure, puis la note.
+// Une ligne : le titre (en couleur), puis l'heure et la pastille, puis la note.
+// La pastille suit l'heure, toujours courte : après le titre, elle passait à la
+// ligne sur téléphone.
 function calendarRow(day, row, isLast) {
     const kind = chipKind(row.status);
     const c = CHIPS[kind];
     const titleWeight = kind === "n" ? 600 : 700;
+    const tag = badge(row.status);
 
-    const title = `<div class="${c.titleCls}" style="font-size:15px;color:${c.title};font-weight:${titleWeight};line-height:1.45;">${escapeHtml(row.title)}${badge(row.status, 6)}</div>`;
-    const time = row.times.length
-        ? `<div class="t-time" style="font-size:13px;font-weight:700;color:#475569;letter-spacing:0.3px;padding-top:2px;"><span class="no-detect" style="color:inherit !important;text-decoration:none !important;">${timesHtml(row.times)}</span></div>`
+    const title = `<div class="${c.titleCls}" style="font-size:15px;color:${c.title};font-weight:${titleWeight};line-height:1.45;">${escapeHtml(row.title)}</div>`;
+    const times = row.times.length
+        ? `<span class="no-detect" style="color:inherit !important;text-decoration:none !important;">${timesHtml(row.times)}</span>`
+        : "";
+    const time = times || tag
+        ? `<div class="t-time" style="font-size:13px;font-weight:700;color:#475569;letter-spacing:0.3px;padding-top:2px;">${times}${times && tag ? "&nbsp; " : ""}${tag}</div>`
         : "";
     const note = row.note
         ? `<div class="t-muted" style="font-size:13px;color:#64748b;padding-top:2px;line-height:1.45;">${escapeHtml(row.note)}</div>`
@@ -166,7 +169,7 @@ function calendarRow(day, row, isLast) {
 ${title}
 ${time}
 ${note}
-`);
+`, { tall: !!row.note && !!time });
 }
 
 // Un jour sans aucun créneau (pause d'été qui n'est pas affichée, par exemple)
@@ -194,7 +197,7 @@ function sequelHtml(days) {
     if (!days?.length) return "";
     return `<tr>
 <td class="px" style="padding:20px 32px 0;font-family:Arial,Helvetica,sans-serif;">
-<div class="rule" style="border-top:1px solid #e2e8f0;padding-top:20px;">
+<div class="rule" style="border-top:1px solid ${RULE};padding-top:20px;">
 <div class="t-accent" style="font-size:11px;font-weight:900;color:${BLUE};letter-spacing:1.5px;text-transform:uppercase;">Continuă săptămâna viitoare</div>
 </div>
 </td>
@@ -242,9 +245,17 @@ function occurrenceLine(o) {
 }
 
 function occurrencesHtml(group) {
-    const lines = group.occurrences.map(occurrenceLine);
-    if (group.place) lines.push(`<div>${escapeHtml(group.place)}</div>`);
-    return lines.join("");
+    const place = group.place ? `<div>${escapeHtml(group.place)}</div>` : "";
+    if (group.occurrences.length < 2) return group.occurrences.map(occurrenceLine).join("") + place;
+    // Plusieurs dates : une puce chacune. Un tableau, pas une liste : les marges
+    // des listes changent d'une messagerie à l'autre.
+    const rows = group.occurrences.map((o) => `<tr>
+<td class="t-body" width="14" valign="top" style="width:14px;padding:0;font-size:13px;font-weight:800;line-height:1.6;color:#475569;">&bull;</td>
+<td class="t-body" valign="top" style="padding:0;font-size:13px;font-weight:800;line-height:1.6;color:#475569;">${occurrenceLine(o)}</td>
+</tr>`).join("\n");
+    return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;font-family:Arial,Helvetica,sans-serif;">
+${rows}
+</table>${place}`;
 }
 
 function bodyParagraphs(list, firstPadTop = 0) {
@@ -267,7 +278,7 @@ function secondaryEventHtml(group) {
     const text = paragraphs(stripGreeting(group.description));
     return `<tr>
 <td class="px" style="padding:34px 32px 0;font-family:Arial,Helvetica,sans-serif;">
-<div class="rule" style="border-top:1px solid #e2e8f0;padding-top:30px;">
+<div class="rule" style="border-top:1px solid ${RULE};padding-top:30px;">
 <div class="t-accent" style="font-size:11px;font-weight:900;color:${BLUE};letter-spacing:1.5px;text-transform:uppercase;">Tot în această săptămână</div>
 <div class="h2 t-head" style="font-size:21px;font-weight:900;color:#0f172a;padding-top:5px;line-height:1.3;">${escapeHtml(group.title)}</div>
 <div class="t-body" style="font-size:13px;font-weight:800;color:#475569;padding-top:4px;line-height:1.6;">${occurrencesHtml(group)}</div>
@@ -332,7 +343,7 @@ a[x-apple-data-detectors],a[href^="x-apple-data-detectors"],[x-apple-data-detect
 .t-muted{color:#8a97a8 !important;}
 .t-accent,.t-accent .no-detect,.t-accent a,.t-accent a:link,.t-accent a:visited{color:#93c5fd !important;}
 .t-cancel,.t-cancel .no-detect,.t-cancel a,.t-cancel a:link,.t-cancel a:visited{color:#f87171 !important;}
-.rule{border-color:#2e2e2e !important;}
+.rule{border-color:#4a4a4a !important;}
 .chip-n{background-color:#2a2a2a !important;border-color:#3e3e3e !important;color:#cbd5e1 !important;}
 .chip-n-lbl{color:#94a3b8 !important;}
 .chip-n-num{color:#f1f5f9 !important;}
@@ -359,6 +370,7 @@ a[x-apple-data-detectors],a[href^="x-apple-data-detectors"],[x-apple-data-detect
 [data-ogsc] .t-head,[data-ogsc] .t-head .no-detect,[data-ogsb] .t-head,[data-ogsb] .t-head .no-detect{color:#f1f5f9 !important;}
 [data-ogsc] .t-accent,[data-ogsc] .t-accent a,[data-ogsc] .t-accent .no-detect,[data-ogsb] .t-accent,[data-ogsb] .t-accent a,[data-ogsb] .t-accent .no-detect{color:#93c5fd !important;}
 [data-ogsc] .t-cancel,[data-ogsc] .t-cancel a,[data-ogsc] .t-cancel .no-detect,[data-ogsb] .t-cancel,[data-ogsb] .t-cancel a,[data-ogsb] .t-cancel .no-detect{color:#f87171 !important;}
+[data-ogsc] .rule,[data-ogsb] .rule{border-color:#4a4a4a !important;}
 [data-ogsc] .chip-n,[data-ogsb] .chip-n{background-color:#2a2a2a !important;border-color:#3e3e3e !important;color:#cbd5e1 !important;}
 [data-ogsc] .chip-n-lbl,[data-ogsb] .chip-n-lbl{color:#94a3b8 !important;}
 [data-ogsc] .chip-n-num,[data-ogsb] .chip-n-num{color:#f1f5f9 !important;}
@@ -490,7 +502,7 @@ ${messageBox}
 <!-- 5. CALENDRIER -->
 <tr>
 <td class="px" style="padding:34px 32px 0;font-family:Arial,Helvetica,sans-serif;">
-<div class="rule" style="border-top:1px solid #e2e8f0;padding-top:30px;">
+<div class="rule" style="border-top:1px solid ${RULE};padding-top:30px;">
 <div class="t-accent" style="font-size:11px;font-weight:900;color:${BLUE};letter-spacing:1.5px;text-transform:uppercase;">Calendar</div>
 <div class="h2 t-head" style="font-size:21px;font-weight:900;color:#0f172a;padding-top:5px;line-height:1.3;">Programul Săptămânii</div>
 </div>
@@ -518,7 +530,7 @@ ${others.map(secondaryEventHtml).join("\n")}
 <!-- 8. SALUT FINAL -->
 <tr>
 <td class="px" style="padding:32px 32px 30px;font-family:Arial,Helvetica,sans-serif;">
-<div class="rule t-body" style="border-top:1px solid #e2e8f0;padding-top:26px;font-size:15px;line-height:1.7;color:#475569;">Vă dorim o săptămână binecuvântată și vă așteptăm cu drag la toate programele bisericii!</div>
+<div class="rule t-body" style="border-top:1px solid ${RULE};padding-top:26px;font-size:15px;line-height:1.7;color:#475569;">Vă dorim o săptămână binecuvântată și vă așteptăm cu drag la toate programele bisericii!</div>
 <div class="t-head" style="font-size:15px;font-weight:900;color:#0f172a;padding-top:14px;">Echipa Bethel Dworp</div>
 <div style="padding-top:4px;"><a class="t-accent" href="${SITE}/" style="color:${BLUE};text-decoration:none;font-weight:700;font-size:14px;">www.betheldworp.be</a></div>
 </td>
@@ -560,5 +572,3 @@ ${others.map(secondaryEventHtml).join("\n")}
         images: [heroImage, ...others.map((g) => g.image).filter(Boolean)],
     };
 }
-
-export { timesText };

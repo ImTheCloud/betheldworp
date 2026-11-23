@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAdminContext } from "../../../../lib/adminAuth";
 import { parseOptions } from "../../../../lib/newsletter/build";
-import { computeRecipients, readIssue, sendingAllowed } from "../../../../lib/newsletter/sending";
+import { computeRecipients, readIssue, sendingAllowed, withDelivery } from "../../../../lib/newsletter/sending";
 
 // Où en est la newsletter d'une semaine : envois déjà faits, et qui la
 // recevrait si on appuyait maintenant sur « Trimite ». Ne modifie rien.
@@ -18,6 +18,7 @@ export async function POST(request) {
             computeRecipients(parsed.weekKey, admin.token),
             readIssue(parsed.weekKey, admin.token),
         ]);
+        const history = Array.isArray(issue?.history) ? issue.history : [];
         return NextResponse.json({
             ok: true,
             weekKey: parsed.weekKey,
@@ -27,8 +28,8 @@ export async function POST(request) {
             missingInBrevo: plan.missingInBrevo,
             blocked: plan.blocked,
             onlyInBrevo: plan.onlyInBrevo,
-            sends: plan.sends,
-            history: Array.isArray(issue?.history) ? issue.history : [],
+            sends: await withDelivery(plan.sends, history),
+            history,
             listName: "Newsletter Bethel Dworp",
             sendingAllowed: sendingAllowed(),
             testEmail: process.env.NEWSLETTER_TEST_EMAIL || admin.email || "",

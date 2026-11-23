@@ -73,6 +73,26 @@ const ERRORS = {
     unauthorized: "Sesiunea a expirat. Reconectează-te.",
 };
 
+// Un envoi : confié à Brevo, en cours, terminé (avec les chiffres) ou arrêté.
+function SendLine({ send, at, showNumber }) {
+    const { delivery, count, number } = send;
+    const who = <><b>{plural(count, "abonat", "abonați")}</b>{showNumber ? ` (#${number})` : ""}</>;
+    if (delivery?.state === "sending") {
+        return (
+            <p className="wn-status">
+                <span className="wn-dot wn-dot--todo" />Se trimite la {who}{at ? `, pornit ${formatDateTime(at)}` : ""}. Poate dura un sfert de oră, nu trimite din nou.
+            </p>
+        );
+    }
+    if (delivery?.state === "stopped") {
+        return <p className="wn-error">Trimiterea la {who} a fost oprită în Brevo. Verifică acolo campania.</p>;
+    }
+    const numbers = delivery && (delivery.delivered || delivery.bounced)
+        ? ` ${delivery.delivered} ${delivery.delivered === 1 ? "livrat" : "livrate"}${delivery.bounced ? `, ${delivery.bounced} ${delivery.bounced === 1 ? "respins" : "respinse"}` : ""}.`
+        : "";
+    return <p className="wn-status"><span className="wn-dot wn-dot--done" />Trimis{at ? ` ${formatDateTime(at)}` : ""} la {who}.{numbers}</p>;
+}
+
 export default function WeeklyNewsletterAdmin({ onDirtyChange }) {
     const [weekKey, setWeekKey] = useState(() => weekFromUrl() || defaultWeekKey());
     const [draft, setDraft] = useState({ message: "", headlineKey: "", subject: "", preheader: "" });
@@ -80,16 +100,22 @@ export default function WeeklyNewsletterAdmin({ onDirtyChange }) {
     const [preview, setPreview] = useState(null);
     const [previewError, setPreviewError] = useState("");
     const [loadingPreview, setLoadingPreview] = useState(true);
-    const [status, setStatus] = useState(null);
+    const [statusData, setStatus] = useState(null);
     const [statusError, setStatusError] = useState("");
     // Aperçu en mode sombre par défaut : c'est le réglage de la plupart des téléphones.
     const [dark, setDark] = useState(true);
+    // Presque tous les abonnés lisent sur leur téléphone.
+    const [phone, setPhone] = useState(true);
     const [busy, setBusy] = useState("");
     const [toast, setToast] = useState(null);
     const [confirm, setConfirm] = useState(false);
     const [showDetails, setShowDetails] = useState(false);
     const iframeRef = useRef(null);
     const [frameHeight, setFrameHeight] = useState(900);
+
+    // Une réponse lente pour une autre semaine ne s'affiche jamais.
+    const status = statusData?.weekKey === weekKey ? statusData : null;
+    const sends = status?.sends || [];
 
     useEffect(() => { onDirtyChange?.(false); }, [onDirtyChange]);
 
@@ -241,7 +267,7 @@ export default function WeeklyNewsletterAdmin({ onDirtyChange }) {
                 expectedCount: status.recipients,
             });
             setConfirm(false);
-            if (ok) showToast("ok", `Newsletter trimis la ${plural(data.count, "abonat", "abonați")}.`);
+            if (ok) showToast("ok", `Predat lui Brevo pentru ${plural(data.count, "abonat", "abonați")}. Trimiterea poate dura un sfert de oră.`);
             else showToast("error", ERRORS[data.error] || `Nimic nu a plecat (${data.error}).`);
         } catch {
             showToast("error", "Eroare de rețea. Verifică starea înainte de a reîncerca.");
@@ -251,30 +277,37 @@ export default function WeeklyNewsletterAdmin({ onDirtyChange }) {
         }
     };
 
+    // Brevo met jusqu'à un quart d'heure : l'état se relit tout seul pendant l'envoi.
+    const sending = sends.some((s) => s.delivery?.state === "sending");
+    useEffect(() => {
+        if (!sending) return;
+        const timer = setInterval(loadStatus, 45000);
+        return () => clearInterval(timer);
+    }, [sending, loadStatus]);
+
     const monday = mondayOfWeekKey(weekKey);
     const weekLabel = preview?.weekKey === weekKey ? `${preview.range} ${preview.year}` : (monday ? `Săptămâna ${weekKey.slice(-2)}` : weekKey);
-    const sends = status?.sends || [];
     const history = status?.history || [];
     const lastHash = history.length ? history[history.length - 1].contentHash : "";
     const changedSinceSend = sends.length > 0 && preview?.contentHash && lastHash && lastHash !== preview.contentHash;
     const isLate = sends.length > 0;
     const recipients = status?.recipients ?? 0;
 
-    // La pastille dit ce qui s'est vraiment passé : « trimis » dès qu'un envoi
-    // existe, « de trimis » seulement pour la semaine à envoyer encore non partie.
-    // Rien tant que l'état n'est pas lu.
-    const weekChip = !status
-        ? null
-        : sends.length > 0
-            ? <span className="wn-chip wn-chip--done">trimis</span>
-            : weekKey === defaultWeekKey()
-                ? <span className="wn-chip">de trimis</span>
-                : null;
+    // La pastille dit ce qui s'est vraiment passé chez Brevo. « de trimis »
+    // seulement pour la semaine à envoyer, rien tant que l'état n'est pas lu.
+    const stopped = sends.some((s) => s.delivery?.state === "stopped");
+    const [chipKind, chipText] = !status
+        ? []
+        : stopped ? ["stopped", "oprit"]
+            : sending ? ["sending", "se trimite"]
+                : sends.length > 0 ? ["done", "trimis"]
+                    : weekKey === defaultWeekKey() ? ["todo", "de trimis"] : [];
+    const weekChip = chipKind ? <span className={`wn-chip wn-chip--${chipKind}`}>{chipText}</span> : null;
 
     const sendLabel = !status
         ? "Trimite newsletter-ul"
         : recipients === 0
-            ? (isLate ? "Toți au primit-o" : "Niciun destinatar")
+            ? (sending ? "Se trimite…" : stopped ? "Trimitere oprită" : isLate ? "Toți au primit-o" : "Niciun destinatar")
             : isLate
                 ? `Trimite celor ${recipients} noi`
                 : "Trimite newsletter-ul";
@@ -307,18 +340,13 @@ export default function WeeklyNewsletterAdmin({ onDirtyChange }) {
                             <>
                                 {sends.map((s) => {
                                     const h = history.find((x) => x.listId === s.listId);
-                                    return (
-                                        <p key={s.listId} className="wn-status">
-                                            <span className="wn-dot wn-dot--done" />
-                                            Trimis{h?.at ? ` ${formatDateTime(h.at)}` : ""} la <b>{plural(s.count, "abonat", "abonați")}</b>{sends.length > 1 ? ` (#${s.number})` : ""}.
-                                        </p>
-                                    );
+                                    return <SendLine key={s.listId} send={s} at={h?.at} showNumber={sends.length > 1} />;
                                 })}
-                                <p className="wn-status">
-                                    {recipients > 0
-                                        ? <><span className="wn-dot wn-dot--todo" /><b>{plural(recipients, "abonat nou nu a", "abonați noi nu au")}</b> primit-o încă.</>
-                                        : <><span className="wn-dot wn-dot--done" />Toți abonații activi au primit-o.</>}
-                                </p>
+                                {recipients > 0 ? (
+                                    <p className="wn-status"><span className="wn-dot wn-dot--todo" /><b>{plural(recipients, "abonat nou nu a", "abonați noi nu au")}</b> primit-o încă.</p>
+                                ) : !sending && !stopped ? (
+                                    <p className="wn-status"><span className="wn-dot wn-dot--done" />A plecat către toți abonații activi.</p>
+                                ) : null}
                                 {changedSinceSend && (
                                     <p className="wn-warn">Programul s-a schimbat de la trimitere. Cei care au primit-o deja nu o vor primi din nou: doar abonații noi primesc versiunea actualizată.</p>
                                 )}
@@ -396,6 +424,10 @@ export default function WeeklyNewsletterAdmin({ onDirtyChange }) {
             <section className="wn-previewWrap">
                 <div className="wn-previewBar">
                     <span className="wn-previewTitle">Previzualizare {loadingPreview && <span className="wn-spinner" aria-label="Se generează" />}</span>
+                    <div className="wn-toggle wn-toggle--device" role="group" aria-label="Dispozitiv">
+                        <button type="button" className={phone ? "is-on" : ""} onClick={() => setPhone(true)}>Telefon</button>
+                        <button type="button" className={!phone ? "is-on" : ""} onClick={() => setPhone(false)}>Calculator</button>
+                    </div>
                     <div className="wn-toggle" role="group" aria-label="Mod de afișare">
                         <button type="button" className={!dark ? "is-on" : ""} onClick={() => setDark(false)}>Luminos</button>
                         <button type="button" className={dark ? "is-on" : ""} onClick={() => setDark(true)}>Întunecat</button>
@@ -411,8 +443,10 @@ export default function WeeklyNewsletterAdmin({ onDirtyChange }) {
                 {previewError && <p className="wn-error">{previewError}</p>}
                 {frameDoc && (
                     <iframe
+                        // Rechargé au changement de largeur : sa hauteur se remesure.
+                        key={phone ? "phone" : "desktop"}
                         ref={iframeRef}
-                        className="wn-frame"
+                        className={`wn-frame${phone ? " wn-frame--phone" : ""}`}
                         title="Previzualizarea newsletter-ului"
                         srcDoc={frameDoc}
                         sandbox="allow-same-origin"
