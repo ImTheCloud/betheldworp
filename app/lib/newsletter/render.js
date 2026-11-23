@@ -125,27 +125,25 @@ function chipKind(status) {
     return "s";
 }
 
-// Hauteur fixe : deux lignes de texte, ou trois quand il y a une note. Une boîte
-// étirée à la hauteur du texte devenait immense sur téléphone (23 nov 2026).
-function dayChip(kind, dayName, dateUTC, tall) {
+// Toujours la même taille, avec ou sans note (choix du 23 nov 2026).
+function dayChip(kind, dayName, dateUTC) {
     const c = CHIPS[kind];
-    const pad = tall ? "13px 0" : "6px 0 5px";
-    return `<div class="${c.cls}" style="width:52px;background-color:${c.bg};border:1px solid ${c.border};border-radius:10px;padding:${pad};text-align:center;">
+    return `<div class="${c.cls}" style="width:52px;background-color:${c.bg};border:1px solid ${c.border};border-radius:10px;padding:6px 0 5px;text-align:center;">
 <div class="${c.cls}-lbl" style="font-size:8px;font-weight:900;color:${c.lbl};letter-spacing:0.2px;line-height:1.1;white-space:nowrap;text-transform:uppercase;">${escapeHtml(dayName.toUpperCase())}</div>
 <div class="${c.cls}-num" style="font-size:19px;font-weight:900;color:${c.num};line-height:1.15;padding-top:1px;">${dateUTC.getUTCDate()}</div>
 </div>`;
 }
 
-function dayRow(kind, day, isLast, content, { tall = false, cls = "", valign = "top", style = "" } = {}) {
+function dayRow(kind, day, isLast, content, { cls = "", valign = "top", style = "" } = {}) {
     const border = isLast ? "" : `border-bottom:1px solid ${RULE};`;
     const pad = isLast ? "14px 0 6px" : "14px 0";
     return `<tr>
-<td class="rule" width="56" valign="top" style="padding:${pad};${border}">${dayChip(kind, day.name, day.date, tall)}</td>
+<td class="rule" width="56" valign="top" style="padding:${pad};${border}">${dayChip(kind, day.name, day.date)}</td>
 <td class="rule${cls ? ` ${cls}` : ""}" valign="${valign}" style="padding:${isLast ? "14px 0 6px 12px" : "14px 0 14px 12px"};${border}${style}">${content}</td>
 </tr>`;
 }
 
-// Une ligne : le titre (en couleur), puis l'heure et la pastille, puis la note.
+// Une ligne : l'heure et la pastille, puis le titre (en couleur), puis la note.
 // La pastille suit l'heure, toujours courte : après le titre, elle passait à la
 // ligne sur téléphone.
 function calendarRow(day, row, isLast) {
@@ -154,22 +152,22 @@ function calendarRow(day, row, isLast) {
     const titleWeight = kind === "n" ? 600 : 700;
     const tag = badge(row.status);
 
-    const title = `<div class="${c.titleCls}" style="font-size:15px;color:${c.title};font-weight:${titleWeight};line-height:1.45;">${escapeHtml(row.title)}</div>`;
+    const title = `<div class="${c.titleCls}" style="font-size:15px;color:${c.title};font-weight:${titleWeight};line-height:1.45;padding-top:2px;">${escapeHtml(row.title)}</div>`;
     const times = row.times.length
         ? `<span class="no-detect" style="color:inherit !important;text-decoration:none !important;">${timesHtml(row.times)}</span>`
         : "";
     const time = times || tag
-        ? `<div class="t-time" style="font-size:13px;font-weight:700;color:#475569;letter-spacing:0.3px;padding-top:2px;">${times}${times && tag ? "&nbsp; " : ""}${tag}</div>`
+        ? `<div class="t-time" style="font-size:13px;font-weight:700;color:#475569;letter-spacing:0.3px;line-height:1.5;">${times}${times && tag ? "&nbsp; " : ""}${tag}</div>`
         : "";
     const note = row.note
         ? `<div class="t-muted" style="font-size:13px;color:#64748b;padding-top:2px;line-height:1.45;">${escapeHtml(row.note)}</div>`
         : "";
 
     return dayRow(kind, day, isLast, `
-${title}
 ${time}
+${title}
 ${note}
-`, { tall: !!row.note && !!time });
+`);
 }
 
 // Un jour sans aucun créneau (pause d'été qui n'est pas affichée, par exemple)
