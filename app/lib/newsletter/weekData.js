@@ -47,6 +47,9 @@ const RO = tr.ro;
 const t = (key) => RO[key] ?? key;
 const RO_SITE_TITLES = Object.fromEntries(PROGRAM_SLOTS.map(({ id }) => [id, RO[`act_${id}`] || ""]));
 
+/** Programme en plus du programme habituel, le même mot que sur la pastille. */
+export const SPECIAL_PROGRAM = t("status_addition");
+
 const safeStr = (v) => String(v ?? "");
 
 function pickRo(value) {
@@ -185,6 +188,10 @@ export async function loadWeek(weekKey, { withSequel = true } = {}) {
             eventId,
             alsoEventIds: c.alsoEventIds || [],
             inSummary: c.inSummary,
+            // Ce dans quoi l'événement a lieu, pour les dates en tête.
+            program: c.status === "event" && normalizeActivityTitle(c.baseTitle) !== normalizeActivityTitle(c.title)
+                ? c.baseTitle
+                : c.status === "extra" ? SPECIAL_PROGRAM : "",
         };
     }
 
@@ -266,10 +273,11 @@ export async function loadWeek(weekKey, { withSequel = true } = {}) {
         if (!g.place && ev.place && !/bethel/i.test(ev.place)) g.place = ev.place;
         let occ = g.occurrences.find((o) => o.dayIndex === r.dayIndex);
         if (!occ) {
-            occ = { dayIndex: r.dayIndex, date: addDaysUTC(monday, r.dayIndex), times: [], untilNote: "" };
+            occ = { dayIndex: r.dayIndex, date: addDaysUTC(monday, r.dayIndex), times: [], programs: [], untilNote: "" };
             g.occurrences.push(occ);
         }
         r.times.forEach((x) => { if (!occ.times.includes(x)) occ.times.push(x); });
+        if (r.program && !occ.programs.includes(r.program)) occ.programs.push(r.program);
         if (r.until) occ.untilNote = r.until;
     });
     const nextDays = withSequel ? await addSequel([...groups.values()], events, sunday) : [];

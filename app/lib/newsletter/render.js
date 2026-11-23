@@ -11,7 +11,7 @@
 // le texte.
 
 import crypto from "node:crypto";
-import { DAY_NAMES, SITE, dayMonth } from "./weekData";
+import { DAY_NAMES, SITE, SPECIAL_PROGRAM, dayMonth } from "./weekData";
 
 const BLUE = "#0f4c8a";
 
@@ -204,6 +204,27 @@ ${calendarHtml(days)}
 
 // ── Événements ──
 
+// « Serviciu Divin de dimineață » + « Serviciu Divin de seară »
+// → « Serviciu Divin de dimineață și de seară ».
+function joinPrograms(list) {
+    const words = list.map((x) => x.split(" "));
+    let n = 0;
+    while (words.every((w) => n < w.length - 1 && w[n] === words[0][n])) n++;
+    if (n && words[0][n - 1] === "de") n--;
+    const parts = list.map((x, i) => (i ? words[i].slice(n).join(" ") : x));
+    return parts.length < 2 ? parts[0] || "" : `${parts.slice(0, -1).join(", ")} și ${parts[parts.length - 1]}`;
+}
+
+// Le programme pendant lequel l'événement a lieu, sous sa date.
+function programNote(programs = []) {
+    const usual = programs.filter((p) => p !== SPECIAL_PROGRAM);
+    const text = [
+        usual.length ? `În cadrul programului: ${joinPrograms(usual)}` : "",
+        programs.includes(SPECIAL_PROGRAM) ? SPECIAL_PROGRAM : "",
+    ].filter(Boolean).join(", ");
+    return text ? `<div class="t-muted" style="font-weight:400;color:#64748b;line-height:1.45;padding-bottom:6px;">${escapeHtml(text)}</div>` : "";
+}
+
 function occurrenceLine(o) {
     // dayIndex 7 et plus : suite de l'événement la semaine d'après.
     const when = `${DAY_NAMES[o.dayIndex % 7]}, ${capitalizeMonth(dayMonth(o.date))}`;
@@ -211,13 +232,13 @@ function occurrenceLine(o) {
         ? `, <span class="no-detect" style="color:inherit !important;text-decoration:none !important;">${timesHtml(o.times)}</span>`
         : "";
     const until = o.untilNote ? `<br />${escapeHtml(o.untilNote)}` : "";
-    return `${escapeHtml(when)}${times}${until}`;
+    return `<div>${escapeHtml(when)}${times}${until}</div>${programNote(o.programs)}`;
 }
 
 function occurrencesHtml(group) {
     const lines = group.occurrences.map(occurrenceLine);
-    if (group.place) lines.push(escapeHtml(group.place));
-    return lines.join("<br />");
+    if (group.place) lines.push(`<div>${escapeHtml(group.place)}</div>`);
+    return lines.join("");
 }
 
 function bodyParagraphs(list, firstPadTop = 0) {
@@ -508,8 +529,10 @@ ${others.map(secondaryEventHtml).join("\n")}
 
     // Empreinte du contenu généré à partir des données, hors objet et message :
     // elle dit si le programme a changé depuis un envoi.
+    // Les noms de programme se déduisent des lignes : hors empreinte, pour ne pas
+    // signaler à tort un changement sur les semaines déjà envoyées.
     const contentHash = crypto.createHash("sha256")
-        .update(JSON.stringify({ days: week.days, groups: week.eventGroups.map((g) => [g.title, g.description, g.image, g.occurrences]), next: week.nextDays?.length ? week.nextDays : undefined }))
+        .update(JSON.stringify({ days: week.days, groups: week.eventGroups.map((g) => [g.title, g.description, g.image, g.occurrences]), next: week.nextDays?.length ? week.nextDays : undefined }, (k, v) => (k === "program" || k === "programs" ? undefined : v)))
         .digest("hex")
         .slice(0, 16);
 
