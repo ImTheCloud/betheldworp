@@ -2,10 +2,10 @@
 
 ## Marque page (novembre 2026)
 
-Format Vistaprint : 51 x 152 mm, recto verso, en roumain, dans le thème clair du site.
+Format Vistaprint : 51 x 152 mm, recto verso, en roumain, sur fond blanc.
 
-1. Recto : la flamme et le nom, le Psaume 119:105 (Cornilescu), l'invitation et le site.
-2. Verso : le programme de la semaine, une ligne par rendez vous, l'adresse de l'église et un QR code vers betheldworp.be.
+1. Recto : la flamme, le nom de l'église, le verset Matei 18:20, un grand QR code vers www.betheldworp.be, le site et l'adresse.
+2. Verso : le titre « Programul săptămânal », le programme du lundi au dimanche avec l'heure de début et de fin, et un petit QR code vers la newsletter (`qr-newsletter.svg`, www.betheldworp.be/ro#newsletter).
 
 Les fichiers sont dans `design/marque-page` :
 
