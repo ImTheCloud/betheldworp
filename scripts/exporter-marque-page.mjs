@@ -1,6 +1,6 @@
 /**
  * Le marque page de Bethel Dworp, en roumain, au format Vistaprint (51 x 152 mm, recto verso), sur fond blanc.
- * Recto : la flamme, le nom de l'église, Matei 18:20, le grand QR code du site, www.betheldworp.be et l'adresse.
+ * Recto : la flamme, le nom de l'église, Efeseni 6:24, le grand QR code du site, www.betheldworp.be et l'adresse.
  * Verso : le grand titre, le programme du lundi au dimanche avec l'heure de début et de fin, et le petit QR code de la newsletter.
  * Le programme et l'adresse viennent du site (app/sections/WeeklyProgram.jsx). Les couleurs aussi : bleu nuit #0a2a43, bleu #164678.
  * PNG avec 1,5 mm de fonds perdus pour l'atelier Vistaprint, PDF pour un autre imprimeur, aperçu PNG au format fini.
@@ -17,8 +17,8 @@ const url = (p) => pathToFileURL(path.resolve(p)).href;
 const NUIT = '#0a2a43', BLEU = '#164678', ROUGE = '#9f1d1d', DOUX = '#56677a', TRAIT = '#d9e1ea';
 const SERIF = "'Hoefler Text','Baskerville',Georgia,serif";
 const SANS = "-apple-system,'Helvetica Neue',sans-serif";
-const verset = '„Căci unde sunt doi sau trei adunați în Numele Meu, acolo sunt și Eu în mijlocul lor.”';
-const reference = 'Matei 18:20';
+const verset = '„Harul să fie cu toți cei ce iubesc pe Domnul nostru Isus Hristos în curăție. Amin.”';
+const reference = 'Efeseni 6:24';
 // Le programme du site, du lundi au dimanche : le début, la fin et le nom de chaque rendez vous.
 const semaine = [
   ['Luni', [['20:00', '21:30', 'Seară de tineret și adolescenți']]],
