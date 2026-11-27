@@ -62,7 +62,7 @@ rendre('marque-page-recto', `
     <img src="${url('public/icon.png')}" style="height:17mm;display:block">
     <p style="margin-top:5mm;font-size:2.4mm;letter-spacing:.22em;text-transform:uppercase;color:${DOUX}">Biserica Penticostală</p>
     <p style="margin-top:1.5mm;font-size:9.6mm;letter-spacing:.06em;line-height:1">BETHEL</p>
-    <p style="margin-top:1mm;font-size:3.6mm;letter-spacing:.42em;padding-left:.42em;color:${BLEU}">DWORP</p>
+    <p style="margin-top:1mm;font-size:3.6mm;letter-spacing:.42em;padding-left:.42em;color:${NUIT}">DWORP</p>
     <div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center">
     ${filet('0')}
     <p style="margin-top:5mm;font-size:4.35mm;font-style:italic;line-height:1.34;text-wrap:balance">${verset}</p>
