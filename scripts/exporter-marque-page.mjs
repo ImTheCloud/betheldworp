@@ -63,9 +63,9 @@ rendre('marque-page-recto', `
     <p style="margin-top:5mm;font-size:2.4mm;letter-spacing:.22em;text-transform:uppercase;color:${DOUX}">Biserica Penticostală</p>
     <p style="margin-top:1.5mm;font-size:9.6mm;letter-spacing:.06em;line-height:1">BETHEL</p>
     <p style="margin-top:1mm;font-size:3.6mm;letter-spacing:.42em;padding-left:.42em;color:${BLEU}">DWORP</p>
-    ${filet('7mm 0 0')}
-    <div style="flex:1;display:flex;flex-direction:column;justify-content:center">
-    <p style="font-size:4.35mm;font-style:italic;line-height:1.34;text-wrap:balance">${verset}</p>
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center">
+    ${filet('0')}
+    <p style="margin-top:5mm;font-size:4.35mm;font-style:italic;line-height:1.34;text-wrap:balance">${verset}</p>
     <p style="margin-top:3mm;font-size:2.5mm;letter-spacing:.14em;text-transform:uppercase;color:${DOUX}">${reference}</p>
     </div>
     <div style="width:21mm;height:21mm">${qrSite}</div>
