@@ -73,6 +73,29 @@ rendre('marque-page-recto', `
     <p style="margin-top:.8mm;font-size:2.2mm;color:${DOUX}">${adresse}</p>
   </div>`, SERIF);
 
+// La variante aux deux versets phares de l'église, ceux que l'on confie aux invités. La référence n'est écrite qu'une fois.
+const verset23 = '„Pace fraților și dragoste împreună cu credința, din partea lui Dumnezeu Tatăl și din partea Domnului Isus Hristos!”';
+const citation = (texte, marge) => `<p style="margin-top:${marge};font-size:3.65mm;font-style:italic;line-height:1.34;text-wrap:balance">${texte}</p>`;
+const petit = (texte, marge) => `<p style="margin-top:${marge};font-size:2.3mm;letter-spacing:.14em;text-transform:uppercase;color:${DOUX}">${texte}</p>`;
+
+rendre('marque-page-deux-versets-recto', `
+  <div style="${interieur};display:flex;flex-direction:column;align-items:center;text-align:center;padding:7mm 2.8mm 6mm">
+    <img src="${url('public/icon.png')}" style="height:13mm;display:block">
+    <p style="margin-top:3.5mm;font-size:2.4mm;letter-spacing:.22em;text-transform:uppercase;color:${DOUX}">Biserica Penticostală</p>
+    <p style="margin-top:1.5mm;font-size:9.6mm;letter-spacing:.06em;line-height:1">BETHEL</p>
+    <p style="margin-top:1mm;font-size:3.6mm;letter-spacing:.42em;padding-left:.42em;color:${NUIT}">DWORP</p>
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center">
+      ${filet('0 0 4mm')}
+      ${petit('Salutul bisericii noastre', '0')}
+      ${citation(verset23, '4mm')}
+      ${citation(verset, '3.5mm')}
+      ${petit('Efeseni 6:23, 24', '3mm')}
+    </div>
+    <div style="width:18mm;height:18mm">${qrSite}</div>
+    <p style="margin-top:2.4mm;font-size:2.9mm;letter-spacing:.04em">www.betheldworp.be</p>
+    <p style="margin-top:.8mm;font-size:2.2mm;color:${DOUX}">${adresse}</p>
+  </div>`, SERIF);
+
 // Une ligne : le jour, puis l'heure de début et de fin en bleu, et le rendez vous dessous.
 const ligne = (jour, [debut, fin, quoi]) => `<div style="display:grid;grid-template-columns:12.4mm 1fr;column-gap:1.6mm;align-items:baseline">
   <span style="font-size:2.7mm;font-weight:700;color:${BLEU}">${jour}</span>
