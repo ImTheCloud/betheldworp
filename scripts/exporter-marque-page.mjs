@@ -64,9 +64,11 @@ rendre('marque-page-recto', `
     <p style="margin-top:1.5mm;font-size:9.6mm;letter-spacing:.06em;line-height:1">BETHEL</p>
     <p style="margin-top:1mm;font-size:3.6mm;letter-spacing:.42em;padding-left:.42em;color:${BLEU}">DWORP</p>
     ${filet('7mm 0 0')}
-    <p style="margin-top:5mm;font-size:4.35mm;font-style:italic;line-height:1.34;text-wrap:balance">${verset}</p>
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center">
+    <p style="font-size:4.35mm;font-style:italic;line-height:1.34;text-wrap:balance">${verset}</p>
     <p style="margin-top:3mm;font-size:2.5mm;letter-spacing:.14em;text-transform:uppercase;color:${DOUX}">${reference}</p>
-    <div style="margin-top:auto;width:21mm;height:21mm">${qrSite}</div>
+    </div>
+    <div style="width:21mm;height:21mm">${qrSite}</div>
     <p style="margin-top:2.4mm;font-size:2.9mm;letter-spacing:.04em">www.betheldworp.be</p>
     <p style="margin-top:.8mm;font-size:2.2mm;color:${DOUX}">${adresse}</p>
   </div>`, SERIF);
